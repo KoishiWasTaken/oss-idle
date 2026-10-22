@@ -20,14 +20,27 @@ import Entities from '../entity/entities';
 import Account from './account';
 import { message } from '../globals';
 import { t } from '@lingui/core/macro';
-import { music } from '../audio/MusicPlayer';
 import Synced from '@oss-idle/shared/helpers/synced';
-import PlayQueue from '../gameplay/playQueue';
+import PlayQueue, { AUTOPILOT_MODE } from '../gameplay/playQueue';
 import { SETTINGS } from '../db/settings';
+import type {
+	QueueEntry,
+	QueueState,
+} from '@oss-idle/shared/queue';
+import type { ServerMessage } from '@oss-idle/shared/community/wire';
+import {
+	receivePrefs,
+	resetPrefs,
+} from './queuePrefs';
+import { RESULT_SETTLE_MS } from '../components/result/settle';
+import {
+	retriesOnFail,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import Multiplayer from './multiplayer';
 import {
 	abortLocalPlay,
 	currentLocalPlay,
-	localPlayResult,
 	localPlayState,
 	pollLocalPlay,
 	startLocalPlay,
@@ -35,6 +48,14 @@ import {
 } from './localPlay';
 
 type ActivePlayState = Extract<PlayState, { phase: 'active' }>;
+
+/** A signed-in character's queue is the server's. */
+const online = (): boolean => {
+	const character = Entities.character.get();
+	return !!character && !character.isGuest();
+};
+
+const disabled = (): boolean => SETTINGS.autopilotMode.get() === AUTOPILOT_MODE.DISABLED;
 
 /** What came of trying to start the head of the queue: it is playing, something
  *  else is (so the queue keeps its place), or it did not start. */
@@ -50,6 +71,7 @@ export type LivePlay = {
 	token: string;
 	beatmap: LightBeatmap;
 	rate: number;
+	mods: Mod[];
 	startedAt: number;
 	endsAt: number;
 	accuracy?: number;
@@ -65,11 +87,13 @@ export type LivePlay = {
  * next map of the queue when one ends - none of which needs a scene to be
  * mounted. Leaving gameplay no longer stops anything.
  *
- * It never drags the player onto the playfield. Not for a play it started, and
- * not for one that turns up from elsewhere (another device, a reload mid-play):
- * both show in the dock, and `watch` is how you join them. Leaving gameplay has
- * to mean leaving - anything that re-enters on its own makes quitting look
- * broken, because it is.
+ * Signed in, the server owns the queue and chains it itself (spec/queue.md §9):
+ * this mirrors its countdown and pause, and plays locally the unranked maps it
+ * hands over. A guest's queue is chained here.
+ *
+ * It never drags the player onto the playfield - only a player still on the
+ * result screen follows the queue into its next play. Anything that re-enters
+ * on its own from elsewhere makes quitting look broken, because it is.
  */
 export default class PlayManager {
 
@@ -79,12 +103,60 @@ export default class PlayManager {
 	/** Seconds until the queue starts the next map, while one is pending. */
 	public static countdown = new Synced<number | undefined>(undefined);
 
+	/** The running countdown on this clock, for drawing it filling up. */
+	public static span = new Synced<{ start: number; end: number } | undefined>(undefined);
+
+	/** Show a countdown ending at `end`. One that only moved a little is the same
+	 *  countdown (a server push); one pushed back starts over, from now. */
+	private static setSpan(end: number | undefined): void {
+		const now = this.span.get();
+		if (end === undefined) {
+			if (now) void this.span.set(undefined);
+			return;
+		}
+		if (now && Math.abs(now.end - end) < 250) return;
+		void this.span.set({
+			start: Date.now(), end,
+		});
+	}
+
+	/** The result screen of a play just watched is up: the next map waits until
+	 *  it has settled, with time to spare, and its countdown starts now. */
+	private static resultHold = 0;
+	/** On the result screen of a play just watched: only then does the next play
+	 *  pull the player along (not from a score opened off a leaderboard). */
+	private static onWatchedResult = false;
+	public static leftResult(): void {
+		this.onWatchedResult = false;
+	}
+	public static holdForResult(): void {
+		this.onWatchedResult = true;
+		const ms = Math.max(SETTINGS.autopilotDelay.get() * 1000, RESULT_SETTLE_MS + 2000);
+		if (online()) {
+			Socket.send({
+				type: 'queue:hold', ms,
+			});
+			return;
+		}
+		this.resultHold = Date.now() + ms;
+		if (this.chainTimer === undefined) return;
+		this.cancelChain();
+		this.scheduleNext();
+	}
+
 	/** Paused: the running play finishes, and nothing follows it until resumed.
 	 *  Different from clearing - the queue keeps everything in it. */
 	public static paused = new Synced(false);
 
 	public static setPaused(paused: boolean): void {
+		if (!paused && disabled()) return;
 		void this.paused.set(paused);
+		if (online()) {
+			void Socket.sendSoon({
+				type: 'queue:pause', paused,
+			});
+			return;
+		}
 		if (paused) {
 			// hold what was left rather than sending it back to the start - the
 			// button reads as "stop the countdown", not "restart it". Captured
@@ -115,7 +187,7 @@ export default class PlayManager {
 	 *  Whoever starts a play already has the map; it says so here. */
 	private static known = new Map<string, LightBeatmap>();
 	public static attach(
-		play: { token: string, rate: number, startedAt: number, endsAt: number },
+		play: { token: string, rate: number, mods: Mod[], startedAt: number, endsAt: number },
 		beatmap: LightBeatmap,
 	): void {
 		this.known.set(play.token, beatmap);
@@ -131,9 +203,30 @@ export default class PlayManager {
 			token: play.token,
 			beatmap,
 			rate: play.rate,
+			mods: play.mods,
 			startedAt: play.startedAt,
 			endsAt: play.endsAt,
 		});
+	}
+
+	/** SD / PF: the map that just failed, played again before the queue moves on. */
+	private static again: LightBeatmap | undefined;
+
+	/** Play this map again now (an SD / PF fail). */
+	public static playAgain(beatmap: LightBeatmap): void {
+		this.again = beatmap;
+		this.cancelChain();
+		void this.playNext();
+	}
+
+	/** A play that just ended away from gameplay failed with SD / PF on: it goes again.
+	 *  Gameplay sends its own fails back itself. */
+	private static retryIfFailed(state: { phase: string, failed?: boolean }, scene: string): void {
+		const live = this.live.get();
+		if (state.phase !== 'finished' || !state.failed || scene === SCENE.GAME) return;
+		if (!live || !retriesOnFail(live.mods) || Multiplayer.current.get()) return;
+		this.again = live.beatmap;
+		this.immediate = true;
 	}
 
 	/** Token whose checkpoints this socket is watching. */
@@ -162,6 +255,86 @@ export default class PlayManager {
 			[SceneManager.current, playState, localPlayState],
 			() => void this.evaluate(),
 		);
+		void Entities.character.sync(() => this.identityChanged());
+		Socket.on('queue:state', ({ state }) => this.receive(state));
+		Socket.on('queue:offer', msg => void this.offered(msg));
+		Socket.on('queue:stopped', ({ reason }) => this.stopped(reason));
+		// a guest's Disabled queue never runs
+		void SETTINGS.autopilotMode.sync(mode => {
+			if (mode === AUTOPILOT_MODE.DISABLED && !online()) this.setPaused(true);
+		});
+	}
+
+	// --- the server's queue -------------------------------------------------
+
+	private static serverTick: number | undefined;
+
+	/** The server's queue: its pause, and its countdown on this clock. */
+	private static receive(state: QueueState): void {
+		void PlayQueue.receive(state);
+		receivePrefs(state.prefs);
+		void this.paused.set(state.paused);
+		window.clearInterval(this.serverTick);
+		this.serverTick = undefined;
+		const { nextAt } = state;
+		if (nextAt === undefined) {
+			if (this.countdown.get() !== undefined) void this.countdown.set(undefined);
+			this.setSpan(undefined);
+			return;
+		}
+		const at = nextAt + Date.now() - state.serverNow;
+		this.setSpan(at);
+		const tick = () => void this.countdown.set(Math.max(0, Math.round((at - Date.now()) / 1000)));
+		tick();
+		this.serverTick = window.setInterval(tick, 1000);
+	}
+
+	private static stopped(reason: Extract<ServerMessage, { type: 'queue:stopped' }>['reason']): void {
+		if (reason === 'restricted') Log.errorPopup(restrictedMessage());
+		else if (reason === 'inMatch') Log.popup(inMatchMessage());
+		else message.set(t`Could not start the next map - the queue is paused`);
+	}
+
+	/** The server's head is not ranked: play it here, if this client has it and
+	 *  wins the claim (another tab may want it too). */
+	private static async offered({
+		serial, entry,
+	}: { serial: number; entry: QueueEntry }): Promise<void> {
+		if (localPlayState.get()) return;
+		const beatmap = (await this.findDownloaded(entry.beatmapId))?.at(entry.rate);
+		if (!beatmap) return;
+		const claim = await Socket.request(
+			{
+				type: 'queue:claim', serial,
+			},
+			'queue:claim', 5000, r => r.serial === serial,
+		).catch(() => undefined);
+		if (!claim?.ok) return;
+		const started = await this.launch(beatmap);
+		// tell the server to move on rather than wait for a play that never ran
+		if (started !== 'started') {
+			Socket.send({
+				type: 'queue:localEnd', skip: true,
+			});
+		}
+	}
+
+	/** Play a map in the scene when the player is watching, else in the background. */
+	private static async launch(beatmap: LightBeatmap): Promise<StartResult> {
+		const scene = SceneManager.current.get();
+		return scene === SCENE.GAME || scene === SCENE.RESULT
+			? (launchPlay(beatmap) ? 'started' : 'failed')
+			: await this.startInBackground(beatmap);
+	}
+
+	/** A player still on the result screen follows the queue into its next play. */
+	private static followed: string | undefined;
+	private static async follow(state: ActivePlayState): Promise<void> {
+		if (!this.onWatchedResult) return;
+		if (this.followed === state.token || this.known.has(state.token)) return;
+		this.followed = state.token;
+		const beatmap = await this.findDownloaded(state.beatmapId);
+		if (beatmap && SceneManager.current.get() === SCENE.RESULT) launchPlay(beatmap);
 	}
 
 	private static async evaluate(): Promise<void> {
@@ -193,27 +366,12 @@ export default class PlayManager {
 		}
 
 		if (state.phase === 'active') {
-			// Already resulted, just not yet consumed server-side. From here that is
-			// an ending like any other - and it is checked before cancelling, since
-			// a second push for the same finished play would otherwise wipe the
-			// countdown its first one started and nothing would reschedule.
-			if (state.token === this.completedToken) {
-				this.unwatch();
-				await this.endedHere();
-				return;
-			}
-			// a play is running: nothing to chain into yet
-			this.cancelChain();
-			// gameplay draws the play itself; anywhere else the dock needs the
-			// server's checkpoints to show accuracy and grade
-			this.ranToken = state.token;
-			if (scene === SCENE.GAME) this.unwatch();
-			else this.watch(state.token);
-			await this.trackLive(state);
+			await this.evaluateActive(state, scene);
 			return;
 		}
 
 		this.unwatch();
+		this.retryIfFailed(state, scene);
 		// awaited: the result below carries the levels as they were *before* the
 		// play's parked purchases spent them, so the two must not race
 		await this.endedHere();
@@ -221,6 +379,27 @@ export default class PlayManager {
 			this.notified = state.token;
 			await this.consumeResult(state.token, scene);
 		}
+	}
+
+	private static async evaluateActive(state: ActivePlayState, scene: string): Promise<void> {
+		// Already resulted, just not yet consumed server-side. From here that is
+		// an ending like any other - and it is checked before cancelling, since
+		// a second push for the same finished play would otherwise wipe the
+		// countdown its first one started and nothing would reschedule.
+		if (state.token === this.completedToken) {
+			this.unwatch();
+			await this.endedHere();
+			return;
+		}
+		// a play is running: nothing to chain into yet
+		this.cancelChain();
+		// gameplay draws the play itself; anywhere else the dock needs the
+		// server's checkpoints to show accuracy and grade
+		this.ranToken = state.token;
+		if (scene === SCENE.GAME) this.unwatch();
+		else this.watch(state.token);
+		if (scene === SCENE.RESULT && online()) void this.follow(state);
+		await this.trackLive(state);
 	}
 
 	/**
@@ -271,6 +450,7 @@ export default class PlayManager {
 					token: state.token,
 					beatmap: run.beatmap,
 					rate: run.rate,
+					mods: run.mods,
 					startedAt: state.startedAt,
 					endsAt: state.endsAt,
 					accuracy: state.accuracy,
@@ -283,8 +463,8 @@ export default class PlayManager {
 		// finished: the session already built, saved and paid for it. Clearing the
 		// state hands the character back to the server's view for the next play.
 		this.pollLocal(false);
+		this.retryIfFailed(state, scene);
 		void localPlayState.set(undefined);
-		if (scene === SCENE.SELECT) this.showLocalResult(state.token);
 		void this.endedHere();
 	}
 
@@ -301,30 +481,35 @@ export default class PlayManager {
 		this.localTicker = window.setInterval(() => pollLocalPlay(), 1000);
 	}
 
-	private static showLocalResult(token: string): void {
-		const res = localPlayResult(token);
-		if (!res || res.failed || !res.score) return;
-		music.beatmap.set(res.beatmap);
-		SceneManager.set(SCENE.RESULT, res.score, undefined, res.gains, false, res.beatmap);
-	}
-
 	// --- the queue ----------------------------------------------------------
 
 	/** Start the next map once the delay is up. The play the player is watching
 	 *  ends on the result screen, so the countdown is visible there; started from
 	 *  anywhere else it just happens. */
 	private static scheduleNext(): void {
+		// the server chains a signed-in queue; an SD / PF retry is started here too,
+		// and start-or-join lands both on the same play
+		if (online() && !this.again) return;
 		if (this.chainTimer !== undefined) return;
-		if (this.paused.get()) return;
-		if (!PlayQueue.next()) return;
+		if (this.paused.get()) {
+			// a retry held back by a pause is dropped, not replayed on a later ending
+			this.again = undefined;
+			this.immediate = false;
+			return;
+		}
+		if (!this.again && !PlayQueue.next()) return;
 
 		const delay = this.immediate
 			? 0
-			: this.remaining ?? Math.max(0, SETTINGS.autopilotDelay.get());
+			: this.remaining ?? Math.max(
+				SETTINGS.autopilotDelay.get(),
+				(this.resultHold - Date.now()) / 1000,
+			);
 		this.immediate = false;
 		this.remaining = undefined;
 		let left = Math.round(delay);
 		void this.countdown.set(left);
+		this.setSpan(Date.now() + delay * 1000);
 		this.tickTimer = window.setInterval(() => {
 			left = Math.max(0, left - 1);
 			void this.countdown.set(left);
@@ -336,13 +521,38 @@ export default class PlayManager {
 	}
 
 	public static cancelChain(): void {
+		const ticking = this.chainTimer !== undefined;
 		if (this.chainTimer !== undefined) window.clearTimeout(this.chainTimer);
 		if (this.tickTimer !== undefined) window.clearInterval(this.tickTimer);
 		this.chainTimer = undefined;
 		this.tickTimer = undefined;
 		// only a pause sets this, and it captures the value before calling here
 		this.remaining = undefined;
+		// signed in, the countdown on show is the server's: only this client's own
+		// timer is cancelled here
+		if (online() && !ticking) return;
 		if (this.countdown.get() !== undefined) void this.countdown.set(undefined);
+		this.setSpan(undefined);
+	}
+
+	/** Signing in or out swaps whose queue this is: nothing of the other one's
+	 *  countdown, pause or timers carries over. */
+	private static wasOnline: boolean | undefined;
+	private static identityChanged(): void {
+		const now = online();
+		if (now === this.wasOnline) return;
+		this.wasOnline = now;
+		window.clearInterval(this.serverTick);
+		this.serverTick = undefined;
+		this.cancelChain();
+		this.again = undefined;
+		this.immediate = false;
+		this.resultHold = 0;
+		void this.paused.set(false);
+		if (this.countdown.get() !== undefined) void this.countdown.set(undefined);
+		this.setSpan(undefined);
+		PlayQueue.reset();
+		resetPrefs();
 	}
 
 	/**
@@ -355,20 +565,19 @@ export default class PlayManager {
 	 * countdown sitting at zero and nothing to say why.
 	 */
 	private static async playNext(): Promise<void> {
-		const next = PlayQueue.next();
+		const again = this.again;
+		const next = again ?? PlayQueue.next();
 		if (!next) return;
 		// scoped to the one skip that asked for it: the paths that do not go
 		// through scheduleNext would otherwise leave it set for the next play
 		this.immediate = false;
 
-		const scene = SceneManager.current.get();
-		const started: StartResult = scene === SCENE.GAME || scene === SCENE.RESULT
-			? (launchPlay(next) ? 'started' : 'failed')
-			: await this.startInBackground(next);
+		const started = await this.launch(next);
 
 		if (started === 'started') {
 			this.failures = 0;
-			PlayQueue.advance(next);
+			this.again = undefined;
+			if (!again) PlayQueue.advance(next);
 			return;
 		}
 		// something else is playing: the queue is intact and its ending chains
@@ -379,6 +588,7 @@ export default class PlayManager {
 		console.warn('[queue] could not start', next.metadata.version);
 		if (++this.failures >= MAX_START_FAILURES) {
 			this.failures = 0;
+			this.again = undefined;
 			message.set(t`Could not start the next map - the queue is paused`);
 			this.setPaused(true);
 			return;
@@ -445,6 +655,12 @@ export default class PlayManager {
 	 *  wait for - no play is going to end and pull it along - so this is what
 	 *  gets it going. */
 	public static startNow(): void {
+		if (disabled()) return;
+		if (online()) {
+			void this.paused.set(false);
+			Socket.send({ type: 'queue:start' });
+			return;
+		}
 		void this.paused.set(false);
 		this.cancelChain();
 		void this.playNext();
@@ -455,6 +671,18 @@ export default class PlayManager {
 	 *  through the one path stops a skip and a natural end from both advancing. */
 	public static async skip(): Promise<void> {
 		const live = this.live.get();
+		if (online()) {
+			const local = localPlayState.get();
+			if (local) {
+				abortLocalPlay(local.token);
+				Socket.send({
+					type: 'queue:localEnd', skip: true,
+				});
+			} else {
+				Socket.send({ type: 'queue:skip' });
+			}
+			return;
+		}
 		this.cancelChain();
 		this.immediate = true;
 		if (!live) {
@@ -517,6 +745,7 @@ export default class PlayManager {
 			token: state.token,
 			beatmap,
 			rate: state.rate,
+			mods: state.mods,
 			startedAt: state.startedAt + skew,
 			endsAt: state.endsAt + skew,
 			accuracy: state.accuracy,
@@ -524,9 +753,8 @@ export default class PlayManager {
 		});
 	}
 
-	/** Take a finished play's authoritative result: shown on the result screen
-	 *  when the player is sitting in song select waiting for it, mirrored quietly
-	 *  when they are off doing something else. */
+	/** Take a finished play's authoritative result, quietly: only a play the
+	 *  player watched leads to its result screen, and that is the scene's doing. */
 	private static async consumeResult(token: string, scene: string): Promise<void> {
 		// The scene marks a play complete when it tears down: it has shown the
 		// result and logged it, and doing either again is one score reported twice.
@@ -534,7 +762,7 @@ export default class PlayManager {
 		// yet - a sweep finalising first would otherwise mirror the score here and
 		// the scene would mirror it again on its own ending.
 		if (token === this.completedToken || scene === SCENE.GAME) return;
-		const res = await fetchPlayResult(token, false, scene === SCENE.SELECT).catch(() => null);
+		const res = await fetchPlayResult(token, false, false).catch(() => null);
 		if (!res || res.failed || !res.score) return;
 
 		// the one started keeps its playlist's locked rate
@@ -545,10 +773,6 @@ export default class PlayManager {
 		const saved = await score.add().catch(() => score);
 		void ScoreXP.record(saved, res.gains);
 		logPlayFinished(saved, beatmap, res.gains);
-
-		if (scene !== SCENE.SELECT) return;
-		music.beatmap.set(beatmap);
-		SceneManager.set(SCENE.RESULT, saved, undefined, res.gains, false, beatmap, res.medals);
 	}
 
 	/** The downloaded (playable) difficulty for a beatmap id, or null. */

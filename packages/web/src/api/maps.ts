@@ -9,6 +9,7 @@ import {
 	mapCoverUrl,
 	type BeatmapStatus,
 	type MapCover,
+	type MapTag,
 } from '@oss-idle/shared/beatmap';
 
 /** A set's cover as a CSS background-image: osu!'s, else our own preview. */
@@ -45,10 +46,17 @@ export const uploadBeatmap = async (file: File) => {
 	return json<{ setId: number; difficulties: number }>(res);
 };
 
-/** Admin: set the ranked date and/or status of a set. */
+export type NominationPatch = {
+	rankedAt?: string | null;
+	status?: BeatmapStatus;
+	bundled?: boolean;
+	categorized?: boolean;
+};
+
+/** Admin: set the ranked date, status or tags of a set. */
 export const updateNomination = (
 	setId: number, 
-	body: { rankedAt?: string | null; status?: BeatmapStatus },
+	body: NominationPatch,
 ) =>
 	unwrap(rpc.v1.beatmap.nomination[':setId'].$patch({
 		param: { setId: String(setId) }, json: body, 
@@ -61,6 +69,15 @@ export const setDiffRanked = (setId: number, beatmapId: number, ranked: boolean)
 			setId: String(setId), beatmapId: String(beatmapId),
 		},
 		json: { ranked },
+	}));
+
+/** Admin: a difficulty's hand-set tags (SV, LN). */
+export const setDiffTags = (setId: number, beatmapId: number, tags: MapTag[]) =>
+	unwrap(rpc.v1.beatmap.nomination[':setId'].beatmap[':beatmapId'].tags.$put({
+		param: {
+			setId: String(setId), beatmapId: String(beatmapId),
+		},
+		json: { tags },
 	}));
 
 /** Admin: drop a set (rows + files) from the queue. */

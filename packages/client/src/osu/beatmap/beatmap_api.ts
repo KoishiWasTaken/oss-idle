@@ -3,12 +3,14 @@ import {
 	Unzipped,
 } from 'fflate';
 import type { InferResponseType } from 'hono/client';
+import sleep from '@oss-idle/shared/helpers/sleep';
 import API from '../../online/api';
 import {
 	BASE_URL,
 	rpc,
 } from '../../online/client';
 import Socket from '../../online/socket';
+import { SETTINGS } from '../../db/settings';
 import BeatmapStore, {
 	SetRecord,
 	beatmapsVersion,
@@ -18,6 +20,25 @@ import BeatmapStore, {
 export type Manifest = InferResponseType<typeof rpc.v1.beatmap.catalog.$get>;
 export type Metadata = Manifest['beatmaps'][number];
 export type VersionMetadata = Metadata['versions'][number];
+
+const PARALLEL_DOWNLOADS = 4;
+let downloading = 0;
+const waiting: (() => void)[] = [];
+
+/** Waits for one of the parallel download slots; call the result to hand it on. */
+const downloadSlot = async (): Promise<() => void> => {
+	if (downloading < PARALLEL_DOWNLOADS) downloading++;
+	else await new Promise<void>(resolve => waiting.push(resolve));
+	return () => {
+		const next = waiting.shift();
+		if (next) next();
+		else downloading--;
+	};
+};
+
+/** In song select before it is downloaded. */
+export const isListed = (meta: Metadata) =>
+	meta.bundled && SETTINGS.showUndownloaded.get();
 
 export default class BeatmapAPI {
 
@@ -59,8 +80,21 @@ export default class BeatmapAPI {
 		const existing = await BeatmapStore.getSet(metadata.id);
 		if (existing) return existing;
 
-		const res = await API.fetch(`${BASE_URL}/v1/beatmap/osz/${metadata.id}${bulk ? '?bulk' : ''}`);
-		const buf = await this.readWithProgress(res, onProgress);
+		const release = await downloadSlot();
+		let buf: Uint8Array;
+		try {
+			const url = `${BASE_URL}/v1/beatmap/osz/${metadata.id}${bulk ? '?bulk' : ''}`;
+			let res = await API.fetch(url);
+			// over the server's 10 downloads per address (another device or tab)
+			while (res.status === 429) {
+				await sleep(2_000);
+				res = await API.fetch(url);
+			}
+			if (!res.ok) throw new Error(`Download of set ${metadata.id} failed: ${res.status}`);
+			buf = await this.readWithProgress(res, onProgress);
+		} finally {
+			release();
+		}
 		const files = await new Promise<Unzipped>((resolve, reject) => {
 			unzip(buf, (err, data) => (err ? reject(err) : resolve(data)));
 		});

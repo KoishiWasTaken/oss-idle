@@ -73,17 +73,27 @@ export default function Cursor() {
 		window.addEventListener('pointerup', onUp);
 
 		let raf = 0;
+		// a still cursor writes nothing: a new style string every frame is garbage
+		let drawnX = NaN;
+		let drawnY = NaN;
 		const loop = () => {
-			root.style.transform = `translate(${target.x}px, ${target.y}px)`;
+			if (target.x !== drawnX || target.y !== drawnY) {
+				root.style.transform = `translate(${target.x}px, ${target.y}px)`;
+				drawnX = target.x;
+				drawnY = target.y;
+			}
 			let px = target.x;
 			let py = target.y;
 			for (let i = 0; i < TRAIL; i++) {
 				const t = trail[i];
-				t.x += (px - t.x) * 0.35;
-				t.y += (py - t.y) * 0.35;
-				const el = trailRefs.current[i];
-				if (el) 
-					el.style.transform = `translate(${t.x}px, ${t.y}px) translate(-50%, -50%)`;
+				const dx = (px - t.x) * 0.35;
+				const dy = (py - t.y) * 0.35;
+				if (Math.abs(dx) + Math.abs(dy) > 0.01) {
+					t.x += dx;
+					t.y += dy;
+					const el = trailRefs.current[i];
+					if (el) el.style.transform = `translate(${t.x}px, ${t.y}px) translate(-50%, -50%)`;
+				}
 				px = t.x;
 				py = t.y;
 			}

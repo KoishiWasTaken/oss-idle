@@ -1,5 +1,8 @@
 import './Announce.css';
-import type { CSSProperties } from 'react';
+import {
+	useState,
+	type CSSProperties,
+} from 'react';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { getLatest } from '../online/services/news';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
@@ -8,6 +11,11 @@ import { NEWS_TAGS } from '@oss-idle/shared/news';
 import { BASE_URL } from '../online/client';
 import { updateStatus } from '../online/desktopUpdate';
 import { useLingui } from '@lingui/react/macro';
+
+// one formatter for every render: making one is most of what formatting a date costs
+const DAY = new Intl.DateTimeFormat('en-US', {
+	month: 'short', day: 'numeric', 
+});
 
 /**
  * Lazer-style announcement toast for the latest news article, sitting at the
@@ -21,6 +29,8 @@ export default function Announce() {
 	const [status] = useSynced(updateStatus);
 	const latest = useAsync(getLatest, []);
 	const [seen] = useSynced(SETTINGS.news);
+	// the article goes in on the first hover, not on the menu's first frame
+	const [previewed, setPreviewed] = useState(false);
 
 	/** Don't show the dismissed news */
 	if (!latest || latest.id === seen) return;
@@ -31,12 +41,7 @@ export default function Announce() {
 	const cover = latest.imageUrl
 		? `${BASE_URL}${latest.imageUrl}`
 		: tag.image && `/web/news-media/${tag.image}`;
-	const date = latest.publishedAt
-		? new Date(latest.publishedAt)
-			.toLocaleDateString('en-US', {
-				month: 'short', day: 'numeric', 
-			})
-		: '';
+	const date = latest.publishedAt ? DAY.format(new Date(latest.publishedAt)) : '';
 
 	const dismiss = () => SETTINGS.news.set(latest.id);
 
@@ -50,7 +55,11 @@ export default function Announce() {
 	) return null;
 
 	return (
-		<aside className="announce" style={{ '--tag-hue': tag.hue } as CSSProperties}>
+		<aside
+			className="announce"
+			style={{ '--tag-hue': tag.hue } as CSSProperties}
+			onPointerEnter={() => setPreviewed(true)}
+		>
 			<button 
 				className="announce__body"
 				onClick={open} 
@@ -75,7 +84,7 @@ export default function Announce() {
 						    the web platform's article page. */}
 						<div><div
 							className="announce__preview-content"
-							dangerouslySetInnerHTML={{ __html: latest.content }}
+							dangerouslySetInnerHTML={previewed ? { __html: latest.content } : undefined}
 						/></div>
 					</div>
 				</div>

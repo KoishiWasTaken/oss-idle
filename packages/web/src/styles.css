@@ -187,7 +187,7 @@ html {
 
 body {
 	color: var(--text);
-	font-family: Torus, "Segoe UI", "Exo 2", system-ui, sans-serif;
+	font-family: Urbanist, "Segoe UI", "Exo 2", system-ui, sans-serif;
 	-webkit-font-smoothing: antialiased;
 }
 

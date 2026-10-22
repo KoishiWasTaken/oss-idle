@@ -15,9 +15,11 @@ import {
 	mysqlTable,
 	primaryKey,
 	timestamp,
+	varchar,
 } from 'drizzle-orm/mysql-core';
 import { characters } from './character';
 import type { ScoreDTO } from '@oss-idle/shared/score';
+import { parseMods } from '@oss-idle/shared/mods';
 import { db } from '../client';
 import { profilePage } from '../profilePage';
 import {
@@ -68,6 +70,8 @@ export const scoreTableDefinition = {
 	sr: decimal({
 		precision: 10, scale: 3,
 	}),
+	// modsKey: "HR,SD"
+	mods: varchar({ length: 16 }).notNull().default(''),
 };
 
 type ScoreCols = { characterId: AnyMySqlColumn; beatmapId: AnyMySqlColumn };
@@ -119,6 +123,7 @@ export function toScoreDTO(row: ScoreRow): ScoreDTO {
 		pp: parseFloat(row.pp),
 		ur: parseFloat(row.ur),
 		rate: parseFloat(row.rate),
+		mods: parseMods(row.mods),
 		playedAt: row.playedAt ? row.playedAt.getTime() : 0,
 	};
 }

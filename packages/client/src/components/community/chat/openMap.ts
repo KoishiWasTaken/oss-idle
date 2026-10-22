@@ -5,18 +5,30 @@ import {
 	webUrl,
 } from '../../../globals';
 import { music } from '../../../audio/MusicPlayer';
+import { isListed } from '../../../osu/beatmap/beatmap_api';
 import { findCard } from '../../../osu/beatmap/findCard';
+import Auth from '../../../online/auth';
+import { directLink } from '../../direct/directState';
+import BeatmapAPI from '../../../osu/beatmap/beatmap_api';
 import SceneManager, { SCENE } from '../../../scenes/SceneManager';
 import { queueSelection } from '../../songselect/selection';
 import type { MapRef } from './links';
 
-/** A map clicked in chat: song select moves to it, the main menu plays it,
- *  anywhere else nothing happens. A map the game doesn't list: its page on the site. */
+/** A map clicked in chat: oss!direct's panel for a supporter, like osu!. Otherwise song
+ *  select moves to it, the main menu plays it, anywhere else nothing happens; a map the
+ *  game doesn't list opens its page on the site. */
 export async function openChatMap(map: MapRef): Promise<void> {
+	if (Auth.user.get()?.supporter
+		&& (await BeatmapAPI.getManifest()).beatmaps.some(s => s.id === map.setId)) {
+		void isCommunityOpen.set(false);
+		void directLink.set(map.setId);
+		return;
+	}
 	const scene = SceneManager.current.get();
 	if (scene !== SCENE.SELECT && scene !== SCENE.MENU) return;
-	const beatmap = (await findCard(map.beatmapId, map.setId))?.beatmap;
-	if (!beatmap) {
+	const card = await findCard(map.beatmapId, map.setId);
+	const beatmap = card?.beatmap;
+	if (!beatmap || (!card.set.metadata.runtime && !isListed(card.set.metadata))) {
 		void webUrl.set(`maps/${map.setId}?diff=${map.beatmapId}`);
 		void isWebOpen.set(true);
 		return;

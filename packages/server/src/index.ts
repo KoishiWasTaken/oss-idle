@@ -14,6 +14,11 @@ import { separateStagingMapIds } from './beatmaps/storage';
 import { redis } from './redis';
 import { sweepDuePlays } from './play';
 import {
+	leaveOrPlayOn,
+	sweepAway,
+	sweepQueues,
+} from './queue';
+import {
 	roundsStarted,
 	sweepMatches,
 } from './ws/multiplayer';
@@ -75,6 +80,10 @@ void backfillRateStars();
 const sweep = setInterval(() => void sweepDuePlays(), 3_000);
 sweep.unref();
 
+// Start the next map of every queue whose countdown is up, game open or not.
+const queueSweep = setInterval(() => void sweepQueues(), 1_000);
+queueSweep.unref();
+
 // End finished match rounds and free the seats of players who went offline.
 const matchSweep = setInterval(() => void sweepMatches(), 3_000);
 matchSweep.unref();
@@ -90,7 +99,15 @@ const rankHistorySweep = setInterval(() => void sweepRankHistory(), 15 * 60_000)
 rankHistorySweep.unref();
 
 // Prune presence entries left behind by a crashed worker / unclean disconnect.
-const presenceSweep = setInterval(() => void sweepPresence(), 30_000);
+// Characters playing with their game closed stay on it until their window ends.
+// A client that vanished without its socket closing (a killed worker) is gone
+// all the same: its character plays on or logs off like any other.
+const presenceSweep = setInterval(
+	() => void sweepAway()
+		.catch(e => console.error('[queue] away sweep failed', e))
+		.then(() => sweepPresence(leaveOrPlayOn)),
+	30_000,
+);
 presenceSweep.unref();
 
 // Drop version reports from players who haven't reconnected within the adoption
@@ -112,7 +129,7 @@ const monitor = startMonitor();
  */
 const shutdown = (signal: string): void => {
 	console.log(`\n${signal} received - shutting down.`);
-	[sweep, matchSweep, rankSweep, rankHistorySweep, presenceSweep, adoptionSweep, abbySweep, monitor]
+	[sweep, queueSweep, matchSweep, rankSweep, rankHistorySweep, presenceSweep, adoptionSweep, abbySweep, monitor]
 		.forEach(clearInterval);
 	hub.closeAll();
 	drain();

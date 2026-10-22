@@ -1,0 +1,55 @@
+.share-preview {
+	position: fixed;
+	inset: 0;
+	z-index: 10002;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+}
+
+.share-preview.is-leaving {
+	opacity: 0;
+}
+
+.share-preview__flash {
+	position: absolute;
+	inset: 0;
+	background: #fff;
+	opacity: 0;
+	animation: share-flash 0.45s ease-out;
+}
+
+@keyframes share-flash {
+	15% {
+		opacity: 0.3;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+.share-preview__frame {
+	display: contents;
+}
+
+.share-preview__image {
+	position: relative;
+	max-width: min(72vw, 1400px);
+	max-height: 78vh;
+	border-radius: 8px;
+	box-shadow:
+		0 0 0 2px rgba(255, 255, 255, 0.85),
+		0 24px 60px rgba(0, 0, 0, 0.7);
+	pointer-events: auto;
+	cursor: pointer;
+	animation: share-in 0.2s ease-out;
+}
+
+@keyframes share-in {
+	from {
+		opacity: 0;
+		transform: scale(0.94);
+	}
+}

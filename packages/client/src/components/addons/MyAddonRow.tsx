@@ -1,5 +1,8 @@
 import { Trans } from '@lingui/react/macro';
-import { ADDON_STATUS } from '@oss-idle/shared/addon';
+import {
+	ADDON_BUILD_STATUS,
+	ADDON_STATUS,
+} from '@oss-idle/shared/addon';
 import { addonStatusLabel } from '@oss-idle/shared/display/addon';
 import type { Addon } from '../../online/addons';
 import AddonIcon from './AddonIcon';
@@ -24,6 +27,8 @@ export default function MyAddonRow({
 }: Props) {
 	const canSubmit = addon.status === ADDON_STATUS.unpublished
 					|| addon.status === ADDON_STATUS.denied;
+	const building = addon.buildStatus === ADDON_BUILD_STATUS.queued
+		|| addon.buildStatus === ADDON_BUILD_STATUS.building;
 
 	return (
 		<div className='addon'>
@@ -36,6 +41,12 @@ export default function MyAddonRow({
 					<span className={`addon__badge addon__badge--${addon.status}`}>
 						{addonStatusLabel(addon.status)}
 					</span>
+					{addon.buildStatus === ADDON_BUILD_STATUS.failed && (
+						<span className='addon__badge addon__badge--denied'><Trans>Build failed</Trans></span>
+					)}
+					{building && (
+						<span className='addon__badge addon__badge--unpublished'><Trans>Building</Trans></span>
+					)}
 					{addon.feedback && <span className='addon__feedback'>{addon.feedback}</span>}
 				</div>
 			</div>

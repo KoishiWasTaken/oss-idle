@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { rateSchema } from './rate.js';
+import { modsSchema } from './mods.js';
 import { Grades } from './judgement.js';
 import { Skills } from './skills.js';
 import { scoreDTO } from './score.js';
@@ -43,6 +44,8 @@ export const playStartResultDTO = z.discriminatedUnion('status', [
 		beatmapId: z.number().int(),
 		/** and at which rate - the client replays the map sped up the same way */
 		rate: rateSchema,
+		/** and with which mods - the client judges the replay with the same windows */
+		mods: modsSchema.default([]),
 		startedAt: z.number(),
 		endsAt: z.number(),
 		serverNow: z.number(),
@@ -66,6 +69,7 @@ export const playStateDTO = z.discriminatedUnion('phase', [
 		token: z.string(),
 		beatmapId: z.number().int(),
 		rate: rateSchema,
+		mods: modsSchema.default([]),
 		startedAt: z.number(),
 		endsAt: z.number(),
 		serverNow: z.number(),
@@ -77,6 +81,8 @@ export const playStateDTO = z.discriminatedUnion('phase', [
 		token: z.string(),
 		/** finalised server-side (the sweep) and not yet surfaced to any client */
 		notify: z.boolean(),
+		/** SD / PF retry the map on a fail */
+		failed: z.boolean().optional(),
 	}),
 	z.object({ phase: z.literal('idle') }),
 ]);
@@ -146,6 +152,8 @@ export const playClientMessages = [
 		xpMultiplier: z.number().int().positive().optional(),
 		/** held to what the character has unlocked; x1 when left out */
 		rate: rateSchema.optional(),
+		/** NF answers unranked: the client plays it locally */
+		mods: modsSchema.optional(),
 	}),
 	// arm this socket's play feed: with `next`, stream replay offsets from that
 	// cursor; without it, push live state checkpoints (the resume banner)

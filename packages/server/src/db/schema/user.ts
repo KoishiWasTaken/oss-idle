@@ -21,6 +21,8 @@ export const users = mysqlTable('user', {
 	lastActiveAt: timestamp(),
 	// unticked: private messages only from the accounts this one added
 	pmFromAnyone: boolean().notNull().default(true),
+	// unticked: the character stops playing when the game closes
+	keepPlaying: boolean().notNull().default(true),
 	// linked from the options; the Discord bot gives this account's level role to it
 	discordId: varchar({ length: 32 }).unique(),
 	// the supporter tag shows while this is in the future

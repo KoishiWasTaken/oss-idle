@@ -6,7 +6,11 @@ import {
 	ne,
 	sql,
 } from 'drizzle-orm';
-import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
+import {
+	INTRO_SET_ID,
+	type MapTag,
+	parseMapTags,
+} from '@oss-idle/shared/beatmap';
 import { db } from '../db/client';
 import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
@@ -60,6 +64,7 @@ type CatalogVersion = {
 	objects: number;
 	rice: number;
 	ln: number;
+	tags: MapTag[];
 };
 
 type CatalogSet = {
@@ -72,6 +77,11 @@ type CatalogSet = {
 	audio?: string;
 	/** the .osz's size in bytes */
 	size: number;
+	/** listed in song select before it is downloaded */
+	bundled: boolean;
+	rankedAt: string;
+	/** every difficulty's plays */
+	plays: number;
 	versions: CatalogVersion[];
 };
 
@@ -89,6 +99,8 @@ export const buildCatalog = async (): Promise<Catalog> => {
 			artist: beatmapset.artist,
 			title: beatmapset.title,
 			creator: beatmapset.creator,
+			bundled: beatmapset.bundled,
+			rankedAt: beatmapset.rankedAt,
 			b: beatmaps,
 		})
 		.from(beatmapset)
@@ -105,6 +117,9 @@ export const buildCatalog = async (): Promise<Catalog> => {
 				title: row.title,
 				artist: row.artist,
 				creator: row.creator,
+				bundled: row.bundled,
+				rankedAt: (row.rankedAt ?? new Date()).toISOString(),
+				plays: 0,
 				size: statSync(oszPath(row.setId), { throwIfNoEntry: false })?.size ?? 0,
 				versions: [],
 			};
@@ -129,8 +144,10 @@ export const buildCatalog = async (): Promise<Catalog> => {
 			objects: row.b.objects,
 			rice: row.b.rice,
 			ln: row.b.ln,
+			tags: parseMapTags(row.b.tags),
 		});
 
+		set.plays += row.b.plays;
 		set.audio ??= audio;
 		set.background ??= background;
 	}

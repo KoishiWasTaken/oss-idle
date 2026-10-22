@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-21 10:55\n"
+"PO-Revision-Date: 2026-10-22 23:02\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -362,15 +362,15 @@ msgstr "Bloquer"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Bold"
-msgstr ""
+msgstr "Gras"
 
 #: src/pages/beatmaps/BeatmapsetStats.tsx
 msgid "BPM"
 msgstr "BPM"
 
-#: src/pages/help/FAQ.tsx
-msgid "Browsers slow down tabs you aren't looking at, which can stall autopilot. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
-msgstr "Les navigateurs ralentissent les onglets que vous ne regardez pas, ce qui peut bloquer le pilote automatique. L'<0>application de bureau</0> n'a pas ce problème : elle continue de jouer lorsqu'elle est réduite et se met à jour toute seule."
+#: src/pages/store/SupporterPerks.tsx
+msgid "Browse every ranked map from the game's main menu and download any of them in one click, and open maps linked in the chat there too"
+msgstr "Parcourez toutes les maps classées depuis le menu principal du jeu et téléchargez-les en un clic, y compris les maps partagées dans le chat"
 
 #: src/pages/store/SupporterTag.tsx
 msgid "Buying one while your tag is active adds to the time you have left."
@@ -460,7 +460,7 @@ msgstr "Désélectionner"
 
 #: src/components/character/UserPage.tsx
 msgid "Click here to write your me! page."
-msgstr ""
+msgstr "Cliquez ici pour écrire votre page me!."
 
 #: src/pages/settings/OAuthClientSecret.tsx
 msgid "Client ID"
@@ -567,7 +567,7 @@ msgstr "Télécharger"
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Download every map"
-msgstr ""
+msgstr "Télécharger toutes les maps"
 
 #: src/pages/PlayOssIdle.tsx
 msgid "Download for {platform} (v{version})"
@@ -587,7 +587,7 @@ msgstr "Télécharger l'appli bureau"
 
 #: src/components/character/ProfileSection.tsx
 msgid "Drag to reorder"
-msgstr ""
+msgstr "Glisser pour réorganiser"
 
 #: src/pages/beatmaps/MapRequests.tsx
 msgid "Drop {count} requests?"
@@ -641,7 +641,7 @@ msgstr "Premières places"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Font Size"
-msgstr ""
+msgstr "Taille du texte"
 
 #: src/pages/store/OrderHistory.tsx
 msgid "For"
@@ -670,7 +670,7 @@ msgstr "Amis"
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Get every ranked beatmap in one go from the game's options."
-msgstr ""
+msgstr "Récupérez toutes les maps classées d'un coup depuis les options du jeu."
 
 #: src/pages/store/RecipientPicker.tsx
 msgid "gift"
@@ -713,7 +713,7 @@ msgstr "groupes"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Heading"
-msgstr ""
+msgstr "Titre"
 
 #: src/pages/AuthCallback.tsx
 msgid "Hello {username}!"
@@ -731,6 +731,10 @@ msgstr "salut !"
 #: src/components/leaderboard/medalLine.ts
 msgid "Highest overdrive"
 msgstr "Plus haut overdrive"
+
+#: src/components/character/RankArea.tsx
+msgid "Highest rank: {rank} on {date}"
+msgstr "Meilleur rang : {rank} le {date}"
 
 #: src/pages/matches/MatchGame.tsx
 msgid "Highest Score"
@@ -783,7 +787,7 @@ msgstr "Vous identifier et lire votre profil public."
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Image"
-msgstr ""
+msgstr "Image"
 
 #: src/pages/beatmaps/requestPhase.ts
 msgid "in nomination"
@@ -811,7 +815,7 @@ msgstr "Demande d'autorisation invalide."
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Italic"
-msgstr ""
+msgstr "Italique"
 
 #: src/pages/help/FAQ.tsx
 msgid "Its scores, pp and ranking progress are removed. The experience your skills earned on it stays."
@@ -827,7 +831,7 @@ msgstr "Clés"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Large"
-msgstr ""
+msgstr "Grand"
 
 #: src/pages/PublicLanding.tsx
 msgid "Latest news"
@@ -864,11 +868,11 @@ msgstr "Lever le silence"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Link"
-msgstr ""
+msgstr "Lien"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 #: src/pages/changelog/ChangelogNav.tsx
 msgid "listing"
@@ -961,7 +965,7 @@ msgstr "Combo Max"
 
 #: src/components/character/UserPage.tsx
 msgid "me!"
-msgstr ""
+msgstr "me!"
 
 #: src/components/leaderboard/PlayerMedalLeaderboard.tsx
 msgid "Medal Score"
@@ -987,6 +991,10 @@ msgstr "menu"
 msgid "Menu background"
 msgstr "Image de fond du menu"
 
+#: src/pages/beatmaps/MapRequests.tsx
+msgid "mine"
+msgstr "les miennes"
+
 #: src/components/character/AccountStanding.tsx
 msgid "Moderator"
 msgstr "Modérateur"
@@ -1005,7 +1013,7 @@ msgstr "plus d'options"
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "More map requests"
-msgstr ""
+msgstr "Plus de demandes de maps"
 
 #: src/components/character/CharacterHistorical.tsx
 msgid "Most Played Beatmaps"
@@ -1094,7 +1102,7 @@ msgstr "Personne"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: src/pages/PlayOssIdle.tsx
 msgid "Not yet available for {platform}"
@@ -1123,7 +1131,7 @@ msgstr "maintenant {now}"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Numbered List"
-msgstr ""
+msgstr "Liste numérotée"
 
 #: src/pages/settings/Settings.tsx
 msgid "OAuth"
@@ -1170,6 +1178,10 @@ msgstr "proposé"
 #: src/pages/store/Store.tsx
 msgid "order history"
 msgstr "historique des commandes"
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "oss!direct"
+msgstr "oss!direct"
 
 #: src/pages/store/SupporterTag.tsx
 msgid "oss!idle runs on a server that costs money every month. A supporter tag is how players help pay for it. It changes nothing in the game."
@@ -1246,6 +1258,10 @@ msgstr "Jouer dans le navigateur"
 msgid "Play now"
 msgstr "Jouer maintenant"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Play on longer"
+msgstr "Jouer plus longtemps"
+
 #: src/HeaderLinks.tsx
 #: src/routes/download.tsx
 msgid "play oss!idle"
@@ -1298,7 +1314,7 @@ msgstr "prévisualiser"
 
 #: src/components/character/UserPageEditor.tsx
 msgid "Preview"
-msgstr ""
+msgstr "Prévisualiser"
 
 #: src/components/leaderboard/Pager.tsx
 msgid "previous"
@@ -1334,7 +1350,7 @@ msgstr "Proposez-la sur la page des <0>propositions de maps</0>. N'importe quell
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Propose up to {supporterMax} maps for ranking at once, instead of {max}."
-msgstr ""
+msgstr "Proposez jusqu'à {supporterMax} maps au classement en même temps, au lieu de {max}."
 
 #: src/pages/beatmaps/MapClaims.tsx
 msgid "Proposed maps for ranking on Discord? Tick the ones you proposed and save, and they will count for your curator medals once an admin confirms."
@@ -1670,6 +1686,10 @@ msgstr "Déconnexion"
 msgid "signed in"
 msgstr "connecté"
 
+#: src/pages/help/FAQ.tsx
+msgid "Signed in, it doesn't: your character's queue runs on our server. As a guest, the game itself runs the queue, and browsers slow down tabs you aren't looking at, which can stall it. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
+msgstr "Une fois connecté, non : la playlist de votre personnage tourne sur notre serveur. En tant qu'invité, c'est le jeu lui-même qui fait tourner la playlist, et les navigateurs ralentissent les onglets que vous ne regardez pas, ce qui peut la bloquer. L'<0>application de bureau</0> n'a pas ce problème : elle continue à jouer quand elle est réduite et se met à jour toute seule."
+
 #: src/components/character/AccountStanding.tsx
 #: src/components/character/SanctionItems.tsx
 #: src/components/character/SilenceDialog.tsx
@@ -1709,7 +1729,7 @@ msgstr "skins"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Small"
-msgstr ""
+msgstr "Petit"
 
 #: src/pages/help/FAQ.tsx
 msgid "Small scripts made by players that add features to the game. Shared add-ons are reviewed by the team before they are published, but they run inside your game: only install the ones you trust."
@@ -1739,7 +1759,7 @@ msgstr "Dépenser des niveaux baisse vos niveaux de compétence et votre niveau 
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Spoiler Box"
-msgstr ""
+msgstr "Bloc spoiler"
 
 #: src/pages/beatmaps/BeatmapsetStats.tsx
 msgid "Star rating"
@@ -1752,7 +1772,7 @@ msgstr "boutique"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Strikethrough"
-msgstr ""
+msgstr "Barré"
 
 #: src/pages/scores/ScorePage.tsx
 msgid "Submitted on"
@@ -1818,8 +1838,8 @@ msgid "the match was disbanded"
 msgstr "la partie a été dissoute"
 
 #: src/pages/help/FAQ.tsx
-msgid "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop. You can reorder it, skip ahead or stop after the current map. The queue is not saved when you close the game; save it as a playlist to keep it."
-msgstr "La liste est la file de maps que votre personnage joue l'une après l'autre. Le pilote automatique la remplit depuis la sélection de musique : une playlist, les musiques suivantes, en aléatoire, ou la même map en boucle. Vous pouvez la réorganiser, passer des maps ou arrêter après la map en cours. La liste n'est pas sauvegardée quand vous fermez le jeu ; enregistrez-la en playlist pour la garder."
+msgid "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop (or not at all, when disabled). You can reorder it, skip ahead or stop after the current map. Signed in, the queue is your character's: every device shows the same one, and your character keeps playing it for 12 hours after you close the game (24 with oss!supporter), ranked maps only. You can turn that off in the options."
+msgstr "La playlist, ce sont les maps que votre personnage joue les unes après les autres. L'autopilote la remplit depuis la sélection des musiques : une playlist enregistrée, les musiques suivantes, en aléatoire, ou la même map en boucle (ou pas du tout, quand il est désactivé). Vous pouvez la réordonner, passer à la suivante ou vous arrêter après la map en cours. Une fois connecté, la playlist appartient à votre personnage : tous vos appareils affichent la même, et votre personnage continue à la jouer pendant 12 heures après la fermeture du jeu (24 avec oss!supporter), uniquement les maps classées. Vous pouvez désactiver cela dans les options."
 
 #: src/pages/PublicLanding.tsx
 msgid "The ultimate<0/>VSRG idle game"
@@ -1855,7 +1875,7 @@ msgstr "Temps"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Tiny"
-msgstr ""
+msgstr "Minuscule"
 
 #: src/pages/settings/Settings.tsx
 msgid "Title"
@@ -1988,13 +2008,17 @@ msgstr "Pourquoi mon jeu s'arrête-t-il en arrière-plan ?"
 msgid "Withdraw"
 msgstr "Retirer"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Write a me! page for your profile, and drag its sections into the order you like."
+msgstr "Écrivez une page me! pour votre profil, et réorganisez ses sections dans l'ordre qui vous plaît."
+
 #: src/components/character/UserPageEditor.tsx
 msgid "Write something about yourself, in BBCode."
-msgstr ""
+msgstr "Écrivez quelque chose sur vous, en BBCode."
 
 #: src/components/character/UserPage.tsx
-msgid "Writing a me! page is an <0>osu!supporter</0> perk."
-msgstr ""
+msgid "Writing a me! page is an <0>oss!supporter</0> perk."
+msgstr "Écrire une page me! est un avantage <0>oss!supporter</0>."
 
 #: src/components/character/RollbackUpgradeDialog.tsx
 msgid "XP level right after the upgrade was bought"
@@ -2036,6 +2060,10 @@ msgstr "Votre compte est restreint, vous ne pouvez donc rien acheter."
 msgid "Your character has eleven skills: accuracy, speed, stamina, jack speed, coordination, release, reading, consistency, concentration, speed jam and memory. Each one levels up on its own, from the parts of a map that test it. A jack-heavy map trains jack speed, a long map trains stamina, and so on. Your overall level grows with all of them."
 msgstr "Votre personnage a onze compétences : précision, vitesse, endurance, jackspeed, coordination, release, lecture, régularité, concentration, speed jam et mémoire. Chacune progresse séparément, grâce aux passages d'une map qui la sollicitent. Une map pleine de jacks entraîne le jackspeed, une map longue entraîne l'endurance, etc. Votre niveau global progresse avec toutes."
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Your character keeps playing its queue for {supporterHours} hours after you close the game, instead of {hours}."
+msgstr "Votre personnage continue à jouer sa playlist pendant {supporterHours} heures après la fermeture du jeu, au lieu de {hours}."
+
 #: src/pages/DiscordLinked.tsx
 msgid "Your Discord account is linked!"
 msgstr "Votre compte Discord est lié !"
@@ -2047,6 +2075,10 @@ msgstr "Vous aurez accès à un rôle sur le serveur Discord oss!idle selon votr
 #: src/pages/store/SupporterPerks.tsx
 msgid "Your name shows in gold in chat, for everyone to see."
 msgstr "Votre nom apparaît en doré dans le chat, aux yeux de tous."
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Your own profile"
+msgstr "Votre propre profil"
 
 #: src/pages/store/SupporterStatus.tsx
 msgid "Your supporter tag is valid until <0>{until}</0>."

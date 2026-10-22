@@ -34,3 +34,12 @@ export const showMedals = ({ ids, held }: MedalBatch) => {
 export const closeMedals = () => void shownMedals.set(undefined);
 
 Socket.on('medals', msg => showMedals(msg.medals));
+
+let checked = false;
+
+/** Once per session, back on the main menu: what the character earned while the
+ *  game was closed. Not connected yet: the next visit asks. */
+export const checkAwayMedals = (): void => {
+	if (checked) return;
+	checked = Socket.send({ type: 'medals:check' });
+};

@@ -45,24 +45,39 @@ export type DrawOptions = {
 	onGrade?: (grade: Grade) => void,
 };
 
+/** What the field layers draw: a game's, or a chart's in the editor's preview. */
+export type Field = Pick<
+	ManiaGame, 'keyCount' | 'notes' | 'scroll' | 'barlines' | 'columnFlash' | 'visibleNotesAt'
+>;
+
+/** A page canvas's 2D context, or a worker's (the editor draws its playfield in one). */
+export type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+
+/** What the layers read of a skin: its definition, which a worker can be handed. */
+export type SkinData = Pick<Skin, 'data'>;
+
 /** everything a layer needs to paint one frame */
-export type Frame = {
-	ctx: CanvasRenderingContext2D,
-	game: ManiaGame,
-	skin: Skin,
+export type Frame<G extends Field = ManiaGame> = {
+	/** the game's page canvas, or a worker's for the field layers */
+	ctx: G extends ManiaGame ? CanvasRenderingContext2D : Context2D,
+	game: G,
+	/** the whole skin for the game's HUD; its definition is all the field layers read */
+	skin: G extends ManiaGame ? Skin : SkinData,
 	/** song time in ms */
 	now: number,
+	/** the scroll position at `now` */
+	nowPos: number,
 	vp: Viewport,
 	g: PlayfieldGeometry,
 	opts: DrawOptions,
 };
 
 /** one stacked render layer - paints itself onto the frame's canvas */
-export type Layer = (f: Frame) => void;
+export type Layer<G extends Field = ManiaGame> = (f: Frame<G>) => void;
 
 export const playfieldGeometry = (
-	game: ManiaGame,
-	skin: Skin,
+	game: Field,
+	skin: SkinData,
 	vp: Viewport,
 ): PlayfieldGeometry => {
 	const keys = game.keyCount;
@@ -78,13 +93,15 @@ export const playfieldGeometry = (
 };
 
 /** y of a note at song time `time`, given the current `now`. */
-export const noteY = (f: Frame, time: number): number =>
-	f.g.lineY
-	- (f.game.scroll.positionAt(time) - f.game.scroll.positionAt(f.now))
-	* f.g.pxPerUnit;
+export const noteY = (f: Frame<Field>, time: number): number =>
+	posY(f, f.game.scroll.positionAt(time));
+
+/** y of scroll position `pos` (a note's or bar line's, worked out once). */
+export const posY = (f: Frame<Field>, pos: number): number =>
+	f.g.lineY - (pos - f.nowPos) * f.g.pxPerUnit;
 
 export const roundRect = (
-	ctx: CanvasRenderingContext2D,
+	ctx: Context2D,
 	x: number,
 	y: number,
 	w: number,

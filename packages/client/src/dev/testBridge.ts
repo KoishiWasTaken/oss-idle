@@ -113,7 +113,7 @@ const queue = () => {
 	if (!state) return undefined;
 	return {
 		label: state.label,
-		shuffle: state.shuffle,
+		mode: state.mode,
 		entries: state.entries.map(e => ({
 			id: e.metadata.id,
 			version: e.metadata.version,

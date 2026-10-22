@@ -63,6 +63,11 @@ const WAVE_MIN = 1.5;// smallest spike multiplier boost ("medium high")
 const WAVE_MAX = 6;// largest spike multiplier boost ("very high")
 const WAVE_DECAY = 0.03;// spike fall per second after firing (drops on its own)
 
+// each bar's direction around the circle, worked out once
+const ANGLES = Array.from({ length: TOTAL }, (_, b) => (b / TOTAL) * Math.PI * 2 - Math.PI / 2);
+const COS = ANGLES.map(Math.cos);
+const SIN = ANGLES.map(Math.sin);
+
 const WAVES = [
 	{
 		spikes: 1, speed: WAVE_SPEED, dir: -1, strength: 1, perBeat: 1, 
@@ -172,6 +177,11 @@ export default function LogoVisualizer({
 				boost[i] *= spikeDecay;
 			}
 
+			// white throughout, faded by globalAlpha: a colour string per bar per frame
+			// is garbage the menu then stutters to collect
+			ctx.fillStyle = '#fff';
+			ctx.strokeStyle = '#fff';
+			ctx.lineWidth = 1.5;
 			for (let L = 0; L < LAYERS.length; L++) {
 				const cfg = LAYERS[L];
 				for (let b = 0; b < TOTAL; b++) {
@@ -179,28 +189,22 @@ export default function LogoVisualizer({
 					// the spike is a multiplier on the bar's normal song-following height
 					const amp = RING_BASE + normal[i] * (1 + boost[i]);
 					if (amp < 0.01) continue;
-					const angle = (b / TOTAL) * Math.PI * 2 - Math.PI / 2;
 					const len = amp * maxLen * cfg.height;
-					const alpha = (cfg.baseAlpha + Math.min(1, amp) * cfg.gainAlpha) * cfg.opacity;
+					ctx.globalAlpha = (cfg.baseAlpha + Math.min(1, amp) * cfg.gainAlpha) * cfg.opacity;
 
 					// draw the bar as a capsule in its own rotated frame, extending
 					// outward from `base`; fill it solid or stroke just its outline
-					ctx.save();
-					ctx.translate(cx, cy);
-					ctx.rotate(angle);
+					const c = COS[b] * dpr;
+					const s = SIN[b] * dpr;
+					ctx.setTransform(c, s, -s, c, cx * dpr, cy * dpr);
 					ctx.beginPath();
 					ctx.roundRect(base, -cfg.width / 2, len, cfg.width, cfg.width / 2);
-					if (cfg.mode === 'stroke') {
-						ctx.lineWidth = 1.5;
-						ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-						ctx.stroke();
-					} else {
-						ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-						ctx.fill();
-					}
-					ctx.restore();
+					if (cfg.mode === 'stroke') ctx.stroke();
+					else ctx.fill();
 				}
 			}
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			ctx.globalAlpha = 1;
 
 			raf = requestAnimationFrame(draw);
 		};

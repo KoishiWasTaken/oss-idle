@@ -102,10 +102,6 @@ export async function recomputePP(characterId: number): Promise<void> {
  * is unranked. Skill XP is not reverted - there is no per-map XP ledger.
  */
 export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
-	const beatmap = await getBeatmapById(beatmapId);
-	// playTime accumulated per submitted score, in seconds (see addScoreToTotals)
-	const lengthSec = beatmap ? Math.round(beatmap.total_length / 1000) : 0;
-
 	const nonMiss = Judgements.filter(j => j !== JUDGEMENT.MISS);
 	const perCharacter = await db
 		.select({
@@ -119,6 +115,12 @@ export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
 		.from(scores)
 		.where(eq(scores.beatmapId, beatmapId))
 		.groupBy(scores.characterId);
+	// No scores, nothing derived from them either.
+	if (!perCharacter.length) return;
+
+	const beatmap = await getBeatmapById(beatmapId);
+	// playTime accumulated per submitted score, in seconds (see addScoreToTotals)
+	const lengthSec = beatmap ? Math.round(beatmap.total_length / 1000) : 0;
 
 	for (const row of perCharacter) {
 		const totals = await getCharacterTotals(row.characterId);

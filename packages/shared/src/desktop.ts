@@ -36,6 +36,10 @@ export interface DesktopUpdater {
 	install(): void;
 	/** Subscribe to update lifecycle/progress; returns an unsubscribe fn. */
 	onStatus(cb: (status: DesktopUpdateStatus) => void): () => void;
+	/** Staging: the release streams on the LAN server, and this build's. */
+	streams?(): Promise<{ current: string; streams: string[] }>;
+	/** Staging: install another stream's latest build; the app restarts into it. */
+	switchStream?(name: string): Promise<void>;
 }
 
 /**
@@ -73,6 +77,9 @@ export interface OssIdleDesktop {
 	setPresence(presence: DesktopPresence | null): void;
 	/** Subscribe to `oss-idle://` links the OS hands the app; returns an unsubscribe fn. */
 	onDeepLink(cb: (link: string) => void): () => void;
+	/** Staging: record ten seconds of Chromium's frame pipeline and send it to the
+	 *  staging server; resolves to how that went. */
+	trace?(): Promise<string>;
 	/** Quit the desktop app immediately. The browser `window.close()` lingers in
 	 *  Electron, so the renderer calls this for a snappy exit. No-op in a browser. */
 	quit(): void;

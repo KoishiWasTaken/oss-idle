@@ -1,8 +1,11 @@
 import { colorA } from '@oss-idle/shared/types/color';
-import type { Layer } from './frame';
+import type {
+	Field,
+	Layer,
+} from './frame';
 
 /** the per-column receptors at the judgement line, flashing on a hit */
-export const drawReceptors: Layer = ({ ctx, game, skin, now, g }) => {
+export const drawReceptors: Layer<Field> = ({ ctx, game, skin, now, g }) => {
 	for (let c = 0; c < g.keys; c++) {
 		const cx = g.x0 + c * skin.data.playfield.columnWidth;
 		const glow = Math.max(0, 1 - (now - game.columnFlash[c]) / 140);

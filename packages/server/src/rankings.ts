@@ -18,6 +18,8 @@ import {
 	characters,
 	RANK_HISTORY_DAYS,
 	type CharacterRow,
+	type RankBoard,
+	type RankHistory,
 } from './db/schema/character';
 import { character_totals } from './db/schema/character_totals';
 import { users } from './db/schema/user';
@@ -193,13 +195,49 @@ export const reindexCharacter = async (id: number) => {
 	const pipeline = redis.pipeline();
 	index(pipeline, character, (await getMedals(id)).map(m => m.medalId));
 	await pipeline.exec();
-	await refreshTodayRank(character.character);
+	await refreshTodayRank(character.character, character.user.country);
+};
+
+type BoardRanks = Partial<Record<RankBoard, number>>;
+type Highest = NonNullable<RankHistory['highest']>;
+
+/** The Redis key behind each profile rank board. */
+const boardKeys = (country: string): [RankBoard, string][] => [
+	['pp', globalKey('pp')],
+	['country', countryKey('pp', country)],
+	['score', globalKey('score')],
+	['overall', globalKey('overall')],
+	...Skills.map((s): [RankBoard, string] => [s, globalKey(s)]),
+];
+
+/** `highest` with every board `ranks` beats moved to `at`. */
+const withHighest = (highest: Highest = {}, ranks: BoardRanks, at: number): Highest => {
+	const next = { ...highest };
+	for (const [board, rank] of Object.entries(ranks) as [RankBoard, number | undefined][]) {
+		if (rank !== undefined && rank < (next[board]?.rank ?? Infinity)) next[board] = {
+			rank, at, 
+		};
+	}
+	return next;
+};
+
+const ranksOf = async (id: number, country: string): Promise<BoardRanks> => {
+	const keys = boardKeys(country);
+	const pipeline = redis.pipeline();
+	for (const [, key] of keys) pipeline.zrevrank(key, String(id));
+	const res = await pipeline.exec();
+	return Object.fromEntries(keys.map(([board], i) => {
+		const value = res?.[i]?.[1];
+		return [board, typeof value === 'number' ? value + 1 : undefined];
+	}));
 };
 
 /** A pp change moves today's rank: rewrite the current day's history sample
- *  (append it if the daily sweep hasn't reached this character yet). */
-const refreshTodayRank = async (row: Pick<CharacterRow, 'id' | 'rankHistory'>) => {
-	const rank = await globalRank('pp', row.id);
+ *  (append it if the daily sweep hasn't reached this character yet), and
+ *  record any new highest rank. */
+const refreshTodayRank = async (row: Pick<CharacterRow, 'id' | 'rankHistory'>, country: string) => {
+	const boards = await ranksOf(row.id, country);
+	const rank = boards.pp;
 	if (rank === undefined) return;
 	const today = new Date().toISOString().slice(0, 10);
 	const previous = row.rankHistory ?? {
@@ -212,7 +250,7 @@ const refreshTodayRank = async (row: Pick<CharacterRow, 'id' | 'rankHistory'>) =
 		.update(characters)
 		.set({
 			rankHistory: {
-				date: today, ranks,
+				date: today, ranks, highest: withHighest(previous.highest, boards, Date.now()),
 			},
 		})
 		.where(eq(characters.id, row.id));
@@ -539,40 +577,55 @@ export async function rebuildAll(): Promise<void> {
 	await pipeline.exec();
 }
 
-/** Append today's global pp rank to every character's stored history, once
- *  per UTC day (one worker wins the day's lock; the rest and later calls
- *  return immediately). */
+/** Every member's 1-based rank on one board. */
+const boardRanks = async (key: string) =>
+	new Map((await redis.zrevrange(key, 0, -1)).map((id, i) => [Number(id), i + 1]));
+
+/** Append today's global pp rank to every character's stored history and
+ *  record new highest ranks, once per UTC day (one worker wins the day's lock;
+ *  the rest and later calls return immediately). Ranks also move when others
+ *  pass or drop, so the highest ranks can't wait for the character's own play. */
 export const sweepRankHistory = async (): Promise<void> => {
 	const today = new Date().toISOString().slice(0, 10);
-	const doneKey = `${META}rankhistory:${today}`;
+	const doneKey = `${META}rankhistory:v2:${today}`;
 	if (await redis.exists(doneKey)) return;
 	const got = await redis.set(`${doneKey}:lock`, '1', 'EX', 600, 'NX');
 	if (got !== 'OK') return;
 	try {
-		const members = await redis.zrevrange(globalKey('pp'), 0, -1);
 		const rows = await db
 			.select({
-				id: characters.id, rankHistory: characters.rankHistory,
+				id: characters.id, rankHistory: characters.rankHistory, country: users.country,
 			})
-			.from(characters);
-		const history = new Map(rows.map(row => [row.id, row.rankHistory]));
+			.from(characters)
+			.innerJoin(users, eq(users.id, characters.userId));
+		const keys = new Set(rows.flatMap(row => boardKeys(row.country).map(([, key]) => key)));
+		const boards = new Map<string, Map<number, number>>();
+		for (const key of keys) boards.set(key, await boardRanks(key));
+		const now = Date.now();
 
-		for (let rank = 1; rank <= members.length; rank++) {
-			const id = Number(members[rank - 1]);
-			if (!history.has(id)) continue;
-			const previous = history.get(id) ?? {
+		for (const row of rows) {
+			const ranks: BoardRanks = Object.fromEntries(boardKeys(row.country)
+				.map(([board, key]) => [board, boards.get(key)?.get(row.id)]));
+			const rank = ranks.pp;
+			if (rank === undefined) continue;
+			const previous = row.rankHistory ?? {
 				date: '', ranks: [],
 			};
-			if (previous.date === today) continue;
-			const ranks = [...previous.ranks, rank].slice(-RANK_HISTORY_DAYS);
+			const highest = withHighest(previous.highest, ranks, now);
+			const moved = JSON.stringify(highest) !== JSON.stringify(previous.highest ?? {});
+			if (previous.date === today && !moved) continue;
 			await db
 				.update(characters)
 				.set({
 					rankHistory: {
-						date: today, ranks,
+						date: today,
+						ranks: previous.date === today
+							? previous.ranks
+							: [...previous.ranks, rank].slice(-RANK_HISTORY_DAYS),
+						highest,
 					},
 				})
-				.where(eq(characters.id, id));
+				.where(eq(characters.id, row.id));
 		}
 		await redis.set(doneKey, '1', 'EX', 2 * 86_400);
 	} finally {

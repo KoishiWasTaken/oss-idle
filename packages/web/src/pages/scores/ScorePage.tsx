@@ -15,7 +15,7 @@ import { coverBackground } from '../../api/maps';
 import Link from '../../components/Link';
 import Flag from '../../components/Flag';
 import ProfilePicture from '../../components/ProfilePicture';
-import RateBadge from '../../components/score/RateBadge';
+import ScoreMods from '../../components/score/ScoreMods';
 import ScoreDial from '../../components/score/ScoreDial';
 import ScoreTower from '../../components/score/ScoreTower';
 import { JUDGEMENT_COLUMNS } from '../beatmaps/judgementColumns';
@@ -63,7 +63,7 @@ export default function ScorePage({ show }: { show: Awaited<ReturnType<typeof ge
 				<ScoreDial accuracy={score.accuracy} grade={score.grade} />
 			</div>
 			<div className='score-info__item score-info__item--player'>
-				<div className='score-player__mods'><RateBadge rate={score.rate} /></div>
+				<div className='score-player__mods'><ScoreMods mods={score.mods} rate={score.rate} /></div>
 				<div className='score-player__score'>{num(score.score)}</div>
 				<div className='score-player__row--player'>
 					<span><Trans>Played by</Trans></span>

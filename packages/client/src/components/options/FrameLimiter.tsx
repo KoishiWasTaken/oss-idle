@@ -23,11 +23,6 @@ export default function FrameLimiter() {
 			label: `${fps} FPS`,
 		})),
 	];
-	// a browser never renders past the refresh rate
-	if (app) options.push({
-		value: 'unlimited',
-		label: <Trans>Unlimited</Trans>,
-	});
 	return (
 		<>
 			<div className="opt-row">

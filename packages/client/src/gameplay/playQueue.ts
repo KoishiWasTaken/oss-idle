@@ -1,34 +1,39 @@
 import Synced from '@oss-idle/shared/helpers/synced';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import BeatmapStore from '../osu/beatmap/beatmap_store';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
 import { t } from '@lingui/core/macro';
 import {
-	mapped,
-	ValueIn,
-} from '@oss-idle/shared/helpers/mapped';
+	AUTOPILOT_MODE,
+	type AutopilotMode,
+	type QueueEdit,
+	type QueueEntry,
+	type QueueSource,
+	type QueueState as ServerQueueState,
+} from '@oss-idle/shared/queue';
+import Socket from '../online/socket';
+import Entities from '../entity/entities';
+import { canPlayAt } from './playRate';
 
-export const AutopilotModes = [
-	'PLAYLIST',
-	'NEXT',
-	'SHUFFLE',
-	'LOOP',
-] as const;
-export const AUTOPILOT_MODE = mapped(AutopilotModes);
-export type AutopilotMode = ValueIn<typeof AUTOPILOT_MODE>;
+export {
+	AUTOPILOT_MODE,
+	AutopilotModes,
+	type AutopilotMode,
+	type QueueSource,
+} from '@oss-idle/shared/queue';
 
 export const autopilotModeLabels = (): Record<AutopilotMode, string> => ({
+	[AUTOPILOT_MODE.DISABLED]: t`Disabled`,
 	[AUTOPILOT_MODE.PLAYLIST]: t`Playlist`,
 	[AUTOPILOT_MODE.NEXT]: t`Next song`,
 	[AUTOPILOT_MODE.SHUFFLE]: t`Shuffle`,
 	[AUTOPILOT_MODE.LOOP]: t`Loop`,
 });
 
-export type QueueState = {
-	/** the source group/playlist name, for display */
-	label: string;
+export type QueueState = QueueSource & {
 	/** what is waiting to play, in play order. The head is what plays next. */
 	entries: LightBeatmap[];
-	/** re-randomise the order after each map instead of following it */
-	shuffle: boolean;
 };
 
 /** Fisher-Yates, on a copy. */
@@ -41,10 +46,70 @@ const shuffled = (entries: LightBeatmap[]): LightBeatmap[] => {
 	return out;
 };
 
+/**
+ * Fill the queue for a map launched from song select, per the autopilot mode:
+ *   DISABLED - nothing
+ *   LOOP     - replay this one map forever
+ *   PLAYLIST - chain the launched playlist group if grouped by playlist
+ *   NEXT     - chain in song-select order: the open group when grouped,
+ *              otherwise the whole search-filtered list
+ *   SHUFFLE  - same pool as NEXT, in a random order
+ */
+export const fillQueue = (beatmap: LightBeatmap, from: {
+	mode: AutopilotMode;
+	groupKey?: string;
+	label: string;
+	playlists: boolean;
+	pool: LightBeatmap[];
+}): void => {
+	const { mode, groupKey } = from;
+	if (mode === AUTOPILOT_MODE.DISABLED) return;
+	if (mode === AUTOPILOT_MODE.LOOP) {
+		PlayQueue.start({
+			label: beatmap.set.metadata.title, mode, groupKey,
+		}, [beatmap], 0);
+		return;
+	}
+	if (mode === AUTOPILOT_MODE.PLAYLIST && !from.playlists) return;
+	const pool = from.pool.filter(b => canPlayAt(b.lockedRate));
+	const index = pool.findIndex(b => b.is(beatmap));
+	if (index < 0) return;
+	PlayQueue.start({
+		label: from.label, mode, groupKey,
+	}, pool, index);
+};
+
 /** Only a downloaded map can be played, so only a downloaded map can wait in
  *  the queue - that is what keeps "the head is next" honest. */
 const playable = (entries: LightBeatmap[]): LightBeatmap[] =>
 	entries.filter(e => e.metadata.runtime);
+
+const toEntry = (b: LightBeatmap): QueueEntry => ({
+	beatmapId: b.metadata.id, rate: b.lockedRate,
+});
+
+/** A signed-in character's queue is the server's; a guest's lives here. */
+const online = (): boolean => {
+	const character = Entities.character.get();
+	return !!character && !character.isGuest();
+};
+
+/** The maps the server's entries name, the downloaded copy first. One this
+ *  device has never heard of stays on the server, just not in this view. */
+const resolve = async (entries: QueueEntry[]): Promise<LightBeatmap[]> => {
+	const byId = new Map<number, LightBeatmap>();
+	const add = (sets: LightBeatmapSet[]) => {
+		for (const b of sets.flatMap(s => s.beatmaps)) {
+			if (!byId.has(b.metadata.id)) byId.set(b.metadata.id, b);
+		}
+	};
+	add(await BeatmapStore.getAllSets());
+	if (entries.some(e => !byId.has(e.beatmapId))) {
+		const manifest = await BeatmapAPI.getManifest().catch(() => undefined);
+		if (manifest) add(manifest.beatmaps.map(m => LightBeatmapSet.fromMetadata(m)));
+	}
+	return entries.flatMap(e => byId.get(e.beatmapId)?.at(e.rate) ?? []);
+};
 
 /**
  * What the character plays next, and after that.
@@ -54,44 +119,76 @@ const playable = (entries: LightBeatmap[]): LightBeatmap[] =>
  * next, immediately - otherwise ordering it would be decoration. The map that
  * is *playing* is not in here; it is the live play (see PlayManager).
  *
- * It cycles rather than draining: a map that finishes goes to the back, so a
+ * It cycles rather than draining: a map that starts goes to the back, so a
  * playlist loops the way autopilot always has. Emptying it is what stops the
  * loop - "stop after this play".
  *
- * It is deliberately **not stored**: it lives in memory and dies with the tab,
- * like a local play. A queue worth keeping is saved as a playlist.
+ * Signed in, it lives on the server, which chains it whether or not the game is
+ * open (spec/queue.md §9): every edit goes there, and `state` is what the
+ * server last pushed. A guest's lives in memory and dies with the tab.
  */
 export default class PlayQueue {
 
 	public static state = new Synced<QueueState | undefined>(undefined);
 
+	/** Each push resolves on its own; an older one landing late must not win. */
+	private static received = 0;
+
+	/** Another identity took over: its queue arrives with its own push. */
+	public static reset(): void {
+		this.received++;
+		if (this.state.get()) void this.state.set(undefined);
+	}
+
+	/** Show what the server holds. */
+	public static async receive(state: ServerQueueState): Promise<void> {
+		const seq = ++this.received;
+		const entries = await resolve(state.entries);
+		if (seq !== this.received) return;
+		void this.state.set(state.entries.length ? {
+			label: state.label,
+			mode: state.mode,
+			groupKey: state.groupKey,
+			entries,
+		} : undefined);
+	}
+
 	/**
 	 * Fill the queue from a pool, with `index` the map being launched right now:
-	 * it drops to the back, and everything after it comes first.
+	 * it drops to the back, and everything after it comes first. Shuffle
+	 * reorders it once, here.
 	 */
 	public static start(
-		label: string,
+		source: QueueSource,
 		pool: LightBeatmap[],
 		index: number,
-		shuffle = false,
 	): void {
 		const launched = pool[index];
 		const rest = playable([
 			...pool.slice(index + 1),
 			...pool.slice(0, index),
 		]);
+		const ordered = source.mode === AUTOPILOT_MODE.SHUFFLE ? shuffled(rest) : rest;
 		// the launched map comes round again at the back, so a single-map queue
 		// (LOOP) repeats and a playlist wraps
-		const entries = launched?.metadata.runtime ? [...rest, launched] : rest;
+		const entries = launched?.metadata.runtime ? [...ordered, launched] : ordered;
 		void this.state.set({
-			label,
-			entries: shuffle ? shuffled(entries) : entries,
-			shuffle,
+			...source, entries,
 		});
+		if (online()) {
+			void Socket.sendSoon({
+				type: 'queue:set', source, entries: entries.map(toEntry),
+			});
+		}
 	}
 
 	public static stop(): void {
 		if (this.state.get()) void this.state.set(undefined);
+		if (online()) {
+			void Socket.sendSoon({
+				type: 'queue:set', source: { label: '' }, entries: [],
+			});
+		}
 	}
 
 	/** What plays next: the head of the queue, always. */
@@ -100,63 +197,50 @@ export default class PlayQueue {
 	}
 
 	/**
-	 * Move the map that just started to the back, so the queue cycles. Shuffling
-	 * reorders what is left and *then* puts it back, so the map that just played
-	 * cannot come round again immediately.
+	 * A guest's play just started: move it to the back, so the queue cycles. The
+	 * server does this itself for a signed-in character.
 	 *
 	 * `played` names it rather than assuming it is still the head: starting takes
 	 * a round trip or a whole simulation, and editing the queue meanwhile is the
 	 * point of the feature. One that has been removed in that window rotates
 	 * nothing - the queue is already what the player wants.
 	 */
-	public static advance(played?: LightBeatmap): LightBeatmap | undefined {
+	public static advance(played: LightBeatmap): void {
 		const s = this.state.get();
-		if (!s) {
-			this.stop();
-			return undefined;
-		}
-		const at = played ? s.entries.findIndex(e => e.is(played)) : 0;
-		const entry = at < 0 ? undefined : s.entries[at];
-		if (!entry) {
-			if (!played) this.stop();
-			return undefined;
-		}
-		const rest = s.entries.filter((_, i) => i !== at);
+		if (!s || online()) return;
+		const at = s.entries.findIndex(e => e.is(played));
+		if (at < 0) return;
 		void this.state.set({
-			...s, entries: [...(s.shuffle ? shuffled(rest) : rest), entry],
+			...s, entries: [...s.entries.filter((_, i) => i !== at), s.entries[at]],
 		});
-		return entry;
 	}
 
 	/** Add to the back. Starts a queue if there is none, so adding one map from
 	 *  an idle client is enough to have something to play. */
 	public static append(beatmap: LightBeatmap, label = ''): void {
 		const s = this.state.get();
-		if (!s) {
-			void this.state.set({
-				label, entries: playable([beatmap]), shuffle: false,
-			});
-			return;
-		}
-		this.set(s, [...s.entries, beatmap]);
+		this.edit(s ? [...s.entries, beatmap] : [beatmap], {
+			op: 'append', entry: toEntry(beatmap), label,
+		}, label);
 	}
 
 	/** Put a map at the head, where it plays next. */
 	public static playNext(beatmap: LightBeatmap, label = ''): void {
 		const s = this.state.get();
-		if (!s) {
-			this.append(beatmap, label);
-			return;
-		}
 		// by difficulty, not by instance: the library hands out fresh objects
 		// whenever it reloads, and two of them are the same map
-		this.set(s, [beatmap, ...s.entries.filter(e => !e.is(beatmap))]);
+		this.edit([beatmap, ...(s?.entries ?? []).filter(e => !e.is(beatmap))], {
+			op: 'playNext', entry: toEntry(beatmap), label,
+		}, label);
 	}
 
 	public static remove(at: number): void {
 		const s = this.state.get();
-		if (!s) return;
-		this.set(s, s.entries.filter((_, i) => i !== at));
+		const entry = s?.entries[at];
+		if (!s || !entry) return;
+		this.edit(s.entries.filter((_, i) => i !== at), {
+			op: 'remove', entry: toEntry(entry),
+		});
 	}
 
 	/** Reorder. Moving something to 0 is how "play this next" is expressed. */
@@ -166,23 +250,32 @@ export default class PlayQueue {
 		const entries = [...s.entries];
 		const [moved] = entries.splice(from, 1);
 		if (!moved) return;
-		entries.splice(Math.max(0, Math.min(entries.length, to)), 0, moved);
-		this.set(s, entries);
+		const at = Math.max(0, Math.min(entries.length, to));
+		const before = entries[at];
+		entries.splice(at, 0, moved);
+		this.edit(entries, {
+			op: 'move', entry: toEntry(moved), before: before && toEntry(before),
+		});
 	}
 
 	/** Empty the queue. The running play is not touched - it finishes, and then
 	 *  there is nothing behind it. */
 	public static clear(): void {
-		const s = this.state.get();
-		if (!s) return;
-		this.set(s, []);
+		if (!this.state.get()) return;
+		this.edit([], { op: 'clear' });
 	}
 
-	/** An edit never re-randomises what the player just arranged - shuffle only
-	 *  reorders when a map actually finishes. */
-	private static set(s: QueueState, entries: LightBeatmap[]): void {
+	/** Show the edit now; signed in, the server's push confirms it. */
+	private static edit(entries: LightBeatmap[], edit: QueueEdit, label = ''): void {
+		const s = this.state.get();
 		void this.state.set({
-			...s, entries: playable(entries),
+			// the server plays ranked maps this device never downloaded
+			...(s ?? { label }), entries: online() ? entries : playable(entries),
 		});
+		if (online()) {
+			void Socket.sendSoon({
+				type: 'queue:edit', edit,
+			});
+		}
 	}
 }

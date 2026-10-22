@@ -5,6 +5,7 @@ import {
 	type Judgement,
 } from '../judgement.js';
 import clamp from '../math/clamp.js';
+import { failsOn } from '../mods.js';
 
 /** What a divine adds on top of a marvelous, and only on a play that stayed
  *  pure - see ScoreState.accuracy. A full-divine play reads exactly 101%. */
@@ -177,15 +178,15 @@ export const DIVINE_WINDOW = 6;
 
 /** `divine` comes from the character's rebirth unlocks. Locked, its window is
  *  negative so no offset can ever fall in it. */
-export function maniaWindows(od: number, divine = false): HitWindows {
+export function maniaWindows(od: number, divine = false, scale = 1): HitWindows {
 	return {
-		[JUDGEMENT.DIVINE]: divine ? DIVINE_WINDOW : -1,
-		[JUDGEMENT.MARVELOUS]: 16.5,
-		[JUDGEMENT.PERFECT]: 64 - 3 * od,
-		[JUDGEMENT.GREAT]: 97 - 3 * od,
-		[JUDGEMENT.GOOD]: 127 - 3 * od,
-		[JUDGEMENT.BAD]: 151 - 3 * od,
-		[JUDGEMENT.MISS]: 188 - 3 * od,
+		[JUDGEMENT.DIVINE]: divine ? DIVINE_WINDOW * scale : -1,
+		[JUDGEMENT.MARVELOUS]: 16.5 * scale,
+		[JUDGEMENT.PERFECT]: (64 - 3 * od) * scale,
+		[JUDGEMENT.GREAT]: (97 - 3 * od) * scale,
+		[JUDGEMENT.GOOD]: (127 - 3 * od) * scale,
+		[JUDGEMENT.BAD]: (151 - 3 * od) * scale,
+		[JUDGEMENT.MISS]: (188 - 3 * od) * scale,
 	};
 }
 
@@ -276,6 +277,8 @@ export class ScoreState {
 		private readonly divineUnlocked = false,
 		/** what a slowed-down play keeps of its score (`scoreMultiplier` in rate.ts) */
 		private readonly scoreMultiplier = 1,
+		/** SD / PF: the worst judgement the play survives (`worstAllowed` in mods.ts) */
+		private readonly worstAllowed?: Judgement,
 	) {
 		this.od = this.od; // prevent unused var warning
 	}
@@ -304,7 +307,8 @@ export class ScoreState {
 
 		const hpChange = HP_VALUE[j](this.hp_diff);
 		this.hp = clamp(this.hp + (hpChange > 0 ? hpChange * this.hpMultiplier : hpChange), 0, MAX_HP);
-		if (!this.noFail && this.hp <= 0 && this.failedIndex < 0) this.failedIndex = this.judged;
+		const dead = this.hp <= 0 || failsOn(j, this.worstAllowed);
+		if (!this.noFail && dead && this.failedIndex < 0) this.failedIndex = this.judged;
 
 		const max = MAX_SCORE * 0.5 / this.maxObjects;
 		const base_score = max * (HIT_VALUE[j] / HIT_VALUE[JUDGEMENT.MARVELOUS]);

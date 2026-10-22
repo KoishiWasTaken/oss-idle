@@ -1,17 +1,20 @@
 import { useState } from 'react';
+import { Trans } from '@lingui/react/macro';
 import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { ADDON_TEMPLATE } from '@oss-idle/shared/addon';
+	ADDON_KIND,
+	ADDON_TEMPLATE,
+	type AddonKind,
+} from '@oss-idle/shared/addon';
 import { VERSION } from '@oss-idle/shared/version';
 import {
 	createAddon,
 	updateAddon,
 	type Addon,
+	type OwnAddon,
 } from '../../online/addons';
-import AddonIconField from './AddonIconField';
+import AddonEditMeta, { type AddonForm } from './AddonEditMeta';
 import AddonCodePane from './AddonCodePane';
+import AddonRepoPane from './AddonRepoPane';
 import AddonReadMeta from './AddonReadMeta';
 import PageBarActions from '../page/PageBarActions';
 import type { PageAction } from '../page/pageBar';
@@ -29,6 +32,10 @@ export type AddonDetail = {
 	tags: string[],
 	icon: string | null,
 	source: string,
+	kind: AddonKind,
+	repoUrl?: string,
+	tag?: string,
+	commit?: string,
 };
 
 /** Build a detail view-model from a catalog/own add-on DTO. */
@@ -41,6 +48,10 @@ export const detailOfDTO = (a: Addon): AddonDetail => ({
 	tags: a.tags,
 	icon: a.icon,
 	source: a.source,
+	kind: a.kind,
+	repoUrl: a.repoUrl,
+	tag: a.tag,
+	commit: a.commit,
 });
 
 /** Blank values for creating a new add-on. */
@@ -53,13 +64,36 @@ export const newAddonDetail = (): AddonDetail => ({
 	tags: [],
 	icon: null,
 	source: ADDON_TEMPLATE,
+	kind: ADDON_KIND.inline,
 });
 
-type EditAddonprops = { 
+const formOf = (detail: AddonDetail): AddonForm => ({
+	name: detail.name,
+	description: detail.description,
+	tags: detail.tags.join(', '),
+	version: detail.version,
+	gameVersion: detail.gameVersion ?? VERSION,
+	icon: detail.icon,
+	kind: detail.kind,
+	repoUrl: detail.repoUrl ?? '',
+});
+
+const bodyOf = (form: AddonForm, source: string) => ({
+	name: form.name.trim(),
+	description: form.description.trim(),
+	tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+	version: form.version.trim(),
+	gameVersion: form.gameVersion.trim(),
+	icon: form.icon,
+	source,
+	kind: form.kind,
+	repoUrl: form.kind === ADDON_KIND.repo ? form.repoUrl.trim() : undefined,
+});
+
+type EditAddonprops = {
 	mode: 'edit',
-	addonId?: number, 
-	feedback?: string | null, 
-	onSaved: () => void 
+	addon?: OwnAddon,
+	onSaved: (addon: OwnAddon) => void
 };
 
 type ViewAddonprops = { 
@@ -116,40 +150,32 @@ const barActions = (o: BarOpts): PageAction[] => {
  * while editing.
  */
 export default function AddonView(props: Props) {
-	const { t } = useLingui();
 	const { detail, onBack } = props;
 	const editing = props.mode === 'edit';
-	const feedback = props.mode === 'edit' ? props.feedback : undefined;
+	const own = props.mode === 'edit' ? props.addon : undefined;
 	const diffAgainst = props.mode === 'view' ? props.diffAgainst : undefined;
 	const viewActions = props.mode === 'view' ? props.actions : undefined;
 
-	const [name, setName] = useState(detail.name);
-	const [description, setDescription] = useState(detail.description);
-	const [tags, setTags] = useState(detail.tags.join(', '));
-	const [version, setVersion] = useState(detail.version);
-	const [gameVersion, setGameVersion] = useState(detail.gameVersion ?? VERSION);
-	const [icon, setIcon] = useState<string | null>(detail.icon);
+	const [form, setForm] = useState(() => formOf(detail));
+	const set = <K extends keyof AddonForm>(key: K, value: AddonForm[K]) =>
+		setForm(f => ({
+			...f, [key]: value,
+		}));
 	const [source, setSource] = useState(detail.source);
+	const [repoAddon, setRepoAddon] = useState(own);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | undefined>();
+	const repo = form.kind === ADDON_KIND.repo;
 
 	const save = async () => {
 		if (props.mode !== 'edit') return;
 		setBusy(true);
 		setError(undefined);
-		const body = {
-			name: name.trim(),
-			description: description.trim(),
-			tags: tags.split(',').map(s => s.trim()).filter(Boolean),
-			version: version.trim(),
-			gameVersion: gameVersion.trim(),
-			icon,
-			source,
-		};
+		const body = bodyOf(form, source);
 		try {
-			if (props.addonId !== undefined) await updateAddon(props.addonId, body);
-			else await createAddon(body);
-			props.onSaved();
+			props.onSaved(own
+				? await updateAddon(own.id, body)
+				: await createAddon(body));
 		} catch (e) {
 			setError(String((e as Error).message ?? e));
 		} finally {
@@ -161,62 +187,20 @@ export default function AddonView(props: Props) {
 		<div className='addon-view'>
 			<div className='addon-view__cols'>
 				<div className='addon-view__meta'>
-					{editing ? (
-						<>
-							{feedback && (
-								<div className='addon-view__feedback'>
-									<span className='addon-view__feedback-label'>
-										<Trans>Moderator feedback</Trans>
-									</span>
-									{feedback}
-								</div>
-							)}
-							<label className='addon-field'>
-								<span><Trans>Name</Trans></span>
-								<input value={name} onChange={e => setName(e.target.value)} maxLength={80} />
-							</label>
-							<label className='addon-field'>
-								<span><Trans>Description</Trans></span>
-								<textarea 
-									className='addon-desc'
-									value={description} 
-									onChange={e => setDescription(e.target.value)} maxLength={500} 
-								/>
-							</label>
-							<div className='addon-field-row'>
-								<label className='addon-field'>
-									<span><Trans>Version</Trans></span>
-									<input 
-										value={version} 
-										onChange={e => setVersion(e.target.value)}
-										placeholder='1.0.0' 
-									/>
-								</label>
-								<label className='addon-field'>
-									<span><Trans>Game version</Trans></span>
-									<input value={gameVersion} onChange={e => setGameVersion(e.target.value)} />
-								</label>
-							</div>
-							<label className='addon-field'>
-								<span><Trans>Tags</Trans></span>
-								<input 
-									value={tags}
-									onChange={e => setTags(e.target.value)} 
-									placeholder={t`comma, separated, tags`} 
-								/>
-							</label>
-							<AddonIconField value={icon} onChange={setIcon} />
-						</>
-					) : <AddonReadMeta detail={detail} />}
+					{editing
+						? <AddonEditMeta form={form} set={set} feedback={own?.feedback} />
+						: <AddonReadMeta detail={detail} />}
 				</div>
 
 				<div className='addon-field addon-field--code'>
-					<AddonCodePane
-						editing={editing} 
-						source={editing ? source : detail.source}
-						onChange={setSource} 
-						diffAgainst={diffAgainst} 
-					/>
+					{editing && repo
+						? <AddonRepoPane addon={repoAddon} onChange={setRepoAddon} />
+						: <AddonCodePane
+							editing={editing}
+							source={editing ? source : detail.source}
+							onChange={setSource}
+							diffAgainst={diffAgainst}
+						/>}
 				</div>
 			</div>
 
@@ -231,7 +215,7 @@ export default function AddonView(props: Props) {
 				actions={barActions({
 					editing,
 					busy,
-					canSave: !!name.trim(),
+					canSave: !!form.name.trim() && (!repo || !!form.repoUrl.trim()),
 					onBack, 
 					onSave: save, 
 					viewActions, 

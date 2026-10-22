@@ -56,6 +56,9 @@ const schema = z.object({
 	// Secret for signing our own session + CSRF-state JWTs.
 	JWT_SECRET: z.string().min(1),
 
+	// Bearer token of the repo add-on builder (scripts/addon-builder.mts). Unset, nothing builds.
+	ADDON_BUILD_SECRET: z.string().min(32).optional(),
+
 	// Redis holds the cross-process play state (pending plays, online/playing
 	// presence, session strain) so the API can run as a pm2 cluster. Defaults
 	// target a local redis-server; dev and prod are isolated by logical DB below.

@@ -9,6 +9,13 @@
 export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected'] as const;
 export type BeatmapStatus = (typeof BEATMAP_STATUS)[number];
 
+/** Tags set by hand on a difficulty, on top of what its .osu says. */
+export const MAP_TAGS = ['sv', 'ln'] as const;
+export type MapTag = (typeof MAP_TAGS)[number];
+
+export const parseMapTags = (csv: string): MapTag[] =>
+	MAP_TAGS.filter(tag => csv.split(',').includes(tag));
+
 /**
  * The startup intro set (nekodex - circles!). It's a standard-mode map, not a
  * ranked mania beatmap, so it's the one set ingested regardless of mode and kept

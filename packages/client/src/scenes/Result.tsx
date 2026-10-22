@@ -1,5 +1,6 @@
 import ResultMods from '../components/result/ResultMods';
 import DevianceGraph from '../gameplay/DevianceGraph';
+import HpGraph from '../gameplay/HpGraph';
 import { Score } from '../db/schema/score';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
@@ -22,7 +23,11 @@ import {
 } from '@oss-idle/shared/judgement';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { ScoreDTO } from '@oss-idle/shared/score';
-import { useEffect } from 'react';
+import {
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import { flushBeatmapScores } from '../online/services/scores';
 import {
 	flushCharacter,
@@ -33,6 +38,7 @@ import useSynced from '@oss-idle/shared/hooks/useSynced';
 import num from '@oss-idle/shared/display/num';
 import CountUp, { COUNT_UP_MS } from '../components/result/CountUp';
 import ResultMeta from '../components/result/ResultMeta';
+import ShareScoreButton from '../components/result/ShareScoreButton';
 import SkillProgression from '../components/result/SkillProgression';
 import { currentScore } from '../globals';
 import { showsDivine } from '@oss-idle/shared/rebirth';
@@ -99,6 +105,12 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 		if (medals) showMedals(medals);
 	}, [medals]);
 
+	// a play just watched, not a score opened from a leaderboard
+	useEffect(() => {
+		if (beatmap) PlayManager.holdForResult();
+		return () => PlayManager.leftResult();
+	}, []);
+
 	// leaving the result screen no longer stops anything: the queue runs whether
 	// or not a scene is watching it (stop it from the dock instead)
 	// a match play's standings, at the right edge as on osu!'s ranking screen
@@ -127,20 +139,48 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 		dateStyle: 'medium', timeStyle: 'short',
 	});
 	const playerName = player?.name ?? '--';
+
+	// narrow screens put the xp rows past the buttons, whatever width their labels take
+	const actions = useRef<HTMLDivElement>(null);
+	const [actionsWidth, setActionsWidth] = useState(0);
+	useEffect(() => {
+		const bar = actions.current;
+		if (!bar) return;
+		const observer = new ResizeObserver(() => setActionsWidth(bar.offsetWidth));
+		observer.observe(bar);
+		return () => observer.disconnect();
+	}, []);
 	const ur = score.ur.toFixed(2);
+	const judges = judgeOrder(count(JUDGEMENT.DIVINE));
 
 	return (<>
 		<Background beatmap={beatmap} />
-		<div className="resultscreen">
+		<div
+			className="resultscreen"
+			style={{ '--actions-width': `${actionsWidth}px` } as React.CSSProperties}
+		>
 			<ResultMeta playerName={playerName} playedAt={playedAt} beatmap={beatmap} rate={score.rate} />
 			{ranking && <MatchRanking ranking={ranking} />}
-			<div className="result__actions">
+			<div className="result__actions" ref={actions}>
 				<button className="result__exit" onClick={onBack}>
 					<Trans>BACK</Trans>
 				</button>
 				{retryable && <button className="result__exit" onClick={retry}>
 					<Trans>RETRY</Trans>
 				</button>}
+				<ShareScoreButton
+					score={score}
+					beatmap={beatmap}
+					gradeImage={skin.data.grade[score.grade]}
+					playerName={playerName}
+					playedAt={playedAt}
+					judges={judges.map(j => ({
+						label: skin.data.judgements[j].text, count: count(j), color: skin.data.judgements[j].judge,
+					}))}
+					gains={gains}
+					failed={failed}
+					ranking={ranking}
+				/>
 			</div>
 			<div className="result">
 				<div className="result__left">
@@ -151,7 +191,7 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 							</div>
 
 							<div className="result__judges">
-								{judgeOrder(count(JUDGEMENT.DIVINE)).map((j) => (
+								{judges.map((j) => (
 									<div key={j} className="result__judge">
 										<span 
 											className="result__judge-label" 
@@ -198,9 +238,14 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 					<div className="result__graphs">
 						<figure className="result__graph">
 							<figcaption>HP</figcaption>
-							<div className="result__graph-empty">{failed && <div className="result__failed">
-								<Trans>FAILED</Trans>
-							</div>}</div>
+							<div className="result__graph-hp">
+								{game
+									? <HpGraph game={game} height={240} />
+									: <div className="result__graph-empty"><Trans>No replay data</Trans></div>}
+								{failed && <div className="result__failed">
+									<Trans>FAILED</Trans>
+								</div>}
+							</div>
 						</figure>
 						<figure className="result__graph">
 							<figcaption><Trans>Hit deviance · {ur} UR</Trans></figcaption>
@@ -212,8 +257,10 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 				</div>
 
 				<div className="result__right">
-					<ResultMods rate={score.rate} />
-					{skin.grade(score.grade, 'result__grade')}
+					<div className="result__grade-box">
+						{skin.grade(score.grade, 'result__grade')}
+						<ResultMods rate={score.rate} mods={score.mods} />
+					</div>
 				</div>
 
 			</div>

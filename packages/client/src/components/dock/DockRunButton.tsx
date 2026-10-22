@@ -1,10 +1,11 @@
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
+import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { faPause } from '@fortawesome/free-solid-svg-icons/faPause';
+import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
 import PlayManager from '../../online/playManager';
-import PlayQueue from '../../gameplay/playQueue';
+import PlayQueue, { AUTOPILOT_MODE } from '../../gameplay/playQueue';
+import { SETTINGS } from '../../db/settings';
+import DockIconButton from './DockIconButton';
 
 /**
  * Whether the queue runs.
@@ -12,7 +13,7 @@ import PlayQueue from '../../gameplay/playQueue';
  * A queue with nothing playing and nothing scheduled is sitting there: no play
  * is going to end and pull it along, so what it needs is a start, not a pause.
  * Once something is running (or waiting to), the same button holds it back and
- * lets it go again.
+ * lets it go again. Always in its place: with nothing to run it is disabled.
  */
 export default function DockRunButton() {
 	const { t } = useLingui();
@@ -20,34 +21,26 @@ export default function DockRunButton() {
 	const [queue] = useSynced(PlayQueue.state);
 	const [paused] = useSynced(PlayManager.paused);
 	const [countdown] = useSynced(PlayManager.countdown);
+	const [mode] = useSynced(SETTINGS.autopilotMode);
 
-	// nothing follows: there is nothing to start, hold back or let go
-	if (!queue || !PlayQueue.next()) return null;
-
+	// a Disabled queue stays paused: nothing to start, hold back or let go
+	const usable = !!queue && !!PlayQueue.next() && mode !== AUTOPILOT_MODE.DISABLED;
 	const waiting = !!live || paused || countdown !== undefined;
-	if (!waiting) {
+	if (!usable || !waiting) {
 		return (
-			<button
-				type="button"
-				className="dock__btn"
-				title={t`Start playing the queue`}
+			<DockIconButton
+				icon={faPlay}
+				label={t`Start the queue`}
+				disabled={!usable}
 				onClick={() => PlayManager.startNow()}
-			>
-				<Trans>start</Trans>
-			</button>
+			/>
 		);
 	}
-
 	return (
-		<button
-			type="button"
-			className="dock__btn"
-			title={paused
-				? t`Start playing the queue again`
-				: t`Let this play finish, then wait`}
+		<DockIconButton
+			icon={paused ? faPlay : faPause}
+			label={paused ? t`Resume the queue` : t`Pause after this map`}
 			onClick={() => PlayManager.setPaused(!paused)}
-		>
-			{paused ? <Trans>resume</Trans> : <Trans>pause</Trans>}
-		</button>
+		/>
 	);
 }

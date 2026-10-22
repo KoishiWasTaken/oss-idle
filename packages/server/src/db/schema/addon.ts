@@ -1,6 +1,8 @@
 import {
+	boolean,
 	int,
 	longtext,
+	mediumtext,
 	mysqlTable,
 	text,
 	timestamp,
@@ -8,7 +10,11 @@ import {
 	varchar,
 } from 'drizzle-orm/mysql-core';
 import {
+	ADDON_BUILD_STATUS,
+	ADDON_KIND,
 	ADDON_STATUS,
+	type AddonBuildStatus,
+	type AddonKind,
 	type AddonStatus,
 } from '@oss-idle/shared/addon';
 import { users } from './user';
@@ -35,6 +41,19 @@ export const addons = mysqlTable('addons', {
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow().onUpdateNow(),
 	publishedAt: timestamp(), // null until first published
+	kind: varchar({ length: 10 }).notNull().default(ADDON_KIND.inline),
+	repoUrl: varchar({ length: 512 }),
+	hookSecret: varchar({ length: 64 }),
+	trusted: boolean().notNull().default(false), // repo builds go live without review
+	// what `source` was built from, and the live one
+	commit: varchar({ length: 40 }),
+	tag: varchar({ length: 100 }),
+	publishedCommit: varchar({ length: 40 }),
+	publishedTag: varchar({ length: 100 }),
+	sourceDiff: longtext(), // repo diff from publishedCommit to commit, by the builder
+	buildStatus: varchar({ length: 10 }).notNull().default(ADDON_BUILD_STATUS.idle),
+	buildLog: mediumtext(),
+	buildAt: timestamp(), // queued or claimed at
 });
 
 // One row per (add-on, player) - the unique key makes a repeat install a no-op,
@@ -53,6 +72,20 @@ export type NewAddonRow = typeof addons.$inferInsert;
 
 const splitTags = (csv: string): string[] => csv ? csv.split(',').filter(Boolean) : [];
 
+/** Where a repo add-on's builds come from and stand. */
+const repoOf = (row: AddonRow) => ({
+	kind: row.kind as AddonKind,
+	repoUrl: row.repoUrl ?? undefined,
+	trusted: row.trusted,
+	commit: row.commit ?? undefined,
+	tag: row.tag ?? undefined,
+	publishedCommit: row.publishedCommit ?? undefined,
+	publishedTag: row.publishedTag ?? undefined,
+	sourceDiff: row.sourceDiff ?? undefined,
+	buildStatus: row.buildStatus as AddonBuildStatus,
+	buildLog: row.buildLog ?? undefined,
+});
+
 /**
  * Map an add-on row (+ resolved author name) to the wire shape. This return type
  * is the single source of the contract - client/web infer it off the route with
@@ -70,7 +103,6 @@ export const toAddonDTO = (row: AddonRow, authorName: string) => {
 		version: row.version,
 		gameVersion: row.gameVersion,
 		source: row.source,
-		reviewedSource: row.reviewedSource ?? null,
 		publishedVersion: row.publishedVersion ?? null,
 		status: row.status as AddonStatus,
 		feedback: row.feedback ?? null,
@@ -78,6 +110,7 @@ export const toAddonDTO = (row: AddonRow, authorName: string) => {
 		createdAt: row.createdAt.toISOString(),
 		updatedAt: row.updatedAt.toISOString(),
 		publishedAt: row.publishedAt?.toISOString() ?? null,
+		...repoOf(row),
 	};
 };
 
@@ -89,6 +122,10 @@ export const toLiveAddonDTO = (row: AddonRow, authorName: string): AddonDTO => (
 	source: row.publishedSource!,
 	version: row.publishedVersion!,
 	gameVersion: row.publishedGameVersion!,
-	reviewedSource: null,
 	status: ADDON_STATUS.published,
+	commit: row.publishedCommit ?? undefined,
+	tag: row.publishedTag ?? undefined,
+	sourceDiff: undefined,
+	buildStatus: ADDON_BUILD_STATUS.idle,
+	buildLog: undefined,
 });

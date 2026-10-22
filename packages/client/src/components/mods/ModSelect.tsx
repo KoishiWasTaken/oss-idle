@@ -21,8 +21,25 @@ import {
 	selectedRate,
 	speedUpgrades,
 } from '../../gameplay/playRate';
+import {
+	countsForMedals,
+	isRankedMods,
+	modsScoreMultiplier,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import {
+	pickMod,
+	resetMods,
+	selectedMods,
+} from '../../gameplay/playMods';
+import {
+	MOD_LOOK,
+	modName,
+} from '@oss-idle/shared/display/mods';
 import ModTile from './ModTile';
+import { rateShort } from './rateShort';
 import RateStepper from './RateStepper';
+import XpMultipliers from './XpMultipliers';
 
 const sideSteps = (from: number, to: number): number[] => {
 	const steps: number[] = [];
@@ -36,14 +53,34 @@ const sideSteps = (from: number, to: number): number[] => {
 const SLOWER = sideSteps(1 - RATE_STEP, MIN_RATE);
 const FASTER = sideSteps(1 + RATE_STEP, MAX_RATE);
 
-/** osu!'s mod select over song select. Only the rate mods exist so far. */
+/** SD and PF share a tile, as in osu!: off → SD → PF → off. */
+const cycleDeath = (mods: Mod[]) => {
+	if (mods.includes('PF')) pickMod('PF');
+	else pickMod(mods.includes('SD') ? 'PF' : 'SD');
+};
+
+/** mod select over song select. */
 export default function ModSelect({ onClose }: { onClose: () => void }) {
 	const { t } = useLingui();
 	const [rate] = useSynced(selectedRate);
+	const [mods] = useSynced(selectedMods);
 	const [character] = useSynced(Entities.character);
 	const unlocked = rateSteps(speedUpgrades(character));
 	const none = unlocked.length === 1;
 	const pick = pickRate;
+	const reset = () => {
+		pick(1);
+		resetMods();
+	};
+	const on = (mod: Mod) => mods.includes(mod);
+	const tile = (mod: Mod, onClick = () => pickMod(mod)) => (
+		<div className="mod-select__mod">
+			<ModTile
+				glyph={MOD_LOOK[mod].glyph} label={modName(mod)} tint={MOD_LOOK[mod].tint}
+				on={on(mod)} disabled={false} onClick={onClick}
+			/>
+		</div>
+	);
 	// on: the last rate picked on that side; off: back to x1
 	const toggle = (side: number[]) => pick(side.includes(rate)
 		? 1
@@ -56,9 +93,9 @@ export default function ModSelect({ onClose }: { onClose: () => void }) {
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
-			if (inTextBox(e.target)) return;
+			if (inTextBox(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
 			// F1 is the footer's toggle
-			if (e.key === '1') pick(1);
+			if (e.key === '1') reset();
 			else if (e.key === '2') onClose();
 			else return;
 			e.preventDefault();
@@ -78,15 +115,29 @@ export default function ModSelect({ onClose }: { onClose: () => void }) {
 					</Trans>
 				</p>
 				<div className="mod-select__multiplier">
-					<Trans>Score Multiplier: {scoreMultiplier(rate).toFixed(2)}x</Trans>
+					<Trans>Score Multiplier: {(scoreMultiplier(rate) * modsScoreMultiplier(mods)).toFixed(2)}x</Trans>
+					<XpMultipliers mods={mods} />
+					{!isRankedMods(mods) && (
+						<div className="mod-select__unranked">
+							<Trans>Unranked: no XP, and the score is not submitted</Trans>
+						</div>
+					)}
+					{isRankedMods(mods) && !countsForMedals(mods) && (
+						<div className="mod-select__unranked">
+							<Trans>Most medals can't be earned with these mods</Trans>
+						</div>
+					)}
 				</div>
 
 				<div className="mod-select__row">
 					<div className="mod-select__heading is-reduction"><Trans>Difficulty Reduction</Trans></div>
 					<div className="mod-select__mods">
+						{tile('EZ')}
+						{tile('NF')}
 						<div className="mod-select__mod" onWheel={wheel(SLOWER)}>
 							<ModTile
 								glyph="hourglass" label={t`Half`} tint="#5b5b66"
+								short={rateShort(rate < 1 ? rate : SETTINGS.slowerRate.get())}
 								on={rate < 1} disabled={none} title={locked} onClick={() => toggle(SLOWER)}
 							/>
 							{rate < 1 && <RateStepper steps={SLOWER} unlocked={unlocked} current={rate} onPick={pick} />}
@@ -97,9 +148,12 @@ export default function ModSelect({ onClose }: { onClose: () => void }) {
 				<div className="mod-select__row">
 					<div className="mod-select__heading is-increase"><Trans>Difficulty Increase</Trans></div>
 					<div className="mod-select__mods">
+						{tile('HR')}
+						{tile(on('PF') ? 'PF' : 'SD', () => cycleDeath(mods))}
 						<div className="mod-select__mod" onWheel={wheel(FASTER)}>
 							<ModTile
 								glyph="clock" label={t`Double`} tint="#8c4fd0"
+								short={rateShort(rate > 1 ? rate : SETTINGS.fasterRate.get())}
 								on={rate > 1} disabled={none} title={locked} onClick={() => toggle(FASTER)}
 							/>
 							{rate > 1 && <RateStepper steps={FASTER} unlocked={unlocked} current={rate} onPick={pick} />}
@@ -110,7 +164,7 @@ export default function ModSelect({ onClose }: { onClose: () => void }) {
 				<div className="ctxmenu__options">
 					<button
 						type="button" className="ctxmenu__option" style={{ '--accent': '#e93100' } as React.CSSProperties}
-						onClick={() => pick(1)}
+						onClick={reset}
 					>
 						<Trans>1. Reset All Mods</Trans>
 					</button>

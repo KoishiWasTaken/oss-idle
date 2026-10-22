@@ -13,7 +13,11 @@ import {
 	type BotContext,
 } from '../bot.js';
 import type RuntimeNote from '../runtimeNote.js';
-import { maniaWindows } from '../scoring.js';
+import type { HitWindows } from '../scoring.js';
+import {
+	modXp,
+	type Mod,
+} from '../../mods.js';
 import { JUDGEMENT } from '../../judgement.js';
 import { skillProfiler } from '../profiler.js';
 import clamp from '../../math/clamp.js';
@@ -341,10 +345,10 @@ export default class CharacterBot extends Bot {
 	 */
 	private mapStrain = newStrain();
 
-	constructor(
-		protected skills: Skill[],
-		protected od: number,
-	) {
+	/** the play's hit windows, from the context it analyzes */
+	private windows?: HitWindows;
+
+	constructor(protected skills: Skill[]) {
 		super();
 	}
 
@@ -355,6 +359,7 @@ export default class CharacterBot extends Bot {
 
 	analyzeContext(context: BotContext) {
 		this.columnStrains = [];
+		this.windows = context.windows;
 
 		for(const note of context.notes) {
 			const arr: [NoteStrain, number, number][] = [];
@@ -436,9 +441,9 @@ export default class CharacterBot extends Bot {
 			if (Math.abs(affected) > Math.abs(offset)) {
 				offset = affected;
 
-				if (Math.abs(offset) > maniaWindows(this.od)[JUDGEMENT.PERFECT]) {
+				if (Math.abs(offset) > this.windows![JUDGEMENT.PERFECT]) {
 					xpStrain = maxUnpure;
-				} else if (Math.abs(offset) > maniaWindows(this.od)[JUDGEMENT.MARVELOUS]) {
+				} else if (Math.abs(offset) > this.windows![JUDGEMENT.MARVELOUS]) {
 					xpStrain = null;
 				}
 			}
@@ -613,10 +618,11 @@ export default class CharacterBot extends Bot {
 		score: ScoreLike,
 		/** debug xp scaling for local plays; the server scales its own */
 		xpMultiplier: number = 1,
+		mods: readonly Mod[] = [],
 	): SkillProgress[] {
 		if (this.progression) return this.progression;
 
-		const xp = this.getSkillsXP(length, score);
+		const xp = modXp(this.getSkillsXP(length, score), mods);
 		if (xpMultiplier > 1) {
 			for (const name of Object.keys(xp) as SkillName[]) {
 				xp[name] = Math.floor(xp[name] * xpMultiplier);

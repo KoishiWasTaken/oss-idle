@@ -128,6 +128,7 @@ const SCORE = {
 	pp: 807.91,
 	perfect: false,
 	rate: 1,
+	mods: ['HR'],
 	statistics: {
 		divine: 0, marvelous: 4749, perfect: 1041, great: 33, good: 2, bad: 0, miss: 0,
 	},
@@ -599,6 +600,7 @@ export const OBJECTS: ObjectDoc[] = [
 			['pp', 'float', ''],
 			['perfect', 'boolean', 'Full combo.'],
 			['rate', 'float', 'The playback rate, 0.5 to 1.5.'],
+			['mods', 'string[]', 'The mods it was played with: EZ, HR, SD or PF.'],
 			['statistics', 'object', `Judgement counts: ${JUDGEMENTS}.`],
 			['ended_at', 'Timestamp', ''],
 			['beatmap', 'Beatmap', 'On user scores.'],

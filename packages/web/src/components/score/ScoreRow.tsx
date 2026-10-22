@@ -6,7 +6,7 @@ import accuracy from '@oss-idle/shared/display/accuracy';
 import num from '@oss-idle/shared/display/num';
 import ScoreLink from './ScoreLink';
 import Grade from './Grade';
-import RateBadge from './RateBadge';
+import ScoreMods from './ScoreMods';
 import Flag from '../Flag';
 import Link from '../Link';
 
@@ -38,7 +38,9 @@ export default function ScoreRow({
 					</div>}
 					<b>{beatmap.version}</b> <span>{dateAgo(score.playedAt)}</span></div>
 			</div>
-			<div className='score__acc'><RateBadge rate={score.rate} /> {accuracy(score.accuracy)}</div>
+			<div className='score__acc'>
+				<ScoreMods mods={score.mods} rate={score.rate} /> {accuracy(score.accuracy)}
+			</div>
 		</div>
 		<div className='score__bottom'>
 			<div className='score__pp-flow'>

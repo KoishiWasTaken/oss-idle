@@ -4,11 +4,12 @@ import {
 } from 'react';
 import { Trans } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { rateLabel } from '@oss-idle/shared/rate';
+import { playLabel } from '@oss-idle/shared/mods';
 import {
 	selectedRate,
 	stepRate,
 } from '../../gameplay/playRate';
+import { selectedMods } from '../../gameplay/playMods';
 import { modSelectOpen } from '../mods/modSelectOpen';
 import ModSelect from '../mods/ModSelect';
 import { createPortal } from 'react-dom';
@@ -23,6 +24,8 @@ export default function SongSelectFooter({ onRandom, onOptions }: {
 	onOptions: () => void,
 }) {
 	const [rate] = useSynced(selectedRate);
+	const [mods] = useSynced(selectedMods);
+	const active = playLabel(mods, rate);
 	const [modsOpen] = useSynced(modSelectOpen);
 	const onMods = useCallback(() => void modSelectOpen.set(!modSelectOpen.get()), []);
 	useEffect(() => () => void modSelectOpen.set(false), []);
@@ -39,7 +42,7 @@ export default function SongSelectFooter({ onRandom, onOptions }: {
 				stepRate(rate);
 				return;
 			}
-			const action = keys[e.key];
+			const action = !e.ctrlKey && keys[e.key];
 			if (!action) return;
 			e.preventDefault();
 			action();
@@ -52,7 +55,7 @@ export default function SongSelectFooter({ onRandom, onOptions }: {
 		<div className="select-footer">
 			<button type="button" className="select-footer__btn is-mods" onClick={onMods}>
 				<Trans>Mods</Trans>
-				{rate !== 1 && <span className="select-footer__active">{rateLabel(rate)}</span>}
+				{active && <span className="select-footer__active">{active}</span>}
 				<span className="select-footer__key">F1</span>
 			</button>
 			<button type="button" className="select-footer__btn is-random" onClick={onRandom}>

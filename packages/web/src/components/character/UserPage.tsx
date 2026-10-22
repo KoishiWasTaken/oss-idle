@@ -33,7 +33,7 @@ export default function UserPage({ characterId, page: saved, isSelf, supporter }
 				<Trans>Click here to write your me! page.</Trans>
 			</button>
 			: <p className='user-page__start'>
-				<Trans>Writing a me! page is an <Link to='/store'>osu!supporter</Link> perk.</Trans>
+				<Trans>Writing a me! page is an <Link to='/store'>oss!supporter</Link> perk.</Trans>
 			</p>;
 	};
 

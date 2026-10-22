@@ -21,6 +21,7 @@ import { readFileSync } from 'node:fs';
 import { i18n } from '@lingui/core';
 import { BeatmapDecoder } from 'osu-parsers';
 import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
+import { parseMods } from '@oss-idle/shared/mods';
 import CharacterBot from '@oss-idle/shared/sim/bots/character';
 import { hasUnlock } from '@oss-idle/shared/rebirth';
 import type { SkillName } from '@oss-idle/shared/skills';
@@ -81,6 +82,7 @@ const toDraft = (row: DumpedScore): NewScoreRow => ({
 	ur: row.ur!,
 	pfc: row.pfc === '1',
 	playedAt: new Date(row.played_at!),
+	mods: row.mods ?? '',
 } as NewScoreRow);
 
 /** Simulate the map at the character's current level, only to get the blame the
@@ -98,7 +100,7 @@ const xpFor = async (row: DumpedScore) => {
 
 	const skills = await loadCharacterSkills(character, beatmapId);
 	const chart = decoder.decodeFromString(beatmap.chart);
-	const bot = new CharacterBot(skills, chart.difficulty.overallDifficulty);
+	const bot = new CharacterBot(skills);
 	const rate = Number(row.rate ?? 1);
 	const game = new ManiaGame(chart, bot, {
 		divine: hasUnlock(character.generation, 'DIVINE'), rate,
@@ -107,6 +109,7 @@ const xpFor = async (row: DumpedScore) => {
 
 	return getServerXP(
 		character, bot, beatmap, chart, asScoreLike(row) as never, rate, Number(row.sr ?? beatmap.sr),
+		parseMods(row.mods ?? ''),
 	);
 };
 

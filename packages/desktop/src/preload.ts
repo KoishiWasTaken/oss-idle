@@ -79,6 +79,7 @@ const bridge: OssIdleDesktop = {
 	setZoomFactor: factor => webFrame.setZoomFactor(factor),
 	setPresence: (presence: DesktopPresence | null) => ipcRenderer.send('oss-idle:presence', presence),
 	quit: () => ipcRenderer.send('oss-idle:quit'),
+	trace: () => ipcRenderer.invoke('oss-idle:trace'),
 	onDeepLink: cb => {
 		deepLinkListeners.add(cb);
 		return () => { deepLinkListeners.delete(cb); };
@@ -91,6 +92,8 @@ const bridge: OssIdleDesktop = {
 		check: () => ipcRenderer.invoke('oss-idle:update-check'),
 		download: () => ipcRenderer.invoke('oss-idle:update-download'),
 		install: () => ipcRenderer.send('oss-idle:update-install'),
+		streams: () => ipcRenderer.invoke('oss-idle:streams'),
+		switchStream: name => ipcRenderer.invoke('oss-idle:switch-stream', name),
 		onStatus: cb => {
 			updateListeners.add(cb);
 			return () => { updateListeners.delete(cb); };

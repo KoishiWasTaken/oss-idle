@@ -1,14 +1,12 @@
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
+import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
 import PlayManager from '../../online/playManager';
 import PlayQueue from '../../gameplay/playQueue';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import { launchPlay } from '../../scenes/launchPlay';
 import { playFromList } from '../songselect/listPlay';
 import { focusInCarousel } from '../songselect/selection';
+import DockIconButton from './DockIconButton';
 
 /**
  * Find the map, then watch it.
@@ -26,13 +24,11 @@ export default function DockWatchButton() {
 	const { t } = useLingui();
 	const [live] = useSynced(PlayManager.live);
 	const [queue] = useSynced(PlayQueue.state);
-	const [scene] = useSynced(SceneManager.current);
 
 	const target = live?.beatmap ?? (queue ? PlayQueue.next() : undefined);
-	// in gameplay you are already watching it
-	if (!target || scene === SCENE.GAME) return null;
 
 	const press = () => {
+		if (!target) return;
 		if (!live) {
 			focusInCarousel(target);
 			return;
@@ -42,15 +38,11 @@ export default function DockWatchButton() {
 	};
 
 	return (
-		<button
-			type="button"
-			className="dock__btn"
-			title={live
-				? t`Watch, keeping the playlist`
-				: t`Find the map playing next`}
+		<DockIconButton
+			icon={faEye}
+			label={live ? t`Watch` : t`Find the next map`}
+			disabled={!target}
 			onClick={press}
-		>
-			<Trans>watch</Trans>
-		</button>
+		/>
 	);
 }

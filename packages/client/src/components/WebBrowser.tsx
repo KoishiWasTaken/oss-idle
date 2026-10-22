@@ -19,7 +19,7 @@ import { copyText } from '../clipboard';
 const shareUrl = (path: string): string => `${SITE_URL}${path}`;
 
 /**
- * Lazer-style in-game browser: a fullscreen overlay that embeds the osu! web
+ * Lazer-style in-game browser: a fullscreen overlay that embeds the oss! web
  * platform (`/web`) in a same-origin iframe with minimal chrome
  * (back / forward / reload, the page's link to share, close).
  *
@@ -131,7 +131,7 @@ export default function WebBrowser() {
 							ref={frameRef}
 							className="web__frame"
 							src={`/web/${url}`}
-							title="osu! web"
+							title="oss! web"
 							onLoad={onFrameLoad}
 						/>
 					)}

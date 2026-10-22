@@ -63,6 +63,10 @@ msgstr "{from}+ min"
 msgid "{handover}, stays playable and ranked · The new character starts from zero and unlocks: {unlocks}"
 msgstr "{handover}, stays playable and ranked · The new character starts from zero and unlocks: {unlocks}"
 
+#: src/components/direct/DirectFilters.tsx
+msgid "{matches, plural, one {# match found} other {# matches found}}"
+msgstr "{matches, plural, one {# match found} other {# matches found}}"
+
 #: src/osu/beatmap/grouping.ts
 msgid "{months, plural, one {# month ago} other {# months ago}}"
 msgstr "{months, plural, one {# month ago} other {# months ago}}"
@@ -106,6 +110,10 @@ msgstr "{result} on {map}"
 #: src/scenes/SongSelect.tsx
 msgid "{results, plural, one {# result} other {# results}}"
 msgstr "{results, plural, one {# result} other {# results}}"
+
+#: src/components/dock/DockCountdown.tsx
+msgid "{seconds}s"
+msgstr "{seconds}s"
 
 #: src/scenes/SongSelect.tsx
 msgid "{shown} of {total} results"
@@ -188,6 +196,7 @@ msgstr "Abort the play?"
 msgid "Abort your running play to join a game."
 msgstr "Abort your running play to join a game."
 
+#: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "Accuracy"
 msgstr "Accuracy"
@@ -205,6 +214,10 @@ msgstr "Achieved on {date} ({ago})"
 #: src/components/community/PlayerMenu.tsx
 msgid "Add as Friend"
 msgstr "Add as Friend"
+
+#: src/components/addons/AddonRepoPane.tsx
+msgid "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved."
+msgstr "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved."
 
 #: src/components/PlaylistOverlay.tsx
 msgid "Add this difficulty"
@@ -243,7 +256,12 @@ msgstr "addon|addons|add-on|mod|mods|manage|installed"
 msgid "After reaching overall Lv{REBIRTH_MIN_OVERALL_LEVEL} you can start over with a new character one generation up, which permanently unlocks a new feature. Everything you have now stays available: the old character remains playable, keeps its levels, and stays on the leaderboards. Pick a new name, or keep your current one and the old character gets _old appended to its name."
 msgstr "After reaching overall Lv{REBIRTH_MIN_OVERALL_LEVEL} you can start over with a new character one generation up, which permanently unlocks a new feature. Everything you have now stays available: the old character remains playable, keeps its levels, and stays on the leaderboards. Pick a new name, or keep your current one and the old character gets _old appended to its name."
 
+#: src/components/dock/DockCountdown.tsx
+msgid "after this map"
+msgstr "after this map"
+
 #: src/components/community/CommunityHeader.tsx
+#: src/components/direct/DirectFilters.tsx
 msgid "All"
 msgstr "All"
 
@@ -292,8 +310,12 @@ msgid "autopilot|delay|restart"
 msgstr "autopilot|delay|restart"
 
 #: src/scenes/Options.tsx
-msgid "autopilot|mode|playlist|loop|next|song"
-msgstr "autopilot|mode|playlist|loop|next|song"
+msgid "autopilot|mode|playlist|loop|next|song|disabled"
+msgstr "autopilot|mode|playlist|loop|next|song|disabled"
+
+#: src/scenes/Options.tsx
+msgid "autopilot|queue|offline|closed|keep|playing"
+msgstr "autopilot|queue|offline|closed|keep|playing"
 
 #: src/osu/beatmap/grouping.ts
 msgid "Available"
@@ -321,7 +343,7 @@ msgstr "Back"
 msgid "BACK"
 msgstr "BACK"
 
-#: src/components/dock/DockControls.tsx
+#: src/components/dock/DockTransport.tsx
 msgid "Back to gameplay"
 msgstr "Back to gameplay"
 
@@ -341,6 +363,11 @@ msgstr "background|dim|opacity"
 msgid "Beatmap"
 msgstr "Beatmap"
 
+#. placeholder {0}: card.creator
+#: src/components/result/scoreCard.ts
+msgid "Beatmap by {0}"
+msgstr "Beatmap by {0}"
+
 #: src/components/result/ResultMeta.tsx
 msgid "Beatmap by {creator}"
 msgstr "Beatmap by {creator}"
@@ -357,6 +384,10 @@ msgstr "Beatmap Options"
 #: src/components/upgrades/UpgradesSummary.tsx
 msgid "Best XP boost"
 msgstr "Best XP boost"
+
+#: src/components/direct/DirectPanel.tsx
+msgid "BPM"
+msgstr "BPM"
 
 #: src/scenes/Addons.tsx
 #: src/scenes/Skins.tsx
@@ -375,6 +406,31 @@ msgstr "Browse skins"
 #: src/scenes/Skins.tsx
 msgid "Browse the community catalogue"
 msgstr "Browse the community catalogue"
+
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Build"
+msgstr "Build"
+
+#: src/components/addons/AddonRepoBuild.tsx
+#: src/components/addons/MyAddonRow.tsx
+msgid "Build failed"
+msgstr "Build failed"
+
+#: src/components/addons/MyAddonRow.tsx
+msgid "Building"
+msgstr "Building"
+
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Building…"
+msgstr "Building…"
+
+#: src/components/addons/AddonReadMeta.tsx
+msgid "Built from"
+msgstr "Built from"
+
+#: src/components/addons/AddonEditMeta.tsx
+msgid "Built from a git repository"
+msgstr "Built from a git repository"
 
 #: src/components/Tutorial.tsx
 msgid "Bundled maps are listed in <0>song select</0>:<1> double-click</1> a map to download it, then <2>single-click</2> to start playing."
@@ -510,13 +566,13 @@ msgstr "chat|message|private|pm|friends"
 msgid "Cheating"
 msgstr "Cheating"
 
+#: src/components/addons/AddonRepoPane.tsx
+msgid "Check now"
+msgstr "Check now"
+
 #: src/components/options/MoveInstall.tsx
 msgid "Choose where to move oss!idle (the game will restart)"
 msgstr "Choose where to move oss!idle (the game will restart)"
-
-#: src/components/dock/DockControls.tsx
-msgid "clear"
-msgstr "clear"
 
 #: src/components/songselect/CardContextMenu.tsx
 msgid "Clear local scores"
@@ -558,12 +614,9 @@ msgstr "click to play..."
 msgid "Click to skip"
 msgstr "Click to skip"
 
-#: src/components/dock/DockControls.tsx
-msgid "close"
-msgstr "close"
-
 #: src/components/community/chat/ChannelPicker.tsx
 #: src/components/community/PlayerMenu.tsx
+#: src/components/direct/DirectLinkPanel.tsx
 #: src/components/options/DownloadAllWarning.tsx
 #: src/components/PlaylistOverlay.tsx
 msgid "Close"
@@ -577,16 +630,25 @@ msgstr "Close (Esc)"
 msgid "Close channel"
 msgstr "Close channel"
 
+#: src/components/dock/DockQueueButton.tsx
+msgid "Close the queue"
+msgstr "Close the queue"
+
 #: src/components/addons/AddonCodePane.tsx
 #: src/components/skins/SkinCodePane.tsx
 msgid "Code"
 msgstr "Code"
 
+#: src/components/addons/AddonEditMeta.tsx
+msgid "Code written here"
+msgstr "Code written here"
+
+#: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "Combo"
 msgstr "Combo"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
 msgid "comma, separated, tags"
 msgstr "comma, separated, tags"
@@ -594,6 +656,10 @@ msgstr "comma, separated, tags"
 #: src/scenes/Options.tsx
 msgid "CONTROLS"
 msgstr "CONTROLS"
+
+#: src/components/result/ShareScoreButton.tsx
+msgid "Copied to clipboard"
+msgstr "Copied to clipboard"
 
 #: src/components/WebBrowser.tsx
 msgid "Copy"
@@ -604,10 +670,12 @@ msgstr "Copy"
 msgid "Copy link"
 msgstr "Copy link"
 
+#: src/components/direct/directState.ts
 #: src/online/mapLinks.ts
 msgid "Could not download {title}"
 msgstr "Could not download {title}"
 
+#: src/online/playManager.ts
 #: src/online/playManager.ts
 msgid "Could not start the next map - the queue is paused"
 msgstr "Could not start the next map - the queue is paused"
@@ -679,7 +747,7 @@ msgstr "Delete..."
 msgid "delete|beatmap|beatmaps"
 msgstr "delete|beatmap|beatmaps"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
 msgid "Description"
 msgstr "Description"
@@ -699,6 +767,10 @@ msgstr "Difficulty Increase"
 msgid "Difficulty Reduction"
 msgstr "Difficulty Reduction"
 
+#: src/gameplay/playQueue.ts
+msgid "Disabled"
+msgstr "Disabled"
+
 #: src/scenes/Options.tsx
 msgid "discord|link|role"
 msgstr "discord|link|role"
@@ -706,6 +778,10 @@ msgstr "discord|link|role"
 #: src/components/Announce.tsx
 msgid "Dismiss"
 msgstr "Dismiss"
+
+#: src/components/direct/DirectFilters.tsx
+msgid "Display"
+msgstr "Display"
 
 #: src/components/mods/ModSelect.tsx
 #: src/components/result/ResultMods.tsx
@@ -715,6 +791,10 @@ msgstr "Double"
 #: src/components/BeatmapCard.tsx
 msgid "Double click to download"
 msgstr "Double click to download"
+
+#: src/components/direct/directState.ts
+msgid "Download"
+msgstr "Download"
 
 #: src/components/options/DownloadAllWarning.tsx
 msgid "Download all"
@@ -740,6 +820,11 @@ msgstr "Download the beatmap first"
 msgid "download|beatmap|beatmaps|ranked|supporter"
 msgstr "download|beatmap|beatmaps|ranked|supporter"
 
+#: src/scenes/Options.tsx
+msgid "download|downloaded|beatmap|beatmaps|hide"
+msgstr "download|downloaded|beatmap|beatmaps|hide"
+
+#: src/components/direct/directState.ts
 #: src/osu/beatmap/grouping.ts
 msgid "Downloaded"
 msgstr "Downloaded"
@@ -747,6 +832,10 @@ msgstr "Downloaded"
 #: src/online/mapLinks.ts
 msgid "Downloaded {title}"
 msgstr "Downloaded {title}"
+
+#: src/components/direct/directState.ts
+msgid "Downloading {percent}%"
+msgstr "Downloading {percent}%"
 
 #: src/online/mapLinks.ts
 msgid "Downloading {title}..."
@@ -759,10 +848,6 @@ msgstr "Downloading beatmaps: {done}/{total} (click to stop)"
 #: src/components/DesktopUpdate.tsx
 msgid "Downloading update… {percent}%"
 msgstr "Downloading update… {percent}%"
-
-#: src/components/dock/DockControls.tsx
-msgid "Drop this play and start the next map"
-msgstr "Drop this play and start the next map"
 
 #: src/components/Tutorial.tsx
 msgid "Each completed play earns your character <0>XP</0> and <1>levels</1> across various skillsets, making it perform better on future plays."
@@ -777,13 +862,17 @@ msgstr "Each Speed upgrade unlocks one more step"
 msgid "Edit"
 msgstr "Edit"
 
+#: src/components/dock/DockQueueButton.tsx
+msgid "Edit the queue"
+msgstr "Edit the queue"
+
 #: src/components/options/EffectVolume.tsx
 msgid "Effect"
 msgstr "Effect"
 
-#: src/components/dock/DockControls.tsx
-msgid "Empty the queue - this play still finishes"
-msgstr "Empty the queue - this play still finishes"
+#: src/components/dock/DockTransport.tsx
+msgid "Empty the queue"
+msgstr "Empty the queue"
 
 #: src/components/addons/InstalledAddonRow.tsx
 #: src/components/skins/SkinDAORow.tsx
@@ -811,6 +900,8 @@ msgstr "Exit oss!idle"
 msgid "Expected a column record like {example}"
 msgstr "Expected a column record like {example}"
 
+#: src/components/result/scoreCard.ts
+#: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "FAILED"
 msgstr "FAILED"
@@ -820,8 +911,12 @@ msgid "Filter:"
 msgstr "Filter:"
 
 #: src/components/dock/DockWatchButton.tsx
-msgid "Find the map playing next"
-msgstr "Find the map playing next"
+msgid "Find the next map"
+msgstr "Find the next map"
+
+#: src/components/direct/directState.ts
+msgid "Finished downloading {title}"
+msgstr "Finished downloading {title}"
 
 #: src/components/WebBrowser.tsx
 msgid "Forward"
@@ -863,7 +958,7 @@ msgstr "Game Name"
 msgid "Game Name:"
 msgstr "Game Name:"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 msgid "Game version"
 msgstr "Game version"
 
@@ -896,6 +991,11 @@ msgstr "Generation {generation}"
 #: src/components/community/PlayerMenu.tsx
 msgid "Give Host"
 msgstr "Give Host"
+
+#: src/components/direct/DirectLinkPanel.tsx
+#: src/components/direct/DirectView.tsx
+msgid "Go to map"
+msgstr "Go to map"
 
 #: src/components/Tutorial.tsx
 msgid "Got it!"
@@ -930,9 +1030,9 @@ msgstr "Head-to-head"
 msgid "Here they are stored by your browser: the desktop app is better suited to keeping this many."
 msgstr "Here they are stored by your browser: the desktop app is better suited to keeping this many."
 
-#: src/components/dock/DockControls.tsx
-msgid "hide"
-msgstr "hide"
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Hide build log"
+msgstr "Hide build log"
 
 #: src/components/addons/AddonCodePane.tsx
 msgid "Hide changes"
@@ -945,10 +1045,6 @@ msgstr "Hide chat"
 #: src/components/addons/AddonCodePane.tsx
 msgid "Hide code"
 msgstr "Hide code"
-
-#: src/components/dock/DockControls.tsx
-msgid "Hide the playfield and keep playing in the background"
-msgstr "Hide the playfield and keep playing in the background"
 
 #: src/scenes/Result.tsx
 msgid "Hit deviance · {ur} UR"
@@ -1014,6 +1110,14 @@ msgstr "Join Game"
 msgid "Joining this game requires a password..."
 msgstr "Joining this game requires a password..."
 
+#: src/components/Tutorial.tsx
+msgid "Keep playing"
+msgstr "Keep playing"
+
+#: src/components/options/KeepPlaying.tsx
+msgid "Keep playing the queue when the game is closed"
+msgstr "Keep playing the queue when the game is closed"
+
 #: src/components/community/PlayerMenu.tsx
 msgid "Kick"
 msgstr "Kick"
@@ -1026,9 +1130,9 @@ msgstr "Language"
 msgid "language|locale"
 msgstr "language|locale"
 
-#: src/components/dock/DockPill.tsx
-msgid "Last map of the queue"
-msgstr "Last map of the queue"
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Last build:"
+msgstr "Last build:"
 
 #: src/osu/beatmap/grouping.ts
 msgid "Last week"
@@ -1054,14 +1158,13 @@ msgstr "Leave Match"
 msgid "Leave the match to play on your own."
 msgstr "Leave the match to play on your own."
 
+#: src/components/direct/DirectPanel.tsx
+msgid "Length"
+msgstr "Length"
+
 #: src/components/songselect/BeatmapInfo.tsx
 msgid "Length: {totalLength} BPM: {bpmText} Objects: {objects}"
 msgstr "Length: {totalLength} BPM: {bpmText} Objects: {objects}"
-
-#: src/components/dock/DockRunButton.tsx
-#: src/components/gameplay/QueuePauseButton.tsx
-msgid "Let this play finish, then wait"
-msgstr "Let this play finish, then wait"
 
 #: src/components/Tutorial.tsx
 msgid "Level up"
@@ -1070,6 +1173,11 @@ msgstr "Level up"
 #: src/components/options/LinkDiscord.tsx
 msgid "Link Discord account"
 msgstr "Link Discord account"
+
+#. placeholder {0}: addon.publishedTag
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Live: {0}"
+msgstr "Live: {0}"
 
 #: src/components/BeatmapCarousel.tsx
 msgid "loading library…"
@@ -1142,6 +1250,11 @@ msgstr "mapped by {creator}"
 msgid "Mapped by {creator}"
 msgstr "Mapped by {creator}"
 
+#: src/components/direct/DirectPanel.tsx
+#: src/components/direct/DirectRow.tsx
+msgid "mapped by {mapper}"
+msgstr "mapped by {mapper}"
+
 #: src/components/options/MasterVolume.tsx
 msgid "Master"
 msgstr "Master"
@@ -1167,7 +1280,7 @@ msgstr "Medal unlocked"
 msgid "Medals unlocked"
 msgstr "Medals unlocked"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 msgid "Moderator feedback"
 msgstr "Moderator feedback"
 
@@ -1189,13 +1302,21 @@ msgstr "Mods change how a map plays. A faster rate usually makes the map harder,
 msgid "Most downloaded"
 msgstr "Most downloaded"
 
+#: src/components/mods/ModSelect.tsx
+msgid "Most medals can't be earned with these mods"
+msgstr "Most medals can't be earned with these mods"
+
+#: src/scenes/Direct.tsx
+msgid "Most Played"
+msgstr "Most Played"
+
+#: src/components/dock/DockQueue.tsx
+msgid "Move down"
+msgstr "Move down"
+
 #: src/components/options/MoveInstall.tsx
 msgid "Move installation..."
 msgstr "Move installation..."
-
-#: src/components/dock/DockQueue.tsx
-msgid "Move it down"
-msgstr "Move it down"
 
 #: src/components/dock/DockQueue.tsx
 msgid "Move up"
@@ -1217,7 +1338,7 @@ msgstr "Multiplayer Lobby"
 msgid "Music"
 msgstr "Music"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 #: src/components/community/CommunityBody.tsx
 #: src/components/skins/SkinView.tsx
 msgid "Name"
@@ -1240,28 +1361,23 @@ msgstr "New character name"
 msgid "New Game"
 msgstr "New Game"
 
+#: src/scenes/Direct.tsx
+msgid "New Releases"
+msgstr "New Releases"
+
+#: src/components/addons/AddonRepoPane.tsx
+msgid "New webhook address"
+msgstr "New webhook address"
+
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/skins/BrowseSkinsView.tsx
 msgid "Newest"
 msgstr "Newest"
 
-#: src/components/dock/DockPill.tsx
-#: src/components/dock/DockQueue.tsx
-msgid "next"
-msgstr "next"
-
 #: src/components/community/MusicControls.tsx
 #: src/components/Tutorial.tsx
 msgid "Next"
 msgstr "Next"
-
-#: src/components/dock/DockNowPlaying.tsx
-msgid "Next in {countdown}s:"
-msgstr "Next in {countdown}s:"
-
-#: src/components/dock/DockPill.tsx
-msgid "Next map in {countdown}s"
-msgstr "Next map in {countdown}s"
 
 #: src/components/character/RebirthView.tsx
 msgid "Next rebirth unlocks: {next}"
@@ -1270,14 +1386,6 @@ msgstr "Next rebirth unlocks: {next}"
 #: src/gameplay/playQueue.ts
 msgid "Next song"
 msgstr "Next song"
-
-#: src/components/gameplay/QueueNextUp.tsx
-msgid "Next up:"
-msgstr "Next up:"
-
-#: src/components/dock/DockNowPlaying.tsx
-msgid "Next:"
-msgstr "Next:"
 
 #: src/components/addons/BrowseAddonsView.tsx
 msgid "No add-ons found."
@@ -1312,6 +1420,7 @@ msgid "No playlists yet. Type a name above and press Enter."
 msgstr "No playlists yet. Type a name above and press Enter."
 
 #: src/scenes/Result.tsx
+#: src/scenes/Result.tsx
 msgid "No replay data"
 msgstr "No replay data"
 
@@ -1343,6 +1452,10 @@ msgstr "No unlocks yet"
 msgid "No XP gained."
 msgstr "No XP gained."
 
+#: src/components/addons/AddonCodeCheck.tsx
+msgid "Not allowed: add-ons may not run code that was not reviewed"
+msgstr "Not allowed: add-ons may not run code that was not reviewed"
+
 #: src/components/multiplayer/ReadyButton.tsx
 msgid "Not everyone is ready. Start anyway?"
 msgstr "Not everyone is ready. Start anyway?"
@@ -1355,6 +1468,10 @@ msgstr "Not Ready"
 msgid "nothing new"
 msgstr "nothing new"
 
+#: src/components/dock/DockUpNext.tsx
+msgid "Nothing queued"
+msgstr "Nothing queued"
+
 #: src/components/dock/DockQueue.tsx
 msgid "Nothing queued. Click a map to add it."
 msgstr "Nothing queued. Click a map to add it."
@@ -1362,6 +1479,10 @@ msgstr "Nothing queued. Click a map to add it."
 #: src/components/community/MusicControls.tsx
 msgid "Now playing"
 msgstr "Now playing"
+
+#: src/components/Onboarding.tsx
+msgid "Online characters always start fresh: Guest progress stays local, so the leaderboards stay fair."
+msgstr "Online characters always start fresh: Guest progress stays local, so the leaderboards stay fair."
 
 #: src/components/community/CommunityControls.tsx
 msgid "Online users"
@@ -1376,8 +1497,8 @@ msgid "Open link"
 msgstr "Open link"
 
 #: src/components/songselect/UserCard.tsx
-msgid "Open osu! web"
-msgstr "Open osu! web"
+msgid "Open oss! web"
+msgstr "Open oss! web"
 
 #: src/components/community/LinkMenu.tsx
 msgid "Open this link?"
@@ -1387,6 +1508,14 @@ msgstr "Open this link?"
 #: src/scenes/Options.tsx
 msgid "Options"
 msgstr "Options"
+
+#: src/scenes/Direct.tsx
+msgid "oss!direct"
+msgstr "oss!direct"
+
+#: src/components/direct/directState.ts
+msgid "oss!direct is an oss!supporter feature"
+msgstr "oss!direct is an oss!supporter feature"
 
 #: src/components/options/MoveInstall.tsx
 msgid "oss!idle can't write to that folder."
@@ -1457,20 +1586,19 @@ msgstr "Parallax"
 msgid "Password:"
 msgstr "Password:"
 
-#: src/components/dock/DockRunButton.tsx
-#: src/components/gameplay/QueuePauseButton.tsx
-msgid "pause"
-msgstr "pause"
-
 #: src/components/community/MusicControls.tsx
 msgid "Pause"
 msgstr "Pause"
 
-#: src/components/dock/DockNowPlaying.tsx
-#: src/components/gameplay/QueueNextUp.tsx
-msgid "Paused, next:"
-msgstr "Paused, next:"
+#: src/components/dock/DockRunButton.tsx
+msgid "Pause after this map"
+msgstr "Pause after this map"
 
+#: src/components/dock/DockCountdown.tsx
+msgid "paused"
+msgstr "paused"
+
+#: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "Performance"
 msgstr "Performance"
@@ -1488,6 +1616,10 @@ msgstr "Permanently delete \"{addon}\"? This cannot be undone."
 msgid "Personal best"
 msgstr "Personal best"
 
+#: src/components/direct/DirectPanel.tsx
+msgid "Pick a beatmap to see it here."
+msgstr "Pick a beatmap to see it here."
+
 #: src/components/options/MoveInstall.tsx
 msgid "Pick a folder outside the current installation."
 msgstr "Pick a folder outside the current installation."
@@ -1495,10 +1627,6 @@ msgstr "Pick a folder outside the current installation."
 #: src/components/Tutorial.tsx
 msgid "Pick a song"
 msgstr "Pick a song"
-
-#: src/components/dock/DockControls.tsx
-msgid "Pick maps to add"
-msgstr "Pick maps to add"
 
 #: src/components/options/PitchFollowsRate.tsx
 msgid "Pitch follows the rate (Double and Half mods)"
@@ -1538,6 +1666,12 @@ msgstr "Play unranked"
 msgid "Play unranked ?"
 msgstr "Play unranked ?"
 
+#. placeholder {0}: card.playerName
+#. placeholder {1}: card.playedAt
+#: src/components/result/scoreCard.ts
+msgid "Played by {0} on {1}"
+msgstr "Played by {0} on {1}"
+
 #: src/components/result/ResultMeta.tsx
 msgid "Played by {playerName} on {playedAt}"
 msgstr "Played by {playerName} on {playedAt}"
@@ -1555,6 +1689,10 @@ msgstr "Playlist"
 #: src/components/Tutorial.tsx
 msgid "Playlists"
 msgstr "Playlists"
+
+#: src/components/direct/DirectPanel.tsx
+msgid "Plays"
+msgstr "Plays"
 
 #: src/components/character/PrestigeRow.tsx
 #: src/components/character/PrestigeRow.tsx
@@ -1584,14 +1722,13 @@ msgstr "Previous"
 msgid "Profile picture<0/>Defaults to your osu! avatar"
 msgstr "Profile picture<0/>Defaults to your osu! avatar"
 
+#: src/components/Tutorial.tsx
+msgid "Progress made as a Guest <0>stays on this device</0> and can never be moved to an online character, so the leaderboards stay fair."
+msgstr "Progress made as a Guest <0>stays on this device</0> and can never be moved to an online character, so the leaderboards stay fair."
+
 #: src/components/addons/AddonView.tsx
 msgid "Published add-on code must be licensed under the AGPLv3 (or a compatible licence), regardless of its source code's license."
 msgstr "Published add-on code must be licensed under the AGPLv3 (or a compatible licence), regardless of its source code's license."
-
-#: src/components/dock/DockControls.tsx
-#: src/components/dock/DockPill.tsx
-msgid "queue"
-msgstr "queue"
 
 #: src/scenes/Lobby.tsx
 msgid "Quick Join"
@@ -1616,6 +1753,14 @@ msgstr "Rank"
 #: src/components/multiplayer/MatchRow.tsx
 msgid "rank: {best} - {worst}"
 msgstr "rank: {best} - {worst}"
+
+#: src/components/direct/DirectFilters.tsx
+msgid "Ranked"
+msgstr "Ranked"
+
+#: src/components/direct/DirectRow.tsx
+msgid "Ranked {ranked}"
+msgstr "Ranked {ranked}"
 
 #: src/components/upgrades/SkillPerk.tsx
 msgid "Rates"
@@ -1672,13 +1817,13 @@ msgstr "Relink Discord account"
 msgid "Reload"
 msgstr "Reload"
 
-#: src/components/dock/DockQueue.tsx
-msgid "remove"
-msgstr "remove"
-
 #: src/components/addons/ManageAddonsView.tsx
 msgid "Remove \"{addon}\" ?"
 msgstr "Remove \"{addon}\" ?"
+
+#: src/components/dock/DockQueue.tsx
+msgid "Remove from the queue"
+msgstr "Remove from the queue"
 
 #: src/components/PlaylistOverlay.tsx
 msgid "Remove this difficulty"
@@ -1709,6 +1854,10 @@ msgstr "Report {name}?"
 msgid "Report sent."
 msgstr "Report sent."
 
+#: src/components/addons/AddonEditMeta.tsx
+msgid "Repository"
+msgstr "Repository"
+
 #: src/components/multiplayer/CreateMatch.tsx
 msgid "Require password to join"
 msgstr "Require password to join"
@@ -1731,13 +1880,13 @@ msgid "Restart the game to apply"
 msgstr "Restart the game to apply"
 
 #: src/components/result/ResultMeta.tsx
+#: src/components/result/scoreCard.ts
 msgid "Result"
 msgstr "Result"
 
 #: src/components/dock/DockRunButton.tsx
-#: src/components/gameplay/QueuePauseButton.tsx
-msgid "resume"
-msgstr "resume"
+msgid "Resume the queue"
+msgstr "Resume the queue"
 
 #: src/scenes/Result.tsx
 msgid "RETRY"
@@ -1760,6 +1909,14 @@ msgstr "right|click|hold|time"
 msgid "Save"
 msgstr "Save"
 
+#: src/components/addons/AddonRepoPane.tsx
+msgid "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
+msgstr "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
+
+#: src/components/result/ShareScoreButton.tsx
+msgid "Saved as an image"
+msgstr "Saved as an image"
+
 #: src/components/addons/AddonView.tsx
 #: src/components/skins/SkinView.tsx
 msgid "Saving…"
@@ -1769,18 +1926,22 @@ msgstr "Saving…"
 msgid "Score"
 msgstr "Score"
 
-#. placeholder {0}: scoreMultiplier(rate).toFixed(2)
+#. placeholder {0}: (scoreMultiplier(rate) * modsScoreMultiplier(mods)).toFixed(2)
 #: src/components/mods/ModSelect.tsx
 msgid "Score Multiplier: {0}x"
 msgstr "Score Multiplier: {0}x"
 
-#: src/components/dock/DockControls.tsx
-msgid "screensaver"
-msgstr "screensaver"
+#: src/components/dock/DockTransport.tsx
+msgid "Screensaver"
+msgstr "Screensaver"
 
 #: src/components/community/CommunityHeader.tsx
 msgid "Search"
 msgstr "Search"
+
+#: src/components/direct/DirectFilters.tsx
+msgid "Search by artist, title, mapper, stars>5..."
+msgstr "Search by artist, title, mapper, stars>5..."
 
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/community/chat/ChannelPicker.tsx
@@ -1823,6 +1984,18 @@ msgstr "Send Report"
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Set Password"
 msgstr "Set Password"
+
+#: src/components/result/ShareScoreButton.tsx
+msgid "SHARE"
+msgstr "SHARE"
+
+#: src/components/direct/DirectFilters.tsx
+msgid "Show already downloaded maps"
+msgstr "Show already downloaded maps"
+
+#: src/components/options/ShowUndownloaded.tsx
+msgid "Show beatmaps that aren't downloaded"
+msgstr "Show beatmaps that aren't downloaded"
 
 #: src/components/community/CommunityControls.tsx
 msgid "Show chat"
@@ -1890,6 +2063,14 @@ msgstr "sign|in|login|connect|connexion"
 msgid "Signed in as {username}"
 msgstr "Signed in as {username}"
 
+#: src/components/Tutorial.tsx
+msgid "Signed in, your character <0>keeps playing its queue</0> after you close the game, so you don't have to leave it on overnight!"
+msgstr "Signed in, your character <0>keeps playing its queue</0> after you close the game, so you don't have to leave it on overnight!"
+
+#: src/components/direct/DirectPanel.tsx
+msgid "Size"
+msgstr "Size"
+
 #: src/scenes/Options.tsx
 msgid "Skin"
 msgstr "Skin"
@@ -1910,13 +2091,13 @@ msgstr "Skinning"
 msgid "Skins"
 msgstr "Skins"
 
-#: src/components/dock/DockControls.tsx
-msgid "skip"
-msgstr "skip"
-
 #: src/components/Tutorial.tsx
 msgid "Skip"
 msgstr "Skip"
+
+#: src/components/dock/DockTransport.tsx
+msgid "Skip to the next map"
+msgstr "Skip to the next map"
 
 #: src/scenes/MainMenu.tsx
 msgid "Solo"
@@ -1933,10 +2114,6 @@ msgstr "Sort"
 #: src/components/songselect/BeatmapInfo.tsx
 msgid "Star Rating: {stars}★"
 msgstr "Star Rating: {stars}★"
-
-#: src/components/dock/DockRunButton.tsx
-msgid "start"
-msgstr "start"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Start Chat"
@@ -1957,13 +2134,8 @@ msgid "Start over with a new character that unlocks new features"
 msgstr "Start over with a new character that unlocks new features"
 
 #: src/components/dock/DockRunButton.tsx
-msgid "Start playing the queue"
-msgstr "Start playing the queue"
-
-#: src/components/dock/DockRunButton.tsx
-#: src/components/gameplay/QueuePauseButton.tsx
-msgid "Start playing the queue again"
-msgstr "Start playing the queue again"
+msgid "Start the queue"
+msgstr "Start the queue"
 
 #: src/components/community/MusicControls.tsx
 msgid "Stop"
@@ -1991,14 +2163,14 @@ msgstr "Submit add-on"
 msgid "Submitting score…"
 msgstr "Submitting score…"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/SupporterHeart.tsx
+msgid "Support the game to access cool features!"
+msgstr "Support the game to access cool features!"
+
+#: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
 msgid "Tags"
 msgstr "Tags"
-
-#: src/components/dock/DockQueue.tsx
-msgid "Take it out of the queue"
-msgstr "Take it out of the queue"
 
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Talk about multiplayer games."
@@ -2021,16 +2193,24 @@ msgid "That folder already has an oss!idle folder with files in it."
 msgstr "That folder already has an oss!idle folder with files in it."
 
 #: src/components/options/DownloadAllWarning.tsx
-msgid "That's why downloading them all at once is an osu!supporter perk."
-msgstr "That's why downloading them all at once is an osu!supporter perk."
+msgid "That's why downloading them all at once is an oss!supporter perk."
+msgstr "That's why downloading them all at once is an oss!supporter perk."
 
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "The Administrators' and Global Moderation Team's channel."
 msgstr "The Administrators' and Global Moderation Team's channel."
 
+#: src/scenes/Direct.tsx
+msgid "The latest ranked beatmaps"
+msgstr "The latest ranked beatmaps"
+
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "The main oss!idle channel."
 msgstr "The main oss!idle channel."
+
+#: src/scenes/Direct.tsx
+msgid "The most played ranked beatmaps"
+msgstr "The most played ranked beatmaps"
 
 #: src/components/community/chat/ReportMessageDialog.tsx
 msgid "The report could not be sent."
@@ -2090,6 +2270,10 @@ msgstr "Total {xp}xp"
 msgid "Trade skill levels for XP boosts"
 msgstr "Trade skill levels for XP boosts"
 
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Trusted: new builds go live without review."
+msgstr "Trusted: new builds go live without review."
+
 #: src/scenes/Options.tsx
 #: src/scenes/SongSelect.tsx
 msgid "Type to search!"
@@ -2121,10 +2305,6 @@ msgstr "Uninstall"
 msgid "Uninstall add-on"
 msgstr "Uninstall add-on"
 
-#: src/components/options/FrameLimiter.tsx
-msgid "Unlimited"
-msgstr "Unlimited"
-
 #: src/components/character/RebirthView.tsx
 msgid "Unlocked: {unlocks}"
 msgstr "Unlocked: {unlocks}"
@@ -2133,9 +2313,21 @@ msgstr "Unlocked: {unlocks}"
 msgid "Unplayed"
 msgstr "Unplayed"
 
+#: src/components/direct/DirectFilters.tsx
+msgid "Unranked"
+msgstr "Unranked"
+
+#: src/components/mods/ModSelect.tsx
+msgid "Unranked: no XP, and the score is not submitted"
+msgstr "Unranked: no XP, and the score is not submitted"
+
 #: src/components/dock/DockQueue.tsx
 msgid "Up next"
 msgstr "Up next"
+
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Up to date"
+msgstr "Up to date"
 
 #: src/components/addons/InstalledAddonRow.tsx
 #: src/components/addons/ManageAddonsView.tsx
@@ -2156,8 +2348,7 @@ msgstr "Updated"
 msgid "Upgrade Speed to unlock rates"
 msgstr "Upgrade Speed to unlock rates"
 
-#: src/components/dock/DockControls.tsx
-#: src/components/dock/DockPill.tsx
+#: src/components/dock/DockUpgradesButton.tsx
 msgid "upgrades"
 msgstr "upgrades"
 
@@ -2191,7 +2382,7 @@ msgstr "Using multiple accounts"
 msgid "Validation errors"
 msgstr "Validation errors"
 
-#: src/components/addons/AddonView.tsx
+#: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
 msgid "Version"
 msgstr "Version"
@@ -2204,6 +2395,10 @@ msgstr "Version {version} is available ! Refresh the page to update."
 msgid "Version {version} is available ! Update in the main menu."
 msgstr "Version {version} is available ! Update in the main menu."
 
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "View build log"
+msgstr "View build log"
+
 #: src/components/addons/AddonCodePane.tsx
 msgid "View changes"
 msgstr "View changes"
@@ -2211,6 +2406,11 @@ msgstr "View changes"
 #: src/components/addons/AddonCodePane.tsx
 msgid "View code"
 msgstr "View code"
+
+#: src/components/direct/DirectLinkPanel.tsx
+#: src/components/direct/DirectView.tsx
+msgid "View listing"
+msgstr "View listing"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "View Profile"
@@ -2231,6 +2431,10 @@ msgstr "volume"
 msgid "Volume"
 msgstr "Volume"
 
+#: src/components/addons/AddonRepoBuild.tsx
+msgid "Waiting for the builder…"
+msgstr "Waiting for the builder…"
+
 #: src/scenes/Screensaver.tsx
 msgid "Waiting for the next map"
 msgstr "Waiting for the next map"
@@ -2240,12 +2444,12 @@ msgid "Waiting for the other players to finish..."
 msgstr "Waiting for the other players to finish..."
 
 #: src/components/dock/DockWatchButton.tsx
-msgid "watch"
-msgstr "watch"
+msgid "Watch"
+msgstr "Watch"
 
-#: src/components/dock/DockWatchButton.tsx
-msgid "Watch, keeping the playlist"
-msgstr "Watch, keeping the playlist"
+#: src/components/addons/AddonRepoPane.tsx
+msgid "Webhook"
+msgstr "Webhook"
 
 #: src/scenes/MainMenu.tsx
 msgid "Website"
@@ -2307,6 +2511,10 @@ msgstr "XP Lv{level} → XP Lv0 · Loses every upgrade and all Overdrive · Keep
 msgid "XP Lv<0/>"
 msgstr "XP Lv<0/>"
 
+#: src/components/mods/XpMultipliers.tsx
+msgid "XP Multiplier: {xp}x"
+msgstr "XP Multiplier: {xp}x"
+
 #: src/components/upgrades/UpgradeTooltip.tsx
 msgid "XP spent"
 msgstr "XP spent"
@@ -2362,6 +2570,10 @@ msgstr "Your character can play <0>on-repeat</0>, automatically, on playlists yo
 #: src/scenes/Gameplay.tsx
 msgid "Your character is still playing another map. Abort that play to start this one?"
 msgstr "Your character is still playing another map. Abort that play to start this one?"
+
+#: src/scenes/MainMenu.tsx
+msgid "Your character keeps playing its queue for {hours} hours after you quit."
+msgstr "Your character keeps playing its queue for {hours} hours after you quit."
 
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Your own plays and level-ups, seen only by you."

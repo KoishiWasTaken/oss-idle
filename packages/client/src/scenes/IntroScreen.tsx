@@ -16,6 +16,7 @@ import {
 	isStandalone,
 } from '../globals';
 import { Trans } from '@lingui/react/macro';
+import { menuWarmed } from '../warmup/menuWarmed';
 
 const INTRO_MS = 2500;
 const SONG_KICK = 2450;
@@ -88,7 +89,10 @@ export default function IntroScreen() {
 
 			// desktop can start audio without a user gesture (autoplayPolicy), so
 			// skip the click gate and activate the intro straight away.
-			if (isStandalone.get()) begin();
+			if (isStandalone.get()) {
+				await menuWarmed;
+				begin();
+			}
 		})();
 	}, []);
 

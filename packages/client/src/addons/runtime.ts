@@ -15,11 +15,11 @@ type AddonMeta = Pick<Addon, 'id' | 'name' | 'version' | 'gameVersion' | 'author
 
 type AddonModule = {
 	mount?: (addon: AddonMeta) => void,
-	unmount?: () => void,
+	unmount?: () => void | Promise<void>,
 };
 
 /** Loaded add-ons, by add-on id → its `unmount` (if any). */
-const live = new Map<number, () => void>();
+const live = new Map<number, () => void | Promise<void>>();
 
 /**
  * Import an add-on's source as an ES module (full page access, real exports)
@@ -53,16 +53,18 @@ const mount = async ({
 	}
 };
 
-/** Tear down a live add-on (its `unmount`), if running. */
-const unmount = (id: number, name: string): void => {
+/** Tear down a live add-on (its `unmount`), if running, and wait for it to finish. */
+const unmount = async (id: number, name: string): Promise<void> => {
 	const stop = live.get(id);
 	if (!stop) return;
 	live.delete(id);
 	try {
-		stop();
+		await stop();
 	} catch (e) {
 		console.error(`Add-on "${name}" failed to unmount`, e);
 	}
+	// older SDK builds return nothing and finish their teardown on microtasks
+	await new Promise(resolve => setTimeout(resolve));
 };
 
 /** Enable an installed add-on: persist the flag and mount it. */
@@ -74,18 +76,18 @@ export const enableAddon = async (addon: Addon): Promise<void> => {
 /** Disable an installed add-on: persist the flag and unmount it. */
 export const disableAddon = async (addon: Addon): Promise<void> => {
 	await addon.setEnabled(false);
-	unmount(addon.id, addon.name);
+	await unmount(addon.id, addon.name);
 };
 
 /** Uninstall an add-on: unmount (if live) and drop its local row. */
 export const uninstallAddon = async (addon: Addon): Promise<void> => {
-	unmount(addon.id, addon.name);
+	await unmount(addon.id, addon.name);
 	await addon.uninstall();
 };
 
 /** Swap a running add-on's source after an update: unmount old, mount new. */
 export const remountAddon = async (addon: Addon): Promise<void> => {
-	unmount(addon.id, addon.name);
+	await unmount(addon.id, addon.name);
 	if (addon.enabled) await mount(addon);
 };
 

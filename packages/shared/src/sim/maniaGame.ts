@@ -5,6 +5,12 @@ import {
 } from './scroll.js';
 import { scoreMultiplier } from '../rate.js';
 import {
+	modsScoreMultiplier,
+	windowScale,
+	worstAllowed,
+	type Mod,
+} from '../mods.js';
+import {
 	type Bot,
 	type BotContext,
 	type InputEvent,
@@ -46,6 +52,9 @@ export type ManiaGameOptions = {
 	divine?: boolean
 	/** playback rate: every time in the map runs this much faster (x1 by default) */
 	rate?: number
+	mods?: readonly Mod[]
+	/** a match round: a fail is recorded, but the play goes on to the end */
+	playOn?: boolean
 };
 
 /** One entry on the resolution timeline: a bot input judged at `time`, or - when
@@ -65,6 +74,8 @@ export type HitRecord = {
 	/** signed timing error in ms (negative = early, positive = late); null = miss */
 	offset: number | null
 	judgement: Judgement
+	/** HP (0..MAX_HP) right after this judgement - the result screen's HP graph */
+	hp?: number
 };
 
 /**
@@ -126,6 +137,7 @@ export class ManiaGame {
 	readonly columnFlash: number[];
 
 	private lastTime: number = 0;
+	private readonly playOn: boolean;
 
 	constructor(rawBeatmap: Beatmap, bot: Bot, options: ManiaGameOptions = {}) {
 		// apply the mania ruleset so hit objects become mania notes/holds with a
@@ -159,14 +171,17 @@ export class ManiaGame {
 				}),
 			drain,
 		);
+		const mods = options.mods ?? [];
+		this.playOn = options.playOn ?? false;
 		this.score = new ScoreState(
 			drain, 
 			beatmap.difficulty.overallDifficulty, 
 			this.notes.length,
-			options.noFail,
+			options.noFail || mods.includes('NF'),
 			hpMultiplier,
 			options.divine,
-			scoreMultiplier(rate),
+			scoreMultiplier(rate) * modsScoreMultiplier(mods),
+			worstAllowed(mods),
 		);
 		this.songEndMs =
 			this.notes.reduce((m, n) => Math.max(m, n.hold ? n.endTime : n.time), 0) + 2000;
@@ -174,15 +189,18 @@ export class ManiaGame {
 			this.notes.reduce((m, n) => Math.min(m, n.time), Infinity) - 2000;
 
 		this.scroll = new ScrollModel(beatmap, rate);
-		this.barlines = buildBarlines(beatmap, this.songEndMs, rate);
-		this.windows = maniaWindows(beatmap.difficulty.overallDifficulty, options.divine);
+		this.barlines = buildBarlines(beatmap, this.songEndMs, this.scroll, rate);
+		this.windows = maniaWindows(
+			beatmap.difficulty.overallDifficulty, options.divine, windowScale(mods),
+		);
 
 		// visibility window (scroll units): everything between just past the
 		// judgement line and the top of the approach is "on screen"
 		this.visibleAhead = options.scrollMs ?? 600;
 		this.visibleBehind = this.visibleAhead * 0.3;
 		// note heads in scroll-distance order (monotonic with time)
-		this.notePositions = this.notes.map((n) => this.scroll.positionAt(n.time));
+		for (const n of this.notes) n.placeOn(this.scroll);
+		this.notePositions = this.notes.map((n) => n.headPos);
 		// ascending note times (global + per-column) for O(log N) nps counts
 		this.noteTimes = this.notes.map((n) => n.time);
 		this.columnNoteTimes = Array.from({ length: this.keyCount }, () => [] as number[]);
@@ -192,6 +210,8 @@ export class ManiaGame {
 			notes: this.notes,
 			inputs: [],
 			keyCount: this.keyCount,
+			// the windows without EZ/HR: what the bot blames is mod-independent
+			windows: maniaWindows(beatmap.difficulty.overallDifficulty, options.divine),
 			scroll: this.scroll,
 			speedChanges: this.scroll.speedChanges,
 			visibleNotes: (t) => this.visibleNotesAt(t),
@@ -317,7 +337,7 @@ export class ManiaGame {
 		while (this.schedPtr < this.schedule.length && this.schedule[this.schedPtr].time <= nowMs) {
 			// the play is over the instant HP hit 0 - never resolve anything past the
 			// failure point (a single jumped update must not score the rest of the map)
-			if (this.score.failed) break;
+			if (this.score.failed && !this.playOn) break;
 			const { event, timedOut } = this.schedule[this.schedPtr++];
 			if (timedOut) this.applyMiss(event);
 			else this.applyEvent(event);
@@ -496,14 +516,15 @@ export class ManiaGame {
 		};
 		if (j !== JUDGEMENT.MISS) this.columnFlash[column] = hitTime;
 		this.hits.push({
-			time: noteTime, offset, judgement: j, 
+			time: noteTime, offset, judgement: j, hp: this.score.hp,
 		});
 	}
 
 	/** true once the play is over - either HP hit 0 (failed) or every note has
 	 *  been fully resolved. */
 	get finished(): boolean {
-		return this.score.failed || (this.schedPtr >= this.schedule.length && this.allJudged());
+		return (this.score.failed && !this.playOn)
+			|| (this.schedPtr >= this.schedule.length && this.allJudged());
 	}
 
 	private allJudged(): boolean {

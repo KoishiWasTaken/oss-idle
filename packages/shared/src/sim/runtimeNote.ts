@@ -31,8 +31,19 @@ export default class RuntimeNote {
 	 *  error at the tail to form the long note's single judgement. */
 	public headOffset?: number;
 
+	/** scroll positions of the head and the tail (see {@link placeOn}) */
+	public headPos = 0;
+	public tailPos = 0;
+
 	getEndTime(): number {
 		return this.hold ? this.endTime : this.time;
+	}
+
+	/** Work out where the note sits on `scroll` once, so a frame drawing it only does
+	 *  arithmetic (a lookup per note per frame is garbage the renderer stutters on). */
+	placeOn(scroll: { positionAt(time: number): number }): void {
+		this.headPos = scroll.positionAt(this.time);
+		this.tailPos = scroll.positionAt(this.getEndTime());
 	}
 
 	getId(): string {

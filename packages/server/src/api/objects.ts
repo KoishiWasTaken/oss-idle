@@ -123,6 +123,7 @@ export const apiScore = (score: ScoreDTO) => ({
 	pp: score.pp,
 	perfect: score.pfc,
 	rate: score.rate,
+	mods: score.mods,
 	statistics: statistics(score.judgements),
 	ended_at: new Date(score.playedAt).toISOString(),
 });

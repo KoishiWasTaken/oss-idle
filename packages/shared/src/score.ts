@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { rateSchema } from './rate.js';
+import { modsSchema } from './mods.js';
 import { MAX_ACCURACY } from './sim/scoring.js';
 import {
 	Grades,
@@ -15,7 +16,8 @@ export const judgementCountsDTO = z.object(
 export type JudgementCounts = z.infer<typeof judgementCountsDTO>;
 
 export const scoreDTO = z.object({
-	id: z.number().int().positive(),
+	// 0: never submitted (an NF match round)
+	id: z.number().int().min(0),
 	characterId: z.number().int().positive(),
 	beatmapId: z.number().int(),
 	score: z.number().int().min(0),
@@ -30,6 +32,7 @@ export const scoreDTO = z.object({
 	ur: z.number().min(0),
 	pfc: z.boolean(),
 	rate: rateSchema,
+	mods: modsSchema.default([]),
 	playedAt: z.number().int(), // epoch ms
 });
 export type ScoreDTO = z.infer<typeof scoreDTO>;

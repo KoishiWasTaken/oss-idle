@@ -7,6 +7,7 @@ import {
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
 import Socket from '../../../online/socket';
+import Auth from '../../../online/auth';
 import { music } from '../../../audio/MusicPlayer';
 import {
 	LOGS_CHANNEL,
@@ -23,6 +24,10 @@ import {
 import { blocked } from '../../../online/blocks';
 import ChatText from './ChatText';
 import { mapLink } from './links';
+import {
+	MENTION_COLOR,
+	mentionsMe,
+} from './mentions';
 import { SITE_URL } from '../../../globals';
 import {
 	type MenuTarget,
@@ -50,6 +55,9 @@ export default function ChatTabContents({ channel, inputRef } : {
 	const [blockedIds = new Set<number>()] = useSynced(blocked);
 	const [draft, setDraft] = useState('');
 	const logRef = useRef<HTMLDivElement>(null);
+	const completion = useRef<{ start: number, matches: string[], index: number }>(undefined);
+	const [user] = useSynced(Auth.user);
+	const me = user?.id;
 
 	const shown: LogLine[] = contact === undefined
 		? lines.filter(l => l.channel === channel).map(l => {
@@ -61,7 +69,8 @@ export default function ChatTabContents({ channel, inputRef } : {
 				id: l.id, at: l.at, text: '<block>',
 			};
 			return {
-				id: l.id, at: l.at, text: l.text, color: l.from.color, name: l.from.name,
+				id: l.id, at: l.at, text: l.text, name: l.from.name,
+				color: mentionsMe(l.text) && l.from.userId !== me ? MENTION_COLOR : l.from.color,
 				sender: {
 					...l.from, line: l,
 				},
@@ -84,6 +93,26 @@ export default function ChatTabContents({ channel, inputRef } : {
 			}, `${artist} - ${title} [${np.metadata.version}]`);
 		}
 		return text;
+	};
+
+	// Tab completes an online player's name; pressing it again cycles
+	const complete = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key !== 'Tab') return;
+		e.preventDefault();
+		if (!completion.current) {
+			const start = draft.lastIndexOf(' ') + 1;
+			const prefix = draft.slice(start).toLowerCase();
+			const matches = [...new Set(Socket.presence.get().map(p => p.name))]
+				.filter(name => name.toLowerCase().startsWith(prefix))
+				.sort((a, b) => a.localeCompare(b));
+			if (!prefix || !matches.length) return;
+			completion.current = {
+				start, matches, index: -1, 
+			};
+		}
+		const c = completion.current;
+		c.index = (c.index + 1) % c.matches.length;
+		setDraft(draft.slice(0, c.start) + c.matches[c.index]);
 	};
 
 	const submit = (e: React.FormEvent) => {
@@ -137,7 +166,11 @@ export default function ChatTabContents({ channel, inputRef } : {
 					ref={inputRef}
 					type="text"
 					value={draft}
-					onChange={e => setDraft(e.target.value)}
+					onChange={e => {
+						completion.current = undefined;
+						setDraft(e.target.value);
+					}}
+					onKeyDown={complete}
 				/>
 			</form>
 		)}

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { rateSchema } from './rate.js';
+import { modsSchema } from './mods.js';
 import { scoreDTO } from './score.js';
 
 /**
@@ -35,6 +36,8 @@ export const matchSlotDTO = z.discriminatedUnion('state', [
 		playing: z.boolean(),
 		/** the rate this player plays at: everyone picks their own */
 		rate: rateSchema.optional(),
+		/** and their own mods */
+		mods: modsSchema.optional(),
 	}),
 ]);
 export type MatchSlot = z.infer<typeof matchSlotDTO>;
@@ -125,6 +128,10 @@ export const multiplayerClientMessages = [
 	z.object({
 		type: z.literal('mp:rate'),
 		rate: rateSchema,
+	}),
+	z.object({
+		type: z.literal('mp:mods'),
+		mods: modsSchema,
 	}),
 	/** move to another open slot */
 	z.object({

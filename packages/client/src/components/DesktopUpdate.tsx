@@ -12,6 +12,9 @@ import {
 	downloadDesktopUpdate,
 	updateStatus,
 } from '../online/desktopUpdate';
+import { STAGING } from '../dev/devTools';
+
+const STAGING_CHECK_MS = 30_000;
 
 /**
  * Desktop-only banner that surfaces an available app update and walks
@@ -26,6 +29,18 @@ export default function DesktopUpdate() {
 
 	// a fresh availability / readiness / error re-opens the banner after a dismiss
 	useEffect(() => { setDismissed(false); }, [status.state]);
+
+	// a staging build comes out with no version bump to announce it: the menu asks
+	useEffect(() => {
+		if (!STAGING) return;
+		const check = () => {
+			const { state } = updateStatus.get();
+			if (state !== 'available' && state !== 'downloading') void checkForDesktopUpdate();
+		};
+		check();
+		const timer = setInterval(check, STAGING_CHECK_MS);
+		return () => clearInterval(timer);
+	}, []);
 
 	// content + the optional primary action, by state; dismissable states get the
 	// close button. Anything else (idle / checking / none) shows no banner.

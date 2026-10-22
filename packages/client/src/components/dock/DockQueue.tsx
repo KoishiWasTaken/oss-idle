@@ -3,22 +3,27 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
+import { faArrowUp } from '@fortawesome/free-solid-svg-icons/faArrowUp';
+import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import PlayQueue from '../../gameplay/playQueue';
+import DockCountdown from './DockCountdown';
+import DockCountdownBar from './DockCountdownBar';
 
 type Props = {
 	/** the carousel is open beside it, so an empty queue is worth explaining */
 	hint?: boolean;
 };
 
-/** What is lined up behind the running play: every row can be dropped, and the
- *  one that plays next says so. Empty, it says nothing at all - expanding a
- *  panel to announce that a queue is empty is worth less than the layout it
- *  shifts. */
+/** What is lined up behind the running play, in the order it plays: the first
+ *  row says when it starts, and every row can be moved or dropped. */
 export default function DockQueue({ hint = false }: Props) {
 	const { t } = useLingui();
 	const [queue] = useSynced(PlayQueue.state);
-	if (!queue?.entries.length) {
+	const entries = queue?.entries ?? [];
+	if (!entries.length) {
 		if (!hint) return null;
 		return (
 			<div className="dock__queue">
@@ -29,53 +34,53 @@ export default function DockQueue({ hint = false }: Props) {
 		);
 	}
 
-	// the queue is what is waiting: the first row is what plays next
-	const rows = queue.entries.map((beatmap, index) => ({
-		beatmap, index,
-	}));
-
 	return (
 		<div className="dock__queue">
-			<div className="dock__label">
-				<Trans>Up next</Trans> · {rows.length}
+			<div className="dock__queue-head">
+				<span><Trans>Up next</Trans></span>
+				<span className="dock__count">{entries.length}</span>
 			</div>
-			{rows.map(({ beatmap, index }) => (
-				<div
-					key={`${beatmap.metadata.id}-${index}`}
-					className={`dock__entry ${index === 0 ? 'is-next' : ''}`}
-				>
-					<span className="dock__entry-name">
-						{beatmap.set.metadata.artist} - {beatmap.set.metadata.title}
-						<RatedVersion version={beatmap.metadata.version} rate={beatmap.lockedRate} />
-					</span>
-					{index === 0 && <span className="dock__next"><Trans>next</Trans></span>}
-					<span className="dock__entry-actions">
-						<button
-							type="button"
-							disabled={index === 0}
-							title={t`Move up`}
-							onClick={() => PlayQueue.move(index, index - 1)}
-						>
-							↑
-						</button>
-						<button
-							type="button"
-							disabled={index === rows.length - 1}
-							title={t`Move it down`}
-							onClick={() => PlayQueue.move(index, index + 1)}
-						>
-							↓
-						</button>
-						<button
-							type="button"
-							title={t`Take it out of the queue`}
-							onClick={() => PlayQueue.remove(index)}
-						>
-							<Trans>remove</Trans>
-						</button>
-					</span>
-				</div>
-			))}
+			<ol className="dock__list">
+				{entries.map((beatmap, index) => (
+					<li
+						key={`${beatmap.metadata.id}-${beatmap.lockedRate}-${index}`}
+						className={`dock__entry ${index === 0 ? 'is-next' : ''}`}
+					>
+						<span className="dock__num">{index + 1}</span>
+						<span className="dock__entry-name">
+							{beatmap.set.metadata.artist} - {beatmap.set.metadata.title}
+							<RatedVersion version={beatmap.metadata.version} rate={beatmap.lockedRate} />
+						</span>
+						{index === 0 && <DockCountdown />}
+						{index === 0 && <DockCountdownBar />}
+						<span className="dock__entry-actions">
+							<button
+								type="button"
+								aria-label={t`Move up`}
+								disabled={index === 0}
+								onClick={() => PlayQueue.move(index, index - 1)}
+							>
+								<FontAwesomeIcon icon={faArrowUp} />
+							</button>
+							<button
+								type="button"
+								aria-label={t`Move down`}
+								disabled={index === entries.length - 1}
+								onClick={() => PlayQueue.move(index, index + 1)}
+							>
+								<FontAwesomeIcon icon={faArrowDown} />
+							</button>
+							<button
+								type="button"
+								aria-label={t`Remove from the queue`}
+								onClick={() => PlayQueue.remove(index)}
+							>
+								<FontAwesomeIcon icon={faXmark} />
+							</button>
+						</span>
+					</li>
+				))}
+			</ol>
 		</div>
 	);
 }

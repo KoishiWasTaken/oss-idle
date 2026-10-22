@@ -14,22 +14,30 @@ export default function RateStepper({ steps, unlocked, current, onPick }: {
 	const inner = steps[at - 1];
 	const outer = steps[at + 1];
 	const outerOpen = outer !== undefined && unlocked.includes(outer);
+	const slower = steps[0] < 1;
+	const inwards = (
+		<button
+			type="button"
+			className="rate-stepper__arrow"
+			disabled={inner === undefined}
+			onClick={() => onPick(inner!)}
+		>{slower ? '›' : '‹'}</button>
+	);
+	const outwards = (
+		<button
+			type="button"
+			className="rate-stepper__arrow"
+			disabled={!outerOpen}
+			title={outer !== undefined && !outerOpen ? t`Each Speed upgrade unlocks one more step` : undefined}
+			onClick={() => onPick(outer!)}
+		>{slower ? '‹' : '›'}</button>
+	);
+	// lower rates always on the left
 	return (
 		<div className="rate-stepper">
-			<button
-				type="button"
-				className="rate-stepper__arrow"
-				disabled={inner === undefined}
-				onClick={() => onPick(inner!)}
-			>‹</button>
+			{slower ? outwards : inwards}
 			<span className="rate-stepper__value">{rateLabel(current)}</span>
-			<button
-				type="button"
-				className="rate-stepper__arrow"
-				disabled={!outerOpen}
-				title={outer !== undefined && !outerOpen ? t`Each Speed upgrade unlocks one more step` : undefined}
-				onClick={() => onPick(outer!)}
-			>›</button>
+			{slower ? inwards : outwards}
 		</div>
 	);
 }

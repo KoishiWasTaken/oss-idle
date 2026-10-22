@@ -289,6 +289,34 @@
 .addons-admin__diffline--remove .addons-admin__sigil {
 	color: #ef8888;
 }
+.addons-admin__diffline--add code {
+	color: #6ee29a;
+}
+.addons-admin__diffline--remove code {
+	color: #ef8888;
+}
+.addons-admin__diffline--file {
+	margin-top: 6px;
+	font-weight: 700;
+	color: #fff;
+}
+.addons-admin__diffline--hunk {
+	color: #8ab6f0;
+}
+.addons-admin__log {
+	margin: 0;
+	padding: 8px 10px;
+	background: #1e1e1e;
+	color: #d4d4d4;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+.addons-admin__trusted {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.85rem;
+}
 
 .addons-admin__actions {
 	display: flex;

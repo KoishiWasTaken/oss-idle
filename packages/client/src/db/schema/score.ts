@@ -17,6 +17,11 @@ import {
 import { ScoreBest } from './score_best';
 import { ScoreBestPP } from './score_best_pp';
 import {
+	modsKey,
+	parseMods,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import {
 	Grade,
 	Judgement,
 	Judgements,
@@ -41,6 +46,7 @@ const t = table('score', {
 	pfc:         boolean(),
 	playedAt:    integer(),
 	rate:        real().default(1),
+	mods:        new Column<Mod[]>('TEXT', modsKey, v => parseMods(String(v ?? ''))).default([]),
 }, {
 	indexes: {
 		idx_score_online_id: 'onlineId',
@@ -118,6 +124,7 @@ export class Score extends DAO(t) {
 			ur:          nonNeg(this.ur),
 			pfc:         this.pfc,
 			rate:        this.rate,
+			mods:        this.mods,
 			playedAt:    int(this.playedAt),
 		};
 	}

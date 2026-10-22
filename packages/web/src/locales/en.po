@@ -363,9 +363,9 @@ msgstr "Bold"
 msgid "BPM"
 msgstr "BPM"
 
-#: src/pages/help/FAQ.tsx
-msgid "Browsers slow down tabs you aren't looking at, which can stall autopilot. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
-msgstr "Browsers slow down tabs you aren't looking at, which can stall autopilot. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
+#: src/pages/store/SupporterPerks.tsx
+msgid "Browse every ranked map from the game's main menu and download any of them in one click, and open maps linked in the chat there too"
+msgstr "Browse every ranked map from the game's main menu and download any of them in one click, and open maps linked in the chat there too"
 
 #: src/pages/store/SupporterTag.tsx
 msgid "Buying one while your tag is active adds to the time you have left."
@@ -727,6 +727,10 @@ msgstr "hi !"
 msgid "Highest overdrive"
 msgstr "Highest overdrive"
 
+#: src/components/character/RankArea.tsx
+msgid "Highest rank: {rank} on {date}"
+msgstr "Highest rank: {rank} on {date}"
+
 #: src/pages/matches/MatchGame.tsx
 msgid "Highest Score"
 msgstr "Highest Score"
@@ -982,6 +986,10 @@ msgstr "menu"
 msgid "Menu background"
 msgstr "Menu background"
 
+#: src/pages/beatmaps/MapRequests.tsx
+msgid "mine"
+msgstr "mine"
+
 #: src/components/character/AccountStanding.tsx
 msgid "Moderator"
 msgstr "Moderator"
@@ -1166,6 +1174,10 @@ msgstr "open"
 msgid "order history"
 msgstr "order history"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "oss!direct"
+msgstr "oss!direct"
+
 #: src/pages/store/SupporterTag.tsx
 msgid "oss!idle runs on a server that costs money every month. A supporter tag is how players help pay for it. It changes nothing in the game."
 msgstr "oss!idle runs on a server that costs money every month. A supporter tag is how players help pay for it. It changes nothing in the game."
@@ -1240,6 +1252,10 @@ msgstr "Play in the browser"
 #: src/pages/PlayOssIdle.tsx
 msgid "Play now"
 msgstr "Play now"
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Play on longer"
+msgstr "Play on longer"
 
 #: src/HeaderLinks.tsx
 #: src/routes/download.tsx
@@ -1665,6 +1681,10 @@ msgstr "Sign out"
 msgid "signed in"
 msgstr "signed in"
 
+#: src/pages/help/FAQ.tsx
+msgid "Signed in, it doesn't: your character's queue runs on our server. As a guest, the game itself runs the queue, and browsers slow down tabs you aren't looking at, which can stall it. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
+msgstr "Signed in, it doesn't: your character's queue runs on our server. As a guest, the game itself runs the queue, and browsers slow down tabs you aren't looking at, which can stall it. The <0>desktop app</0> doesn't have this problem: it keeps playing while minimised and updates itself."
+
 #: src/components/character/AccountStanding.tsx
 #: src/components/character/SanctionItems.tsx
 #: src/components/character/SilenceDialog.tsx
@@ -1813,8 +1833,8 @@ msgid "the match was disbanded"
 msgstr "the match was disbanded"
 
 #: src/pages/help/FAQ.tsx
-msgid "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop. You can reorder it, skip ahead or stop after the current map. The queue is not saved when you close the game; save it as a playlist to keep it."
-msgstr "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop. You can reorder it, skip ahead or stop after the current map. The queue is not saved when you close the game; save it as a playlist to keep it."
+msgid "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop (or not at all, when disabled). You can reorder it, skip ahead or stop after the current map. Signed in, the queue is your character's: every device shows the same one, and your character keeps playing it for 12 hours after you close the game (24 with oss!supporter), ranked maps only. You can turn that off in the options."
+msgstr "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop (or not at all, when disabled). You can reorder it, skip ahead or stop after the current map. Signed in, the queue is your character's: every device shows the same one, and your character keeps playing it for 12 hours after you close the game (24 with oss!supporter), ranked maps only. You can turn that off in the options."
 
 #: src/pages/PublicLanding.tsx
 msgid "The ultimate<0/>VSRG idle game"
@@ -1983,13 +2003,17 @@ msgstr "Why does my game stop in the background?"
 msgid "Withdraw"
 msgstr "Withdraw"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Write a me! page for your profile, and drag its sections into the order you like."
+msgstr "Write a me! page for your profile, and drag its sections into the order you like."
+
 #: src/components/character/UserPageEditor.tsx
 msgid "Write something about yourself, in BBCode."
 msgstr "Write something about yourself, in BBCode."
 
 #: src/components/character/UserPage.tsx
-msgid "Writing a me! page is an <0>osu!supporter</0> perk."
-msgstr "Writing a me! page is an <0>osu!supporter</0> perk."
+msgid "Writing a me! page is an <0>oss!supporter</0> perk."
+msgstr "Writing a me! page is an <0>oss!supporter</0> perk."
 
 #: src/components/character/RollbackUpgradeDialog.tsx
 msgid "XP level right after the upgrade was bought"
@@ -2031,6 +2055,10 @@ msgstr "Your account is restricted, so it can't buy anything."
 msgid "Your character has eleven skills: accuracy, speed, stamina, jack speed, coordination, release, reading, consistency, concentration, speed jam and memory. Each one levels up on its own, from the parts of a map that test it. A jack-heavy map trains jack speed, a long map trains stamina, and so on. Your overall level grows with all of them."
 msgstr "Your character has eleven skills: accuracy, speed, stamina, jack speed, coordination, release, reading, consistency, concentration, speed jam and memory. Each one levels up on its own, from the parts of a map that test it. A jack-heavy map trains jack speed, a long map trains stamina, and so on. Your overall level grows with all of them."
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Your character keeps playing its queue for {supporterHours} hours after you close the game, instead of {hours}."
+msgstr "Your character keeps playing its queue for {supporterHours} hours after you close the game, instead of {hours}."
+
 #: src/pages/DiscordLinked.tsx
 msgid "Your Discord account is linked!"
 msgstr "Your Discord account is linked!"
@@ -2042,6 +2070,10 @@ msgstr "Your level role will show up on the oss!idle Discord server. You can clo
 #: src/pages/store/SupporterPerks.tsx
 msgid "Your name shows in gold in chat, for everyone to see."
 msgstr "Your name shows in gold in chat, for everyone to see."
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Your own profile"
+msgstr "Your own profile"
 
 #: src/pages/store/SupporterStatus.tsx
 msgid "Your supporter tag is valid until <0>{until}</0>."

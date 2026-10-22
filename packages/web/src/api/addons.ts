@@ -23,6 +23,12 @@ export const moderateAddon = (
 		param: { id: String(id) }, json: body, 
 	}));
 
+/** Admin: let a repo add-on's builds go live without review, or not. */
+export const setAddonTrusted = (id: number, trusted: boolean) =>
+	unwrap(rpc.v1.addons.admin[':id'].trusted.$patch({
+		param: { id: String(id) }, json: { trusted },
+	}));
+
 /** Resolve a stored icon path to a full URL for an <img>. */
 export const addonIconUrl = (icon: string | null): string | undefined =>
 	icon ? apiUrl(icon) : undefined;

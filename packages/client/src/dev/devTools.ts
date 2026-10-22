@@ -8,6 +8,7 @@ export const DEV_TOOLS = import.meta.env.DEV || import.meta.env.MODE === 'stagin
 /** Which dev tools run: all of them in dev, the startup menu's picks in staging. */
 export const devTools = {
 	profiler: import.meta.env.DEV,
+	traceLaunch: false,
 	debug: import.meta.env.DEV,
 	playground: import.meta.env.DEV,
 	testBridge: import.meta.env.DEV,

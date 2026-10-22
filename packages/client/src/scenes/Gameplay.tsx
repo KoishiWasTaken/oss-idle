@@ -1,5 +1,7 @@
 import RatedVersion from '../components/RatedVersion';
 import { rateOfPlay } from '../gameplay/playRate';
+import { modsOfPlay } from '../gameplay/playMods';
+import { retriesOnFail } from '@oss-idle/shared/mods';
 import type { MedalBatch } from '@oss-idle/shared/play';
 import './Gameplay.css';
 import {
@@ -21,7 +23,7 @@ import CharacterBot, { type SkillProgress } from '@oss-idle/shared/sim/bots/char
 import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
 import type { Bot } from '@oss-idle/shared/sim/bot';
 import { DEBUG_BOT_LEVEL } from '../gameplay/strainDebug';
-import ReplayBot from '../gameplay/replayBot';
+import ReplayBot from '@oss-idle/shared/sim/bots/replay';
 import {
 	abortPlaySession,
 	fetchPlayResult,
@@ -91,8 +93,6 @@ import Controls from '../input/Controls';
 import { debugMode } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import SkipToEndButton from '../components/gameplay/SkipToEndButton';
-import QueuePauseButton from '../components/gameplay/QueuePauseButton';
-import QueueNextUp from '../components/gameplay/QueueNextUp';
 import {
 	Skills,
 	type SkillName,
@@ -103,6 +103,7 @@ import { currentSkin } from '../osu/skin/Skin';
 import { SETTINGS } from '../db/settings';
 import { scrollSpeedToMs } from '@oss-idle/shared/osu/scroll_speed';
 import sleep from '@oss-idle/shared/helpers/sleep';
+import { publishPlayfieldEdge } from '../gameplay/playfieldEdge';
 import GameplayRenderer, {
 	type PlayfieldGeometry,
 	type StrainHud,
@@ -241,6 +242,9 @@ function GameplayInner({
 	Controls.back.usePress(onAbort);
 
 	const rate = rateOfPlay(play);
+	const mods = modsOfPlay(play);
+	// a match round plays on past a fail, as the server ran it
+	const playOn = Multiplayer.playingRound(beatmapInfo.metadata.id);
 
 	// build the game once; a freshly-built game starts a fresh clock so the two
 	// always stay in lock-step (HMR preserves both refs → seamless resume)
@@ -253,10 +257,7 @@ function GameplayInner({
 		// simulated locally from the character's skills; debug play uses the same
 		// fixed-level bot as the strain debug view.
 		botRef.current = play.mode === 'debug'
-			? new CharacterBot(
-				makeOrderedSkills(DEBUG_BOT_LEVEL),
-				beatmap.difficulty.overallDifficulty,
-			)
+			? new CharacterBot(makeOrderedSkills(DEBUG_BOT_LEVEL))
 			: new ReplayBot(play.offsets);
 		// scroll speed is a purely visual preference (applied below via pxPerUnit);
 		// the bot's reading window must stay scroll-speed-independent so the same map
@@ -264,7 +265,7 @@ function GameplayInner({
 		// server, which constructs ManiaGame with the default window).
 		const divine = hasUnlock(character.generation, 'DIVINE');
 		gameRef.current = new ManiaGame(beatmap, botRef.current, {
-			noFail: play.mode === 'debug', divine, rate,
+			noFail: play.mode === 'debug', divine, rate, mods, playOn,
 		});
 		// ranked replays don't analyze strain locally - run a display-only analysis
 		// of the same map with the character's skills (an approximation of the
@@ -278,12 +279,9 @@ function GameplayInner({
 			// the play being watched *is* this analysis - no approximation needed
 			strainBotRef.current = local.bot;
 		} else {
-			strainBotRef.current = new CharacterBot(
-				character.skills, 
-				beatmap.difficulty.overallDifficulty,
-			);
+			strainBotRef.current = new CharacterBot(character.skills);
 			new ManiaGame(beatmap, strainBotRef.current, {
-				divine, rate,
+				divine, rate, mods, playOn,
 			});
 		}
 		clockRef.current = null;
@@ -354,7 +352,7 @@ function GameplayInner({
 			});
 			return;
 		}
-		const pp = await calculatePP(game.score, beatmap, rate).catch((e) => {
+		const pp = await calculatePP(game.score, beatmap, rate, mods).catch((e) => {
 			console.warn('[score] pp failed, finishing without it', e);
 			return 0;
 		});
@@ -373,6 +371,7 @@ function GameplayInner({
 			pfc: c.MISS === 0 && c.BAD === 0 && c.GOOD === 0,
 			playedAt: Date.now(),
 			rate,
+			mods,
 		});
 		localScoreRef.current = local;
 
@@ -463,6 +462,10 @@ function GameplayInner({
 	};
 
 	const showResult = (source: 'owner' | 'local', failed: boolean) => {
+		if (failed && owned && !playOn && retriesOnFail(mods)) {
+			PlayManager.playAgain(beatmapInfo);
+			return;
+		}
 		const game = gameRef.current;
 		const server = serverScoreRef.current;
 		if (source === 'owner' && server) {
@@ -552,17 +555,7 @@ function GameplayInner({
 		// the timeline belongs to the play's owner, so tell it we skipped
 		if (play.mode === 'ranked') void skipPlaySession(play.token);
 		const clock = clockRef.current;
-		if (!clock) return;
-		if (clock.noAudio) {
-			// keysound maps run off the perf clock - slide its origin so it reads
-			// songStartMs (there's no audio buffer to restart).
-			clock.leadStart = performance.now() - LEAD_IN_MS - game.songStartMs;
-		} else {
-			// buffer maps: start (or restart) the track at the skipped-to position,
-			// which re-anchors the audio clock there.
-			clock.audioStarted = true;
-			music.playGameplay(game.songStartMs);
-		}
+		if (clock) resumeAt(clock, game.songStartMs);
 	};
 
 	Controls.skip.usePress(() => {
@@ -583,11 +576,10 @@ function GameplayInner({
 	};
 	// re-anchor a running clock so it reads song position `t` and resume audio there.
 	const resumeAt = (clock: NonNullable<typeof clockRef.current>, t: number) => {
-		if (clock.noAudio) {
-			clock.leadStart = performance.now() - LEAD_IN_MS - t;
-		} else {
+		clock.leadStart = performance.now() - LEAD_IN_MS - t;
+		if (!clock.noAudio) {
 			clock.audioStarted = true;
-			music.playGameplay(t);
+			music.playGameplay(t + music.outputDelay());
 		}
 		resyncHitsounds(t);
 	};
@@ -784,7 +776,7 @@ function GameplayInner({
 
 		const fieldX = () => (w - fieldWidth) / 2;
 
-		// ---- clock: lead-in on a perf timer, then the audio position ----
+		// ---- clock: the whole play on a perf timer, the track started in step with it ----
 		// persisted in a ref so an HMR effect re-run resumes the same clock
 		// instead of restarting the lead-in (which would desync from the audio)
 		if (!clockRef.current) {
@@ -800,8 +792,7 @@ function GameplayInner({
 			music.stop();
 			const c0 = clockRef.current;
 			// decode the track now, during the silent lead-in, so it can start the
-			// instant the clock crosses 0. `false` = keysound map (no backing track),
-			// so the clock stays on the perf timer for the whole play.
+			// instant the clock crosses 0. `false` = keysound map (no backing track).
 			void music.prepareGameplay(beatmapInfo, rate, SETTINGS.pitchFollowsRate.get()).then((hasAudio) => {
 				c0.noAudio = !hasAudio;
 				// Anchor the clock to the play's start time so every viewer shows the
@@ -835,20 +826,17 @@ function GameplayInner({
 			// still resolving whether this map has audio - hold just before the
 			// start so notes don't begin before we know which clock to run.
 			if (clock.noAudio === undefined) return Math.min(t, -0.001);
-			// no backing track: the perf timer is the master clock for the whole song
-			if (clock.noAudio) return t;
-			// lead-in runs on a perf timer counting up to 0
-			if (!clock.audioStarted) {
-				if (t < 0) return t;
-				// crossed 0 - start the buffer and hand the clock over to the audio clock
-				clock.audioStarted = true;
-				music.playGameplay(0);
+			// the track starts so its start is heard as the clock crosses 0. The perf timer
+			// stays the master clock: the audio clock only moves once per audio callback
+			// (10ms on Windows), so frames drawn from it come out choppy.
+			if (!clock.noAudio && !clock.audioStarted) {
+				const delay = music.outputDelay();
+				if (t >= -delay) {
+					clock.audioStarted = true;
+					music.playGameplay(t + delay);
+				}
 			}
-			// The buffer clock is derived from the AudioContext's own clock, so it
-			// keeps advancing in real time even after the track ends (the track is
-			// often shorter than the last note + 2s outro) - the final notes still get
-			// judged and the result screen is reached, with no perf-timer fallback.
-			return music.gameTime();
+			return t;
 		};
 
 		// keysounds and storyboard samples are part of the song: pitched like its track
@@ -861,7 +849,8 @@ function GameplayInner({
 		// anything already in the past) instead of dumping them all at once.
 		const queueHitsounds = () => {
 			if (finished) return;
-			const now = songTime();
+			// laid against the track's own clock, so they land with the music
+			const now = clock.audioStarted && clock.pauseAt === undefined ? music.gameTime() : songTime();
 			const heads = game.headHits;
 			while (
 				hitsoundPtr.current < heads.length 
@@ -973,6 +962,7 @@ function GameplayInner({
 				onGrade: setGrade,
 			});
 			drawChrome(g, now);
+			publishPlayfieldEdge(g);
 
 			// end of map
 			if (!finished 
@@ -1078,14 +1068,11 @@ function GameplayInner({
 						<Trans>quit</Trans>
 					</button>
 				)}
-				{owned && <QueuePauseButton />}
 			</div>
 			<div className="play__title">
 				{beatmap.metadata.artist} - {beatmap.metadata.title}
 				<RatedVersion version={beatmap.metadata.version} rate={rate} />
 			</div>
-
-			<QueueNextUp />
 
 			<SkipToEndButton shown={debug && !done} onSkip={skipToEnd} />
 			<MatchScoreboard beatmapId={beatmapInfo.metadata.id} />
@@ -1137,6 +1124,7 @@ const localContext = async (
 		token: run.token,
 		beatmapId: run.beatmapId,
 		rate: run.rate,
+		mods: run.mods,
 		offsets: run.offsets,
 		startedAt: run.startedAt,
 		endsAt: run.endsAt,

@@ -1,4 +1,5 @@
 import type RuntimeNote from './runtimeNote.js';
+import type { HitWindows } from './scoring.js';
 import type {
 	ScrollModel,
 	SpeedChange,
@@ -25,6 +26,8 @@ export interface BotContext {
 	inputs: InputEvent[]
 	/** number of columns (keys) in the map - used to split columns into hands */
 	keyCount: number
+	/** the play's hit windows (OD, divine and mods applied) */
+	windows: HitWindows
 	scroll: ScrollModel
 	/** every scroll speed change throughout the map (BPM sections + SVs) */
 	speedChanges: SpeedChange[]

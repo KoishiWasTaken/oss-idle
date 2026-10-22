@@ -12,6 +12,9 @@ import {
 /** One catalog/own add-on as it crosses the wire, inferred from the route. */
 export type Addon = InferResponseType<typeof rpc.v1.addons[':id']['$get']>;
 
+/** One of the caller's own add-ons, with its repository webhook. */
+export type OwnAddon = InferResponseType<typeof rpc.v1.addons.me.$get>[number];
+
 type Resp = { ok: boolean; status: number; json: () => Promise<unknown> };
 
 /** Await a request and throw the server's error on a non-2xx, else return the JSON. */
@@ -51,21 +54,29 @@ export const getAddon = (id: number) =>
 
 /** Auth: the caller's own add-ons (any status). */
 export const myAddons = () =>
-	unwrap<Addon[]>(rpc.v1.addons.me.$get());
+	unwrap<OwnAddon[]>(rpc.v1.addons.me.$get());
 
 /** Auth: create a draft add-on. */
 export const createAddon = (json: Partial<AddonCreateBody>) =>
-	unwrap<Addon>(rpc.v1.addons.$post({ json: json as AddonCreateBody }));
+	unwrap<OwnAddon>(rpc.v1.addons.$post({ json: json as AddonCreateBody }));
 
 /** Auth+owner: edit an add-on. */
 export const updateAddon = (id: number, json: AddonUpdateBody) =>
-	unwrap<Addon>(rpc.v1.addons[':id'].$patch({
-		param: { id: String(id) }, json, 
+	unwrap<OwnAddon>(rpc.v1.addons[':id'].$patch({
+		param: { id: String(id) }, json,
 	}));
 
 /** Auth+owner: submit a draft/denied add-on for review. */
 export const submitAddon = (id: number) =>
-	unwrap<Addon>(rpc.v1.addons[':id'].submit.$post({ param: { id: String(id) } }));
+	unwrap<OwnAddon>(rpc.v1.addons[':id'].submit.$post({ param: { id: String(id) } }));
+
+/** Auth+owner: have a repo add-on's newest tag built. */
+export const checkAddonRepo = (id: number) =>
+	unwrap<OwnAddon>(rpc.v1.addons[':id'].check.$post({ param: { id: String(id) } }));
+
+/** Auth+owner: a new webhook address; the old one stops working. */
+export const renewAddonHook = (id: number) =>
+	unwrap<OwnAddon>(rpc.v1.addons[':id']['hook-secret'].$post({ param: { id: String(id) } }));
 
 /** Auth+owner: delete an add-on. */
 export const deleteAddon = (id: number) =>

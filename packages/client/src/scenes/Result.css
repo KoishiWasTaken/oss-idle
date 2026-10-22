@@ -343,6 +343,18 @@
 	width: 100%;
 	border-radius: 6px;
 }
+.result__graph-hp {
+	position: relative;
+}
+.result__graph-hp .result__failed {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
 .result__graph-empty {
 	flex: 1;
 	display: flex;
@@ -391,6 +403,13 @@
 	.result__panel,
 	.result__progression {
 		width: 100%;
+	}
+}
+
+/* the xp rows end up level with the buttons: start them past the buttons */
+@media (min-width: 1101px) and (max-width: 1500px) {
+	.result__progression {
+		padding-left: var(--actions-width);
 	}
 }
 
@@ -499,23 +518,32 @@
 	}
 }
 
-.result__mods {
+.result__grade-box {
+	position: relative;
 	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 2rem;
+	justify-content: center;
+	max-width: 100%;
+}
+
+/* over the foot of the grade, so the grade column is no taller with mods */
+.result__mods {
+	position: absolute;
+	bottom: 0;
+	display: flex;
+	padding-left: 20px;
 }
 
 .result__mod {
+	position: relative;
 	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 84px;
-	padding: 8px 0;
-	border-radius: 4px;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	margin-left: -20px;
+	padding-top: 10px;
+	border-radius: 6px;
 	color: #fff;
-	font-size: 1rem;
-	font-weight: 600;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 	transform: rotate(-6deg);
 }
 
@@ -527,7 +555,17 @@
 	background: #5b5b66;
 }
 
+.result__mod-short {
+	position: absolute;
+	left: 6px;
+	bottom: 5px;
+	font-size: 0.85rem;
+	font-weight: 800;
+	line-height: 1;
+	opacity: 0.85;
+}
+
 .result__mod-glyph {
-	width: 36px;
-	height: 36px;
+	width: 40px;
+	height: 40px;
 }

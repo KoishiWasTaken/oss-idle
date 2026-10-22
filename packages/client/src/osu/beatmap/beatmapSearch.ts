@@ -6,8 +6,8 @@ import LightBeatmapSet from './LightBeatmapSet';
  * osu! stable-style song-select search. The query is split on whitespace; every
  * term must match (AND). A term shaped like `key<op>value` (e.g. `stars>5`,
  * `keys=4`, `creator=sotarks`) is a filter; anything else is plain text matched
- * (case-insensitive substring) against artist, title, creator and difficulty
- * name. Numeric operators: `>`, `<`, `>=`, `<=`, `=`/`:`.
+ * (case-insensitive substring) against artist, title, creator, difficulty
+ * name and the map's tags (SV, LN). Numeric operators: `>`, `<`, `>=`, `<=`, `=`/`:`.
  *
  * Works on both carousel item kinds: a downloaded `RuntimeBeatmap` (fields from
  * the parsed beatmap + computed stars) and a remote `VersionMetadata` paired
@@ -17,6 +17,7 @@ export function matchesSearch(
 	beatmap: LightBeatmap,
 	set: LightBeatmapSet,
 	query: string,
+	tags: readonly string[] = [],
 ): boolean {
 	const q = query.trim().toLowerCase();
 	if (!q) return true;
@@ -29,7 +30,7 @@ export function matchesSearch(
 	const keys = beatmap.metadata.keys;
 	const length = Math.floor(beatmap.metadata.total_length / 1000);
 
-	const text = `${artist} ${title} ${creator} ${version}`;
+	const text = `${artist} ${title} ${creator} ${version} ${tags.join(' ')}`;
 
 	for (const term of q.split(/\s+/)) {
 		const filter = parseFilter(term);

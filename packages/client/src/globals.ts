@@ -22,11 +22,13 @@ export const isStandalone = new Synced(!!desktop());
 export const isWebOpen = new Synced(false);
 export const isOptionsOpen = new Synced(false);
 export const isCommunityOpen = new Synced(false);
+/** The main menu closed itself after a while without input. */
+export const menuIdle = new Synced(false);
 export const webUrl = new Synced('/');
 /** The site as someone else can open it: the desktop app's frame runs on app://. */
 export const SITE_URL = import.meta.env.VITE_SITE_URL || location.origin;
 
-/** The full-screen page overlay (skins / add-ons / character / the play queue);
+/** The full-screen page overlay (skins / add-ons / character / the play queue / oss!direct);
  *  undefined = closed. */
 export type OpenPage =
 	| {
@@ -34,7 +36,8 @@ export type OpenPage =
 		view: 'manage' | 'browse',
 	}
 	| { page: 'character' }
-	| { page: 'queue' };
+	| { page: 'queue' }
+	| { page: 'direct' };
 export const openPage = new Synced<OpenPage | undefined>(undefined);
 
 export const isVolumeVisible = new Synced(false);

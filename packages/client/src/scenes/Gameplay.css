@@ -89,24 +89,6 @@
 	color: var(--osu-pink-light);
 }
 
-/* playlist autopilot HUD: what plays next, under the back button */
-.play__autopilot {
-	position: absolute;
-	top: 4rem;
-	left: 1.2rem;
-	z-index: 10;
-	display: flex;
-	flex-direction: column;
-	gap: 0.15rem;
-	font-size: 0.85rem;
-	font-weight: 600;
-	color: rgba(255, 255, 255, 0.8);
-	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-	pointer-events: none;
-}
-.play__autopilot-next span {
-	color: var(--osu-pink-light);
-}
 /* grade badge: overlaid to the left of the canvas-drawn accuracy (top right) */
 .play__grade {
 	position: absolute;
@@ -201,8 +183,5 @@
 		transform: none;
 		text-align: left;
 		font-size: 0.85rem;
-	}
-	.play__autopilot {
-		top: 8rem;
 	}
 }

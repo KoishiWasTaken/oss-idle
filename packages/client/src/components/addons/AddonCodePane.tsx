@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import AddonCodeCheck from './AddonCodeCheck';
 import AddonCodeEditor from './AddonCodeEditor';
 import AddonCodeView from './AddonCodeView';
 import CodeDiff from './CodeDiff';
@@ -35,6 +36,7 @@ export default function AddonCodePane({
 					<span className='addon-view__codelabel'><Trans>Code</Trans></span>
 				</div>
 				<AddonCodeEditor value={source} onChange={onChange} />
+				<AddonCodeCheck source={source} />
 			</>
 		);
 	}

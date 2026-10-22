@@ -10,14 +10,17 @@
  * select's bottom bar, so it never lands on either.
  */
 .dock {
+	--dock-line: rgba(255, 255, 255, 0.16);
+	--dock-dim: rgba(255, 255, 255, 0.55);
+	--dock-control: 44px;
 	position: fixed;
 	right: 8px;
 	/* just clear of the community controls (bottom right, ~34px tall) */
 	bottom: 44px;
 	z-index: 60;
 	color: #fff;
-	background: rgba(0, 0, 0, 0.82);
-	border: 1px solid gray;
+	background: rgba(8, 7, 11, 0.88);
+	border: 1px solid var(--dock-line);
 	backdrop-filter: blur(4px);
 	animation: dock-in 0.16s ease both;
 }
@@ -35,20 +38,32 @@
 	bottom: 120px;
 }
 
+/* --- the pill: over gameplay ------------------------------------------- */
+
+/* A fixed width - the next map's title changing must not move the buttons -
+   taken from the room right of the playfield, which gameplay publishes as
+   --playfield-right, so it never covers the notes. Below what its controls
+   need it overlaps rather than crushing them. */
 .dock--pill {
 	display: flex;
-	align-items: center;
-	gap: 0.8rem;
-	padding: 0.7rem 0.9rem;
-	max-width: min(720px, 66vw);
+	flex-direction: column;
+	gap: 0.6rem;
+	width: min(
+		460px,
+		max(360px, calc(100vw - var(--playfield-right, 0px) - 24px))
+	);
+	padding: 0.6rem 0.7rem 0.7rem;
 }
-/* Sized to what it holds: with a play and a queue in it that is the full width,
-   with two buttons in it that is two buttons - not a fixed panel with a hole on
-   the right. */
+
+/* --- the panel ---------------------------------------------------------- */
+
 .dock--panel {
-	width: max-content;
-	max-width: min(460px, 92vw);
-	padding: 1rem 1.1rem 1.1rem;
+	width: 420px;
+	max-width: 92vw;
+	padding: 0.8rem 0.9rem 0.9rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.8rem;
 }
 
 /* Docked into the column song select leaves empty (its carousel starts at
@@ -61,10 +76,8 @@
 	bottom: 0;
 	width: 420px;
 	max-width: none;
-	display: flex;
-	flex-direction: column;
 	border: 0;
-	border-right: 1px solid gray;
+	border-right: 1px solid var(--dock-line);
 	/* the queue carousel is a page overlay (5000) when it is not the scene */
 	z-index: 5100;
 }
@@ -72,26 +85,111 @@
 .dock--left-scene {
 	bottom: 110px;
 }
-.dock--left .dock__queue {
-	flex: 1;
-	min-height: 0;
-	max-height: none;
-}
 
-.dock__body {
+/* --- up next: the map, when, and the bar filling towards it -------------- */
+
+.dock__upnext {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	min-width: 0;
+}
+.dock__upnext-row {
+	display: flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-width: 0;
+}
+.dock__next-icon {
+	flex: none;
+	color: var(--osu-pink-light);
+	font-size: 0.85rem;
+}
+.dock__upnext-title {
 	flex: 1;
 	min-width: 0;
-	text-align: left;
-	color: inherit;
-	background: none;
-	border: 0;
-	padding: 0;
-	font: inherit;
-	cursor: pointer;
+	font-size: 1.05rem;
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.dock__upnext-title span {
+	color: var(--osu-pink-light);
+}
+.dock__upnext-title .dock__upnext-none {
+	color: var(--dock-dim);
+	font-weight: 500;
+}
+
+.dock__countbar {
+	height: 4px;
+	background: rgba(255, 255, 255, 0.1);
+	overflow: hidden;
+}
+.dock__countbar b {
+	display: block;
+	height: 100%;
+	background: var(--osu-pink-light);
+	transform-origin: left;
+	animation: dock-count linear both;
+}
+@keyframes dock-count {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+
+/* where the queue comes from: its mode, then its playlist */
+.dock__source {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	min-width: 0;
+	color: var(--osu-pink-light);
+	font-size: 0.85rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+.dock__source svg {
+	font-size: 0.8em;
+}
+.dock__source-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--dock-dim);
+	font-weight: 600;
+}
+
+/* what is playing: the grade beside the map, how it goes, how far */
+.dock__now {
+	display: flex;
+	gap: 0.8rem;
+	align-items: center;
+}
+.dock__grade {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	border: 1px solid var(--dock-line);
+	background: rgba(255, 255, 255, 0.04);
+}
+.dock__grade-img {
+	height: 38px;
+	width: auto;
+}
+.dock__now-text {
+	flex: 1;
+	min-width: 0;
 }
 
 .dock__map {
-	font-size: 1.15rem;
+	font-size: 1.1rem;
 	font-weight: 600;
 	white-space: nowrap;
 	overflow: hidden;
@@ -101,163 +199,192 @@
 	color: var(--osu-pink-light);
 }
 
-.dock__sub {
-	color: rgba(255, 255, 255, 0.6);
-	font-size: 0.95rem;
-	margin: 0.35rem 0 0.5rem;
+.dock__meta {
+	display: flex;
+	gap: 0.9rem;
+	margin: 0.25rem 0 0.45rem;
+	color: var(--dock-dim);
+	font-size: 0.9rem;
+	font-variant-numeric: tabular-nums;
+}
+.dock__mods {
+	color: var(--osu-pink-light);
+	font-weight: 700;
+}
+.dock__time {
+	margin-left: auto;
 }
 
 .dock__progress {
-	height: 4px;
+	height: 3px;
 	background: rgba(255, 255, 255, 0.12);
 	overflow: hidden;
 }
 .dock__progress b {
 	display: block;
-	height: 4px;
+	height: 3px;
 	background: var(--osu-pink-darkest);
 	transition: width 1s linear;
 }
 
-.dock__now {
+/* --- controls ----------------------------------------------------------- */
+
+.dock__bar {
 	display: flex;
-	gap: 0.8rem;
 	align-items: center;
+	gap: 6px;
 }
-.dock__now > div {
-	flex: 1;
-	min-width: 0;
+.dock__bar .dock__btn--upgrades {
+	margin-left: auto;
 }
-.dock__grade {
-	height: 46px;
-	width: auto;
-	flex: none;
+.dock__transport {
+	display: flex;
+	gap: 4px;
+}
+/* nothing to control: the pill needs no gap where the row would be */
+.dock__transport:empty {
+	display: none;
 }
 
-/* They wrap at 7rem and then grow to fill the row they land in: six make two
-   full rows, two make one full row, and neither leaves a strip of panel empty
-   beside them. Not a grid - the panel is sized to its contents, and a track
-   count cannot be resolved against a width that is itself waiting on the
-   contents (which is what collapsed them into one column). */
-.dock__controls {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	align-items: center;
-	margin-top: 0.9rem;
-}
-.dock__controls .dock__btn {
-	flex: 1 1 7rem;
-}
-/* with nothing playing and nothing queued there is nothing above them */
-.dock__controls:first-child {
-	margin-top: 0;
-}
-.dock--left .dock__btn {
-	padding: 0 0.6rem;
-}
-/* one width for all of them, whatever the word: they read as a set, and a row
-   of them lines up whether it is two or six */
-.dock__btn {
-	height: 46px;
-	min-width: 7rem;
-	padding: 0 1.15rem;
-	border: 1px solid rgba(255, 255, 255, 0.22);
-	background: rgba(255, 255, 255, 0.08);
+.dock__icon {
+	display: grid;
+	place-items: center;
+	width: var(--dock-control);
+	height: var(--dock-control);
+	padding: 0;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.06);
 	color: #fff;
 	font-size: 1.05rem;
+	cursor: pointer;
+	transition:
+		background 0.12s ease,
+		color 0.12s ease;
+}
+.dock__icon:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.18);
+}
+.dock__icon.is-on {
+	border-color: var(--osu-pink-light);
+	background: rgba(255, 102, 171, 0.3);
+}
+.dock__icon:disabled {
+	opacity: 0.3;
+	cursor: default;
+}
+.dock__icon:focus-visible,
+.dock__btn:focus-visible,
+.dock__entry-actions button:focus-visible {
+	outline: 2px solid var(--osu-pink-light);
+	outline-offset: 1px;
+}
+
+.dock__btn {
+	height: var(--dock-control);
+	padding: 0 1.1rem;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.06);
+	color: #fff;
+	font-size: 1rem;
 	font-weight: 700;
 	cursor: pointer;
 	transition: background 0.12s ease;
 }
 .dock__btn:hover:not(:disabled) {
-	background: rgba(255, 255, 255, 0.2);
-}
-.dock__btn.is-on {
-	border-color: var(--osu-pink-light);
-	background: rgba(255, 102, 171, 0.3);
-}
-.dock__btn:disabled {
-	opacity: 0.3;
-	cursor: default;
+	background: rgba(255, 255, 255, 0.18);
 }
 /* the reason to open this while a play is running, and the way to upgrades from
    song select now that its bottom bar has no button of its own */
 .dock__btn--upgrades {
-	border-color: rgba(255, 102, 171, 0.6);
+	border-color: rgba(255, 102, 171, 0.65);
+	background: rgba(255, 102, 171, 0.12);
 	color: var(--osu-pink-light);
 }
-
-/* The floating panel is a glance, not a workspace: it shows what is playing,
-   what is next and the controls, and unfolds the rest of the queue only when
-   you reach for it. The docked one (queue carousel open) is the workspace and
-   is always open. */
-.dock--panel:not(.dock--left) .dock__queue {
-	max-height: 0;
-	margin-top: 0;
-	opacity: 0;
-	overflow: hidden;
-	transition:
-		max-height 0.18s ease,
-		margin-top 0.18s ease,
-		opacity 0.18s ease;
-}
-.dock--panel:not(.dock--left):hover .dock__queue {
-	max-height: 260px;
-	margin-top: 0.9rem;
-	opacity: 1;
-	overflow-y: auto;
+.dock__btn--upgrades:hover:not(:disabled) {
+	background: rgba(255, 102, 171, 0.28);
 }
 
-.dock__upnext {
-	margin-top: 0.6rem;
-	font-size: 0.95rem;
-	color: rgba(255, 255, 255, 0.75);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.dock__upnext span {
-	color: var(--osu-pink-light);
-}
+/* --- the queue ---------------------------------------------------------- */
 
 .dock__queue {
-	margin-top: 0.9rem;
-	max-height: 260px;
-	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	min-height: 0;
+	border-top: 1px solid var(--dock-line);
+	padding-top: 0.6rem;
+}
+.dock--left .dock__queue {
+	flex: 1;
+}
+.dock__queue-head {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+	margin-bottom: 0.35rem;
+	color: var(--dock-dim);
+	font-size: 0.9rem;
+	font-weight: 700;
+}
+.dock__count {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+/* The floating panel is a glance: four rows, the rest a scroll away. Docked
+   beside the carousel it is the workspace and takes the whole column. */
+.dock__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	max-height: calc(4 * 46px);
+	overflow-y: auto;
 	scrollbar-width: thin;
 	scrollbar-color: rgba(255, 102, 171, 0.5) transparent;
 }
-.dock__queue::-webkit-scrollbar {
-	width: 8px;
-}
-.dock__queue::-webkit-scrollbar-thumb {
-	background: rgba(255, 102, 171, 0.45);
-	border-radius: 4px;
-}
-.dock__queue::-webkit-scrollbar-track {
-	background: transparent;
+.dock--left .dock__list {
+	flex: 1;
+	max-height: none;
 }
 
 .dock__entry {
 	position: relative;
 	display: flex;
 	align-items: center;
-	gap: 0.6rem;
-	min-height: 54px;
-	padding: 0.45rem 0.6rem;
-	background: rgba(255, 255, 255, 0.04);
-	border: 1px solid gray;
-	color: rgba(255, 255, 255, 0.85);
-	font-size: 1rem;
+	gap: 0.7rem;
+	min-height: 46px;
+	padding: 0 0.6rem 0 0.5rem;
+	border-left: 3px solid transparent;
+	color: rgba(255, 255, 255, 0.82);
+	font-size: 0.98rem;
+}
+.dock__entry + .dock__entry {
+	border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.dock__entry:hover {
+	background: rgba(255, 255, 255, 0.05);
 }
 .dock__entry.is-next {
-	background: rgba(255, 102, 171, 0.18);
-	border-color: rgba(255, 102, 171, 0.55);
+	border-left-color: var(--osu-pink-darkest);
+	background: rgba(255, 102, 171, 0.12);
 	color: #fff;
+}
+/* the next row fills along its bottom edge as its start nears */
+.dock__entry .dock__countbar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 3px;
+	background: none;
+}
+
+.dock__num {
+	flex: none;
+	width: 1.6rem;
+	color: var(--dock-dim);
+	font-size: 0.85rem;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
 }
 .dock__entry-name {
 	flex: 1;
@@ -269,11 +396,28 @@
 .dock__entry-name span {
 	color: var(--osu-pink-light);
 }
-.dock__next {
-	flex-shrink: 0;
-	color: rgba(255, 255, 255, 0.6);
+
+/* when the next map starts */
+.dock__when {
+	flex: none;
+	color: var(--dock-dim);
 	font-size: 0.85rem;
 	font-weight: 700;
+	white-space: nowrap;
+}
+/* the seconds left: the one number on the dock worth reading at a glance */
+.dock__when.is-counting {
+	min-width: 3.2rem;
+	padding: 0.15rem 0.5rem;
+	background: var(--osu-pink-darkest);
+	color: #fff;
+	font-size: 1rem;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+.dock__when.is-paused {
+	padding: 0.15rem 0.5rem;
+	border: 1px solid var(--dock-line);
 }
 
 /* the row's buttons only exist on hover, so they take no width until then -
@@ -281,32 +425,32 @@
    invisible - and every one of them is a real target. */
 .dock__entry-actions {
 	position: absolute;
-	right: 0.5rem;
+	right: 0.3rem;
 	display: flex;
-	gap: 4px;
+	gap: 3px;
 	opacity: 0;
 	padding-left: 1.5rem;
 	background: linear-gradient(
 		90deg,
 		transparent,
-		rgba(12, 10, 16, 0.97) 1.5rem
+		rgba(16, 13, 20, 0.98) 1.5rem
 	);
 	transition: opacity 0.12s ease;
 	pointer-events: none;
 }
-.dock__entry:hover .dock__entry-actions {
+.dock__entry:hover .dock__entry-actions,
+.dock__entry:focus-within .dock__entry-actions {
 	opacity: 1;
 	pointer-events: auto;
 }
 .dock__entry-actions button {
-	min-width: 44px;
-	height: 44px;
-	padding: 0 0.7rem;
-	border: 1px solid rgba(255, 255, 255, 0.22);
-	background: rgba(20, 17, 24, 0.95);
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(24, 20, 30, 0.98);
 	color: #fff;
-	font-size: 1.1rem;
-	font-weight: 700;
+	font-size: 0.95rem;
 	cursor: pointer;
 	transition: background 0.12s ease;
 }
@@ -319,16 +463,12 @@
 }
 
 .dock__empty {
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--dock-dim);
 	font-size: 0.95rem;
-	padding: 0.6rem 0;
+	padding: 0.4rem 0;
 }
 
-.dock__label {
-	color: rgba(255, 255, 255, 0.6);
-	font-size: 0.95rem;
-	margin-bottom: 0.45rem;
-}
+/* --- small screens ------------------------------------------------------ */
 
 @media (max-height: 500px) {
 	.dock--above-bar {
@@ -353,19 +493,21 @@
 		width: auto;
 		height: 35vh;
 		border-right: 0;
-		border-bottom: 1px solid gray;
+		border-bottom: 1px solid var(--dock-line);
 	}
 }
 
 /* over gameplay on a phone: low enough to stay under the receptors */
 @media (max-width: 600px), (max-height: 500px) {
-	.dock--pill {
-		gap: 0.5rem;
-		padding: 0.4rem 0.5rem;
+	.dock {
+		--dock-control: 34px;
 	}
-	.dock--pill .dock__btn {
-		height: 34px;
-		min-width: 5.5rem;
+	.dock--pill {
+		gap: 0.4rem;
+		width: calc(100vw - 16px);
+		padding: 0.4rem 0.5rem 0.5rem;
+	}
+	.dock__btn {
 		padding: 0 0.7rem;
 		font-size: 0.9rem;
 	}
@@ -373,14 +515,11 @@
 
 @media (max-height: 500px) {
 	.dock--panel {
+		gap: 0.5rem;
 		padding: 0.5rem 0.6rem;
 	}
-	.dock--panel .dock__btn {
-		height: 34px;
-		font-size: 0.9rem;
-	}
-	.dock__controls {
-		margin-top: 0.5rem;
+	.dock__list {
+		max-height: calc(3 * 46px);
 	}
 }
 

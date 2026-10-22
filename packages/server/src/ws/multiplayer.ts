@@ -17,7 +17,10 @@ import {
 	type PlayerSlot,
 	type RoundScore,
 } from '@oss-idle/shared/multiplayer';
-import { redis } from '../redis';
+import {
+	redis,
+	withLock,
+} from '../redis';
 import { redisKeyPrefix } from '../env';
 import { db } from '../db/client';
 import { characters } from '../db/schema/character';
@@ -38,8 +41,14 @@ import {
 import { LEAD_IN_MS } from '@oss-idle/shared/sim/maniaGame';
 import { hub } from './hub';
 import { areOnline } from './presence';
+import { isAway } from '../queue';
 import { BOT_COLOR } from './chat';
 import { Judgements } from '@oss-idle/shared/judgement';
+import {
+	cleanMods,
+	modsKey,
+	parseMods,
+} from '@oss-idle/shared/mods';
 import type { NewScoreRow } from '../db/schema/score';
 import {
 	closeMatch,
@@ -72,11 +81,6 @@ const FEED_TICK_MS = 250;
 /** A round not started by then lost its worker (crash, deploy): it is dropped. */
 const START_TIMEOUT_MS = 60 * 1000;
 
-const LOCK_MS = 5000;
-const UNLOCK = `
-if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) end
-return 0
-`;
 
 type Stored = Omit<Match, 'locked'> & {
 	password: string,
@@ -156,6 +160,7 @@ const roundResult = (characterId: number, draft: NewScoreRow): RoundScore['resul
 	ur: Number(draft.ur ?? 0),
 	pfc: draft.pfc ?? false,
 	rate: Number(draft.rate ?? 1),
+	mods: parseMods(draft.mods),
 	playedAt: new Date(draft.playedAt ?? Date.now()).getTime(),
 });
 
@@ -210,19 +215,7 @@ const memberOf = async (characterId: number): Promise<number | undefined> => {
 	return id ? Number(id) : undefined;
 };
 
-const withLock = async <T>(id: number, fn: () => Promise<T>): Promise<T> => {
-	const token = randomUUID();
-	// long enough to outlast a dead worker's lock
-	for (let tries = 0; await redis.set(lockKey(id), token, 'PX', LOCK_MS, 'NX') !== 'OK'; tries++) {
-		if (tries > LOCK_MS / 20) throw new Error(`match ${id} stayed locked`);
-		await new Promise(r => setTimeout(r, 20));
-	}
-	try {
-		return await fn();
-	} finally {
-		await redis.eval(UNLOCK, 1, lockKey(id), token);
-	}
-};
+const lock = <T>(id: number, fn: () => Promise<T>): Promise<T> => withLock(lockKey(id), fn);
 
 /** Store and publish a match, or drop it once nobody is left. The host passes
  *  to the first player when they leave. */
@@ -252,7 +245,7 @@ const save = async (m: Stored): Promise<void> => {
 const change = (
 	id: number,
 	fn: (m: Stored) => boolean | void,
-): Promise<Stored | undefined> => withLock(id, async () => {
+): Promise<Stored | undefined> => lock(id, async () => {
 	const m = await read(id);
 	if (!m) return undefined;
 	const host = m.hostId;
@@ -366,7 +359,7 @@ const create = async (
 		playing: false,
 	};
 	await redis.hset(MEMBERS, String(characterId), String(id));
-	await withLock(id, () => save(m));
+	await lock(id, () => save(m));
 	historyLine(characterId, id);
 	return { match: toDTO(m) };
 };
@@ -450,14 +443,14 @@ const setBeatmap = async (characterId: number, beatmapId: number): Promise<void>
 const start = async (characterId: number): Promise<void> => {
 	let beatmapId: number | undefined;
 	let round: number[] = [];
-	let rates: number[] = [];
+	let seats: PlayerSlot[] = [];
 	const startedAt = Date.now();
 	await asHost(characterId, m => {
 		const withMap = players(m).filter(s => !s.noMap);
 		if (!m.beatmap || m.changingBeatmap || !withMap.length) return false;
 		beatmapId = m.beatmap.id;
 		round = withMap.map(s => s.characterId);
-		rates = withMap.map(s => s.rate ?? 1);
+		seats = withMap;
 		m.playing = true;
 		m.roundStartedAt = startedAt;
 		m.lastRound = undefined;
@@ -470,7 +463,9 @@ const start = async (characterId: number): Promise<void> => {
 	const started = await Promise.all(round.map(async (id, i) => {
 		const [row] = await db.select().from(characters).where(eq(characters.id, id)).limit(1);
 		const result = row
-			? await startPlay(row, beatmapId!, 1, rates[i]).catch(() => undefined)
+			? await startPlay(row, beatmapId!, {
+				rate: seats[i].rate, mods: seats[i].mods, round: true,
+			}).catch(() => undefined)
 			: undefined;
 		// joined a play of another map = they had a solo play running: they sit out
 		return result?.status === 'ranked' && result.beatmapId === beatmapId ? result.endsAt : undefined;
@@ -501,7 +496,9 @@ const start = async (characterId: number): Promise<void> => {
 /** Which of these players have been offline past the grace period. */
 const awayTooLong = async (ids: number[]): Promise<boolean[]> => {
 	if (!ids.length) return [];
-	const online = await areOnline(ids);
+	// a character playing with its game closed looks online, but has left the match
+	const listed = await areOnline(ids);
+	const online = await Promise.all(ids.map(async (id, i) => listed[i] && !await isAway(id)));
 	const now = Date.now();
 	const tx = redis.multi();
 	ids.forEach((id, i) => {
@@ -657,6 +654,13 @@ export const handleMultiplayer = async (
 			await changeOwn(characterId, (m, s) => {
 				if (m.playing || s.rate === msg.rate) return false;
 				s.rate = msg.rate;
+			});
+			return true;
+		case 'mp:mods':
+			await changeOwn(characterId, (m, s) => {
+				const mods = cleanMods(msg.mods);
+				if (m.playing || modsKey(s.mods ?? []) === modsKey(mods)) return false;
+				s.mods = mods;
 			});
 			return true;
 		case 'mp:noMap':

@@ -25,6 +25,10 @@
 	border-color: #ff4c4c;
 }
 
+.popup.chat {
+	border-color: #b44cff;
+}
+
 .popup.good {
 	border-color: #9acd32;
 }

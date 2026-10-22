@@ -40,7 +40,6 @@ import { hub } from './hub';
 import {
 	areOnline,
 	join,
-	leave,
 	presenceSnapshot,
 	recordAdoption,
 	touch,
@@ -61,6 +60,13 @@ import {
 	PlayFeed,
 } from './play';
 import { touchActive } from '../social';
+import {
+	comeBack,
+	queueState,
+	socketClosed,
+} from '../queue';
+import { handleQueue } from './queue';
+import { pushMedals } from '../medals';
 import { handlePm } from './pm';
 import {
 	handleMultiplayer,
@@ -116,6 +122,7 @@ const enter = async (character: CharacterRow, user: UserRow, geo: GeoResult): Pr
  *  from this one; put it back. */
 const heartbeat = async (characterId: number, userId: number, geo: GeoResult): Promise<void> => {
 	void touchActive(userId);
+	void comeBack(characterId);
 	const [listed] = await areOnline([characterId]);
 	if (listed) {
 		await touch(characterId);
@@ -143,8 +150,8 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 	const {
 		upgradeWebSocket, injectWebSocket, wss,
 	} = createNodeWebSocket({ app });
-	// ws allows 100 MiB frames by default; no message of ours comes near 64 KiB
-	wss.options.maxPayload = 64 * 1024;
+	// ws allows 100 MiB frames by default; a full play queue is the biggest of ours
+	wss.options.maxPayload = 256 * 1024;
 
 	app.get('/v1/ws', upgradeWebSocket(async c => {
 		const token = wsToken(c);
@@ -179,6 +186,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 			onOpen: async (_e, ws) => {
 				count('activity', 'sockets');
 				hub.add(character.id, ws);
+				await comeBack(character.id);
 				feed = new PlayFeed(() => bound(ws), ws);
 				scores = new MatchFeed(() => bound(ws), ws);
 				// join() broadcasts our entry; the snapshot below already includes it.
@@ -203,6 +211,12 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 				hub.sendLocal(ws, {
 					type: 'play:state', state: await playState(character.id),
 				});
+				const queue = await queueState(character.id);
+				if (queue) {
+					hub.sendLocal(ws, {
+						type: 'queue:state', state: queue,
+					});
+				}
 				const match = await ownMatch(character.id);
 				if (match) {
 					hub.sendLocal(ws, {
@@ -224,8 +238,8 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 				if (!parsed.success) return reportDiscarded(userId, raw, parsed.error);
 				const msg = parsed.data;
 
-				try {
-					if (feed && await handlePlay(msg, {
+				const features: [string, () => Promise<boolean>][] = [
+					['play', async () => !!feed && handlePlay(msg, {
 						character,
 						characterId: bound(ws),
 						ws,
@@ -233,17 +247,17 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 						// the row *is* the simulation's input: levels, upgrades and
 						// overdrive as they are now, not as they were at connect
 						freshCharacter: async () => (await resolveCharacter(userId))?.character,
-					})) return;
-				} catch (e) {
-					console.error('[play]', msg.type, 'failed for', character.id, e);
-					return;
-				}
-
-				try {
-					if (await handleMultiplayer(msg, bound(ws), ws, scores)) return;
-				} catch (e) {
-					console.error('[mp]', msg.type, 'failed for', character.id, e);
-					return;
+					})],
+					['queue', () => handleQueue(msg, bound(ws), ws)],
+					['mp', () => handleMultiplayer(msg, bound(ws), ws, scores)],
+				];
+				for (const [tag, handle] of features) {
+					try {
+						if (await handle()) return;
+					} catch (e) {
+						console.error(`[${tag}]`, msg.type, 'failed for', character.id, e);
+						return;
+					}
 				}
 
 				if (msg.type === 'chat') {
@@ -266,6 +280,8 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 					// a play is live so it can't clobber the server-set `playing`.
 					const id = bound(ws);
 					if (!(await isPlaying(id))) await update(id, { status: msg.status });
+				} else if (msg.type === 'medals:check') {
+					await pushMedals(bound(ws));
 				} else if (msg.type === 'version') {
 					hub.noteVersion(ws, msg.version);
 					await recordAdoption(bound(ws), msg.version, msg.platform);
@@ -278,7 +294,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 				// read before the remove, which is what forgets where it belonged
 				const id = bound(ws);
 				hub.remove(ws);
-				if (!hub.isLocal(id)) void leave(id);
+				if (!hub.isLocal(id)) void socketClosed(id);
 			},
 		};
 	}));

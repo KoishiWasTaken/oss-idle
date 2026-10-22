@@ -7,11 +7,12 @@ import {
 import {
 	AUTOPILOT_MODE,
 	AutopilotMode,
-} from '../gameplay/playQueue';
+} from '@oss-idle/shared/queue';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
+import type { Mod } from '@oss-idle/shared/mods';
 
 export const SCORE_TAB = mapped(['LOCAL', 'GLOBAL', 'COUNTRY']);
 export type ScoreTab = ValueIn<typeof SCORE_TAB>;
@@ -31,7 +32,7 @@ export const SORT_OPTION = mapped(SortOptions);
 export type SortOption = ValueIn<typeof SORT_OPTION>;
 
 /** Frames per second cap, or the display's refresh rate / no cap at all. */
-export type FrameLimit = 'vsync' | 'unlimited' | number;
+export type FrameLimit = 'vsync' | number;
 
 export class Setting<T, K extends string = string> extends Synced<T> {
 
@@ -62,6 +63,10 @@ export type DefaultSettings = readonly Setting<any, string>[];
 const option = <T>() =>
 	<K extends string>(key: K, defaultValue: T) =>
 		new Setting<T, K>(key, defaultValue);
+
+/** Keys this device had saved before this load wrote the defaults. */
+const stored = new Set(Object.keys(localStorage));
+export const wasStored = (key: string): boolean => stored.has(key);
 
 const defaults = [
 	/**
@@ -108,6 +113,8 @@ const defaults = [
 	/** the last rate picked on each side, which turning that mod back on brings back */
 	option<number>()('fasterRate', 1.05),
 	option<number>()('slowerRate', 0.95),
+	/** the other mods picked in song select (EZ, NF, HR, SD, PF) */
+	option<Mod[]>()('mods', []),
 	/**
 	 * Active UI language. Defaults to the browser's preferred locale on first
 	 * run, then sticks to the player's explicit choice. Read at boot (main.tsx)
@@ -125,9 +132,12 @@ const defaults = [
 	option<boolean>()('parallax', true),
 	option<boolean>()('osuMusicTheme', true),
 	option<boolean>()('showThumbnails', true),
+	// bundled maps not downloaded yet, listed in song select
+	option<boolean>()('showUndownloaded', true),
 	option<number>()('backgroundDim', 0.8),
 	option<number>()('autopilotDelay', 30),
-	option<AutopilotMode>()('autopilotMode', AUTOPILOT_MODE.PLAYLIST),
+	// every setting is written on first load, so an existing player keeps Playlist
+	option<AutopilotMode>()('autopilotMode', AUTOPILOT_MODE.NEXT),
 ] as const satisfies DefaultSettings;
 
 type SettingsByKey<T extends DefaultSettings> = {

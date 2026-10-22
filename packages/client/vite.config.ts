@@ -71,10 +71,31 @@ const discordRedirect = (): Plugin => ({
 const MAX_PROFILE_BYTES = 5 << 20;
 
 /** The frame profiler's reports (src/dev/profiler.ts), kept in profiles/ at the repo root. */
+const MAX_TRACE_BYTES = 300 << 20;
+
 const profileReports = (): Plugin => ({
 	name: 'profile-reports',
 	configureServer(server) {
 		const dir = fileURLToPath(new URL('../../profiles/', import.meta.url));
+		// the staging app's Chromium traces (packages/desktop/src/trace.ts), gzipped
+		server.middlewares.use('/__trace', (req, res) => {
+			const chunks: Buffer[] = [];
+			let size = 0;
+			req.on('data', (chunk: Buffer) => {
+				size += chunk.length;
+				if (size <= MAX_TRACE_BYTES) chunks.push(chunk);
+			});
+			req.on('end', () => {
+				if (req.method !== 'POST' || size > MAX_TRACE_BYTES) {
+					res.statusCode = 400;
+					return void res.end();
+				}
+				fs.mkdirSync(dir, { recursive: true });
+				const name = `${new Date().toISOString().replace(/[:.]/g, '-')}.trace.json.gz`;
+				fs.writeFileSync(path.join(dir, name), Buffer.concat(chunks));
+				res.end();
+			});
+		});
 		server.middlewares.use('/__profile', (req, res) => {
 			const chunks: Buffer[] = [];
 			let size = 0;

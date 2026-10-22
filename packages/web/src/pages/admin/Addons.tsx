@@ -10,6 +10,7 @@ import {
 	type AdminAddon,
 	listAddonsAdmin,
 	moderateAddon,
+	setAddonTrusted,
 } from '../../api/addons';
 import AddonRow from './AddonRow';
 
@@ -45,6 +46,8 @@ export default function AddonsAdmin() {
 
 	const onModerate = (id: number, body: AddonVerdict) =>
 		run(() => moderateAddon(id, body));
+	const onTrusted = (id: number, trusted: boolean) =>
+		run(() => setAddonTrusted(id, trusted));
 
 	const sorted = useMemo(() => {
 		const dir = asc ? 1 : -1;
@@ -90,7 +93,7 @@ export default function AddonsAdmin() {
 
 			<div className='addons-admin__list'>
 				{sorted.map(row => (
-					<AddonRow key={row.id} row={row} busy={busy} onModerate={onModerate} />
+					<AddonRow key={row.id} row={row} busy={busy} onModerate={onModerate} onTrusted={onTrusted} />
 				))}
 			</div>
 		</main>

@@ -1,4 +1,5 @@
 import type Stripe from 'stripe';
+import { logOff } from './queue';
 import {
 	and,
 	desc,
@@ -77,6 +78,7 @@ export const restrict = async (userId: number, reason: string, actorId = 0): Pro
 
 	const ids = await characterIds(userId);
 	for (const id of ids) {
+		await logOff(id);
 		const state = await playState(id);
 		if (state.phase === 'active') await abortPlay(id, state.token);
 		await leave(id);

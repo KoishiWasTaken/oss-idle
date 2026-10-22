@@ -14,17 +14,24 @@ import {
 } from '@oss-idle/shared/skills';
 import type { CharacterDTO } from '@oss-idle/shared/character';
 import type { PendingAction } from '@oss-idle/shared/pendingAction';
+import type { AutopilotMode } from '@oss-idle/shared/queue';
+import type { Mod } from '@oss-idle/shared/mods';
 import { users } from './user';
 import { apiBaseUrl } from '../../env';
 import { db } from '../client';
 import { eq } from 'drizzle-orm';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 
+/** The profile's rank boards: global pp, country pp, score, overall, each skill. */
+export type RankBoard = 'pp' | 'country' | 'score' | 'overall' | SkillName;
+
 /** Daily global pp rank samples, oldest first, capped at RANK_HISTORY_DAYS.
- *  `date` is the UTC day (YYYY-MM-DD) of the latest sample. */
+ *  `date` is the UTC day (YYYY-MM-DD) of the latest sample. `highest` is the
+ *  best rank ever seen on each board and when (ms), recorded since 2026-10-21. */
 export type RankHistory = {
 	date: string;
 	ranks: number[];
+	highest?: Partial<Record<RankBoard, { rank: number; at: number }>>;
 };
 
 export const RANK_HISTORY_DAYS = 90;
@@ -90,6 +97,11 @@ export const characters = mysqlTable('character', {
 	rankHistory: jsonColumn<RankHistory>(),
 	/** The actions a running play has deferred to its end, in order. */
 	pendingAction: jsonColumn<PendingAction[]>(),
+	/** The play queue's preferences (see shared/queue.ts). */
+	autopilotMode: varchar({ length: 10 }).$type<AutopilotMode>().notNull().default('NEXT'),
+	autopilotDelay: int().notNull().default(30),
+	playRate: double().notNull().default(1),
+	playMods: jsonColumn<Mod[]>(),
 });
 
 export type CharacterRow = typeof characters.$inferSelect;

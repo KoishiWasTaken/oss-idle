@@ -29,7 +29,7 @@ export default function DownloadAllWarning({ sets, onClose }: {
 	const title = t`Download every ranked beatmap?`;
 	const sub = [
 		t`This is a very big download: ${count} beatmap sets, taking about ${size} of disk space.`,
-		...user?.supporter ? [] : [t`That's why downloading them all at once is an osu!supporter perk.`],
+		...user?.supporter ? [] : [t`That's why downloading them all at once is an oss!supporter perk.`],
 		...desktop() ? [] : [
 			t`Here they are stored by your browser: the desktop app is better suited to keeping this many.`,
 		],

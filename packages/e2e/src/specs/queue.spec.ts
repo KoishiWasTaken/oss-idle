@@ -23,7 +23,7 @@ test.describe('play queue', () => {
 		await game.expectScene('SELECT');
 
 		// the dock's queue button opens song select in queue mode: a click queues
-		await page.locator('.dock__btn', { hasText: 'queue' }).click();
+		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		await expect(page.locator('.game--queueing')).toBeVisible();
 
 		await game.search(set.title);
@@ -45,27 +45,23 @@ test.describe('play queue', () => {
 		await page.locator('.play__quit').click();
 		await game.expectScene('SELECT');
 
-		await page.locator('.dock__btn', { hasText: 'queue' }).click();
+		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		const others = set.versions.filter(v => v.id !== version.id).slice(0, 2);
 		for (const v of others) await game.queueCard(v.id);
-
-		// back to song select, where the dock is the queue's own panel
-		await page.keyboard.press('Escape');
-		await expect(page.locator('.game--queueing')).toBeHidden();
 
 		const before = await game.queue();
 		expect(before!.entries.length).toBeGreaterThanOrEqual(2);
 
-		// move the second entry up: the queue is an order, not a suggestion. Its
-		// controls only appear under the pointer, so hover the row first.
+		// the queue is managed in the queue view, beside the carousel. Move the
+		// second entry up: the queue is an order, not a suggestion. Its controls
+		// only appear under the pointer, so hover the row first.
 		const second = before!.entries[1];
-		const row = page.locator('.dock__entry').nth(1);
-		await page.locator('.dock--panel').hover();
+		const row = page.locator('.dock--left .dock__entry').nth(1);
 		await row.hover();
-		await row.locator('button', { hasText: '↑' }).click();
+		await row.getByRole('button', { name: 'Move up' }).click();
 		await expect.poll(async () => (await game.queue())?.entries[0].id).toBe(second.id);
 
-		await page.locator('.dock__btn', { hasText: 'clear' }).click();
+		await page.getByRole('button', { name: 'Empty the queue' }).click();
 		await expect.poll(async () => (await game.queue())?.entries.length ?? 0).toBe(0);
 	});
 
@@ -83,7 +79,7 @@ test.describe('play queue', () => {
 		const first = await game.waitForPlay();
 		await page.locator('.play__quit').click();
 
-		await page.locator('.dock__btn', { hasText: 'queue' }).click();
+		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
 		await page.keyboard.press('Escape');
 
@@ -114,12 +110,12 @@ test.describe('play queue', () => {
 		const first = await game.waitForPlay();
 		await game.expectScene('GAME');
 
-		await page.locator('.dock--pill .dock__btn', { hasText: 'queue' }).click();
+		await page.locator('.dock--pill').getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
 		await page.keyboard.press('Escape');
 
-		await page.locator('.dock--pill .dock__body').click();
-		await page.locator('.dock__btn', { hasText: 'screensaver' }).click();
+		// the pill carries the screensaver itself
+		await page.locator('.dock--pill').getByRole('button', { name: 'Screensaver' }).click();
 		await game.expectScene('SAVER');
 		await expect(page.locator('.screensaver')).toBeVisible();
 		await expect(page.locator('.play__quit')).toBeHidden();
@@ -140,7 +136,7 @@ test.describe('play queue', () => {
 		expect(await game.scene()).toBe('SAVER');
 
 		await page.keyboard.press('Escape');
-		await page.locator('.dock__btn.is-on', { hasText: 'screensaver' }).click();
+		await page.getByRole('button', { name: 'Back to gameplay' }).click();
 		await game.expectScene('GAME');
 	});
 

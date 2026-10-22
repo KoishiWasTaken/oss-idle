@@ -20,6 +20,8 @@ import { beatmapsVersion } from '../osu/beatmap/beatmap_store';
 import SceneManager, { SCENE } from '../scenes/SceneManager';
 import { launchPlay } from '../scenes/launchPlay';
 import { selectedRate } from '../gameplay/playRate';
+import { selectedMods } from '../gameplay/playMods';
+import { modsKey } from '@oss-idle/shared/mods';
 import {
 	activeChatTab,
 	chatTabs,
@@ -77,6 +79,18 @@ export default class Multiplayer {
 		this.followRounds();
 		void Synced.all([this.current, beatmapsVersion], () => void this.reportMap());
 		void Synced.all([this.current, selectedRate], () => this.reportRate());
+		void Synced.all([this.current, selectedMods], () => this.reportMods());
+	}
+
+	/** And with their own mods. */
+	private static reportMods(): void {
+		const match = this.current.get();
+		const mine = match && this.mySlot(match);
+		const mods = selectedMods.get();
+		if (!mine || match.playing || modsKey(mine.mods ?? []) === modsKey(mods)) return;
+		this.send({
+			type: 'mp:mods', mods,
+		});
 	}
 
 	/** Everyone plays at their own rate: the server starts our round play at ours. */
@@ -151,6 +165,12 @@ export default class Multiplayer {
 	/** We are playing this map in the match's running round. */
 	public static inRound(match: Match, beatmapId: number): boolean {
 		return match.playing && match.beatmap?.id === beatmapId && !!this.mySlot(match)?.playing;
+	}
+
+	/** Our play of this map is the running round's. */
+	public static playingRound(beatmapId: number): boolean {
+		const match = this.current.get();
+		return !!match && this.inRound(match, beatmapId);
 	}
 
 	public static isHost(match: Match): boolean {

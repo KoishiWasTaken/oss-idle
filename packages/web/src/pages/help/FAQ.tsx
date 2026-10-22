@@ -120,17 +120,20 @@ export default function FAQ() {
 			<summary><Trans>What are the queue and autopilot?</Trans></summary>
 			<p><Trans>
 				The queue is the list of maps your character plays one after the other. Autopilot fills it
-				from the song select: a playlist, the next songs, shuffle, or the same map on loop. You can
-				reorder it, skip ahead or stop after the current map. The queue is not saved when you close
-				the game; save it as a playlist to keep it.
+				from the song select: a playlist, the next songs, shuffle, or the same map on loop (or not
+				at all, when disabled). You can reorder it, skip ahead or stop after the current map.
+				Signed in, the queue is your character's: every device shows the same one, and your
+				character keeps playing it for 12 hours after you close the game (24 with oss!supporter),
+				ranked maps only. You can turn that off in the options.
 			</Trans></p>
 		</details>
 		<details>
 			<summary><Trans>Why does my game stop in the background?</Trans></summary>
 			<p><Trans>
-				Browsers slow down tabs you aren't looking at, which can stall autopilot.
-				The <Link to='/download'>desktop app</Link> doesn't have this problem:
-				it keeps playing while minimised and updates itself.
+				Signed in, it doesn't: your character's queue runs on our server. As a guest, the game
+				itself runs the queue, and browsers slow down tabs you aren't looking at, which can stall
+				it. The <Link to='/download'>desktop app</Link> doesn't have this problem: it keeps playing
+				while minimised and updates itself.
 			</Trans></p>
 		</details>
 

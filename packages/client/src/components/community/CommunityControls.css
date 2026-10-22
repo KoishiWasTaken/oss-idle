@@ -1,5 +1,6 @@
 /* bottom-right controls (always interactive) */
 .community-controls {
+	transition: opacity 0.3s ease;
 	position: fixed;
 	right: 8px;
 	bottom: 0px;
@@ -52,4 +53,10 @@
 		font-size: 12px;
 		white-space: nowrap;
 	}
+}
+
+.community-controls.is-idle {
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 3s ease;
 }

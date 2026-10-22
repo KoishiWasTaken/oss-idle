@@ -37,7 +37,19 @@ interface Segment {
 
 export interface Barline {
 	time: number
+	/** scroll position, worked out once */
+	pos: number
 }
+
+type Red = Pick<TimingPoint, 'startTime' | 'bpm'>;
+type Green = Pick<EffectPoint, 'startTime' | 'scrollSpeed'>;
+
+/** What the scroll is built from: a beatmap, or a chart's points in the editor. */
+export type ScrollSource = {
+	bpm: number,
+	difficulty: { clockRate: number },
+	controlPoints: { timingPoints: Red[], effectPoints: Green[] },
+};
 
 export interface SpeedChange {
 	time: number
@@ -53,7 +65,7 @@ export class ScrollModel {
 
 	/** `rate` speeds the map up: its times shrink, the scroll speed stays the same,
 	 *  so the notes come denser. */
-	constructor(beatmap: Beatmap, rate = 1) {
+	constructor(beatmap: ScrollSource, rate = 1) {
 		const reds = beatmap.controlPoints.timingPoints;
 		const greens = beatmap.controlPoints.effectPoints;
 		// The map's nominal BPM (most-common beat length) is the 1x reference, as
@@ -68,7 +80,7 @@ export class ScrollModel {
 		}));
 	}
 
-	private buildSegments(reds: TimingPoint[], greens: EffectPoint[]): Segment[] {
+	private buildSegments(reds: Red[], greens: Green[]): Segment[] {
 		// Speed changes at both red lines (BPM) and green lines (SV).
 		const times = new Set<number>([0]);
 		for (const r of reds) times.add(r.startTime);
@@ -147,7 +159,9 @@ export class ScrollModel {
  * Measure barlines across the whole map: within each timing section we step by
  * one measure (beatLength * meter) from the section start to the next section.
  */
-export function buildBarlines(beatmap: Beatmap, songEndMs: number, rate = 1): Barline[] {
+export function buildBarlines(
+	beatmap: Beatmap, songEndMs: number, scroll: ScrollModel, rate = 1,
+): Barline[] {
 	const reds = beatmap.controlPoints.timingPoints;
 	if (reds.length === 0) return [];
 	const lines: Barline[] = [];
@@ -158,7 +172,9 @@ export function buildBarlines(beatmap: Beatmap, songEndMs: number, rate = 1): Ba
 		// as 6e-96ms, a step that never advances `t` past the section start.
 		const measure = tp.beatLength * Math.max(1, tp.timeSignature);
 		for (let t = tp.startTime; t < end - 1; t += measure) {
-			lines.push({ time: t / rate });
+			lines.push({
+				time: t / rate, pos: scroll.positionAt(t / rate),
+			});
 		}
 	}
 	return lines;

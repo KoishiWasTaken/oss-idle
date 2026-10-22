@@ -37,8 +37,11 @@ const interpolate = (stops: typeof STOPS, stars: number): string | undefined => 
 export const difficultyColor = (stars: number): string =>
 	interpolate(STOPS, stars) ?? '#1a1a2e'; // expert+
 
+/** Past this, difficultyColor is too dark to read on a dark background. */
+export const isDarkDifficulty = (stars: number): boolean => stars >= 6.5;
+
 /** The star rating's text on its difficultyColor badge, like osu!web's. */
 export const difficultyTextColor = (stars: number): string => {
-	if (stars < 6.5) return '#000';
+	if (!isDarkDifficulty(stars)) return '#000';
 	return interpolate(TEXT_STOPS, stars) ?? `rgb(${TEXT_STOPS[TEXT_STOPS.length - 1][1].join(',')})`;
 };

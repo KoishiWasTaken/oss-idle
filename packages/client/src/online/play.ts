@@ -5,6 +5,8 @@ import type Character from '../db/schema/character';
 import { showDeltas } from '../globals';
 import Socket from './socket';
 import { rateFor } from '../gameplay/playRate';
+import { selectedMods } from '../gameplay/playMods';
+import type { Mod } from '@oss-idle/shared/mods';
 import { debugXpMultiplier } from '../globals';
 import {
 	ph,
@@ -23,6 +25,7 @@ export type RankedPlayContext = {
 	beatmapId: number;
 	/** the playback rate the server simulated it at */
 	rate: number;
+	mods: Mod[];
 	/** the offsets revealed so far; the rest are pushed while `play:watch`ed */
 	offsets: ReplayOffset[];
 	/** resume cursor + whether every offset has already been delivered */
@@ -40,6 +43,7 @@ export type LocalPlayContext = {
 	token: string;
 	beatmapId: number;
 	rate: number;
+	mods: Mod[];
 	offsets: ReplayOffset[];
 	startedAt: number;
 	endsAt: number;
@@ -49,7 +53,7 @@ export type LocalPlayContext = {
  * How a launched play is scored:
  *  - `guest`    - not signed in: resolved + scored by the local session, awards
  *                 local XP. Runs on its own clock, watched or not.
- *  - `unranked` - signed in but the server hasn't ingested this map: same local
+ *  - `unranked` - signed in but the map isn't ranked, or NF is on: same local
  *                 session, local score only, no XP, not submitted.
  *  - `ranked`   - signed in + map on the server: the server simulated it and is
  *                 authoritative. The client replays the offsets seeked to the
@@ -126,6 +130,7 @@ export async function startPlaySession(
 				beatmapId,
 				xpMultiplier: debugXpMultiplier.get(),
 				rate: rateFor(character, lockedRate),
+				mods: selectedMods.get(),
 			},
 			'play:start',
 			START_TIMEOUT_MS,
@@ -141,6 +146,7 @@ export async function startPlaySession(
 				token: play.token,
 				beatmapId: play.beatmapId,
 				rate: play.rate,
+				mods: play.mods,
 				offsets: play.offsets,
 				next: play.next,
 				done: play.done,

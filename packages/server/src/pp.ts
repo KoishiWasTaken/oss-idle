@@ -4,17 +4,27 @@ import {
 	rateKey,
 } from '@oss-idle/shared/rate';
 import type { ScoreState } from '@oss-idle/shared/sim/scoring';
+import {
+	modsLabel,
+	type Mod,
+} from '@oss-idle/shared/mods';
 
 /**
  * Performance points for a finished play, computed from the raw `.osu` chart and
  * the simulated `ScoreState`. Mirrors the client's `osu/pp.ts` but uses the node
  * `rosu-pp-js` build (synchronous, no wasm init) and the stored chart text.
  */
-export function calculatePP(score: ScoreState, chart: string, rate = 1): number {
+export function calculatePP(
+	score: ScoreState,
+	chart: string,
+	rate = 1,
+	mods: readonly Mod[] = [],
+): number {
 	const map = new ppjs.Beatmap(chart);
 	return new ppjs.Performance({
 		lazer: false,
 		clockRate: rate,
+		mods: modsLabel(mods),
 
 		legacyTotalScore: Math.floor(score.score),
 		// a pure divine play reads above 1, which is outside rosu-pp's domain

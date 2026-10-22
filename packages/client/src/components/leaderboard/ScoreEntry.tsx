@@ -99,7 +99,7 @@ export default function ScoreEntry({
 				</span>
 			</span>
 			<span className="score_entry__stats">
-				<ScoreMods rate={score.rate} />
+				<ScoreMods rate={score.rate} mods={score.mods} />
 				<span className="score_entry__acc">
 					{(score.accuracy * 100).toFixed(2)}%
 				</span>

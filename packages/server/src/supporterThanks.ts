@@ -48,7 +48,7 @@ const SIGNATURE = [
 	'Play now: https://oss.idle.rhythmgamers.net | oss.idle@boitech.dev',
 	'by BoiTech',
 ].join('\n');
-const BODY_STYLE = 'font-family:Torus,\'Segoe UI\',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;';
+const BODY_STYLE = 'font-family:Urbanist,\'Segoe UI\',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;';
 const SIGNATURE_HTML = readFileSync(new URL('supporterSignature.html', import.meta.url), 'utf8');
 
 const escape = (text: string) => text

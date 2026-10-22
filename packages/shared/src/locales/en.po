@@ -401,6 +401,10 @@ msgstr "DXRacer Drifting"
 msgid "Dynamic sight focus"
 msgstr "Dynamic sight focus"
 
+#: src/display/mods.ts
+msgid "Easy"
+msgstr "Easy"
+
 #: src/display/medals.ts
 msgid "Eight Stars Up"
 msgstr "Eight Stars Up"
@@ -516,6 +520,10 @@ msgstr "Halfway There"
 #: src/display/medals.ts
 msgid "Hands Awake"
 msgstr "Hands Awake"
+
+#: src/display/mods.ts
+msgid "Hard Rock"
+msgstr "Hard Rock"
 
 #: src/display/medals.ts
 msgid "Have {count} of your proposed maps ranked"
@@ -711,6 +719,10 @@ msgstr "Night Owl"
 msgid "Nine Lives"
 msgstr "Nine Lives"
 
+#: src/display/mods.ts
+msgid "No Fail"
+msgstr "No Fail"
+
 #: src/display/medals.ts
 msgid "No Life"
 msgstr "No Life"
@@ -786,6 +798,10 @@ msgstr "Pending"
 #: src/skills.ts
 msgid "Per-map scroll speed setting"
 msgstr "Per-map scroll speed setting"
+
+#: src/display/mods.ts
+msgid "Perfect"
+msgstr "Perfect"
 
 #: src/display/medals.ts
 msgid "Perfect Storm"
@@ -1044,6 +1060,10 @@ msgstr "Stock Logitech G Hub"
 #: src/skills.ts
 msgid "Stool"
 msgstr "Stool"
+
+#: src/display/mods.ts
+msgid "Sudden Death"
+msgstr "Sudden Death"
 
 #: src/display/medals.ts
 msgid "Supernova"

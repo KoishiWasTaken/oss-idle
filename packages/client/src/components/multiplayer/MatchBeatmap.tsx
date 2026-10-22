@@ -12,8 +12,14 @@ import BeatmapAPI from '../../osu/beatmap/beatmap_api';
 import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
 import { findCard } from '../../osu/beatmap/findCard';
 import { music } from '../../audio/MusicPlayer';
+import Auth from '../../online/auth';
+import {
+	isWebOpen,
+	webUrl,
+} from '../../globals';
 
-/** The match's map; a player without it clicks it to download. */
+/** The match's map; a player without it clicks it to download, or to open its page
+ *  on the site when it isn't bundled and they have no oss!supporter tag. */
 export default function MatchBeatmap({ match, noMap }: { match: Match, noMap: boolean }) {
 	const [library] = useSynced(beatmapsVersion);
 	const [download, setDownload] = useState<DownloadState>();
@@ -37,6 +43,11 @@ export default function MatchBeatmap({ match, noMap }: { match: Match, noMap: bo
 		if (!noMap || download) return;
 		const meta = (await BeatmapAPI.getManifest()).beatmaps.find(s => s.id === map.setId);
 		if (!meta) return;
+		if (!meta.bundled && !Auth.user.get()?.supporter) {
+			void webUrl.set(`maps/${map.setId}?diff=${map.id}`);
+			void isWebOpen.set(true);
+			return;
+		}
 		setDownload({
 			status: 'downloading', progress: 0,
 		});

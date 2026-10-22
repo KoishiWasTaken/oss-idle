@@ -5,12 +5,14 @@ import {
 	useMemo,
 	useState,
 } from 'react';
-import type { BeatmapStatus } from '@oss-idle/shared/beatmap';
+import type { MapTag } from '@oss-idle/shared/beatmap';
 import {
 	type Nomination,
+	type NominationPatch,
 	deleteNomination,
 	listNominations,
 	setDiffRanked,
+	setDiffTags,
 	updateNomination,
 	uploadBeatmap,
 } from '../../api/maps';
@@ -26,6 +28,8 @@ const PAGE_SIZE = 20;
 
 const time = (iso: string | null): number => iso ? new Date(iso).getTime() : 0;
 
+const toCategorize = (r: Nomination) => !r.categorized && r.status !== 'rejected';
+
 export default function NominationPage() {
 	const [list, setList] = useState<Nomination[] | null>(null);
 	// null = still checking, false = denied, true = authorized.
@@ -36,6 +40,8 @@ export default function NominationPage() {
 	const [sort, setSort] = useState<SortKey>('submitted');
 	const [asc, setAsc] = useState(false);
 	const [page, setPage] = useState(0);
+	// only the sets whose tags haven't been reviewed
+	const [queue, setQueue] = useState(false);
 
 	// The server is the real gate: if listing the queue succeeds we're an admin.
 	const refresh = () =>
@@ -78,10 +84,15 @@ export default function NominationPage() {
 			if (failed.length) throw new Error(failed.join('\n'));
 		});
 	};
-	const patch = (setId: number, body: { rankedAt?: string | null; status?: BeatmapStatus }) =>
+	const patch = (
+		setId: number,
+		body: NominationPatch,
+	) =>
 		run(() => updateNomination(setId, body));
 	const toggleDiff = (setId: number, beatmapId: number, ranked: boolean) =>
 		run(() => setDiffRanked(setId, beatmapId, ranked));
+	const tagDiff = (setId: number, beatmapId: number, tags: MapTag[]) =>
+		run(() => setDiffTags(setId, beatmapId, tags));
 	const remove = (setId: number) => confirm('Delete this set and its files?') 
 		&& run(() => deleteNomination(setId));
 
@@ -89,8 +100,10 @@ export default function NominationPage() {
 		const dir = asc ? 1 : -1;
 		const key = (r: Nomination) => sort === 'status' ? PHASE_ORDER[phaseOf(r)]
 			: sort === 'ranked' ? time(r.rankedAt) : time(r.submittedAt);
-		return [...(list ?? [])].sort((a, b) => (key(a) - key(b)) * dir);
-	}, [list, sort, asc]);
+		return (list ?? [])
+			.filter(r => !queue || toCategorize(r))
+			.sort((a, b) => (key(a) - key(b)) * dir);
+	}, [list, sort, asc, queue]);
 
 	const toggleSort = (key: SortKey) => {
 		if (sort === key) setAsc(a => !a);
@@ -136,6 +149,12 @@ export default function NominationPage() {
 					{sortBtn('submitted', 'Submitted')}
 					{sortBtn('ranked', 'Ranked')}
 				</div>
+				<button
+					className={`nomination__btn ${queue ? 'nomination__btn--primary' : ''}`}
+					onClick={() => { setQueue(q => !q); setPage(0); }}
+				>
+					To categorize ({list.filter(toCategorize).length})
+				</button>
 				<Link to='/maps/requests' search={{
 					filter: 'open', sort: 'support', page: 1,
 				}} className='nomination__btn'>
@@ -154,6 +173,7 @@ export default function NominationPage() {
 						busy={busy}
 						onPatch={patch}
 						onToggleDiff={toggleDiff}
+						onTagDiff={tagDiff}
 						onDelete={remove}
 					/>
 				))}

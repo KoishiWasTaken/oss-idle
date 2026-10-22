@@ -53,6 +53,9 @@ export const test = base.extend<Fixtures>({
 		// the guest wizard opens once the menu lingers past its delay, then
 		// swallows song select's keys
 		await page.addInitScript(() => localStorage.setItem('tutorial', '99'));
+		// a new player's Next song would queue the whole listing behind every
+		// launch; the specs build the queues they test
+		await page.addInitScript(() => localStorage.setItem('autopilotMode', '"PLAYLIST"'));
 		await use(new Game(page));
 	},
 	playerAs: async ({ browser, baseURL }, use) => {

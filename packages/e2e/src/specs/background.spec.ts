@@ -47,9 +47,8 @@ test.describe('background play', () => {
 		expect((await game.character()).overallTotalXp)
 			.toBeGreaterThan(before.overallTotalXp);
 
-		// waiting in song select is waiting for the result, so it is shown -
-		// but nothing drags the player back onto the playfield
-		await game.expectScene('RESULT');
+		// a play nobody watched never opens its result screen
+		expect(await game.scene()).toBe('SELECT');
 	});
 
 	test('aborting a play throws it away', async ({ game, page }) => {
@@ -80,7 +79,9 @@ test.describe('background play', () => {
 		await page.locator('.play__quit').click();
 		await game.expectScene('SELECT');
 
-		await page.locator('.dock__btn', { hasText: 'watch' }).click();
+		await page.getByRole('button', {
+			name: 'Watch', exact: true, 
+		}).click();
 		await game.expectScene('GAME');
 
 		// the same play, joined - not a second one started over it
@@ -97,7 +98,9 @@ test.describe('background play', () => {
 		await page.locator('.play__quit').click();
 		await game.expectScene('SELECT');
 
-		// back out to the main menu: not the screen a result is shown on
+		// back out to the main menu: not the screen a result is shown on. The
+		// first Escape clears the search, the second leaves.
+		await page.keyboard.press('Escape');
 		await page.keyboard.press('Escape');
 		await game.expectScene('MENU');
 

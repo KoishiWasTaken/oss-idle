@@ -18,7 +18,7 @@ import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
 import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 
-/** Profile card: avatar + online stats, clicking through to osu! web
+/** Profile card: avatar + online stats, clicking through to oss! web
  *  (or the login flow for a guest). Online stats only show once loaded. */
 export default function UserCard({ 
 	character, 
@@ -39,7 +39,7 @@ export default function UserCard({
 	return (
 		<div
 			className="game__user"
-			title={t`Open osu! web`}
+			title={t`Open oss! web`}
 			onClick={async () => {
 				if (character.isGuest()) { Auth.signIn(); return; }
 				await webUrl.set(`c/${character.id}`);

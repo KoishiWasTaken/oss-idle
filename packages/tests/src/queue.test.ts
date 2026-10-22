@@ -1,0 +1,72 @@
+import {
+	describe,
+	expect,
+	it,
+} from 'vitest';
+import {
+	applyQueueEdit,
+	AUTOPILOT_MODE,
+	nextStart,
+	rotateQueue,
+} from '@oss-idle/shared/queue';
+
+const a = { beatmapId: 1 };
+const b = { beatmapId: 2 };
+const c = { beatmapId: 3 };
+
+describe('server play queue', () => {
+	it('sends the map that started to the back', () => {
+		expect(rotateQueue([a, b, c], a)).toEqual([b, c, a]);
+	});
+
+	it('rotates the played map even when it is no longer the head', () => {
+		expect(rotateQueue([b, a, c], a)).toEqual([b, c, a]);
+	});
+
+	it('leaves the queue alone when the played map was removed meanwhile', () => {
+		expect(rotateQueue([b, c], a)).toEqual([b, c]);
+	});
+
+	it('tells a locked rate apart from the same map at the character rate', () => {
+		const fast = {
+			beatmapId: 1, rate: 1.2,
+		};
+		expect(rotateQueue([a, fast, b], fast)).toEqual([a, b, fast]);
+	});
+
+	it('edits by entry, keeping the ones a device does not know', () => {
+		expect(applyQueueEdit([a, b], {
+			op: 'append', entry: c,
+		})).toEqual([a, b, c]);
+		expect(applyQueueEdit([a, b, c], {
+			op: 'playNext', entry: c,
+		})).toEqual([c, a, b]);
+		expect(applyQueueEdit([a, b, c], {
+			op: 'remove', entry: b,
+		})).toEqual([a, c]);
+		expect(applyQueueEdit([a, b, c], {
+			op: 'move', entry: c, before: a,
+		})).toEqual([c, a, b]);
+		expect(applyQueueEdit([a, b, c], {
+			op: 'move', entry: a,
+		})).toEqual([b, c, a]);
+		expect(applyQueueEdit([a, b], {
+			op: 'move', entry: c, before: a,
+		})).toEqual([a, b]);
+		expect(applyQueueEdit([a, b], { op: 'clear' })).toEqual([]);
+	});
+
+	it('schedules only an unpaused, non-empty, enabled queue', () => {
+		const q = {
+			paused: false, entries: [a],
+		};
+		expect(nextStart(q, AUTOPILOT_MODE.NEXT, 1000, 30)).toBe(1030);
+		expect(nextStart({
+			...q, paused: true,
+		}, AUTOPILOT_MODE.NEXT, 1000, 30)).toBeUndefined();
+		expect(nextStart({
+			...q, entries: [],
+		}, AUTOPILOT_MODE.NEXT, 1000, 30)).toBeUndefined();
+		expect(nextStart(q, AUTOPILOT_MODE.DISABLED, 1000, 30)).toBeUndefined();
+	});
+});

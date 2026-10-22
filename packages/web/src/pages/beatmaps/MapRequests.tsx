@@ -27,15 +27,16 @@ import {
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useAdmin } from '../../hooks/useAdmin';
 
-export type RequestFilter = 'open' | 'accepted' | 'rejected' | 'all';
+export type RequestFilter = 'open' | 'accepted' | 'rejected' | 'mine' | 'all';
 export type RequestSort = 'support' | 'date';
 
 const PAGE_SIZE = 20;
 
 const time = (iso: string | null) => iso ? new Date(iso).getTime() : 0;
 
-const matches = (row: MapRequest, filter: RequestFilter): boolean => {
+const matches = (row: MapRequest, filter: RequestFilter, userId?: number): boolean => {
 	if (filter === 'all') return true;
+	if (filter === 'mine') return row.userId === userId;
 	if (filter === 'open') return row.status === 'pending';
 	return row.status === filter;
 };
@@ -109,11 +110,11 @@ export default function MapRequests({ filter, sort, page }: {
 	});
 
 	const rows = useMemo(() => {
-		const kept = (list ?? []).filter(row => matches(row, filter));
+		const kept = (list ?? []).filter(row => matches(row, filter, user?.id));
 		return kept.sort((a, b) => sort === 'support'
 			? b.support - a.support || time(b.createdAt) - time(a.createdAt)
 			: time(b.createdAt) - time(a.createdAt));
-	}, [list, filter, sort]);
+	}, [list, filter, sort, user?.id]);
 
 	const pending = (list ?? [])
 		.filter(row => row.status === 'pending' && row.userId === user?.id).length;
@@ -126,6 +127,7 @@ export default function MapRequests({ filter, sort, page }: {
 		['open', t`open`],
 		['accepted', t`accepted`],
 		['rejected', t`rejected`],
+		...user ? [['mine', t`mine`] as [RequestFilter, string]] : [],
 		['all', t`all`],
 	];
 	const sorts: [RequestSort, string][] = [

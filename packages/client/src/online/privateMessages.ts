@@ -1,5 +1,5 @@
 import Synced from '@oss-idle/shared/helpers/synced';
-import Log from '@oss-idle/shared/helpers/log';
+import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import type { PrivateMessage as Message } from '@oss-idle/shared/community/wire';
 import Socket from './socket';
 import Auth from './auth';
@@ -104,7 +104,7 @@ Socket.on('pm', async ({ message }) => {
 	addTab(contact);
 	if (!isShowing(contact)) Log.popup(
 		`${message.from.name}: ${message.text}`,
-		undefined,
+		POPUP_TYPE.chat,
 		false,
 		() => void openConversation(contact, message.from.name),
 	);

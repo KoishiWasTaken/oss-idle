@@ -488,6 +488,18 @@ export class MusicPlayer {
 		this.disposeGameSource();
 	}
 
+	/** How long until audio scheduled now is heard, in ms: the output's own latency
+	 *  (tens of ms on Windows). A clock that isn't the audio's starts the track this
+	 *  far ahead of what it shows, so the song is heard where it's drawn. */
+	outputDelay(): number {
+		const { contextTime, performanceTime } = this.context.getOutputTimestamp();
+		if (contextTime && performanceTime) {
+			const heard = contextTime + (performance.now() - performanceTime) / 1000;
+			return Math.max(0, (this.context.currentTime - heard) * 1000);
+		}
+		return ((this.context.outputLatency || 0) + this.context.baseLatency) * 1000;
+	}
+
 	/** Gameplay song position (ms) from the shared audio clock. Advances smoothly
 	 *  forever - even past the track end - so the final notes always resolve. */
 	gameTime(): number {
@@ -553,10 +565,16 @@ export class MusicPlayer {
 	}
 	
 	/** Normalised (0..1) frequency magnitudes for the visualiser, or null. */
-	getSpectrum(): number[] | null {
+	private spectrum?: Float32Array;
+
+	/** The spectrum now, 0..1 per bin: one array filled again each call (read it before
+	 *  the next), since a new one each frame is garbage. */
+	getSpectrum(): Readonly<Float32Array> | null {
 		if (!this._analyser || !this._freqData) return null;
 		this._analyser.getByteFrequencyData(this._freqData);
-		return Array.from(this._freqData, (v) => v / 255);
+		const spectrum = this.spectrum ??= new Float32Array(this._freqData.length);
+		for (let i = 0; i < spectrum.length; i++) spectrum[i] = this._freqData[i] / 255;
+		return spectrum;
 	}
 
 	changeGain(target: number, ms: number, from?: number): void {

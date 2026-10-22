@@ -6,7 +6,7 @@ import {
 } from 'vitest';
 import { BeatmapDecoder } from 'osu-parsers';
 import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import ReplayBot from '@oss-idle/client/gameplay/replayBot';
+import ReplayBot from '@oss-idle/shared/sim/bots/replay';
 import { simulate } from './sim';
 
 // A tiny hand-written 4K mania chart - a few taps and two long notes, enough to

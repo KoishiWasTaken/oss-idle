@@ -37,6 +37,7 @@ import {
 	displacedName,
 } from './names';
 import type { PendingAction } from '@oss-idle/shared/pendingAction';
+import { rekeyQueue } from '../queue';
 
 /**
  * The three progression loops, as plain functions on a character row.
@@ -331,7 +332,13 @@ export const performRebirth = async (
 			await tx.update(characters).set({ name: displaced }).where(eq(characters.id, row.id));
 		}
 		const [created] = await tx.insert(characters).values({
-			userId: user.id, name, generation: row.generation + 1,
+			userId: user.id,
+			name,
+			generation: row.generation + 1,
+			autopilotMode: row.autopilotMode,
+			autopilotDelay: row.autopilotDelay,
+			playRate: row.playRate,
+			playMods: row.playMods,
 		});
 		await tx.update(users)
 			.set({ currentCharacter: created.insertId })
@@ -346,6 +353,7 @@ export const performRebirth = async (
 	// that just gave up its place: without moving them, everything about the new
 	// one's plays reaches nobody, and the player drops off the community overlay.
 	hub.rekey(row.id, characterId);
+	await rekeyQueue(row.id, characterId);
 	const [fresh] = await db
 		.select()
 		.from(characters)

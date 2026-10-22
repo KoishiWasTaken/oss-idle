@@ -5,7 +5,10 @@ import {
 } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { isCommunityOpen } from '../../globals';
+import {
+	isCommunityOpen,
+	menuIdle,
+} from '../../globals';
 import CommunityToggle from './CommunityToggle';
 import {
 	autoHide,
@@ -25,6 +28,7 @@ export default function CommunityControls() {
 	const [open] = useSynced(isCommunityOpen);
 	const [chat] = useSynced(showChat);
 	const [unread] = useSynced(chatUnread);
+	const [idle] = useSynced(menuIdle);
 	const ref = useRef<HTMLDivElement>(null);
 
 	// the chat input reserves this space so typed text isn't hidden under the buttons
@@ -74,7 +78,7 @@ export default function CommunityControls() {
 	});
 
 	return (
-		<div className="community-controls" ref={ref}>
+		<div className={`community-controls ${idle ? 'is-idle' : ''}`} ref={ref}>
 			{open && (<>
 				<CommunityToggle value={showTicker} label={t`Show ticker`} />
 				<CommunityToggle value={autoHide} label={t`Auto-hide`} />

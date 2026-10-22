@@ -8,15 +8,15 @@ type View = 'none' | 'code' | 'diff';
 /** The "View code / View changes" toggle and panels for one add-on. */
 export default function AddonRowCode({
 	source,
-	reviewedSource, 
+	liveSource,
 }: {
 	source: string;
-	reviewedSource: string | null 
+	liveSource?: string
 },
 ) {
 	const [view, setView] = useState<View>('none');
-	// Changed since the last validation - lets the admin review only the delta.
-	const hasChanges = !!reviewedSource && reviewedSource !== source;
+	// what players run now: a denied change stays in the diff until it is reverted
+	const hasChanges = liveSource !== undefined && liveSource !== source;
 	const toggle = (v: View) => setView(cur => cur === v ? 'none' : v);
 	const highlight = (source: string) => Prism.highlight(
 		source,
@@ -38,7 +38,7 @@ export default function AddonRowCode({
 						className={`addons-admin__btn ${view === 'diff' ? 'current' : ''}`} 
 						onClick={() => toggle('diff')}
 					>
-						{view === 'diff' ? 'Hide changes' : 'View changes since last review'}
+						{view === 'diff' ? 'Hide changes' : 'View changes since the live release'}
 					</button>
 				)}
 			</div>
@@ -48,8 +48,8 @@ export default function AddonRowCode({
 						dangerouslySetInnerHTML={{ __html: highlight(source) }} />
 				</pre>
 			)}
-			{view === 'diff' && reviewedSource && (
-				<div className='addons-admin__code'><CodeDiff before={reviewedSource} after={source} /></div>
+			{view === 'diff' && liveSource !== undefined && (
+				<div className='addons-admin__code'><CodeDiff before={liveSource} after={source} /></div>
 			)}
 		</>
 	);

@@ -17,7 +17,14 @@ import { ScoreXP } from '../db/schema/score_xp';
 import { logPlayFinished } from '../logs';
 import calculatePP from '../osu/pp';
 import { rateFor } from '../gameplay/playRate';
+import { selectedMods } from '../gameplay/playMods';
+import {
+	isRankedMods,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import { xpScore } from '@oss-idle/shared/sim/xpScore';
 import { debugXpMultiplier } from '../globals';
+import Socket from './socket';
 
 /** Song-time gap between the accuracy/grade checkpoints the dock reads. */
 const SAMPLE_STEP_MS = 5000;
@@ -39,6 +46,7 @@ type LocalRun = {
 	beatmap: LightBeatmap;
 	/** the playback rate it was simulated at */
 	rate: number;
+	mods: Mod[];
 	beatmapId: number;
 	chart: Beatmap;
 	/** the resolved simulation - the play, in full, before a note is drawn */
@@ -66,6 +74,7 @@ export type LocalPlayState = {
 	phase: 'finished';
 	token: string;
 	beatmapId: number;
+	failed: boolean;
 };
 
 export type LocalResult = {
@@ -189,15 +198,13 @@ const simulate = async (
 		character.memoryResetAt,
 	);
 
-	const divine = hasUnlock(character.generation, 'DIVINE');
 	const rate = rateFor(character, beatmap.lockedRate);
-	const bot = new CharacterBot(
-		snapshotSkills(character, timesPlayed),
-		chart.difficulty.overallDifficulty,
-	);
-	const game = new ManiaGame(chart, bot, {
-		divine, rate,
-	});
+	const mods = selectedMods.get();
+	const options = {
+		divine: hasUnlock(character.generation, 'DIVINE'), rate, mods,
+	};
+	const bot = new CharacterBot(snapshotSkills(character, timesPlayed));
+	const game = new ManiaGame(chart, bot, options);
 
 	// walk to the end in steps, checkpointing accuracy and grade on the way -
 	// the dock reads these back while the play runs
@@ -222,6 +229,7 @@ const simulate = async (
 		beatmap,
 		beatmapId,
 		rate,
+		mods,
 		chart,
 		game,
 		bot,
@@ -237,6 +245,10 @@ const simulate = async (
 	// would start a countdown for the queue's next map against this one booting.
 	if (current) abortLocalPlay(current.token);
 	current = run;
+	// the server's queue waits for it (no socket for a guest: nothing sent)
+	Socket.send({
+		type: 'queue:localStart', ms: Math.max(0, Math.round(run.endsAt - Date.now())),
+	});
 	run.timer = window.setTimeout(
 		() => void finalizeLocalPlay(run.token),
 		Math.max(0, run.endsAt - Date.now()),
@@ -256,6 +268,7 @@ export const finishLocalPlay = (token: string): void => {
 	if (!current || current.token !== token) return;
 	window.clearTimeout(current.timer);
 	void finalizeLocalPlay(token);
+	Socket.send({ type: 'queue:localEnd' });
 };
 
 export const abortLocalPlay = (token: string): void => {
@@ -263,6 +276,7 @@ export const abortLocalPlay = (token: string): void => {
 	window.clearTimeout(current.timer);
 	current = undefined;
 	if (localPlayState.get()) void localPlayState.set(undefined);
+	Socket.send({ type: 'queue:localEnd' });
 };
 
 /**
@@ -280,7 +294,7 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 	const game = run.game;
 	const failed = game.score.failed;
 
-	const pp = await calculatePP(game.score, run.chart, run.rate).catch(() => 0);
+	const pp = await calculatePP(game.score, run.chart, run.rate, run.mods).catch(() => 0);
 	const c = game.score.counts;
 	const score = new Score({
 		characterId: Number(character.id),
@@ -295,6 +309,7 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 		pfc: c.MISS === 0 && c.BAD === 0 && c.GOOD === 0,
 		playedAt: Date.now(),
 		rate: run.rate,
+		mods: run.mods,
 	});
 
 	let saved = score;
@@ -303,11 +318,14 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 	// earns nothing, the same rules the scene used to apply
 	if (!failed) {
 		saved = await score.add().catch(() => score);
-		if (run.mode === 'guest') {
+		if (run.mode === 'guest' && isRankedMods(run.mods)) {
 			gains = run.bot.applyProgression(
 				run.beatmap.metadata.total_length / run.rate,
-				saved,
+				xpScore(run.chart, game, {
+					divine: hasUnlock(character.generation, 'DIVINE'), rate: run.rate, mods: run.mods,
+				}),
 				debugXpMultiplier.get(),
+				run.mods,
 			);
 			// the bot earned it on its own copy of the skills, so hand the gains to
 			// the live ones - which may have moved since the play started
@@ -331,7 +349,7 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 		},
 	};
 	void localPlayState.set({
-		phase: 'finished', token, beatmapId: run.beatmapId,
+		phase: 'finished', token, beatmapId: run.beatmapId, failed,
 	});
 };
 

@@ -2,9 +2,9 @@ import {
 	Bot,
 	type BotContext,
 	type InputEvent,
-} from '@oss-idle/shared/sim/bot';
-import { ReplayOffset } from '@oss-idle/shared/sim/maniaGame';
-import type RuntimeNote from '@oss-idle/shared/sim/runtimeNote';
+} from '../bot.js';
+import type { ReplayOffset } from '../maniaGame.js';
+import type RuntimeNote from '../runtimeNote.js';
 
 /**
  * Replays a server-computed play: instead of generating timing error from the

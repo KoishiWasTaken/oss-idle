@@ -2,7 +2,6 @@ import './MusicControls.css';
 import {
 	useEffect,
 	useRef,
-	useState,
 } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
@@ -17,16 +16,23 @@ export default function MusicControls() {
 	const { t } = useLingui();
 	const [beatmap] = useSynced(music.beatmap);
 	const [playing = false] = useSynced(music.playing);
-	const [progress, setProgress] = useState(0);
 	const barRef = useRef<HTMLDivElement>(null);
+	const fillRef = useRef<HTMLDivElement>(null);
 
 	const duration = beatmap?.metadata.total_length ?? 0;
 
+	// written straight to the bar, and only when it moves a step: a re-render (or a new
+	// style string) every frame is garbage the game then stutters to collect
 	useEffect(() => {
 		let raf = 0;
+		let shown = -1;
 		const tick = () => {
-			if (duration > 0) {
-				setProgress(Math.min(1, Math.max(0, music.time() / duration)));
+			const permille = duration > 0
+				? Math.round(Math.min(1, Math.max(0, music.time() / duration)) * 1000)
+				: 0;
+			if (permille !== shown && fillRef.current) {
+				shown = permille;
+				fillRef.current.style.width = `${permille / 10}%`;
 			}
 			raf = requestAnimationFrame(tick);
 		};
@@ -39,7 +45,6 @@ export default function MusicControls() {
 		if (!rect || duration <= 0) return;
 		const fraction = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
 		music.seek(fraction * duration);
-		setProgress(fraction);
 	};
 
 	return (
@@ -86,7 +91,7 @@ export default function MusicControls() {
 			</div>
 
 			<div className="community-music__bar" ref={barRef} onClick={scrub}>
-				<div className="community-music__fill" style={{ width: `${progress * 100}%` }} />
+				<div className="community-music__fill" ref={fillRef} />
 			</div>
 		</div>
 	);

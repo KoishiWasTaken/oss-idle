@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
 import {
 	env,
@@ -26,3 +27,24 @@ export const redis = new Redis({
 // Log connection errors instead of crashing the worker - a request that needs
 // Redis while it's down will reject and surface as a 500, same as the DB.
 redis.on('error', err => console.error('Redis error:', err.message));
+
+const LOCK_MS = 5000;
+const UNLOCK = `
+if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) end
+return 0
+`;
+
+/** Run `fn` holding a cluster-wide lock on `key`. */
+export const withLock = async <T>(key: string, fn: () => Promise<T>): Promise<T> => {
+	const token = randomUUID();
+	// long enough to outlast a dead worker's lock
+	for (let tries = 0; await redis.set(key, token, 'PX', LOCK_MS, 'NX') !== 'OK'; tries++) {
+		if (tries > LOCK_MS / 20) throw new Error(`${key} stayed locked`);
+		await new Promise(r => setTimeout(r, 20));
+	}
+	try {
+		return await fn();
+	} finally {
+		await redis.eval(UNLOCK, 1, key, token);
+	}
+};

@@ -5,7 +5,7 @@ import Link from '../../components/Link';
 import Flag from '../../components/Flag';
 import ScoreLink from '../../components/score/ScoreLink';
 import Grade from '../../components/score/Grade';
-import RateBadge from '../../components/score/RateBadge';
+import ScoreMods from '../../components/score/ScoreMods';
 import type { BoardRow } from '../../api/maps';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
@@ -31,6 +31,6 @@ export default function ScoreboardRow({ row, rank }: { row: BoardRow; rank: numb
 		})}
 		<td>{num(score.pp)}</td>
 		<td className='mapset__when'>{dateAgo(score.playedAt)}</td>
-		<td><RateBadge rate={score.rate} /></td>
+		<td><ScoreMods mods={score.mods} rate={score.rate} /></td>
 	</tr>;
 }

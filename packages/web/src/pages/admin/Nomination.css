@@ -307,3 +307,31 @@
 	justify-content: center;
 	gap: 1rem;
 }
+
+/* hand-set map tags: SV/LN per difficulty, bundled per set */
+.nomination__diff-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+}
+.nomination__tag {
+	padding: 0.2rem 0.45rem;
+	border: 1px solid hsl(var(--hsl-b1));
+	border-radius: 10000px;
+	background-color: hsl(var(--hsl-b4));
+	color: hsl(var(--hsl-f1));
+	font: inherit;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+	opacity: 0.6;
+}
+.nomination__tag.is-on {
+	border-color: hsl(var(--hsl-blue-1));
+	background-color: hsl(var(--hsl-b3));
+	color: hsl(var(--hsl-c1));
+	opacity: 1;
+}
+.nomination__tag:disabled {
+	cursor: default;
+}

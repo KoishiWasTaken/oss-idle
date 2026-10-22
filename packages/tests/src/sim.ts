@@ -13,6 +13,11 @@ import {
 } from '@oss-idle/shared/sim/scoring';
 import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
 import {
+	modXp,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import { xpScore } from '@oss-idle/shared/sim/xpScore';
+import {
 	Skills,
 	type SkillName,
 } from '@oss-idle/shared/skills';
@@ -48,11 +53,11 @@ function resolve(spec: SkillSpec): Record<SkillName, number> {
 		: Object.fromEntries(Skills.map(n => [n, spec[n] ?? 0])) as Record<SkillName, number>;
 }
 
-function build(spec: SkillSpec, od: number): CharacterBot {
+function build(spec: SkillSpec): CharacterBot {
 	const levels = resolve(spec);
 	const skills = makeOrderedSkills();
 	for (const skill of skills) skill.level.set(levels[skill.name]);
-	return new CharacterBot(skills, od);
+	return new CharacterBot(skills);
 }
 
 /** A ScoreState rebuilt from a sequence of hit records (in resolution order). */
@@ -64,7 +69,7 @@ function scoreFromHits(hp: number, od: number, hits: HitRecord[]): ScoreState {
 
 /** Run one full play of `beatmap` by the whole bot at the given skill levels. */
 export function simulate(beatmap: Beatmap, spec: SkillSpec): ManiaGame {
-	const game = new ManiaGame(beatmap, build(spec, beatmap.difficulty.overallDifficulty));
+	const game = new ManiaGame(beatmap, build(spec));
 	game.update(game.songEndMs + 1000); // advance past the end so every note resolves
 	return game;
 }
@@ -82,11 +87,11 @@ export interface XPResult {
  * Run one full play and read back the per-skill XP it earns - the exact value
  * the server submits (`bot.getSkillsXP`, see server/play.ts).
  */
-export function simulateXP(beatmap: Beatmap, spec: SkillSpec): XPResult {
-	const bot = build(spec, beatmap.difficulty.overallDifficulty);
-	const game = new ManiaGame(beatmap, bot);
+export function simulateXP(beatmap: Beatmap, spec: SkillSpec, mods: Mod[] = []): XPResult {
+	const bot = build(spec);
+	const game = new ManiaGame(beatmap, bot, { mods });
 	game.update(game.songEndMs + 1000); // advance past the end so every note resolves
-	const xp = bot.getSkillsXP(beatmap.totalLength, game.score);
+	const xp = modXp(bot.getSkillsXP(beatmap.totalLength, xpScore(beatmap, game, { mods })), mods);
 	return {
 		score: game.score, xp, game, 
 	};
@@ -105,7 +110,7 @@ export interface SkillResult {
  * Other skills are irrelevant (each reads only its own strain), so they stay 0.
  */
 export function analyzeSkill(beatmap: Beatmap, skill: SkillName, level: number): SkillResult {
-	const bot = build({ [skill]: level }, beatmap.difficulty.overallDifficulty);
+	const bot = build({ [skill]: level });
 	// Constructing the game runs the bot's analyzeContext, filling its per-note,
 	// per-skill strain table. `noteStrains` is private; its type is elided in the
 	// shared .d.ts, so re-assert the shape (same as strainDebug.ts does).

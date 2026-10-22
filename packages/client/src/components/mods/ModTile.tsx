@@ -2,9 +2,11 @@ import Glyph from '../multiplayer/Glyph';
 import type { GlyphName } from '@oss-idle/shared/achievements/glyphs';
 
 /** One mod on the mod select screen: lit while it's on. */
-export default function ModTile({ glyph, label, on, disabled, tint, title, onClick }: {
+export default function ModTile({ glyph, label, short, on, disabled, tint, title, onClick }: {
 	glyph: GlyphName,
 	label: string,
+	/** the rate, bottom left: a named mod already says what it is */
+	short?: string,
 	on: boolean,
 	disabled: boolean,
 	tint: string,
@@ -22,6 +24,7 @@ export default function ModTile({ glyph, label, on, disabled, tint, title, onCli
 		>
 			<Glyph name={glyph} className="mod-tile__glyph" />
 			<span className="mod-tile__label">{label}</span>
+			{short && <span className="mod-tile__short">{short}</span>}
 		</button>
 	);
 }

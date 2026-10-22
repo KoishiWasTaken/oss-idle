@@ -1,8 +1,9 @@
 import { Trans } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { rateLabel } from '@oss-idle/shared/rate';
+import { playLabel } from '@oss-idle/shared/mods';
 import { isMobile } from '../../globals';
 import { selectedRate } from '../../gameplay/playRate';
+import { selectedMods } from '../../gameplay/playMods';
 import { modSelectOpen } from '../mods/modSelectOpen';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 
@@ -10,6 +11,8 @@ import SceneManager, { SCENE } from '../../scenes/SceneManager';
 export default function DockModsButton() {
 	const [scene] = useSynced(SceneManager.current);
 	const [rate] = useSynced(selectedRate);
+	const [mods] = useSynced(selectedMods);
+	const active = playLabel(mods, rate);
 
 	if (!isMobile || scene !== SCENE.SELECT) return null;
 
@@ -19,7 +22,7 @@ export default function DockModsButton() {
 			className="dock__btn"
 			onClick={() => void modSelectOpen.set(!modSelectOpen.get())}
 		>
-			<Trans>mods</Trans>{rate !== 1 && ` ${rateLabel(rate)}`}
+			<Trans>mods</Trans>{active && ` ${active}`}
 		</button>
 	);
 }

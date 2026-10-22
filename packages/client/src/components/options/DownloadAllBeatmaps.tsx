@@ -11,7 +11,7 @@ import {
 	stopDownloadAll,
 } from '../../osu/beatmap/downloadAll';
 
-/** osu!supporter: every ranked beatmap in one go, after a warning on its size. */
+/** oss!supporter: every ranked beatmap in one go, after a warning on its size. */
 export default function DownloadAllBeatmaps() {
 	const { t } = useLingui();
 	const [progress] = useSynced(bulkDownload);

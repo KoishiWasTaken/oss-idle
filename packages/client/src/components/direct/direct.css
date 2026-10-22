@@ -1,0 +1,443 @@
+/* oss!direct: the list on the left, the picked set's panel on the right */
+.direct {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	gap: 24px;
+	height: 100%;
+	min-height: 0;
+}
+.direct__main {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+.direct__list {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding-right: 6px;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 64, 137, 0.5) transparent;
+}
+
+/* ---- filters ---- */
+.direct-filters {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.direct-filters__search {
+	width: 100%;
+	padding: 8px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	background: rgba(0, 0, 0, 0.45);
+	color: #fff;
+	font: inherit;
+	font-size: 1.1rem;
+	outline: none;
+}
+.direct-filters__search:focus {
+	border-color: var(--osu-pink-darkest);
+}
+.direct-filters__row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+.direct-filters__label {
+	color: var(--text-dim);
+}
+.direct-filters__display {
+	width: 160px;
+}
+.direct-filters__downloaded .opt-checkbox {
+	width: auto;
+}
+.direct-filters__matches {
+	margin-left: auto;
+	color: #a6f285;
+	font-size: 0.95rem;
+}
+
+/* ---- rows ---- */
+.direct-row {
+	position: relative;
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 4px 14px 4px 4px;
+	overflow: hidden;
+	border-left: 3px solid transparent;
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.12s ease;
+}
+.direct-row:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+.direct-row.is-selected {
+	border-left-color: var(--osu-pink-darkest);
+	background: rgba(255, 64, 137, 0.18);
+}
+.direct-row.is-downloaded {
+	opacity: 0.6;
+}
+.direct-row__cover {
+	flex: none;
+	width: 96px;
+	height: 54px;
+	background: #000 center / cover no-repeat;
+}
+.direct-row__text {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.direct-row__title {
+	overflow: hidden;
+	color: #fff;
+	font-size: 1.05rem;
+	font-weight: 400;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.direct-row__sub {
+	display: flex;
+	gap: 14px;
+	color: var(--text-dim);
+	font-size: 0.85rem;
+}
+.direct-row__date {
+	color: var(--osu-pink-light);
+}
+.direct-row__side {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.direct-row__done {
+	color: #a6f285;
+}
+/* fills from the left while the set downloads */
+.direct-row__progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 3px;
+	background: #a6f285;
+	transform-origin: left;
+	transition: transform 0.15s linear;
+}
+
+/* ---- difficulty dots ---- */
+.direct-dots {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 3px;
+	max-width: 160px;
+}
+.direct-dots__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+.direct-dots__dot.is-dark {
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* ---- panel ---- */
+.direct-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.35);
+	scrollbar-width: thin;
+}
+.direct-panel.is-empty {
+	align-items: center;
+	justify-content: center;
+	color: var(--text-dim);
+	text-align: center;
+}
+.direct-panel__cover {
+	flex: none;
+	aspect-ratio: 16 / 9;
+	background: #000 center / cover no-repeat;
+}
+.direct-panel__head {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.direct-panel__artist {
+	color: var(--osu-pink-light);
+}
+.direct-panel__title {
+	color: #fff;
+	font-size: 1.4rem;
+	font-weight: 400;
+	line-height: 1.2;
+}
+.direct-panel__mapper {
+	color: var(--text-dim);
+	font-size: 0.9rem;
+}
+.direct-panel__stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 6px;
+	margin: 0;
+}
+.direct-panel__stats dt {
+	color: var(--text-dim);
+	font-size: 0.75rem;
+}
+.direct-panel__stats dd {
+	margin: 0;
+	color: #fff;
+}
+.direct-panel__diffs {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.direct-panel__diffs li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.direct-panel__stars {
+	flex: none;
+	min-width: 62px;
+	padding: 1px 6px;
+	border-radius: 10000px;
+	font-size: 0.8rem;
+	font-weight: 700;
+	text-align: center;
+}
+.direct-panel__version {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.direct-panel__tag {
+	padding: 0 5px;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	font-size: 0.7rem;
+	font-weight: 700;
+}
+
+/* ---- the main menu's edge tab ---- */
+.direct-tab {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	/* above .menu__center, which covers the screen */
+	z-index: 6;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 18px;
+	width: 68px;
+	padding: 24px 0 28px;
+	border: 2px solid rgba(255, 255, 255, 0.6);
+	border-right: none;
+	border-radius: 16px 0 0 16px;
+	background: linear-gradient(
+		90deg,
+		rgba(14, 10, 20, 0.72),
+		rgba(14, 10, 20, 0.5)
+	);
+	box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
+	color: #fff;
+	font: inherit;
+	cursor: pointer;
+	transform: translateY(-50%);
+	animation: direct-tab-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	transition:
+		width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+		border-color 0.2s ease,
+		background 0.2s ease,
+		box-shadow 0.2s ease,
+		opacity 0.3s ease;
+}
+.direct-tab:hover {
+	width: 80px;
+	border-color: var(--osu-pink);
+	background: linear-gradient(
+		90deg,
+		rgba(255, 64, 137, 0.42),
+		rgba(255, 64, 137, 0.2)
+	);
+	box-shadow:
+		-6px 0 24px rgba(0, 0, 0, 0.35),
+		0 0 22px rgba(255, 102, 171, 0.45);
+}
+.direct-tab:active {
+	background: linear-gradient(
+		90deg,
+		rgba(255, 64, 137, 0.6),
+		rgba(255, 64, 137, 0.3)
+	);
+}
+
+.direct-tab__arrow {
+	width: 30px;
+	fill: #fff;
+	stroke: #fff;
+	stroke-width: 3;
+	stroke-linejoin: round;
+	filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+	transition: transform 0.2s ease;
+}
+.direct-tab:hover .direct-tab__arrow {
+	animation: direct-tab-nudge 0.9s ease-in-out infinite;
+}
+
+/* reads top to bottom */
+.direct-tab__label {
+	writing-mode: vertical-rl;
+	font-size: 2.3rem;
+	line-height: 1;
+	white-space: nowrap;
+}
+.direct-tab__oss {
+	font-weight: 900;
+	color: var(--osu-pink);
+	text-shadow: 0 2px 16px rgba(255, 102, 171, 0.5);
+	transition: color 0.2s ease;
+}
+.direct-tab:hover .direct-tab__oss {
+	color: #fff;
+}
+.direct-tab__direct {
+	font-weight: 300;
+	color: var(--text);
+}
+
+@keyframes direct-tab-in {
+	from {
+		transform: translate(100%, -50%);
+	}
+	to {
+		transform: translate(0, -50%);
+	}
+}
+@keyframes direct-tab-nudge {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(4px);
+	}
+}
+
+@media (max-width: 700px) {
+	.direct-tab {
+		width: 46px;
+		gap: 12px;
+		padding: 16px 0 18px;
+	}
+	.direct-tab:hover {
+		width: 54px;
+	}
+	.direct-tab__label {
+		font-size: 1.4rem;
+	}
+}
+
+@media (max-width: 900px) {
+	.direct {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.direct-panel {
+		display: none;
+	}
+}
+
+/* ---- a map link's panel, over any scene ---- */
+.direct-link {
+	position: fixed;
+	top: 80px;
+	right: 0;
+	bottom: 80px;
+	/* under the web browser and the chat overlay, over the scenes */
+	z-index: 5100;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 360px;
+	padding: 14px 14px 16px;
+	border: 2px solid rgba(255, 255, 255, 0.6);
+	border-right: none;
+	border-radius: 16px 0 0 16px;
+	background: rgba(14, 10, 20, 0.88);
+	box-shadow: -10px 0 30px rgba(0, 0, 0, 0.45);
+	animation: direct-link-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.direct-link__title {
+	font-size: 1.6rem;
+	font-weight: 300;
+	color: var(--text);
+}
+.direct-link .direct-panel {
+	flex: 1 1 auto;
+	padding: 0;
+	background: none;
+}
+.direct-link__actions {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+/* full-width coloured buttons */
+.direct-link__btn {
+	padding: 7px 0;
+	border: none;
+	background: var(--accent);
+	box-shadow: inset 2px 4px 8px rgba(0, 0, 0, 0.3);
+	color: #fff;
+	font: inherit;
+	font-size: 1.3rem;
+	font-weight: 600;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+	cursor: pointer;
+	transition: filter 0.12s ease;
+}
+.direct-link__btn:hover:not(:disabled) {
+	filter: brightness(1.12);
+}
+.direct-link__btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+@keyframes direct-link-in {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}

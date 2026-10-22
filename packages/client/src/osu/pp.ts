@@ -3,11 +3,16 @@ import { Beatmap } from 'osu-classes';
 import BeatmapStore from './beatmap/beatmap_store';
 import rosuReady from './rosu';
 import { ScoreState } from '@oss-idle/shared/sim/scoring';
+import {
+	modsLabel,
+	type Mod,
+} from '@oss-idle/shared/mods';
 
 const calculatePP = async (
 	score: ScoreState,
 	beatmap: Beatmap,
 	rate = 1,
+	mods: readonly Mod[] = [],
 ): Promise<number> => {
 	const osu = await BeatmapStore
 		.getOsu(beatmap.metadata.beatmapSetId, beatmap.metadata.beatmapId);
@@ -17,6 +22,7 @@ const calculatePP = async (
 	return(new ppjs.Performance({
 		lazer: false,
 		clockRate: rate,
+		mods: modsLabel(mods),
 
 		legacyTotalScore: Math.floor(score.score),
 		// a pure divine play reads above 1, which is outside rosu-pp's domain

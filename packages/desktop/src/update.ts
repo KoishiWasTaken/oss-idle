@@ -5,6 +5,7 @@ import { autoUpdater } from 'electron-updater';
 // eslint-disable-next-line @stylistic/max-len
 import type { DesktopUpdateStatus } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 import { broadcast } from './frames';
+import { STAGING } from './config';
 
 /**
  * In-app self-update. The feed (provider/url) is read from the `app-update.yml`
@@ -86,4 +87,37 @@ export async function downloadUpdate(): Promise<void> {
 export function installUpdate(): void {
 	if (unavailable()) return;
 	autoUpdater.quitAndInstall();
+}
+
+/** Staging: the LAN server's release streams, name → the origin serving its feed. */
+async function fetchStreams(): Promise<Record<string, string>> {
+	if (!STAGING?.streams) return {};
+	try {
+		const res = await fetch(STAGING.streams, {
+			cache: 'no-store', signal: AbortSignal.timeout(3000),
+		});
+		return res.ok ? await res.json() as Record<string, string> : {};
+	} catch {
+		return {};
+	}
+}
+
+export async function listStreams(): Promise<{ current: string; streams: string[] }> {
+	return {
+		current: STAGING?.stream ?? 'staging', streams: Object.keys(await fetchStreams()),
+	};
+}
+
+/** Install another stream's latest build: its feed, older or not, then a restart. */
+export async function switchStream(name: string): Promise<void> {
+	const origin = (await fetchStreams())[name];
+	if (unavailable() || !origin) return;
+	autoUpdater.setFeedURL({
+		provider: 'generic', url: `${origin}/download/${name}/`,
+	});
+	autoUpdater.allowDowngrade = true;
+	await checkForUpdate();
+	if (status.state !== 'available') return;
+	await downloadUpdate();
+	if (getUpdateStatus().state !== 'error') installUpdate();
 }

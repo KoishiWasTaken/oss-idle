@@ -1,3 +1,4 @@
+import { logOff } from './queue';
 import { unlink } from 'node:fs/promises';
 import {
 	eq,
@@ -65,6 +66,7 @@ const deleteCustomer = async (customer: string): Promise<void> => {
 /** Stops what the account has running and takes it off every board. */
 const takeOffline = async (characterIds: number[]): Promise<void> => {
 	for (const id of characterIds) {
+		await logOff(id);
 		const state = await playState(id);
 		if (state.phase === 'active') await abortPlay(id, state.token);
 		await leave(id);

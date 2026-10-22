@@ -29,3 +29,25 @@
 .supporter-heart:hover .supporter-heart__tip {
 	opacity: 1;
 }
+
+.supporter-heart--off {
+	cursor: pointer;
+}
+
+.supporter-heart--off path {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 48px;
+}
+
+.supporter-heart--off::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: -10%;
+	width: 120%;
+	height: 3px;
+	border-radius: 2px;
+	background: currentColor;
+	transform: rotate(-45deg);
+}

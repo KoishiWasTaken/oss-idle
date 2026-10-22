@@ -2,6 +2,7 @@ import Listener from '@oss-idle/shared/helpers/listener';
 import Synced from '@oss-idle/shared/helpers/synced';
 import SceneManager, { SCENE } from '../scenes/SceneManager';
 import { SETTINGS } from '../db/settings';
+import { music } from '../audio/MusicPlayer';
 import {
 	isCommunityOpen,
 	isOptionsOpen,
@@ -151,14 +152,19 @@ export default class Controls {
 					this.previous.trigger(press, release);
 					this.seekBack.trigger(press, release);
 					break;
+				// song select: F3 is Beatmap Options, F4 plays/pauses, Ctrl+F3/F4 is the scroll speed
 				case 'f4':
+					e.preventDefault();
+					if (SceneManager.current.get() === SCENE.SELECT && !e.ctrlKey) {
+						if (press) music.toggle();
+						break;
+					}
 					await this.increaseScrollSpeed.trigger(press, release);
 					break;
 				case 'f3':
 					e.preventDefault();
 					e.stopPropagation();
-					// song select's Beatmap Options
-					if (SceneManager.current.get() === SCENE.SELECT) break;
+					if (SceneManager.current.get() === SCENE.SELECT && !e.ctrlKey) break;
 					await this.decreaseScrollSpeed.trigger(press, release);
 					break;
 				case 'o':

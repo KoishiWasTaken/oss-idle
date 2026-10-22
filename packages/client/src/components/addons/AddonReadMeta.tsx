@@ -1,5 +1,6 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+import { repoCommitUrl } from '@oss-idle/shared/addon';
 import AddonIcon from './AddonIcon';
 import type { AddonDetail } from './AddonView';
 
@@ -22,6 +23,14 @@ export default function AddonReadMeta({ detail }: { detail: AddonDetail }) {
 				{detail.tags.map(t => <span key={t} className='addon__tag'>{t}</span>)}
 			</div>}
 			{detail.description && <p className='addon-view__desc'>{detail.description}</p>}
+			{detail.repoUrl && detail.commit && detail.tag && (
+				<div className='addon__by'>
+					<Trans>Built from</Trans>{' '}
+					<a href={repoCommitUrl(detail.repoUrl, detail.commit)} target='_blank' rel='noreferrer'>
+						{detail.repoUrl.replace(/^https:\/\//, '')} {detail.tag}
+					</a>
+				</div>
+			)}
 		</>
 	);
 }

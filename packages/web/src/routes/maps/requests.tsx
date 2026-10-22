@@ -8,7 +8,7 @@ import { msg } from '@lingui/core/macro';
 import MapRequests from '../../pages/beatmaps/MapRequests';
 
 const requestSearch = z.object({
-	filter: fallback(z.enum(['open', 'accepted', 'rejected', 'all']), 'open').default('open'),
+	filter: fallback(z.enum(['open', 'accepted', 'rejected', 'mine', 'all']), 'open').default('open'),
 	sort: fallback(z.enum(['support', 'date']), 'support').default('support'),
 	page: fallback(z.number().int().positive(), 1).default(1),
 });

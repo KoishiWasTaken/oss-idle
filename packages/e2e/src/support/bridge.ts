@@ -40,7 +40,7 @@ export type PlayView = {
 
 export type QueueView = {
 	label: string;
-	shuffle: boolean;
+	mode?: string;
 	entries: { id: number, version: string, title: string }[];
 };
 

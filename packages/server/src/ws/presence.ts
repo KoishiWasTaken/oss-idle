@@ -273,8 +273,11 @@ export const refresh = async (character: CharacterRow, user: UserRow): Promise<v
 
 /** Prune entries whose last-seen has expired (a worker died without a clean
  *  close). Runs periodically on every worker; the deletes are idempotent. */
-export const sweepPresence = async (): Promise<void> => {
+export const sweepPresence = async (
+	/** what becomes of a character whose client vanished without closing */
+	gone: (characterId: number) => Promise<void> = leave,
+): Promise<void> => {
 	const cutoff = Date.now() - PRESENCE_TTL;
 	const stale = await redis.zrangebyscore(SEEN_KEY, '-inf', cutoff);
-	for (const id of stale) await leave(Number(id));
+	for (const id of stale) await gone(Number(id));
 };

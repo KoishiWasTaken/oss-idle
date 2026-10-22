@@ -31,6 +31,10 @@ export const beatmapset = mysqlTable('beatmapset', {
 	submittedAt: timestamp().notNull().defaultNow(),
 	// Deleted from the queue: rows kept so a re-upload gets the same ids back.
 	deletedAt: timestamp(),
+	// Listed in everyone's song select; otherwise downloaded from the site first.
+	bundled: boolean().notNull().default(true),
+	// its tags were reviewed: off the nomination page's "to categorize" queue
+	categorized: boolean().notNull().default(false),
 });
 
 export type BeatmapsetRow = typeof beatmapset.$inferSelect;

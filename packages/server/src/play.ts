@@ -47,10 +47,22 @@ import {
 } from './pp';
 import { allowedRate } from '@oss-idle/shared/rate';
 import {
+	cleanMods,
+	countsForMedals,
+	isRankedMods,
+	modXp,
+	modsKey,
+	parseMods,
+	retriesOnFail,
+	type Mod,
+} from '@oss-idle/shared/mods';
+import { xpScore } from '@oss-idle/shared/sim/xpScore';
+import {
 	getBeatmap,
 	getLiveBeatmap,
 } from './beatmaps';
 import { update as updatePresence } from './ws/presence';
+import { playEnded } from './queue';
 import { hub } from './ws/hub';
 import {
 	STATUS,
@@ -125,6 +137,8 @@ type Pending = {
 	failedAt?: number,
 	/** how far into the map a failed play got, 0-1 (a medal checks it) */
 	failProgress?: number,
+	/** NF in a match round: played on the server, never submitted */
+	unranked?: true,
 };
 
 /** The end a client is told: the map's, so a fail can't be read off it before it streams in. */
@@ -281,6 +295,7 @@ type RankedStartPlayResult = {
 	/** what is actually being played - a join can differ from the requested map */
 	beatmapId: number,
 	rate: number,
+	mods: Mod[],
 	startedAt: number,
 	endsAt: number,
 	serverNow: number,
@@ -365,6 +380,7 @@ export const livePlayPresence = async (
 };
 
 const rateOf = (p: Pending): number => Number(p.draft.rate ?? 1);
+const modsOf = (p: Pending): Mod[] => parseMods(p.draft.mods);
 
 const joinResult = (p: Pending): StartPlayResult => ({
 	status: 'ranked',
@@ -372,6 +388,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	token: p.token,
 	beatmapId: p.beatmapId,
 	rate: rateOf(p),
+	mods: modsOf(p),
 	startedAt: p.startedAt,
 	endsAt: shownEnd(p),
 	serverNow: Date.now(),
@@ -397,13 +414,20 @@ async function joinExisting(characterId: number): Promise<StartPlayResult | null
  *  - 'refused'  - a cold-start race lost the lock and no record had landed yet;
  *                 the client retries (its spectate poll picks the play up too).
  */
+export type PlayOptions = {
+	/** debug xp scaling; the ws handler pins it to 1 in production */
+	xpMultiplier?: number,
+	/** the playback rate asked for, held to what the character's Speed upgrades unlock */
+	rate?: number,
+	mods?: Mod[],
+	/** a match round: NF plays here unsubmitted, and a fail plays on to the end */
+	round?: boolean,
+};
+
 export async function startPlay(
 	character: CharacterRow,
 	beatmapId: number,
-	/** debug xp scaling; the ws handler pins it to 1 in production */
-	xpMultiplier: number = 1,
-	/** the playback rate asked for, held to what the character's Speed upgrades unlock */
-	requestedRate: number = 1,
+	options: PlayOptions = {},
 ): Promise<StartPlayResult> {
 	if (await isRestricted(character.userId)) return { status: 'restricted' };
 	await markOnline(character.id);
@@ -411,6 +435,10 @@ export async function startPlay(
 	// Already playing? Join it (spectate) rather than starting a second.
 	const joined = await joinExisting(character.id);
 	if (joined) return joined;
+
+	// a solo NF play is the client's own, like any unranked one
+	const mods = cleanMods(options.mods ?? []);
+	if (!options.round && !isRankedMods(mods)) return { status: 'unranked' };
 
 	// Provisional 60s lock so a near-simultaneous cold start is held off while
 	// this one simulates. Atomic across workers (see ACQUIRE_PLAY).
@@ -442,8 +470,9 @@ export async function startPlay(
 		await redis.zrem(PLAYING_KEY, String(character.id));
 		return { status: 'unranked' };
 	}
-	const rate = allowedRate(requestedRate, character.speedUpgrades);
-	return simulateAndStore(character, beatmapId, beatmap, xpMultiplier, rate);
+	return simulateAndStore(character, beatmapId, beatmap, {
+		...options, mods, rate: allowedRate(options.rate ?? 1, character.speedUpgrades),
+	});
 }
 
 /** The xp a finished play is worth: mindblock and the bonus for a first X.
@@ -458,6 +487,7 @@ export const getServerXP = async (
 	rate = 1,
 	/** the map's stars at that rate */
 	stars = Number(beatmap.sr),
+	mods: readonly Mod[] = [],
 ) => {
 	const topGrade = await bestGradeOn(character.id, beatmap.id);
 
@@ -482,7 +512,22 @@ export const getServerXP = async (
 		skillXp.accuracy += Math.floor(1000 * stars);
 	}
 
-	return skillXp;
+	return modXp(skillXp, mods);
+};
+
+/** Where a simulated play ends in song time, and the fail it records. A round plays
+ *  on past its fail to the map's end; a fail with EZ tells no medal how far it got. */
+const playEnd = (game: ManiaGame, round: boolean, mods: Mod[]) => {
+	const failedAt = game.score.failed ? game.score.failedIndex : undefined;
+	const lastNoteEnd = game.notes.reduce((m, n) => Math.max(m, n.hold ? n.endTime : n.time), 0);
+	const failSongTime = failedAt ? game.hits[failedAt - 1].time : lastNoteEnd;
+	const fail: Pick<Pending, 'failedAt' | 'failProgress'> = failedAt ? {
+		failedAt,
+		...countsForMedals(mods) ? { failProgress: failSongTime / lastNoteEnd } : {},
+	} : {};
+	return {
+		lastNoteEnd, endSongTime: round ? lastNoteEnd : failSongTime, fail,
+	};
 };
 
 /** Run the authoritative simulation, compute the score + XP, and store the play.
@@ -491,16 +536,18 @@ async function simulateAndStore(
 	character: CharacterRow,
 	beatmapId: number,
 	beatmap: Awaited<ReturnType<typeof getBeatmap>>,
-	xpMultiplier: number = 1,
-	rate: number = 1,
+	{
+		xpMultiplier = 1, rate = 1, mods = [], round = false,
+	}: PlayOptions,
 ): Promise<StartPlayResult> {
 	const skills = await loadCharacterSkills(character, beatmapId);
 
 	const chart = decoder.decodeFromString(beatmap.chart);
-	const bot = new CharacterBot(skills, chart.difficulty.overallDifficulty);
-	const game = new ManiaGame(chart, bot, {
-		divine: hasUnlock(character.generation, 'DIVINE'), rate,
-	});
+	const bot = new CharacterBot(skills);
+	const options = {
+		divine: hasUnlock(character.generation, 'DIVINE'), rate, mods, playOn: round,
+	};
+	const game = new ManiaGame(chart, bot, options);
 	// advance to the end in steps, checkpointing accuracy/grade along the way
 	// (update judges incrementally, so stepping does no extra work) - the live
 	// state poll reads these back for the resume banner
@@ -508,10 +555,11 @@ async function simulateAndStore(
 	let frozen: PlaySample | undefined;
 	const sample = (t: number) => {
 		const { accuracy, grade, score, combo, failed } = game.score;
-		frozen ??= failed ? [t, accuracy, grade, Math.round(score), combo, true] : undefined;
+		// a round plays on past a fail, its score with it
+		frozen ??= failed && !round ? [t, accuracy, grade, Math.round(score), combo, true] : undefined;
 		samples.push(frozen
 			? [t, accuracy, grade, frozen[3], frozen[4], true]
-			: [t, accuracy, grade, Math.round(score), combo, false]);
+			: [t, accuracy, grade, Math.round(score), combo, failed]);
 	};
 	for (let t = 0; t <= game.songEndMs; t += SAMPLE_STEP_MS) {
 		game.update(t);
@@ -522,7 +570,7 @@ async function simulateAndStore(
 
 	const score = game.score;
 
-	const pp = calculatePP(score, beatmap.chart, rate);
+	const pp = calculatePP(score, beatmap.chart, rate, mods);
 	const stars = rate === 1 ? Number(beatmap.sr) : starsAt(beatmap.chart, rate);
 	const c = score.counts;
 
@@ -540,11 +588,10 @@ async function simulateAndStore(
 		playedAt: new Date(),
 		rate: String(rate),
 		sr: String(stars),
+		mods: modsKey(mods),
 	};
 
-	const failedAt = score.failed ? score.failedIndex : undefined;
-	const lastNoteEnd = game.notes.reduce((m, n) => Math.max(m, n.hold ? n.endTime : n.time), 0);
-	const endSongTime = failedAt ? game.hits[failedAt - 1].time : lastNoteEnd;
+	const { lastNoteEnd, endSongTime, fail } = playEnd(game, round, mods);
 	const startedAt = Date.now();
 	const endsAt = startedAt + LEAD_IN_MS + endSongTime;
 
@@ -579,15 +626,14 @@ async function simulateAndStore(
 			bot,
 			beatmap,
 			chart,
-			score,
+			xpScore(chart, game, options),
 			rate,
 			stars,
+			mods,
 		), xpMultiplier),
+		...fail,
 	};
-	if (failedAt) {
-		entry.failedAt = failedAt;
-		entry.failProgress = endSongTime / lastNoteEnd;
-	}
+	if (!isRankedMods(mods)) entry.unranked = true;
 	await redis.set(playKey(character.id), JSON.stringify(entry));
 
 	// Promote the provisional lock to the real end time (drives the sweep + count).
@@ -611,6 +657,7 @@ async function simulateAndStore(
 		token,
 		beatmapId,
 		rate,
+		mods,
 		startedAt,
 		endsAt: shownEnd(entry),
 		serverNow: Date.now(),
@@ -641,6 +688,21 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 			failed: true,
 			notify,
 			failProgress: play.failProgress,
+		};
+	}
+
+	if (play.unranked) {
+		return {
+			token: play.token,
+			failed: false,
+			score: scoreRowToDTO({
+				...play.draft, id: 0,
+			} as ScoreRow),
+			gains: [],
+			deltas: {
+				rank: 0, rankedScore: 0, pp: 0,
+			},
+			notify,
 		};
 	}
 
@@ -741,9 +803,14 @@ export async function finalizePlay(
 	hub.sendTo(characterId, {
 		type: 'play:state',
 		state: {
-			phase: 'finished', token: result.token, notify: result.notify,
+			phase: 'finished', token: result.token, notify: result.notify, failed: result.failed,
 		},
 	});
+
+	const again = result.failed && retriesOnFail(modsOf(play)) ? {
+		beatmapId: play.beatmapId, rate: rateOf(play),
+	} : undefined;
+	await playEnded(live, again).catch(e => console.error('[queue] chain failed for', live, e));
 
 	count('activity', 'plays_finished');
 	console.log(characterId, 'finished. playing users:', await getPlaying());
@@ -843,6 +910,7 @@ export async function abortPlay(characterId: number, token: string): Promise<{ o
 		hub.sendTo(characterId, {
 			type: 'play:aborted', token,
 		});
+		await playEnded(live).catch(e => console.error('[queue] chain failed for', live, e));
 	}
 	return { ok: raw !== null };
 }
@@ -900,6 +968,7 @@ const activeState = (play: Pending): Extract<PlayState, { phase: 'active' }> => 
 		token: play.token,
 		beatmapId: play.beatmapId,
 		rate: rateOf(play),
+		mods: modsOf(play),
 		startedAt: play.startedAt,
 		endsAt: shownEnd(play),
 		serverNow: Date.now(),
@@ -954,6 +1023,7 @@ function scoreRowToDTO(row: ScoreRow): ScoreDTO {
 		ur: Number(row.ur),
 		pfc: row.pfc,
 		rate: Number(row.rate),
+		mods: parseMods(row.mods),
 		playedAt: (row.playedAt ?? new Date()).getTime(),
 	};
 }

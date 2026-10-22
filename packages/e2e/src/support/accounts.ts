@@ -20,6 +20,10 @@ const env = Object.fromEntries(readFileSync(ENV_FILE, 'utf8')
 	.filter(m => m !== null)
 	.map(m => [m[1], m[2].replace(/^(['"])(.*)\1$/, '$2')]));
 
+// a worktree's own stack (DEV_API_PORT) runs on a database and Redis db of its own
+if (process.env.E2E_DB_NAME) env.DB_NAME_DEV = process.env.E2E_DB_NAME;
+if (process.env.E2E_REDIS_DB) env.REDIS_DB = process.env.E2E_REDIS_DB;
+
 const connect = () => mysql.createConnection({
 	host: env.DB_HOST,
 	port: Number(env.DB_PORT ?? 3306),
@@ -37,6 +41,8 @@ const TEST_USERS = {
 	social: [user(2_147_480_001, 'e2e Alice'), user(2_147_480_002, 'e2e Bob')],
 	multiplayer: [user(2_147_480_003, 'e2e Carol'), user(2_147_480_004, 'e2e Dave')],
 	rates: [user(2_147_480_005, 'e2e Erin'), user(2_147_480_006, 'e2e Frank')],
+	mods: [user(2_147_480_011, 'e2e Kim'), user(2_147_480_012, 'e2e Leo')],
+	queue: [user(2_147_480_007, 'e2e Grace'), user(2_147_480_008, 'e2e Heidi')],
 };
 
 // the dev server's Redis keys (redisKeyPrefix in packages/server/src/env.ts)
@@ -53,8 +59,13 @@ const clearPlays = async (characterIds: number[]) => {
 	});
 	try {
 		for (const id of characterIds) {
-			await redis.del(`${REDIS_PREFIX}play:${id}`, `${REDIS_PREFIX}result:${id}`);
+			await redis.del(
+				`${REDIS_PREFIX}play:${id}`, `${REDIS_PREFIX}result:${id}`, `${REDIS_PREFIX}queue:${id}`,
+			);
 			await redis.zrem(`${REDIS_PREFIX}playing`, String(id));
+			// and the server's queue, and a character still playing with its game closed
+			await redis.zrem(`${REDIS_PREFIX}queue:due`, String(id));
+			await redis.zrem(`${REDIS_PREFIX}away`, String(id));
 			// and the match seat: rejoining an old match brings its map along
 			await redis.hdel(`${REDIS_PREFIX}mp:members`, String(id));
 			await redis.hdel(`${REDIS_PREFIX}mp:away`, String(id));
@@ -83,7 +94,13 @@ export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Accou
 				'SELECT id FROM `character` WHERE user_id = ? ORDER BY id LIMIT 1', [id],
 			);
 			await db.query('UPDATE user SET current_character = ? WHERE id = ?', [row.id, id]);
-			await db.query('UPDATE `character` SET speed_upgrades = 0 WHERE id = ?', [row.id]);
+			await db.query(
+				`UPDATE \`character\`
+				SET speed_upgrades = 0, autopilot_mode = 'PLAYLIST', autopilot_delay = 3, play_rate = 1,
+					play_mods = NULL
+				WHERE id = ?`,
+				[row.id],
+			);
 			accounts.push({
 				id, name, characterId: row.id, 
 			});

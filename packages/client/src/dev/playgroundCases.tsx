@@ -29,7 +29,22 @@ import Lobby from '../scenes/Lobby';
 import MatchSetup from '../scenes/MatchSetup';
 import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
 import Result from '../scenes/Result';
-import { Judgements } from '@oss-idle/shared/judgement';
+import ModSelect from '../components/mods/ModSelect';
+import { selectedMods } from '../gameplay/playMods';
+import { selectedRate } from '../gameplay/playRate';
+import {
+	JUDGEMENT,
+	Judgements,
+} from '@oss-idle/shared/judgement';
+import type {
+	HitRecord,
+	ManiaGame,
+} from '@oss-idle/shared/sim/maniaGame';
+import {
+	judge,
+	maniaWindows,
+	ScoreState,
+} from '@oss-idle/shared/sim/scoring';
 import type {
 	JudgementCounts,
 	ScoreDTO,
@@ -52,6 +67,16 @@ import {
 	MEDALS_ONE,
 	MEDALS_THREE,
 } from './medalSamples';
+import '../components/addons/addons.css';
+import { ADDON_KIND } from '@oss-idle/shared/addon';
+import AddonView, {
+	detailOfDTO,
+	newAddonDetail,
+} from '../components/addons/AddonView';
+import { sampleRepoAddon } from './addonSamples';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import DirectLinkPanel from '../components/direct/DirectLinkPanel';
+import { directLink } from '../components/direct/directState';
 
 const gain = (
 	skill: string,
@@ -96,11 +121,14 @@ const fakeQueue = () => {
 		entry('xi', 'Blue Zenith', 'FOUR DIMENSIONS', 3),
 		entry('Yooh', 'Fly Away', 'Insane', 4),
 	];
-	PlayQueue.start('Playlist', entries, 0);
+	PlayQueue.start({
+		label: 'Favourites', mode: 'PLAYLIST', 
+	}, entries, 0);
 	void PlayManager.live.set({
 		token: 'playground',
 		beatmap: entries[0],
 		rate: 1,
+		mods: [],
 		startedAt: Date.now() - 70_000,
 		endsAt: Date.now() + 110_000,
 		accuracy: 0.9842,
@@ -123,7 +151,29 @@ const sampleScore = (): ScoreDTO => ({
 	pfc: false,
 	playedAt: Date.now(),
 	rate: 1,
+	mods: ['HR'],
 });
+
+/** A made-up replay: steady hits with a rough patch mid-song that drains HP low. */
+const sampleReplay = (): ManiaGame => {
+	const windows = maniaWindows(8);
+	const score = new ScoreState(8, 8);
+	const songEndMs = 180_000;
+	const hits: HitRecord[] = [];
+	for (let i = 0; i < 900; i++) {
+		const time = 2_000 + i * 195;
+		const rough = time > 70_000 && time < 95_000;
+		const offset = Math.sin(i * 12.9898) * (rough ? 160 : 35);
+		const judgement = judge(Math.abs(offset), windows);
+		score.add(judgement);
+		hits.push({
+			time, offset: judgement === JUDGEMENT.MISS ? null : offset, judgement, hp: score.hp,
+		});
+	}
+	return {
+		hits, windows, songEndMs,
+	} as unknown as ManiaGame;
+};
 
 type PlaygroundCase = {
 	id: string,
@@ -308,6 +358,12 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		</div>,
 	},
 	{
+		id: 'direct-link',
+		label: 'oss!direct - the panel a supporter gets from a map link in chat',
+		setup: () => void BeatmapAPI.getManifest().then(m => directLink.set(m.beatmaps[1]?.id)),
+		render: () => <DirectLinkPanel />,
+	},
+	{
 		id: 'chat-tabs',
 		label: 'Chat - tabs: #logs has a new line (light), the rest are read (dark); '
 			+ 'hover one for its close, + opens the channel list',
@@ -324,7 +380,7 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		id: 'dock-pill',
 		label: 'Play dock - collapsed, as it sits over gameplay',
 		setup: fakeQueue,
-		render: () => <DockPill onExpand={() => {}} />,
+		render: () => <DockPill />,
 	},
 	{
 		id: 'dock-sparse',
@@ -405,6 +461,31 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		render: () => <Result score={sampleScore()} progression={spread(4, 12)} beatmap={fakeQueue()[0]} />,
 	},
 	{
+		id: 'result-mods',
+		label: 'Result - mods and a rate',
+		render: () => <Result
+			score={{
+				...sampleScore(), mods: ['HR', 'SD'], rate: 1.25, 
+			}}
+			progression={spread(4, 12)}
+			beatmap={fakeQueue()[0]}
+		/>,
+	},
+	{
+		id: 'mod-select',
+		label: 'Mod select - HR SD at x1.25',
+		setup: () => {
+			void selectedMods.set(['HR', 'SD']);
+			void selectedRate.set(1.25);
+		},
+		render: () => <ModSelect onClose={() => {}} />,
+	},
+	{
+		id: 'result-replay',
+		label: 'Result - with replay graphs',
+		render: () => <Result score={sampleScore()} game={sampleReplay()} progression={spread(4, 12)} />,
+	},
+	{
 		id: 'mp-abort-confirm',
 		label: 'Multiplayer - abort the running play first',
 		render: () => <ConfirmMenu
@@ -445,5 +526,48 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 			void Multiplayer.current.set(fakeMatch());
 		},
 		render: () => <MatchSetup />,
+	},
+	{
+		id: 'addon-repo-new',
+		label: 'Add-on editor - a new add-on built from a repository',
+		render: () => <AddonView
+			mode='edit'
+			detail={{
+				...newAddonDetail(), kind: ADDON_KIND.repo,
+			}}
+			onBack={() => {}}
+			onSaved={() => {}}
+		/>,
+	},
+	{
+		id: 'addon-inline-refused',
+		label: 'Add-on editor - inline code that runs unreviewed code',
+		render: () => <AddonView
+			mode='edit'
+			detail={{
+				...newAddonDetail(),
+				name: 'Sneaky',
+				source: [
+					'export const mount = async () => {',
+					'\tconst code = await (await fetch(url)).text();',
+					'\teval(code);',
+					'\tawait import(url);',
+					'};',
+				].join('\n'),
+			}}
+			onBack={() => {}}
+			onSaved={() => {}}
+		/>,
+	},
+	{
+		id: 'addon-repo-failed',
+		label: 'Add-on editor - repository add-on, its last build failed',
+		render: () => <AddonView
+			mode='edit'
+			detail={detailOfDTO(sampleRepoAddon())}
+			addon={sampleRepoAddon()}
+			onBack={() => {}}
+			onSaved={() => {}}
+		/>,
 	},
 ];

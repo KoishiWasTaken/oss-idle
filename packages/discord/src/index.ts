@@ -79,7 +79,8 @@ const BADGES = [
 		key: 'supporter', name: 'Supporter', colour: '#ff66aa', 
 	},
 ];
-/** Moderation without Manage Roles, so they can't hand out Supporter or levels. */
+/** Moderation without Manage Roles, so they can't hand out Supporter or levels. Unlisted badges
+ *  carry none: Discord's defaults include apps in every channel. */
 const PERMISSIONS: Partial<Record<string, bigint[]>> = {
 	gmt: [
 		PermissionFlagsBits.KickMembers,
@@ -165,7 +166,7 @@ const roleFor = (guild: Guild, tier: number): Promise<Role> => {
 	let made = creating.get(tier);
 	if (!made) {
 		made = guild.roles.create({
-			name: roleName(tier), colors: { primaryColor: colourOf(tier) }, hoist: true,
+			name: roleName(tier), colors: { primaryColor: colourOf(tier) }, hoist: true, permissions: [],
 		}).then(async role => {
 			await orderRoles(guild);
 			return role;
@@ -177,15 +178,21 @@ const roleFor = (guild: Guild, tier: number): Promise<Role> => {
 
 const ensureBadges = async (guild: Guild) => {
 	for (const { key, name, colour } of BADGES) {
-		const permissions = PERMISSIONS[key];
+		const permissions = PERMISSIONS[key] ?? [];
 		const existing = guild.roles.cache.find(role => role.name === name);
 		if (!existing) await guild.roles.create({
 			name, colors: { primaryColor: parseInt(colour.slice(1), 16) }, permissions,
 		});
-		else if (permissions && !existing.permissions.equals(permissions)) {
+		else if (!existing.permissions.equals(permissions)) {
 			// Discord only lets the bot grant what it holds: a missing one shouldn't stop the roles.
 			await existing.setPermissions(permissions)
 				.catch(err => console.error(`[discord] ${name} permissions:`, err.message));
+		}
+	}
+	// Older level roles were made with Discord's default permissions, apps included.
+	for (const role of guild.roles.cache.values()) {
+		if (tierOfRole(role) !== undefined && role.permissions.bitfield !== 0n) {
+			await role.setPermissions([]);
 		}
 	}
 	await orderRoles(guild);

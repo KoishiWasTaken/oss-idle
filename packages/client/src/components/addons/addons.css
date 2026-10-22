@@ -470,6 +470,70 @@
 	color: #ef8888;
 }
 
+/* repo add-on editor: webhook + builds, in place of the code column */
+.addon-repo {
+	width: calc(80ch + 24px);
+	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 1.1rem;
+}
+.addon-repo .addons__sort-btn {
+	align-self: flex-start;
+}
+.addon-repo a,
+.addon-view__meta a {
+	color: #ff66ab;
+}
+.addon-repo__row {
+	display: flex;
+	gap: 0.8rem;
+}
+.addon-repo__status {
+	font-size: 0.95rem;
+	color: var(--text);
+}
+.addon-repo__status--queued,
+.addon-repo__status--building {
+	color: #f0c674;
+}
+.addon-repo__status--failed {
+	color: #ef8888;
+}
+.addon-repo__log {
+	margin: 0;
+	max-height: 40vh;
+	overflow: auto;
+	padding: 0.7rem 0.9rem;
+	background: #1e1e1e;
+	color: #d4d4d4;
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+/* the server's code rules, broken as the author types */
+.addon-check {
+	align-self: stretch;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: 0.6rem 0.9rem;
+	background: rgba(239, 136, 136, 0.12);
+	border-left: 3px solid #ef8888;
+	color: #f2b0b0;
+	font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+}
+.addon-check__title {
+	font-family: inherit;
+	font-weight: 700;
+	color: #ef8888;
+}
+
 /* phones: the buttons take a line under the name */
 @media (max-width: 600px) {
 	.addon {

@@ -34,6 +34,25 @@
 	font-size: 3.2rem;
 }
 
+.mod-select__xp {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0 1.2em;
+	font-size: 2rem;
+	color: #cfe8ff;
+}
+
+.mod-select__xp-skill {
+	color: #ffcc22;
+}
+
+.mod-select__unranked {
+	margin-top: 4px;
+	color: #ffcc22;
+	font-size: 1.6rem;
+}
+
 .mod-select__row {
 	display: grid;
 	grid-template-columns: 30rem 1fr;
@@ -63,6 +82,7 @@
 }
 
 .mod-tile {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -70,6 +90,7 @@
 	gap: 2px;
 	width: 90px;
 	height: 86px;
+	padding: 0 0 12px;
 	border: none;
 	border-radius: 4px;
 	background: var(--tint);
@@ -98,12 +119,24 @@
 }
 
 .mod-tile__glyph {
-	width: 42px;
-	height: 42px;
+	flex-shrink: 0;
+	width: 36px;
+	height: 36px;
+}
+
+.mod-tile__short {
+	position: absolute;
+	left: 6px;
+	bottom: 3px;
+	font-size: 0.75rem;
+	font-weight: 800;
+	line-height: 1;
+	opacity: 0.85;
 }
 
 .mod-tile__label {
-	font-size: 1.3rem;
+	font-size: 1.15rem;
+	line-height: 1;
 	font-weight: 600;
 }
 
@@ -151,7 +184,7 @@
 	opacity: 0.25;
 }
 
-/* phones: osu!'s sizes would leave the tiles off screen */
+/* phones */
 @media (max-width: 850px), (max-height: 500px) {
 	.mod-select {
 		align-items: flex-start;

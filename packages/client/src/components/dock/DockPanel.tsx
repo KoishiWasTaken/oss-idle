@@ -1,9 +1,12 @@
-import DockControls from './DockControls';
+import DockModsButton from './DockModsButton';
 import DockNowPlaying from './DockNowPlaying';
 import DockQueue from './DockQueue';
+import DockQueueButton from './DockQueueButton';
+import DockTransport from './DockTransport';
+import DockUpNext from './DockUpNext';
+import DockUpgradesButton from './DockUpgradesButton';
 
 type Props = {
-	onCollapse?: () => void;
 	/** docked to the left column while the queue carousel is open */
 	left?: boolean;
 	/** that carousel is song select itself, which keeps its bottom bar */
@@ -12,10 +15,14 @@ type Props = {
 	aboveBar?: boolean;
 };
 
-/** The dock, open: what is playing, what plays next, and the controls that used
- *  to need a scene. The same panel wherever it is - only where it sits changes. */
+/**
+ * The dock, open: what is playing, what plays next and when, and the controls.
+ *
+ * Floating, it is a fixed size and never grows: the queue is managed in the
+ * queue view, not here, and controls that moved under the cursor were the
+ * complaint. Docked beside the queue carousel it is that view, list and all.
+ */
 export default function DockPanel({
-	onCollapse,
 	left = false,
 	inScene = false,
 	aboveBar = false,
@@ -29,8 +36,14 @@ export default function DockPanel({
 			!left && aboveBar ? 'dock--above-bar' : '',
 		].join(' ')}>
 			<DockNowPlaying />
-			<DockControls left={left} onCollapse={onCollapse} />
-			<DockQueue hint={left} />
+			{!left && <DockUpNext />}
+			<div className="dock__bar">
+				<DockTransport />
+				<DockModsButton />
+				<DockUpgradesButton />
+				<DockQueueButton open={left} />
+			</div>
+			{left && <DockQueue hint />}
 		</div>
 	);
 }

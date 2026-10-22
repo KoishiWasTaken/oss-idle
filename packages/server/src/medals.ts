@@ -47,6 +47,7 @@ import {
 	reindexCharacter,
 } from './rankings';
 import type { MedalBatch } from '@oss-idle/shared/play';
+import { NO_MEDALS } from '@oss-idle/shared/mods';
 
 /** What a finished play adds that the database does not keep. */
 export type PlayFacts = {
@@ -63,6 +64,9 @@ const PERFECT_SCORE = 1_000_000;
 // the stars a play was actually played at: a rate changes them
 const playedStars = sql`coalesce(${scores.sr}, ${beatmaps.sr})`;
 
+// a play with a mod that earns no medals (EZ) counts for none of the play feats
+const medalPlay = and(...NO_MEDALS.map(mod => sql`find_in_set(${mod}, ${scores.mods}) = 0`));
+
 /** Best star rating passed and full-combo'd, and the one-off score feats. */
 const scoreFacts = async (characterId: number) => {
 	const [row] = await db.select({
@@ -77,7 +81,7 @@ const scoreFacts = async (characterId: number) => {
 	})
 		.from(scores)
 		.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
-		.where(eq(scores.characterId, characterId));
+		.where(and(eq(scores.characterId, characterId), medalPlay));
 	// no scores yet: every aggregate is null
 	return {
 		pass: Number(row?.pass ?? 0),
@@ -139,6 +143,7 @@ const playedAtNight = async (characterId: number, tz: string) => {
 		.from(scores)
 		.where(and(
 			eq(scores.characterId, characterId),
+			medalPlay,
 			sql`hour(${scores.playedAt} + interval ${offset} minute) between 2 and 5`,
 		))
 		.orderBy(desc(scores.playedAt))

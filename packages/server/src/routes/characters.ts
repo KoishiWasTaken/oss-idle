@@ -182,6 +182,7 @@ export const charactersRoutes = new Hono()
 			totalHits: totals.hits,
 			globalRank: globalRk,
 			rankHistory: character.rankHistory?.ranks ?? [],
+			highestRanks: character.rankHistory?.highest ?? {},
 			countryRank: countryRk,
 			scoreRank: scoreRk,
 			overallRank: overallRk,

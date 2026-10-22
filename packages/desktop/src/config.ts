@@ -33,7 +33,7 @@ export const IS_DEV = !app.isPackaged;
  *  names a staging server for the API and the website. */
 export const STAGING = (JSON.parse(
 	fs.readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'),
-) as { staging?: { api: string; site: string } }).staging;
+) as { staging?: { api: string; site: string; stream?: string; streams?: string } }).staging;
 
 /** Backend API base (absolute - the renderer loads from app://, not the API). */
 export const API_BASE = IS_DEV

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+	ADDON_KIND,
 	ADDON_STATUS,
 	type AddonStatus,
 } from '@oss-idle/shared/addon';
@@ -9,16 +10,20 @@ import {
 	type AdminAddon,
 } from '../../api/addons';
 import AddonRowCode from './AddonRowCode';
+import AddonRowRepo from './AddonRowRepo';
 
 const fmt = (iso: string | null): string =>
 	iso ? new Date(iso).toLocaleString(undefined, {
 		dateStyle: 'medium', timeStyle: 'short', 
 	}) : '—';
 
-export default function AddonRow({ row, busy, onModerate }: {
+export default function AddonRow({
+	row, busy, onModerate, onTrusted,
+}: {
 	row: AdminAddon;
 	busy: boolean;
 	onModerate: (id: number, body: AddonVerdict) => void;
+	onTrusted: (id: number, trusted: boolean) => void;
 }) {
 	const [feedback, setFeedback] = useState(row.feedback ?? '');
 
@@ -62,7 +67,9 @@ export default function AddonRow({ row, busy, onModerate }: {
 
 			{row.description && <p className='addons-admin__desc'>{row.description}</p>}
 
-			<AddonRowCode source={row.source} reviewedSource={row.reviewedSource} />
+			{row.kind === ADDON_KIND.repo
+				? <AddonRowRepo row={row} busy={busy} onTrusted={trusted => onTrusted(row.id, trusted)} />
+				: <AddonRowCode source={row.source} liveSource={row.publishedSource} />}
 
 			<textarea
 				className='addons-admin__feedback'

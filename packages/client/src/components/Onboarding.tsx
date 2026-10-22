@@ -66,6 +66,12 @@ export default function Onboarding() {
 				<p className="onboard__sub">
 					<Trans>Create your first character to finish setting up your account.</Trans>
 				</p>
+				<p className="onboard__sub">
+					<Trans>
+						Online characters always start fresh: Guest progress stays local,
+						so the leaderboards stay fair.
+					</Trans>
+				</p>
 
 				<div className="onboard__avatar-field">
 					<button

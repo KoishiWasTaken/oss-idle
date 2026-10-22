@@ -108,6 +108,21 @@ export const colorA = (c: Color, a: number): RGBColor => {
 	return `rgba(${r}, ${g}, ${b}, ${alpha(a)})` as RGBColor;
 };
 
+const withAlpha = new Map<Color, Map<number, RGBColor>>();
+
+/** {@link colorA} for one of a few fixed alphas, built once: a draw loop asks for the
+ *  same ones every frame, and a new string each time is garbage. */
+export const colorAFixed = (c: Color, a: number): RGBColor => {
+	let alphas = withAlpha.get(c);
+	if (!alphas) {
+		if (withAlpha.size >= 1000) withAlpha.clear();
+		withAlpha.set(c, alphas = new Map());
+	}
+	let color = alphas.get(a);
+	if (color === undefined) alphas.set(a, color = colorA(c, a));
+	return color;
+};
+
 /** dim/brighten a colour by a factor. <1 to dimm >1 to brighten */
 export const colorDim = (c: Color, dim: number): RGBColor => {
 	const [r, g, b, a] = parseColor(c);

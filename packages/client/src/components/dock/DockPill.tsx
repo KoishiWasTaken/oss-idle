@@ -1,60 +1,27 @@
-import RatedVersion from '../RatedVersion';
-import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import PlayManager from '../../online/playManager';
-import PlayQueue from '../../gameplay/playQueue';
-import { openPage } from '../../globals';
+import DockQueueButton from './DockQueueButton';
+import DockTransport from './DockTransport';
+import DockUpNext from './DockUpNext';
+import DockUpgradesButton from './DockUpgradesButton';
 
 type Props = {
-	onExpand: () => void;
 	/** the scene under it has a bottom bar to stay clear of */
 	aboveBar?: boolean;
 };
 
 /**
- * The dock while gameplay is up: one line saying what is next, and the two ways
- * out of it. No progress bar - the playfield already draws one across the top -
- * and no accuracy, which is on screen twice over already.
+ * The dock while gameplay is up: what plays next and when, and the controls a
+ * playing screen needs. It never expands, and it is a fixed size, so nothing
+ * in it moves when the next map changes.
  */
-export default function DockPill({ onExpand, aboveBar = false }: Props) {
-	const [queue] = useSynced(PlayQueue.state);
-	const [countdown] = useSynced(PlayManager.countdown);
-
-	const next = queue ? PlayQueue.next() : undefined;
-
+export default function DockPill({ aboveBar = false }: Props) {
 	return (
 		<div className={`dock dock--pill ${aboveBar ? 'dock--above-bar' : ''}`}>
-			<button
-				type="button"
-				className="dock__body"
-				onClick={onExpand}
-			>
-				<div className="dock__map">
-					{next
-						? <>
-							<span className="dock__next"><Trans>next</Trans> </span>
-							{next.set.metadata.artist} - {next.set.metadata.title}
-							<RatedVersion version={next.metadata.version} rate={next.lockedRate} />
-						</>
-						: countdown !== undefined
-							? <Trans>Next map in {countdown}s</Trans>
-							: <Trans>Last map of the queue</Trans>}
-				</div>
-			</button>
-			<button
-				type="button"
-				className="dock__btn dock__btn--upgrades"
-				onClick={() => openPage.set({ page: 'character' })}
-			>
-				<Trans>upgrades</Trans>
-			</button>
-			<button
-				type="button"
-				className="dock__btn"
-				onClick={() => openPage.set({ page: 'queue' })}
-			>
-				<Trans>queue</Trans>
-			</button>
+			<DockUpNext />
+			<div className="dock__bar">
+				<DockTransport compact />
+				<DockUpgradesButton />
+				<DockQueueButton />
+			</div>
 		</div>
 	);
 }

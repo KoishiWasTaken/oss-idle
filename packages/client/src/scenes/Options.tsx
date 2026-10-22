@@ -26,6 +26,7 @@ import UIScaling from '../components/options/UIScaling';
 import ParallaxMode from '../components/options/ParallaxMode';
 import OsuMusicTheme from '../components/options/OsuMusicTheme';
 import ShowThumbnails from '../components/options/ShowThumbnails';
+import ShowUndownloaded from '../components/options/ShowUndownloaded';
 import BackgroundDim from '../components/options/BackgroundDim';
 import MasterVolume from '../components/options/MasterVolume';
 import MusicVolume from '../components/options/MusicVolume';
@@ -34,6 +35,7 @@ import DeleteAllBeatmaps from '../components/options/DeleteAllBeatmaps';
 import DownloadAllBeatmaps from '../components/options/DownloadAllBeatmaps';
 import MoveInstall from '../components/options/MoveInstall';
 import AutopilotDelay from '../components/options/AutopilotDelay';
+import KeepPlaying from '../components/options/KeepPlaying';
 import AutopilotMode from '../components/options/AutopilotMode';
 import RightClickHold from '../components/options/RightClickHold';
 import ManageAddons from '../components/options/ManageAddons';
@@ -168,6 +170,10 @@ export default function Options() {
 							search: t`thumb|thumbnail`,
 							component: () => ShowThumbnails,
 						},
+						{
+							search: t`download|downloaded|beatmap|beatmaps|hide`,
+							component: () => ShowUndownloaded,
+						},
 					],
 				},
 			],
@@ -187,8 +193,12 @@ export default function Options() {
 							component: () => AutopilotDelay,
 						},
 						{
-							search: t`autopilot|mode|playlist|loop|next|song`,
+							search: t`autopilot|mode|playlist|loop|next|song|disabled`,
 							component: () => AutopilotMode,
+						},
+						{
+							search: t`autopilot|queue|offline|closed|keep|playing`,
+							component: () => KeepPlaying,
 						},
 					],
 				},

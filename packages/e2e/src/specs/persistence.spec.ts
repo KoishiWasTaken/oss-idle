@@ -64,7 +64,7 @@ test.describe('local persistence', () => {
 		await game.waitForPlay();
 		await page.locator('.play__quit').click();
 		await game.expectScene('SELECT');
-		await page.locator('.dock__btn', { hasText: 'queue' }).click();
+		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
 		expect((await game.queue())?.entries.length).toBeGreaterThan(0);
 

@@ -130,7 +130,7 @@ export default function OsuPlot({
 			paper_bgcolor: 'transparent',
 			plot_bgcolor: 'transparent',
 			font: {
-				family: 'Torus, "Segoe UI", sans-serif', color: muted, size: 12, 
+				family: 'Urbanist, "Segoe UI", sans-serif', color: muted, size: 12, 
 			},
 			showlegend: series.length > 1,
 			legend: {

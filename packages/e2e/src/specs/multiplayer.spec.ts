@@ -155,7 +155,14 @@ test.describe('multiplayer', () => {
 		const { a, b, host, guest } = players;
 		// a fresh character fails anything demanding
 		await startRound(players, await host.hardestMap());
-		// a failed play ends where it failed, within seconds here
+		// a fail in a round plays on to the end of the map, so skip there
+		await Promise.all([host.waitForPlay(), guest.waitForPlay()]);
+		await Promise.all([host.expectScene('GAME'), guest.expectScene('GAME')]);
+		for (const page of [a, b]) {
+			const hideChat = page.locator('.community-controls button', { hasText: 'Hide chat' });
+			if (await hideChat.count()) await hideChat.click();
+		}
+		await Promise.all([host.skipToEnd(), guest.skipToEnd()]);
 		await Promise.all([host.expectScene('RESULT', 90_000), guest.expectScene('RESULT', 90_000)]);
 
 		await expect(a.locator('.mp-winner')).toBeVisible({ timeout: 30_000 });

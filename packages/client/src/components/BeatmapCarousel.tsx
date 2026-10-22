@@ -17,6 +17,7 @@ import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
 import Controls from '../input/Controls';
 import RightClick from '../input/RightClick';
 import type { BeatmapXPInsight } from '../xpInsights';
+import type { MapTag } from '@oss-idle/shared/beatmap';
 
 export type DownloadStatus = 'idle' | 'downloading' | 'done';
 
@@ -29,6 +30,7 @@ export type DownloadState = {
 export type CarouselItem = {
 	beatmap: LightBeatmap,
 	set: LightBeatmapSet,
+	tags?: MapTag[],
 };
 
 export type CarouselHeaderRow = { 
@@ -103,6 +105,31 @@ const CARD_HEIGHT = 100;
 const CARD_MARGIN = 5;
 const STRIDE = CARD_HEIGHT + CARD_MARGIN;
 
+/** A mounted card as the arc moves it: its XP section, its centre, its last offset. */
+type Range = { start: number, end: number };
+type ArcCard = { el: HTMLElement, xp: HTMLElement | null, centre: number, bow: number };
+
+/** The cards of `rows[start, end)` as mounted, placed by the STRIDE grid: reading their
+ *  offsets forced a layout each time the window moved. */
+function arcCards(
+	scroller: HTMLElement, rows: CarouselRow[], { start, end }: Range, top: number,
+): ArcCard[] {
+	const els = scroller.querySelectorAll<HTMLElement>('.bm-card');
+	const cards: ArcCard[] = [];
+	const last = Math.min(end, rows.length);
+	for (let i = start; i < last && cards.length < els.length; i++) {
+		if (rows[i].type === 'header') continue;
+		const el = els[cards.length];
+		cards.push({
+			el,
+			xp: el.querySelector<HTMLElement>('.bm-card__xp'),
+			centre: top + i * STRIDE + CARD_HEIGHT / 2,
+			bow: parseFloat(el.style.translate) || 0,
+		});
+	}
+	return cards;
+}
+
 /**
  * osu!'s panel horizontal offset. `dist` is the panel's distance from the
  * vertical centre, normalised so 0 = dead centre and 1 = top/bottom edge.
@@ -149,6 +176,9 @@ export default function BeatmapCarousel({
 	const rafRef = useRef(0);
 	// the scrollTop we're easing toward; null = no animation in flight
 	const targetRef = useRef<number | null>(null);
+	// scrollTop as last written or scrolled to: reading it in a frame callback, after
+	// another one restyled the cards, forced a whole style + layout pass each time
+	const posRef = useRef(0);
 	const animRef = useRef(0);
 	// timestamp of the previous animation frame, for time-based easing
 	const lastTsRef = useRef(0);
@@ -158,6 +188,9 @@ export default function BeatmapCarousel({
 		start: 0, end: 0, 
 	});
 	const rangeRef = useRef(range);
+	// the slice as last rendered, which the mounted cards are until the next commit
+	const shownRef = useRef(range);
+	shownRef.current = range;
 	// live rows, for the centering glide: selection.use() captures its
 	// callback once and so can't close over the latest `rows` prop.
 	const rowsRef = useRef(rows);
@@ -176,13 +209,15 @@ export default function BeatmapCarousel({
 	// and none of them move while scrolling: they're read again only after a resize or
 	// a change of rows (forget()).
 	const geometryRef = useRef<{ padTop: number; height: number } | undefined>(undefined);
-	const centresRef = useRef(new WeakMap<HTMLElement, number>());
+	// the mounted cards as the arc draws them, found again only when they change: a
+	// query, a read-back and new strings per card per frame were the song select's stutter
+	const cardsRef = useRef<ArcCard[] | undefined>(undefined);
 	const geometry = useCallback((scroller: HTMLElement) => geometryRef.current ??= {
 		padTop: padTop(), height: scroller.clientHeight,
 	}, [padTop]);
 	const forget = useCallback(() => {
 		geometryRef.current = undefined;
-		centresRef.current = new WeakMap();
+		cardsRef.current = undefined;
 	}, []);
 
 	/** Which cards should be mounted for the current scroll position. */
@@ -190,7 +225,7 @@ export default function BeatmapCarousel({
 		const scroller = scrollRef.current;
 		if (!scroller) return;
 		const { padTop: top, height } = geometry(scroller);
-		const first = Math.floor((scroller.scrollTop - top) / STRIDE);
+		const first = Math.floor((posRef.current - top) / STRIDE);
 		const visible = Math.ceil(height / STRIDE);
 		const start = Math.max(0, first - OVERSCAN);
 		const end = Math.min(rows.length, Math.max(start, first + visible + OVERSCAN));
@@ -208,28 +243,26 @@ export default function BeatmapCarousel({
 	 * Re-apply the circular-arc offset to every mounted card (and the counter-shift
 	 * of its XP section). Pure DOM, no state.
 	 */
-	const updateCurve = useCallback(() => {
+	const updateCurve = useCallback((scrollTop = posRef.current) => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
-		const halfHeight = geometry(scroller).height / 2;
+		const { padTop: top, height } = geometry(scroller);
+		const halfHeight = height / 2;
 		if (halfHeight <= 0) return;
-		const scrollTop = scroller.scrollTop;
-		const cards = [...scroller.querySelectorAll<HTMLElement>('.bm-card')];
-		const known = centresRef.current;
-		// all reads before any write: interleaving them forces a layout per card
-		const centres = cards.map(card => known.get(card)
-			?? known.set(card, card.offsetTop + card.offsetHeight / 2).get(card)!);
-		cards.forEach((card, i) => {
+		const cards = cardsRef.current ??= arcCards(scroller, rowsRef.current, shownRef.current, top);
+		for (let i = 0; i < cards.length; i++) {
+			const card = cards[i];
 			// panel centre relative to the top of the viewport
-			const drawY = centres[i] - scrollTop;
+			const drawY = card.centre - scrollTop;
 			// 0 at centre, 1 at the top/bottom edges (clamped beyond)
 			const dist = Math.abs(1 - drawY / halfHeight);
-			const bow = offsetX(dist, halfHeight);
-			// a glide frame bows the arc twice (the step, then its scroll event)
-			if (card.style.translate !== `${bow}px`) card.style.translate = `${bow}px`;
-			const xp = card.querySelector<HTMLElement>('.bm-card__xp');
-			if (xp && xp.style.translate !== `${-bow}px`) xp.style.translate = `${-bow}px`;
-		});
+			// half pixels: finer moves nothing on screen, and each write restyles the card
+			const bow = Math.round(offsetX(dist, halfHeight) * 2) / 2;
+			if (bow === card.bow) continue;
+			card.bow = bow;
+			card.el.style.translate = `${bow}px`;
+			if (card.xp) card.xp.style.translate = `${-bow}px`;
+		}
 	}, [geometry]);
 
 	/**
@@ -251,13 +284,13 @@ export default function BeatmapCarousel({
 			const dt = lastTsRef.current ? ts - lastTsRef.current : 0;
 			lastTsRef.current = ts;
 
-			const current = scroller.scrollTop;
+			const current = posRef.current;
 			const diff = targetRef.current - current;
 			// < 1px: some browsers round scrollTop to whole pixels, so a fractional
 			// target would never cross a sub-pixel threshold and the glide (and its
 			// per-frame work) would spin forever.
 			if (Math.abs(diff) < 1) {
-				scroller.scrollTop = targetRef.current;
+				scroller.scrollTop = posRef.current = targetRef.current;
 				targetRef.current = null;
 				animRef.current = 0;
 				updateCurve();
@@ -266,8 +299,9 @@ export default function BeatmapCarousel({
 			// frame-rate-independent exponential smoothing: reach ~0.2/frame @60fps,
 			// but after a long stall dt is large so we snap most of the way at once.
 			const factor = 1 - Math.pow(1 - 0.22, dt / 16.6667);
-			scroller.scrollTop = current + diff * factor;
-			updateCurve();
+			const next = current + diff * factor;
+			scroller.scrollTop = posRef.current = next;
+			updateCurve(next);
 			animRef.current = requestAnimationFrame(stepScroll);
 		},
 		[updateCurve],
@@ -302,7 +336,7 @@ export default function BeatmapCarousel({
 		const rect = scroller.getBoundingClientRect();
 		const frac = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
 		targetRef.current = null;
-		scroller.scrollTop = frac * (scroller.scrollHeight - scroller.clientHeight);
+		scroller.scrollTop = posRef.current = frac * (scroller.scrollHeight - scroller.clientHeight);
 		updateCurve();
 	}, [updateCurve]);
 
@@ -341,7 +375,7 @@ export default function BeatmapCarousel({
 			// normalise line/page deltas to pixels
 			const unit =
 				e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? scroller.clientHeight : 1;
-			const base = targetRef.current ?? scroller.scrollTop;
+			const base = targetRef.current ?? posRef.current;
 			animateTo(base + e.deltaY * unit);
 		};
 		scroller.addEventListener('wheel', onWheel, { passive: false });
@@ -418,6 +452,8 @@ export default function BeatmapCarousel({
 	// the mounted window and the arc together. The *only* path that setStates the
 	// window, so the animation loop can never feed back on itself.
 	const onScroll = useCallback(() => {
+		// the browser's own position (it clamps); read here, before any frame restyles
+		posRef.current = scrollRef.current?.scrollTop ?? 0;
 		if (rafRef.current) return;
 		rafRef.current = requestAnimationFrame(() => {
 			rafRef.current = 0;
@@ -429,7 +465,10 @@ export default function BeatmapCarousel({
 	// Re-bow the newly-mounted cards the instant the window changes (before paint),
 	// so cards scrolling into view never flash un-curved. Arc only, never setState.
 	// An XP section mounts when its insight arrives, and needs the arc's counter-shift.
-	useLayoutEffect(() => { updateCurve(); }, [range, xpInsights, updateCurve]);
+	useLayoutEffect(() => {
+		cardsRef.current = undefined;
+		updateCurve();
+	}, [range, xpInsights, updateCurve]);
 
 	// On mount / when the library changes / on resize: fit the window, draw the
 	// arc, and re-aim the centering glide. The selected-beatmap subscription fires
@@ -437,6 +476,7 @@ export default function BeatmapCarousel({
 	// too once the items are in.
 	useLayoutEffect(() => {
 		forget();
+		posRef.current = scrollRef.current?.scrollTop ?? 0;
 		syncWindow();
 		updateCurve();
 		// center only when the selection itself is new (initial load / re-entry),
@@ -449,6 +489,7 @@ export default function BeatmapCarousel({
 		if (!scroller) return;
 		const ro = new ResizeObserver(() => {
 			forget();
+			posRef.current = scroller.scrollTop;
 			syncWindow();
 			updateCurve();
 		});

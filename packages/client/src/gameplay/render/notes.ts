@@ -1,19 +1,20 @@
 import {
 	Color,
-	colorA,
+	colorAFixed,
 } from '@oss-idle/shared/types/color';
 import Reading from '@oss-idle/shared/sim/skills/reading';
 import {
 	noteY,
+	posY,
 	roundRect,
+	type Field,
 	type Frame,
 	type Layer,
 } from './frame';
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
 
-type RenderNote = ManiaGame['notes'][number];
+type RenderNote = Field['notes'][number];
 
-const drawHoldNote = (f: Frame, note: RenderNote, cx: number, color: Color) => {
+const drawHoldNote = (f: Frame<Field>, note: RenderNote, cx: number, color: Color) => {
 	const { ctx, skin, now, vp, g } = f;
 	if (note.tailJudged) {
 		const broke = note.tailMissedAt;
@@ -23,12 +24,12 @@ const drawHoldNote = (f: Frame, note: RenderNote, cx: number, color: Color) => {
 			// instead of vanishing instantly
 			if (broke >= note.endTime) return;
 			const yFrom = noteY(f, broke);
-			const yTail = noteY(f, note.endTime);
+			const yTail = posY(f, note.tailPos);
 			const top = Math.min(yFrom, yTail);
 			const bottom = Math.max(yFrom, yTail);
 			if (bottom < -2 || top > vp.h + 2) return;
 			ctx.globalAlpha = 0.3;
-			ctx.fillStyle = colorA(color, 0.5);
+			ctx.fillStyle = colorAFixed(color, 0.5);
 			ctx.fillRect(cx + 6, top, skin.data.playfield.columnWidth - 12, bottom - top);
 			ctx.fillStyle = color;
 			ctx.fillRect(
@@ -44,8 +45,8 @@ const drawHoldNote = (f: Frame, note: RenderNote, cx: number, color: Color) => {
 		// pinned to the line) until the tail reaches the line - the hold finishes its
 		// travel normally, no pop, no dimming
 		if (now >= note.endTime) return;
-		const yTail = noteY(f, note.endTime);
-		ctx.fillStyle = colorA(color, 0.85);
+		const yTail = posY(f, note.tailPos);
+		ctx.fillStyle = colorAFixed(color, 0.85);
 		ctx.fillRect(
 			cx + 6,
 			Math.min(g.lineY, yTail),
@@ -67,13 +68,13 @@ const drawHoldNote = (f: Frame, note: RenderNote, cx: number, color: Color) => {
 		);
 		return;
 	}
-	const yHead = note.holding ? g.lineY : noteY(f, note.time);
-	const yTail = noteY(f, note.endTime);
+	const yHead = note.holding ? g.lineY : posY(f, note.headPos);
+	const yTail = posY(f, note.tailPos);
 	const top = Math.min(yHead, yTail);
 	const bottom = Math.max(yHead, yTail);
 	if (bottom < -2 || top > vp.h + 2) return;
 	// body
-	ctx.fillStyle = note.holding ? colorA(color, 0.85) : colorA(color, 0.5);
+	ctx.fillStyle = note.holding ? colorAFixed(color, 0.85) : colorAFixed(color, 0.5);
 	ctx.fillRect(cx + 6, top, skin.data.playfield.columnWidth - 12, bottom - top);
 	// tail cap
 	ctx.fillStyle = color;
@@ -94,10 +95,10 @@ const drawHoldNote = (f: Frame, note: RenderNote, cx: number, color: Color) => {
 	);
 };
 
-const drawTapNote = (f: Frame, note: RenderNote, cx: number, color: string) => {
+const drawTapNote = (f: Frame<Field>, note: RenderNote, cx: number, color: string) => {
 	const { ctx, game, skin, vp } = f;
 	if (note.headJudged) return;
-	const y = noteY(f, note.time);
+	const y = posY(f, note.headPos);
 	if (y < -skin.data.playfield.noteHeight || y > vp.h + skin.data.playfield.noteHeight) return;
 	ctx.fillStyle = color;
 	roundRect(
@@ -126,9 +127,11 @@ const drawTapNote = (f: Frame, note: RenderNote, cx: number, color: string) => {
 };
 
 /** the hit objects - tap notes and hold (long) notes */
-export const drawNotes: Layer = (f) => {
+export const drawNotes: Layer<Field> = (f) => {
 	const { game, skin, g } = f;
-	for (const note of game.notes) {
+	const notes = game.notes;
+	for (let i = 0; i < notes.length; i++) {
+		const note = notes[i];
 		const cx = g.x0 + note.column * skin.data.playfield.columnWidth;
 		const color = skin.data.hitObjects[note.column].color;
 		if (note.hold) drawHoldNote(f, note, cx, color);

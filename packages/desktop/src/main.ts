@@ -26,12 +26,15 @@ import {
 	startLogin,
 } from './auth';
 import { handleDeepLink } from './deeplink';
+import { recordTrace } from './trace';
 import { isAppFrame } from './frames';
 import {
 	checkForUpdate,
 	downloadUpdate,
 	initUpdater,
 	installUpdate,
+	listStreams,
+	switchStream,
 } from './update';
 import {
 	canMoveInstall,
@@ -218,6 +221,9 @@ if (!app.requestSingleInstanceLock()) {
 		ipcMain.handle('oss-idle:update-check', () => checkForUpdate());
 		ipcMain.handle('oss-idle:update-download', () => downloadUpdate());
 		ipcMain.on('oss-idle:update-install', () => installUpdate());
+		ipcMain.handle('oss-idle:trace', () => recordTrace());
+		ipcMain.handle('oss-idle:streams', () => listStreams());
+		ipcMain.handle('oss-idle:switch-stream', (_event, name: string) => switchStream(String(name)));
 
 		// Discord Rich Presence. The renderer pushes scene/map changes; the client
 		// is self-healing, so this is fire-and-forget too.

@@ -8,6 +8,7 @@ export const POPUP_TYPE = mapped([
 	'good',
 	'bad',
 	'neutral',
+	'chat',
 ]);
 export type PopupType = ValueIn<typeof POPUP_TYPE>;
 

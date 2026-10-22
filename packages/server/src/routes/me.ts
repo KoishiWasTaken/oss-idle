@@ -71,7 +71,7 @@ const previewBody = z.object({ raw: z.string().max(USER_PAGE_MAX) });
 
 /** Profile customisation is a supporter perk; what was set stays up after the tag ends. */
 const requireSupporter = async (userId: number) => {
-	if (!await isSupporter(userId)) throw new HTTPException(403, { message: 'This needs an osu!supporter tag' });
+	if (!await isSupporter(userId)) throw new HTTPException(403, { message: 'This needs an oss!supporter tag' });
 };
 
 const assertOwnCharacter = async (userId: number, characterId: number) => {

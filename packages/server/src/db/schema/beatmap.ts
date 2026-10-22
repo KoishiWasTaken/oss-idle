@@ -6,6 +6,7 @@ import {
 	longtext,
 	mysqlTable,
 	text,
+	varchar,
 } from 'drizzle-orm/mysql-core';
 import { db } from '../client';
 import {
@@ -48,6 +49,8 @@ export const beatmaps = mysqlTable('beatmap', {
 	// set goes live, but only ranked diffs are listed, downloadable and playable
 	// ranked. Toggled from the nomination page, before or after the set is live.
 	ranked: boolean().notNull().default(true),
+	// MAP_TAGS, comma-separated, set by hand from the nomination page
+	tags: varchar({ length: 64 }).notNull().default(''),
 });
 
 /** Every column but `chart`, for lists that only show map info. */

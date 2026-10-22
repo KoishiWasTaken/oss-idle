@@ -17,7 +17,8 @@
 	border: 1px solid rgba(255, 255, 255, 0.07);
 	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
 	z-index: 20;
-	animation: announce-enter 0.45s cubic-bezier(0.2, 1.1, 0.35, 1) both;
+	animation: announce-enter 0.45s cubic-bezier(0.2, 1.1, 0.35, 1) backwards;
+	transition: opacity 0.3s ease;
 }
 @keyframes announce-enter {
 	0% {

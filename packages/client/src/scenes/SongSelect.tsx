@@ -48,7 +48,10 @@ import { playFromList } from '../components/songselect/listPlay';
 import { matchesSearch } from '../osu/beatmap/beatmapSearch';
 import Entities from '../entity/entities';
 import { music } from '../audio/MusicPlayer';
-import BeatmapAPI, { Metadata } from '../osu/beatmap/beatmap_api';
+import BeatmapAPI, {
+	Metadata,
+	isListed,
+} from '../osu/beatmap/beatmap_api';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import './SongSelect.css';
@@ -80,7 +83,7 @@ import {
 	playlistsVersion,
 } from '../db/schema/playlist';
 import SongSelectDebug from '../components/songselect/SongSelectDebug';
-import PlayQueue, { AUTOPILOT_MODE } from '../gameplay/playQueue';
+import PlayQueue, { fillQueue } from '../gameplay/playQueue';
 import Log from '@oss-idle/shared/helpers/log';
 import { launchPlay } from './launchPlay';
 import { xpGainsVersion } from '../db/schema/score_xp';
@@ -255,7 +258,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	// the right-click contextual menu's target, and the playlist manager's target
 	const [menuItem, setMenuItem] = useState<CarouselItem | null>(null);
 	const [playlistItem, setPlaylistItem] = useState<CarouselItem | null>(null);
-	const onBack = () => {
+	const onBack = (clearSearch: boolean) => {
 		if (modSelectOpen.get()) { void modSelectOpen.set(false); return; }
 		if (playlistItem) { setPlaylistItem(null); return; }
 		if (menuItem) { setMenuItem(null); return; }
@@ -263,12 +266,13 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		// itself and stops there (see its `escape` case), so queueing is left
 		// without the scene under it also acting on the same keypress.
 		if (openPage.get()) { void openPage.set(undefined); return; }
+		if (clearSearch && SETTINGS.search.get()) { SETTINGS.search.set(''); return; }
 		SETTINGS.search.set('');
 		if (Multiplayer.picking.get()) Multiplayer.picked();
 		else SceneManager.set(SCENE.MENU);
 	};
 
-	Controls.back.usePress(onBack);
+	Controls.back.usePress(() => onBack(true));
 
 	const [scrollSpeed] = useSynced(SETTINGS.scrollspeed);
 	const [library] = useSynced(beatmapsVersion);
@@ -298,19 +302,25 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		try {
 			const manifest = await BeatmapAPI.getManifest();
 			const runtime = await BeatmapStore.getAllSets();
-			const remoteMaps = await Promise.all(manifest.beatmaps
+			const remoteMaps = manifest.beatmaps
+				.filter(isListed)
 				.flatMap(m => LightBeatmapSet
 					.fromMetadata(m)
 					.getCarouselItems(),
-				),
-			);
+				);
 			const localMaps = runtime.flatMap(r => r.getCarouselItems());
 			const sets = new Map<number, CarouselItem>();
 			remoteMaps.forEach(m => sets.set(m.beatmap.metadata.id, m));
 			localMaps.forEach(m => sets.set(m.beatmap.metadata.id, m));
+			const tags = new Map(manifest.beatmaps
+				.flatMap(m => m.versions)
+				.map(v => [v.id, v.tags]));
 			const all = Array.from(sets
 				.values())
-				.sort((a, b) => 
+				.map(item => ({
+					...item, tags: tags.get(item.beatmap.metadata.id),
+				}))
+				.sort((a, b) =>
 					a.beatmap.metadata.difficulty - b.beatmap.metadata.difficulty,
 				);
 			setItems(all);
@@ -333,9 +343,10 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 
 	// `library` bumps when the stored set changes (e.g. a wipe from Options), so
 	// the carousel reflects deletions without a full reload.
-	useEffect(() => { void loadLibrary(); }, [loadLibrary, library]);
+	const [showUndownloaded] = useSynced(SETTINGS.showUndownloaded);
+	useEffect(() => { void loadLibrary(); }, [loadLibrary, library, showUndownloaded]);
 
-	useTypeToSearch(searchRef, search, [menuItem, playlistItem]);
+	useTypeToSearch(searchRef, [menuItem, playlistItem]);
 
 	const [sort] = useSynced(SETTINGS.sortby);
 	const [group] = useSynced(SETTINGS.groupby);
@@ -371,7 +382,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	const filteredItems = useMemo(() => {
 		if (!history) return [];
 		const filtered = search.trim() ? 
-			items.filter(({ beatmap, set }) => matchesSearch(beatmap, set, search)) 
+			items.filter(({ beatmap, set, tags }) => matchesSearch(beatmap, set, search, tags)) 
 			: items;
 		return comparator ? 
 			[...filtered].sort((a, b) => comparator(a, b, history)) 
@@ -435,7 +446,8 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		if (keys.length === 0) return;
 		setExpandedKey((prev) => {
 			if (prev && keys.includes(prev)) return prev;
-			const restore = restoreGroupKey.current;
+			// the running queue's group wins over another playlist holding the same map
+			const restore = PlayQueue.state.get()?.groupKey ?? restoreGroupKey.current;
 			if (restore && keys.includes(restore)) return restore;
 			return keys[0];
 		});
@@ -521,31 +533,20 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 
 	/**
 	 * Launch gameplay for a downloaded difficulty (see {@link launchPlay}) and
-	 * fill the queue per the selected mode (debug launches never chain):
-	 *   LOOP     - replay this one map forever
-	 *   PLAYLIST - chain the launched playlist group if playlist mode
-	 *   NEXT     - chain in song-select order: the open group when grouped,
-	 *              otherwise the whole search-filtered list
-	 *   SHUFFLE  - same pool as NEXT, picked at random instead of in order
+	 * fill the queue per the selected mode ({@link fillQueue}; debug launches
+	 * never chain).
 	 */
 	const play = useCallback((beatmap: LightBeatmap, debug = false, arm = true) => {
-		lastLaunchedGroupKey = expanded?.group.key ?? null;
+		const groupKey = expanded?.group.key;
+		lastLaunchedGroupKey = groupKey ?? null;
 		if (!debug && arm) {
-			const mode = SETTINGS.autopilotMode.get();
-			if (mode === AUTOPILOT_MODE.LOOP) {
-				PlayQueue.start(beatmap.set.metadata.title, [beatmap], 0);
-			} else if (mode !== AUTOPILOT_MODE.PLAYLIST || group === 'By Playlist') {
-				const pool = (expanded ? expanded.items : orderedItems)
-					.filter((i) => canPlayAt(i.beatmap.lockedRate));
-				const index = pool.findIndex((i) => i.beatmap.is(beatmap));
-				if (index >= 0) 
-					PlayQueue.start(
-						expanded?.group.label ?? '',
-						pool.map((i) => i.beatmap),
-						index,
-						mode === AUTOPILOT_MODE.SHUFFLE,
-					);
-			}
+			fillQueue(beatmap, {
+				mode: SETTINGS.autopilotMode.get(),
+				groupKey,
+				label: expanded?.group.label ?? '',
+				playlists: group === 'By Playlist',
+				pool: (expanded ? expanded.items : orderedItems).map((i) => i.beatmap),
+			});
 		}
 		launchPlay(beatmap, debug);
 	}, [group, expanded, orderedItems]);
@@ -755,7 +756,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 				{!overlay && (
 					<div className="game__botbar">
 						<div className="game__botbar-left">
-							<button className="game__exit" onClick={onBack}>
+							<button className="game__exit" onClick={() => onBack(false)}>
 								<Trans>BACK</Trans>
 							</button>
 							<SongSelectFooter onRandom={random} onOptions={beatmapOptions} />

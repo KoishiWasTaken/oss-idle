@@ -9,6 +9,7 @@ import Addons from '../../scenes/Addons';
 import Skins from '../../scenes/Skins';
 import Character from '../../scenes/Character';
 import SongSelect from '../../scenes/SongSelect';
+import Direct from '../../scenes/Direct';
 import './pageOverlay.css';
 
 /**
@@ -45,6 +46,8 @@ export default function PageOverlay() {
 				// over a running play, the page thins out so the playfield behind it
 				// is still readable - you are managing a character that is playing
 				scene === SCENE.GAME ? 'is-over-play' : '',
+				// oss!direct comes in from the edge tab it was opened from
+				shown.page === 'direct' ? 'from-right' : '',
 			].join(' ')}
 			onAnimationEnd={(e) => {
 				if (e.target === e.currentTarget && !openPage.get()) setShown(undefined);
@@ -52,11 +55,13 @@ export default function PageOverlay() {
 		>
 			{shown.page === 'character'
 				? <Character />
-				: shown.page === 'queue'
-					? <SongSelect mode="queue" />
-					: shown.page === 'skins'
-						? <Skins key={shown.view} view={shown.view} />
-						: <Addons key={shown.view} view={shown.view} />}
+				: shown.page === 'direct'
+					? <Direct />
+					: shown.page === 'queue'
+						? <SongSelect mode="queue" />
+						: shown.page === 'skins'
+							? <Skins key={shown.view} view={shown.view} />
+							: <Addons key={shown.view} view={shown.view} />}
 		</div>
 	);
 }

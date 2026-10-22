@@ -36,6 +36,7 @@ export async function moveInstall(
 	if (!installer) return 'unavailable';
 	const options: Electron.OpenDialogOptions = {
 		title,
+		defaultPath: path.dirname(installDir),
 		properties: ['openDirectory', 'createDirectory'],
 	};
 	const picked = await (win ? dialog.showOpenDialog(win, options) : dialog.showOpenDialog(options));

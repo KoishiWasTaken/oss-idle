@@ -318,6 +318,10 @@ const addScoreRate: Migration = db => {
 	addColumn(db, 'score', 'rate', 'REAL DEFAULT 1');
 };
 
+const addScoreMods: Migration = db => {
+	addColumn(db, 'score', 'mods', 'TEXT DEFAULT \'\'');
+};
+
 /** A playlist holds a difficulty once per rate it is locked at, and once
  *  unlocked (rate 0, following the mod): the rate joins the key. */
 const playlistEntryRate: Migration = db => {
@@ -353,6 +357,7 @@ const migrations: Migration[] = [
 	addMemoryReset,
 	addScoreRate,
 	playlistEntryRate,
+	addScoreMods,
 ];
 
 /**

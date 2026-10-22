@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-21 15:59\n"
+"PO-Revision-Date: 2026-10-22 23:02\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -189,7 +189,7 @@ msgstr "Chaise en plastique"
 
 #: src/display/medals.ts
 msgid "Be in the top {percent}% of players by pp"
-msgstr ""
+msgstr "Être dans le top {percent}% des joueurs en pp"
 
 #: src/display/skills.ts
 msgid "Better audio and less noise to stay locked in"
@@ -406,13 +406,17 @@ msgstr "DXRacer Drifting"
 msgid "Dynamic sight focus"
 msgstr "Focalisation dynamique du regard"
 
+#: src/display/mods.ts
+msgid "Easy"
+msgstr "Easy"
+
 #: src/display/medals.ts
 msgid "Eight Stars Up"
 msgstr "Huit étoiles"
 
 #: src/display/medals.ts
 msgid "Elite"
-msgstr ""
+msgstr "Élite"
 
 #: src/skills.ts
 msgid "Embedded keyboard firmware"
@@ -522,6 +526,10 @@ msgstr "À mi-chemin"
 msgid "Hands Awake"
 msgstr "Éveil des mains"
 
+#: src/display/mods.ts
+msgid "Hard Rock"
+msgstr "Hard Rock"
+
 #: src/display/medals.ts
 msgid "Have {count} of your proposed maps ranked"
 msgstr "{count} de vos propositions de map sont classées"
@@ -568,7 +576,7 @@ msgstr "Idle"
 
 #: src/display/medals.ts
 msgid "In the Running"
-msgstr ""
+msgstr "Dans la course"
 
 #: src/display/medals.ts
 msgid "Inferno"
@@ -716,6 +724,10 @@ msgstr "Noctambule"
 msgid "Nine Lives"
 msgstr "Neuf vies"
 
+#: src/display/mods.ts
+msgid "No Fail"
+msgstr "No Fail"
+
 #: src/display/medals.ts
 msgid "No Life"
 msgstr "No Life"
@@ -746,7 +758,7 @@ msgstr "En Attente"
 
 #: src/display/medals.ts
 msgid "One Percent"
-msgstr ""
+msgstr "Un pour cent"
 
 #: src/skills.ts
 msgid "Optimized MasterPlus+"
@@ -791,6 +803,10 @@ msgstr "En Traitement"
 #: src/skills.ts
 msgid "Per-map scroll speed setting"
 msgstr "Réglage de la scroll speed par map"
+
+#: src/display/mods.ts
+msgid "Perfect"
+msgstr "Perfect"
 
 #: src/display/medals.ts
 msgid "Perfect Storm"
@@ -1050,6 +1066,10 @@ msgstr "Logitech G Hub d'origine"
 msgid "Stool"
 msgstr "Tabouret"
 
+#: src/display/mods.ts
+msgid "Sudden Death"
+msgstr "Sudden Death"
+
 #: src/display/medals.ts
 msgid "Supernova"
 msgstr "Supernova"
@@ -1096,7 +1116,7 @@ msgstr "Top du top"
 
 #: src/display/medals.ts
 msgid "Top Quarter"
-msgstr ""
+msgstr "Premier quart"
 
 #: src/display/medals.ts
 msgid "Triple Digits"
@@ -1145,7 +1165,7 @@ msgstr "Achète un meilleur écran pour mieux voir les notes"
 
 #: src/display/medals.ts
 msgid "Upper Half"
-msgstr ""
+msgstr "Moitié haute"
 
 #: src/skills.ts
 msgid "Used earbuds"

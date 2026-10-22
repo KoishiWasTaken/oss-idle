@@ -2,10 +2,14 @@ import { useState } from 'react';
 import {
 	coverBackground,
 	type Nomination,
+	type NominationPatch,
 } from '../../api/maps';
 import NominationDiffs from './NominationDiffs';
 import { phaseOf } from './nominationStatus';
-import { osuSetUrl } from '@oss-idle/shared/beatmap';
+import {
+	type MapTag,
+	osuSetUrl,
+} from '@oss-idle/shared/beatmap';
 
 /** ISO timestamp -> value for an <input type="datetime-local"> (local time). */
 const toLocalInput = (iso: string | null): string => {
@@ -29,17 +33,17 @@ const WINDOWS: [label: string, ms: number][] = [
 	['month', 30 * 24 * HOUR],
 ];
 
-export default function NominationRow({ row, busy, onPatch, onToggleDiff, onDelete }: {
+export default function NominationRow({
+	row, busy, onPatch, onToggleDiff, onTagDiff, onDelete,
+}: {
 	row: Nomination;
 	busy: boolean;
 	onPatch: (
 		setId: number,
-		body: {
-			rankedAt?: string | null;
-			status?: 'pending' | 'ranked' | 'rejected'
-		}
+		body: NominationPatch,
 	) => void;
 	onToggleDiff: (setId: number, beatmapId: number, ranked: boolean) => void;
+	onTagDiff: (setId: number, beatmapId: number, tags: MapTag[]) => void;
 	onDelete: (setId: number) => void;
 }) {
 	const [date, setDate] = useState(toLocalInput(row.rankedAt));
@@ -121,9 +125,24 @@ export default function NominationRow({ row, busy, onPatch, onToggleDiff, onDele
 				busy={busy}
 				live={live}
 				onToggle={(beatmapId, ranked) => onToggleDiff(row.id, beatmapId, ranked)}
+				onTags={(beatmapId, tags) => onTagDiff(row.id, beatmapId, tags)}
 			/>
 
 			<div className='nomination__actions'>
+				<button
+					className={`nomination__tag ${row.bundled ? 'is-on' : ''}`}
+					disabled={busy}
+					onClick={() => onPatch(row.id, { bundled: !row.bundled })}
+				>
+					Bundled
+				</button>
+				<button
+					className={`nomination__tag ${row.categorized ? 'is-on' : ''}`}
+					disabled={busy}
+					onClick={() => onPatch(row.id, { categorized: !row.categorized })}
+				>
+					Categorized
+				</button>
 				{!live && (
 					<div className='nomination__quick'>
 						<span className='nomination__label'>Random in</span>

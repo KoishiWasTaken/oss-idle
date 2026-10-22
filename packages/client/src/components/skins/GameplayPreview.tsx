@@ -79,10 +79,7 @@ export default function GameplayPreview({ definition }: { definition: string }) 
 
 			// a debug-level bot plays the map so notes get hit and the HUD comes alive;
 			// building the game runs its strain analysis, so bot.strainsAt feeds the gauges
-			const bot = new CharacterBot(
-				makeOrderedSkills(DEBUG_BOT_LEVEL),
-				beatmap.difficulty.overallDifficulty,
-			);
+			const bot = new CharacterBot(makeOrderedSkills(DEBUG_BOT_LEVEL));
 			const game = new ManiaGame(beatmap, bot, { noFail: true });
 			const renderer = new GameplayRenderer(ctx, game, skinRef.current);
 			rendererRef.current = renderer;

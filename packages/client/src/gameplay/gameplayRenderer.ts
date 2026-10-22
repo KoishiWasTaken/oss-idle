@@ -73,6 +73,7 @@ export default class GameplayRenderer {
 			game: this.game,
 			skin: this.skin,
 			now,
+			nowPos: this.game.scroll.positionAt(now),
 			vp,
 			g,
 			opts,

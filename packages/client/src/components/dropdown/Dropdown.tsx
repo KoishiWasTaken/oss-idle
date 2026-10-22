@@ -11,6 +11,7 @@ import './Dropdown.css';
 export interface DropdownOption<T> {
 	value: T;
 	label: ReactNode;
+	disabled?: boolean;
 }
 
 interface DropdownProps<T> {
@@ -77,6 +78,7 @@ export default function Dropdown<T>({
 						role="option"
 						aria-selected={o.value === selected}
 						className={`dropdown__option ${o.value === selected ? 'is-selected' : ''}`}
+						disabled={o.disabled}
 						onClick={() => {
 							void value.set(o.value);
 							setOpen(false);

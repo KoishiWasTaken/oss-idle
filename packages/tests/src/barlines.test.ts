@@ -4,7 +4,10 @@ import {
 	expect,
 } from 'vitest';
 import { BeatmapDecoder } from 'osu-parsers';
-import { buildBarlines } from '@oss-idle/shared/sim/scroll';
+import {
+	ScrollModel,
+	buildBarlines,
+} from '@oss-idle/shared/sim/scroll';
 
 // Red lines at 6e-96ms, as in ISOxo - Chamber [Dimensional Drift] (4965027).
 const CHART = `osu file format v14
@@ -27,7 +30,8 @@ OverallDifficulty:8
 
 describe('buildBarlines', () => {
 	it('steps gimmick red lines by the clamped beat length', () => {
-		const lines = buildBarlines(new BeatmapDecoder().decodeFromString(CHART), 60000);
+		const beatmap = new BeatmapDecoder().decodeFromString(CHART);
+		const lines = buildBarlines(beatmap, 60000, new ScrollModel(beatmap));
 		// 200ms section at 4 * 6ms per measure
 		expect(lines.filter(l => l.time >= 58409 && l.time < 58609)).toHaveLength(9);
 	});

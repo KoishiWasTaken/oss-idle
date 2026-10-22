@@ -14,6 +14,10 @@ import {
 } from '../play.js';
 import { characterDTO } from '../character.js';
 import {
+	queueClientMessages,
+	queueServerMessages,
+} from '../queue.js';
+import {
 	multiplayerClientMessages,
 	multiplayerServerMessages,
 } from '../multiplayer.js';
@@ -110,6 +114,8 @@ export const clientMessage = z.discriminatedUnion('type', [
 		type: z.literal('status'),
 		status: z.enum(values(CLIENT_STATUS)),
 	}),
+	// back on the main menu: award and show what was earned while away
+	z.object({ type: z.literal('medals:check') }),
 	z.object({
 		type: z.literal('pm'),
 		to: z.number().int().positive(), // user id
@@ -132,6 +138,7 @@ export const clientMessage = z.discriminatedUnion('type', [
 	}),
 	...playClientMessages,
 	...multiplayerClientMessages,
+	...queueClientMessages,
 ]);
 export type ClientMessage = z.infer<typeof clientMessage>;
 export type ClientMessageType = ValueIn<{ [M in ClientMessage as M['type']]: M['type'] }>;
@@ -211,5 +218,6 @@ export const serverMessage = z.discriminatedUnion('type', [
 	}),
 	...playServerMessages,
 	...multiplayerServerMessages,
+	...queueServerMessages,
 ]);
 export type ServerMessage = z.infer<typeof serverMessage>;

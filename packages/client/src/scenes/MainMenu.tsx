@@ -1,6 +1,7 @@
 import {
 	useCallback,
 	useEffect,
+	useRef,
 	useState,
 } from 'react';
 import IdleLogo from '../components/IdleLogo';
@@ -21,11 +22,13 @@ import {
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
 import { useLingui } from '@lingui/react/macro';
+import { ph } from '@lingui/core/macro';
 import Controls from '../input/Controls';
 import normalize from '@oss-idle/shared/math/normalize';
 import {
 	isOptionsOpen,
 	isWebOpen,
+	menuIdle,
 	webUrl,
 } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
@@ -34,11 +37,15 @@ import { SETTINGS } from '../db/settings';
 import { VERSION } from '@oss-idle/shared/version';
 import DesktopUpdate from '../components/DesktopUpdate';
 import SupporterHeart from '../components/SupporterHeart';
+import DirectTab from '../components/direct/DirectTab';
 import { currentSkin } from '../osu/skin/Skin';
 import Auth from '../online/auth';
 import ContextMenu from '../components/ContextMenu';
 import ConfirmMenu from '../components/ConfirmMenu';
 import PlayManager from '../online/playManager';
+import useAwayHours from './useAwayHours';
+import Socket from '../online/socket';
+import { checkAwayMedals } from '../online/medalWatch';
 import { desktop } from '@oss-idle/shared/desktop';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
@@ -76,7 +83,7 @@ type OptionDisplay = {
 export default function MainMenu({ flash = false }: Props) {
 	music.mode.set(PLAYER_MODE.PLAYLIST);
 
-	const closeTimeout = 500000;
+	const closeTimeout = 30000;
 	const { t } = useLingui();
 	const [menu, setMenu] = useState<Menu>(MENU.CLOSED);
 	const [exitConfirm, setExitConfirm] = useState(false);
@@ -86,16 +93,46 @@ export default function MainMenu({ flash = false }: Props) {
 	const [character] = useSynced(Entities.character);
 	const [skin] = useSynced(currentSkin);
 	const [user] = useSynced(Auth.user);
+	const [idle] = useSynced(menuIdle);
+	// oss!direct waits for the menu's first opening after the intro
+	const [opened, setOpened] = useState(!flash);
+	const idleTimer = useRef<number>(undefined);
+	const awayHours = useAwayHours();
 
 	const getLogoSize = () => Math.min(window.innerHeight * 0.5, window.innerWidth * 0.75);
 
 	const [logoSize, setLogoSize] = useState(getLogoSize());
 	useEffect(() => Device.resize.on(() => setLogoSize(getLogoSize())), []);
+	const [connected] = useSynced(Socket.connected);
+	useEffect(() => {
+		if (connected && user) checkAwayMedals();
+	}, [connected, user]);
 
-	let cancelTimeout = 0;
+	useEffect(() => {
+		const arm = () => {
+			clearTimeout(idleTimer.current);
+			idleTimer.current = window.setTimeout(() => {
+				setMenu(MENU.CLOSED);
+				void menuIdle.set(true);
+			}, closeTimeout);
+		};
+		const events = ['pointermove', 'pointerdown', 'keydown', 'wheel'] as const;
+		events.forEach(e => window.addEventListener(e, arm));
+		arm();
+		return () => {
+			clearTimeout(idleTimer.current);
+			events.forEach(e => window.removeEventListener(e, arm));
+			void menuIdle.set(false);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (menu === MENU.CLOSED) return;
+		setOpened(true);
+		void menuIdle.set(false);
+	}, [menu]);
+
 	const mainClick = useCallback(() => {
-		clearTimeout(cancelTimeout);
-		cancelTimeout = setTimeout(() => setMenu(MENU.CLOSED), closeTimeout);
 		switch(menu) {
 			case MENU.CLOSED:
 				setMenu(MENU.OPEN);
@@ -109,18 +146,13 @@ export default function MainMenu({ flash = false }: Props) {
 		}
 	}, [menu]);
 
-	const toSongSelect = () => {
-		clearTimeout(cancelTimeout);
-		SceneManager.set(SCENE.SELECT);
-	};
+	const toSongSelect = () => SceneManager.set(SCENE.SELECT);
 
 	// Exit only works in the desktop app; the browser forbids closing its own tab.
 	const isDesktop = !!desktop();
 	const exit = () => desktop()?.quit();
 
 	const back = useCallback(() => {
-		clearTimeout(cancelTimeout);
-		cancelTimeout = setTimeout(() => setMenu(MENU.CLOSED), closeTimeout);
 		switch(menu) {
 			case MENU.CLOSED:
 				// TODO: exit
@@ -194,7 +226,6 @@ export default function MainMenu({ flash = false }: Props) {
 			order: 2,
 			onSelect: () => {
 				if (character.isGuest()) return;
-				clearTimeout(cancelTimeout);
 				if (Multiplayer.current.get()) SceneManager.set(SCENE.MATCH);
 				else if (PlayManager.live.get()) setMultiConfirm(true);
 				else SceneManager.set(SCENE.LOBBY);
@@ -217,12 +248,14 @@ export default function MainMenu({ flash = false }: Props) {
 	const mobileShift = 1 - normalize(window.innerWidth, [400, 850]);
 
 	return (
-		<div className={`menu ${flash ? 'menu--flash' : ''} ${menu === MENU.CLOSED ? '' : 'menu--open'}`}>
+		<div
+			className={`menu ${flash ? 'menu--flash' : ''} ${menu === MENU.CLOSED ? '' : 'menu--open'}`}
+			data-fresh={!opened}
+			data-idle={idle}
+		>
 			<Background image={user?.supporter ? skin.data.menu.background : undefined} />
 			<div className="menu__vignette" />
 
-			<header className="menu__top">
-			</header>
 			<div className="menu__brand">
 				<span className="menu__brand-name">oss!</span>
 				<span className="menu__brand-tag">idle</span>
@@ -239,6 +272,7 @@ export default function MainMenu({ flash = false }: Props) {
 			</div>
 
 			<SupporterHeart />
+			<DirectTab />
 
 			<div className="menu__center" style={{ transform: `translate(${fgX}px, ${fgY}px)` }}>
 				<div className='menu__logo-options' style={{
@@ -308,7 +342,9 @@ export default function MainMenu({ flash = false }: Props) {
 			{exitConfirm && (
 				<ContextMenu
 					title={t`Exit oss!idle`}
-					sub={t`Are you sure you want to quit?`}
+					sub={awayHours === undefined
+						? t`Are you sure you want to quit?`
+						: t`Your character keeps playing its queue for ${ph({ hours: awayHours })} hours after you quit.`}
 					onClose={() => setExitConfirm(false)}
 					options={[
 						{

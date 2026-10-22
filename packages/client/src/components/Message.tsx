@@ -20,6 +20,7 @@ export default function Message() {
 	const [messages, setMessages] = useState<MessageState[]>([]);
 
 	const addMessage = useCallback((message: string) => {
+		if (!message) return;
 		const assignedId = id++;
 		setMessages(prev => [...prev.map(m => ({
 			...m, close: true, 

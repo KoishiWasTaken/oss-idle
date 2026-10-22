@@ -1,5 +1,7 @@
 .message__overlay {
 	position: absolute;
+	/* over the share preview */
+	z-index: 10003;
 	left: 0;
 	top: 0;
 	width: 100%;

@@ -237,6 +237,13 @@
 	flex-shrink: 0;
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
+.bm-card__meta[data-dark="true"] .bm-card__stars,
+.bm-card__meta[data-dark="true"] .bm-card__version {
+	text-shadow:
+		0 0 1px #fff,
+		0 0 3px #fff,
+		0 0 6px rgba(255, 255, 255, 0.8);
+}
 .bm-card__creator {
 	font-size: 0.7rem;
 	color: rgba(255, 255, 255, 0.55);

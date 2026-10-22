@@ -505,6 +505,41 @@
       "when": 1793577600000,
       "tag": "0071_user_page",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "5",
+      "when": 1794009600000,
+      "tag": "0076_map_tags",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "5",
+      "when": 1794096000000,
+      "tag": "0077_map_categorized",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "5",
+      "when": 1794182400000,
+      "tag": "0078_repo_addons",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "5",
+      "when": 1794614400000,
+      "tag": "0083_score_mods",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "5",
+      "when": 1794700800000,
+      "tag": "0084_server_queue",
+      "breakpoints": true
     }
   ]
 }

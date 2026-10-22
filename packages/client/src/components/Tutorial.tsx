@@ -50,10 +50,17 @@ export default function Tutorial() {
 		},
 		{
 			title: t`Play online`,
-			body: <Trans>
-				oss!idle features <b>online leaderboards</b>, just like osu!.
-				Sign in with your osu! account to compete and save your progression online.
-			</Trans>,
+			body: <>
+				<Trans>
+					oss!idle features <b>online leaderboards</b>, just like osu!.
+					Sign in with your osu! account to compete and save your progression online.
+				</Trans>
+				<br /><br />
+				<Trans>
+					Progress made as a Guest <b>stays on this device</b> and can never be
+					moved to an online character, so the leaderboards stay fair.
+				</Trans>
+			</>,
 		},
 		{
 			title: t`Pick a song`,
@@ -80,6 +87,12 @@ export default function Tutorial() {
 			</Trans> : <Trans>
 				Your character can play <b>on-repeat</b>, automatically, on playlists you crafted.
 				<b> Right-click</b> a beatmap to add it and <b>group by playlist</b>, then start a beatmap to enter playlist mode.
+			</Trans>,
+		},
+		{
+			title: t`Keep playing`,
+			body: <Trans>
+				Signed in, your character <b>keeps playing its queue</b> after you close the game, so you don't have to leave it on overnight!
 			</Trans>,
 		},
 	];

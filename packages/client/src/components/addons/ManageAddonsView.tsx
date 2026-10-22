@@ -9,6 +9,7 @@ import {
 } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
+import { ADDON_KIND } from '@oss-idle/shared/addon';
 import Auth from '../../online/auth';
 import {
 	Addon as InstalledAddon,
@@ -26,6 +27,7 @@ import {
 	myAddons,
 	submitAddon,
 	type Addon,
+	type OwnAddon,
 } from '../../online/addons';
 import AddonView, {
 	detailOfDTO,
@@ -38,7 +40,7 @@ import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import PageBarActions from '../page/PageBarActions';
 
 /** What the editor is editing: a blank draft (`{}`) or an existing add-on. */
-type Editing = { addon?: Addon };
+type Editing = { addon?: OwnAddon };
 
 const detailOfInstalled = (a: InstalledAddon): AddonDetail => ({
 	name: a.name,
@@ -49,6 +51,7 @@ const detailOfInstalled = (a: InstalledAddon): AddonDetail => ({
 	tags: a.tags ? a.tags.split(',') : [],
 	icon: a.icon,
 	source: a.source,
+	kind: ADDON_KIND.inline,
 });
 
 /** Persist a catalog add-on's source + metadata locally and enable it. */
@@ -77,7 +80,7 @@ export default function ManageAddonsView() {
 	const [version] = useSynced(addonsVersion);
 	const [editing, setEditing] = useState<Editing | undefined>();
 	const [installed, setInstalled] = useState<InstalledAddon[]>([]);
-	const [mine, setMine] = useState<Addon[]>([]);
+	const [mine, setMine] = useState<OwnAddon[]>([]);
 	const [latest, setLatest] = useState<Record<number, string>>({});
 	const [details, setDetails] = useState<AddonDetail | undefined>();
 	const [updating, setUpdating] = useState<{ 
@@ -128,8 +131,11 @@ export default function ManageAddonsView() {
 		const { remote, local } = updating;
 		await local.update({ 
 			source: remote.source, 
-			version: remote.version, 
-			name: remote.name, 
+			version: remote.version,
+			gameVersion: remote.gameVersion,
+			name: remote.name,
+			description: remote.description,
+			tags: remote.tags.join(','),
 			icon: remote.icon, 
 			status: remote.status, 
 		});
@@ -140,12 +146,16 @@ export default function ManageAddonsView() {
 	if (editing) {
 		return (
 			<AddonView
+				key={editing.addon?.id ?? 'new'}
 				mode='edit'
 				detail={editing.addon ? detailOfDTO(editing.addon) : newAddonDetail()}
-				addonId={editing.addon?.id}
-				feedback={editing.addon?.feedback}
+				addon={editing.addon}
 				onBack={() => setEditing(undefined)}
-				onSaved={() => { setEditing(undefined); void refreshMine(); }}
+				onSaved={saved => {
+					// a new repo add-on stays open on its webhook
+					setEditing(!editing.addon && saved.kind === ADDON_KIND.repo ? { addon: saved } : undefined);
+					void refreshMine();
+				}}
 			/>
 		);
 	}

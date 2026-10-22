@@ -4,8 +4,8 @@ import {
 	SETTINGS,
 } from '../db/settings';
 
-/** Anything but VSync needs the desktop shell launched without Chromium's vsync
- *  cap, so a cap above the refresh rate (or none) can actually be reached. */
+/** A cap needs the desktop shell launched without Chromium's vsync cap, so one above
+ *  the refresh rate can actually be reached. */
 export const wantsUncapped = (limit: FrameLimit) => limit !== 'vsync';
 
 /**
@@ -51,5 +51,9 @@ export function initFrameLimiter(): void {
 	};
 	window.cancelAnimationFrame = id => { queue.delete(id); };
 
+	// Unlimited is gone - uncapped, the GPU drew frames no one saw and the start and the
+	// overlays froze behind them - so a saved one is VSync now
+	const saved: unknown = SETTINGS.frameLimiter.get();
+	if (saved !== 'vsync' && typeof saved !== 'number') void SETTINGS.frameLimiter.set('vsync');
 	SETTINGS.frameLimiter.forceSync(limit => desktop()?.frameRate.setUncapped(wantsUncapped(limit)));
 }

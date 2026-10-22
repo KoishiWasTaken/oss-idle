@@ -152,7 +152,7 @@ export function analyzeBeatmap(
 		?? makeOrderedSkills(DEBUG_BOT_LEVEL) 
 			?? character.skills
 	;
-	const bot = new CharacterBot(skills, beatmap.difficulty.overallDifficulty);
+	const bot = new CharacterBot(skills);
 	const game = new ManiaGame(beatmap, bot, { scrollMs });
 
 	const series = new Map<string, StrainSeries>();

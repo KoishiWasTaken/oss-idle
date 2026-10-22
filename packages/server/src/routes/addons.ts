@@ -14,18 +14,35 @@ import {
 } from 'drizzle-orm';
 import { z } from 'zod';
 import {
+	ADDON_KIND,
 	ADDON_STATUS,
+	addonBuildResult,
 	addonCreateBody,
 	addonModerateBody,
 	addonUpdateBody,
+	type AddonUpdateBody,
 } from '@oss-idle/shared/addon';
+import {
+	addonViolations,
+	describeViolations,
+} from '@oss-idle/shared/addonRules';
 import { db } from '../db/client';
 import {
 	addons,
 	addonDownloads,
 	toAddonDTO,
 	toLiveAddonDTO,
+	type AddonRow,
 } from '../db/schema/addon';
+import { apiBaseUrl } from '../env';
+import {
+	applyBuild,
+	claimBuild,
+	newHookSecret,
+	queueBuild,
+	requireBuilder,
+	sameSecret,
+} from '../addonBuilds';
 import { users } from '../db/schema/user';
 import { requireAuth } from '../auth/middleware';
 import { requireActive } from '../auth/active';
@@ -33,6 +50,7 @@ import { requireAdmin } from '../auth/admin';
 import { saveUploadedImage } from '../uploads';
 
 const idParam = z.coerce.number().int().positive();
+const trustedBody = z.object({ trusted: z.boolean() });
 
 // Re-throw the ZodError so the app's onError returns the standard shape.
 const jsonBody = <T extends z.ZodType>(schema: T) =>
@@ -41,7 +59,10 @@ const jsonBody = <T extends z.ZodType>(schema: T) =>
 	});
 
 /** Join the author's username onto an add-on row and map to the wire shape. */
-const withAuthor = async (row: typeof addons.$inferSelect, toDTO = toAddonDTO) => {
+const withAuthor = async <T,>(
+	row: typeof addons.$inferSelect,
+	toDTO: (row: typeof addons.$inferSelect, authorName: string) => T,
+) => {
 	const [author] = await db
 		.select({ username: users.username })
 		.from(users)
@@ -59,6 +80,53 @@ const ownedBy = async (id: number, userId: number) => {
 };
 
 const csv = (list: string[]) => list.join(',');
+
+/** The author's view: with the repository webhook. */
+const toOwnAddonDTO = (row: AddonRow, authorName: string) => ({
+	...toAddonDTO(row, authorName),
+	hookUrl: row.hookSecret ? `${apiBaseUrl}/v1/addons/${row.id}/hook/${row.hookSecret}` : undefined,
+});
+
+/** An author's edit as stored: a repo add-on's source and versions come from its builds only. */
+const editsOf = (existing: AddonRow, {
+	kind, repoUrl, ...edits
+}: AddonUpdateBody) => {
+	if ((kind ?? existing.kind) !== ADDON_KIND.repo) return {
+		...edits, kind, repoUrl: undefined,
+	};
+	const url = repoUrl ?? existing.repoUrl;
+	if (!url) throw new HTTPException(400, { message: 'A repository add-on needs its repository address' });
+	return {
+		...edits,
+		source: undefined,
+		version: undefined,
+		gameVersion: undefined,
+		kind,
+		repoUrl: url,
+		hookSecret: existing.hookSecret ?? newHookSecret(),
+		// trust was given to builds of the other repository
+		trusted: url === existing.repoUrl ? undefined : false,
+	};
+};
+
+/** The moderator's view: with the live release, which changes are reviewed against. */
+const toAdminAddonDTO = (row: AddonRow, authorName: string) => ({
+	...toAddonDTO(row, authorName),
+	publishedSource: row.publishedSource ?? undefined,
+});
+
+/** Code players may run: nothing that runs code we did not review. */
+const assertAllowed = (source: string | undefined) => {
+	const found = source === undefined ? [] : addonViolations(source);
+	if (found.length) {
+		throw new HTTPException(400, { message: `This code is not allowed:\n${describeViolations(found)}` });
+	}
+};
+
+const reread = async (id: number) => {
+	const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
+	return withAuthor(row!, toOwnAddonDTO);
+};
 
 // Browse sort column keyed by the `sort` query; defaults to publish date.
 const SORT_COLUMNS = {
@@ -105,12 +173,15 @@ export const addonsRoutes = new Hono()
 		const rows = await db.select().from(addons)
 			.where(eq(addons.authorId, c.get('userId')))
 			.orderBy(desc(addons.updatedAt));
-		return c.json(await Promise.all(rows.map(r => withAuthor(r))));
+		return c.json(await Promise.all(rows.map(r => withAuthor(r, toOwnAddonDTO))));
 	})
 
-	// Auth: create a draft add-on owned by the caller.
+	// Auth: create a draft add-on owned by the caller. A repo add-on starts on its
+	// first build.
 	.post('/', requireActive, jsonBody(addonCreateBody), async c => {
 		const body = c.req.valid('json');
+		const repo = body.kind === ADDON_KIND.repo;
+		if (!repo) assertAllowed(body.source);
 		const [created] = await db.insert(addons).values({
 			name: body.name,
 			description: body.description,
@@ -120,9 +191,21 @@ export const addonsRoutes = new Hono()
 			icon: body.icon,
 			source: body.source,
 			authorId: c.get('userId'),
+			kind: body.kind,
+			repoUrl: repo ? body.repoUrl : null,
+			hookSecret: repo ? newHookSecret() : null,
 		});
-		const [row] = await db.select().from(addons).where(eq(addons.id, created.insertId)).limit(1);
-		return c.json(await withAuthor(row!), 201);
+		if (repo) await queueBuild(created.insertId);
+		return c.json(await reread(created.insertId), 201);
+	})
+
+	// Builder: claim the oldest queued repo build.
+	.post('/builds/claim', requireBuilder, async c => c.json({ job: await claimBuild() }))
+
+	// Builder: report on a claimed build.
+	.post('/builds/:id', requireBuilder, jsonBody(addonBuildResult), async c => {
+		await applyBuild(idParam.parse(c.req.param('id')), c.req.valid('json'));
+		return c.json({ ok: true });
 	})
 
 	// Auth: upload an icon image; returns the public path to store as `icon`.
@@ -140,7 +223,16 @@ export const addonsRoutes = new Hono()
 				isNotNull(addons.publishedSource),
 			))
 			.orderBy(desc(addons.updatedAt));
-		return c.json(await Promise.all(rows.map(r => withAuthor(r))));
+		return c.json(await Promise.all(rows.map(r => withAuthor(r, toAdminAddonDTO))));
+	})
+
+	// Admin: let a repo add-on's builds go live without review, or not.
+	.patch('/admin/:id/trusted', requireAdmin, jsonBody(trustedBody), async c => {
+		const id = idParam.parse(c.req.param('id'));
+		await db.update(addons).set({ trusted: c.req.valid('json').trusted }).where(eq(addons.id, id));
+		const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
+		if (!row) throw new HTTPException(404, { message: 'Add-on not found' });
+		return c.json(await withAuthor(row, toAddonDTO));
 	})
 
 	// Admin: moderate - approve (→ published, stamps publishedAt, makes this code
@@ -159,6 +251,7 @@ export const addonsRoutes = new Hono()
 		}
 
 		const approved = status === ADDON_STATUS.published;
+		if (approved) assertAllowed(existing.source);
 		const publishedAt = approved
 			? (existing.publishedAt ?? new Date())
 			: existing.publishedAt;
@@ -167,30 +260,42 @@ export const addonsRoutes = new Hono()
 				publishedSource: existing.source,
 				publishedVersion: existing.version,
 				publishedGameVersion: existing.gameVersion,
+				publishedCommit: existing.commit,
+				publishedTag: existing.tag,
 			}
 			: status === ADDON_STATUS.unpublished
 				? {
-					publishedSource: null, publishedVersion: null, publishedGameVersion: null,
+					publishedSource: null,
+					publishedVersion: null,
+					publishedGameVersion: null,
+					publishedCommit: null,
+					publishedTag: null,
 				}
 				: {};
 
 		// Snapshot the source the admin acted on, so a later re-review can diff
 		// against it (what changed since the last validation).
 		await db.update(addons).set({
-			status, feedback, publishedAt, reviewedSource: existing.source, ...release,
+			status,
+			feedback,
+			publishedAt,
+			reviewedSource: existing.source,
+			...release,
 		}).where(eq(addons.id, id));
 		const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		return c.json(await withAuthor(row!, toAddonDTO));
 	})
 
 	// Auth+owner: edit. Updating an on-hold add-on answers the moderator's
 	// feedback, so it re-enters review (pending); changing the source of a
 	// published add-on likewise reverts to pending, its approved release staying
 	// live meanwhile. Other edits keep the status and go live as they are.
+	// A repo add-on's source and versions come from its builds only.
 	.patch('/:id', requireActive, jsonBody(addonUpdateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
-		const body = c.req.valid('json');
 		const existing = await ownedBy(id, c.get('userId'));
+		const body = editsOf(existing, c.req.valid('json'));
+		if (body.source !== existing.source) assertAllowed(body.source);
 
 		const sourceChanged = body.source !== undefined && body.source !== existing.source;
 		const reReview = existing.status === ADDON_STATUS.onHold
@@ -209,22 +314,55 @@ export const addonsRoutes = new Hono()
 			status,
 			...live,
 		}).where(eq(addons.id, id));
-		const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		if (body.repoUrl && body.repoUrl !== existing.repoUrl) await queueBuild(id);
+		return c.json(await reread(id));
 	})
 
-	// Auth+owner: submit a draft / denied add-on for review.
+	// Auth+owner: submit a draft / denied add-on for review. A repo add-on not
+	// built yet is submitted by its first build.
 	.post('/:id/submit', requireActive, async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const existing = await ownedBy(id, c.get('userId'));
 		if (existing.status === ADDON_STATUS.pending || existing.status === ADDON_STATUS.published) {
 			throw new HTTPException(409, { message: 'Add-on already submitted' });
 		}
+		if (existing.kind === ADDON_KIND.repo && !existing.commit) {
+			await queueBuild(id);
+			return c.json(await reread(id));
+		}
 		await db.update(addons).set({
-			status: ADDON_STATUS.pending, feedback: null, 
+			status: ADDON_STATUS.pending, feedback: null,
 		}).where(eq(addons.id, id));
-		const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		return c.json(await reread(id));
+	})
+
+	// Auth+owner: look for a new release tag now.
+	.post('/:id/check', requireActive, async c => {
+		const id = idParam.parse(c.req.param('id'));
+		await ownedBy(id, c.get('userId'));
+		await queueBuild(id);
+		return c.json(await reread(id));
+	})
+
+	// Auth+owner: a new webhook secret; the old webhook stops working.
+	.post('/:id/hook-secret', requireActive, async c => {
+		const id = idParam.parse(c.req.param('id'));
+		await ownedBy(id, c.get('userId'));
+		await db.update(addons).set({ hookSecret: newHookSecret() }).where(eq(addons.id, id));
+		return c.json(await reread(id));
+	})
+
+	// Public: the repository's push webhook, from any git host (the payload is ignored).
+	.post('/:id/hook/:secret', async c => {
+		const id = idParam.parse(c.req.param('id'));
+		const [row] = await db.select({ hookSecret: addons.hookSecret }).from(addons)
+			.where(and(eq(addons.id, id), eq(addons.kind, ADDON_KIND.repo)))
+			.limit(1);
+		if (!row?.hookSecret || !sameSecret(c.req.param('secret'), row.hookSecret)) {
+			throw new HTTPException(404, { message: 'Add-on not found' });
+		}
+		await queueBuild(id);
+		return c.json({ ok: true });
 	})
 
 	// Auth+owner: delete.

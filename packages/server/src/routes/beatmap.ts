@@ -20,6 +20,8 @@ import {
 import {
 	BEATMAP_STATUS,
 	INTRO_SET_ID,
+	MAP_TAGS,
+	parseMapTags,
 } from '@oss-idle/shared/beatmap';
 import {
 	checkPreviewName,
@@ -73,6 +75,8 @@ const jsonBody = <T extends z.ZodType>(schema: T) =>
 const nominationPatch = z.object({
 	rankedAt: z.string().datetime().nullable().optional(),
 	status: z.enum(BEATMAP_STATUS).optional(),
+	bundled: z.boolean().optional(),
+	categorized: z.boolean().optional(),
 });
 
 export const beatmapsRoutes = new Hono()
@@ -188,6 +192,7 @@ export const beatmapsRoutes = new Hono()
 				keys: beatmaps.keys,
 				plays: beatmaps.plays,
 				ranked: beatmaps.ranked,
+				tags: beatmaps.tags,
 			})
 			.from(beatmaps);
 
@@ -202,7 +207,11 @@ export const beatmapsRoutes = new Hono()
 
 		return c.json(sets.map(set => ({
 			...set,
-			diffs: (bySet.get(set.id) ?? []).sort((a, b) => Number(a.sr) - Number(b.sr)),
+			diffs: (bySet.get(set.id) ?? [])
+				.map(diff => ({
+					...diff, tags: parseMapTags(diff.tags),
+				}))
+				.sort((a, b) => Number(a.sr) - Number(b.sr)),
 			// Set when the map got here through a player's request.
 			requestedBy: set.osuId ? requesters.get(set.osuId) : undefined,
 		})));
@@ -228,6 +237,7 @@ export const beatmapsRoutes = new Hono()
 
 		const existing = await getBeatmapsetById(id);
 		if (!existing) throw new HTTPException(404, { message: 'Beatmap set not found' });
+		const wasLive = await isSetLive(id);
 
 		const updates: Partial<typeof beatmapset.$inferInsert> = {};
 		if (body.rankedAt !== undefined) updates.rankedAt = body.rankedAt ? new Date(body.rankedAt) : null;
@@ -236,6 +246,8 @@ export const beatmapsRoutes = new Hono()
 			// Re-arm the announce when (re)ranking, so the sweep posts it once due.
 			if (body.status === 'ranked') updates.announced = false;
 		}
+		if (body.bundled !== undefined) updates.bundled = body.bundled;
+		if (body.categorized !== undefined) updates.categorized = body.categorized;
 
 		await db.update(beatmapset).set(updates).where(eq(beatmapset.id, id));
 
@@ -248,7 +260,7 @@ export const beatmapsRoutes = new Hono()
 			for (const diff of diffs) await purgeBeatmapScores(diff.id);
 		}
 
-		invalidateCatalog();
+		if (wasLive || await isSetLive(id)) invalidateCatalog();
 		return c.json({ ok: true });
 	})
 	// Toggle one difficulty in/out of the ranked set. Works before the set is
@@ -280,11 +292,25 @@ export const beatmapsRoutes = new Hono()
 
 			// Unranking a difficulty wipes all progression earned on it.
 			if (!ranked) await purgeBeatmapScores(beatmapId);
-			invalidateCatalog();
+			if (await isSetLive(setId)) invalidateCatalog();
+			return c.json({ ok: true });
+		})
+	.put('/nomination/:setId/beatmap/:beatmapId/tags', requireAdmin,
+		jsonBody(z.object({ tags: z.array(z.enum(MAP_TAGS)) })), async c => {
+			const setId = idParam.parse(c.req.param('setId'));
+			const beatmapId = idParam.parse(c.req.param('beatmapId'));
+			const { tags } = c.req.valid('json');
+			const [res] = await db
+				.update(beatmaps)
+				.set({ tags: [...new Set(tags)].join(',') })
+				.where(and(eq(beatmaps.id, beatmapId), eq(beatmaps.setId, setId)));
+			if (!res.affectedRows) throw new HTTPException(404, { message: 'Beatmap not found' });
+			if (await isSetLive(setId)) invalidateCatalog();
 			return c.json({ ok: true });
 		})
 	.delete('/nomination/:setId', requireAdmin, async c => {
 		const id = idParam.parse(c.req.param('setId'));
+		const wasLive = await isSetLive(id);
 
 		// Scores have no FK on beatmapId: purge progression first.
 		const diffs = await db
@@ -306,7 +332,7 @@ export const beatmapsRoutes = new Hono()
 		);
 
 		if (!res.affectedRows) throw new HTTPException(404, { message: 'Beatmap set not found' });
-		invalidateCatalog();
+		if (wasLive) invalidateCatalog();
 		return c.json({ ok: true });
 	})
 

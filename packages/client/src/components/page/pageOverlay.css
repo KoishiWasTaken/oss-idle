@@ -18,6 +18,29 @@
 	animation: page-overlay-out 0.25s ease both;
 	pointer-events: none;
 }
+.page-overlay.from-right.is-open {
+	animation-name: page-overlay-slide-in;
+	animation-duration: 0.45s;
+}
+.page-overlay.from-right.is-closing {
+	animation: page-overlay-slide-out 0.3s cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+@keyframes page-overlay-slide-in {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes page-overlay-slide-out {
+	from {
+		transform: none;
+	}
+	to {
+		transform: translateX(100%);
+	}
+}
 @keyframes page-overlay-in {
 	from {
 		opacity: 0;

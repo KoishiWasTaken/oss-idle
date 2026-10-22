@@ -3,6 +3,7 @@ import Popups from './components/Popups';
 import Cursor from './components/Cursor';
 import SceneManager from './scenes/SceneManager';
 import TransitionOverlay from './scenes/Transition';
+import MenuWarmup from './warmup/MenuWarmup';
 import VolumeOverlay from './components/VolumeOverlay';
 import RestrictedNotice from './components/RestrictedNotice';
 import WebBrowser from './components/WebBrowser';
@@ -27,6 +28,7 @@ import {
 } from './dev/devTools';
 import FloatingDeltas from './components/FloatingDeltas';
 import ShownMedals from './components/medals/ShownMedals';
+import DirectLinkPanel from './components/direct/DirectLinkPanel';
 import './online/versionWatch';
 import './online/characterWatch';
 import './online/mapLinks';
@@ -52,8 +54,10 @@ export default function App() {
 	return (
 		<>
 			<RestrictedNotice />
+			<MenuWarmup />
 			{scene}
 			<PageOverlay />
+			<DirectLinkPanel />
 			<PlayDock />
 			<TransitionOverlay />
 			<VolumeOverlay />

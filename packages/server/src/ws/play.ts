@@ -9,6 +9,7 @@ import {
 	finishPlayNow,
 	skipPlay,
 	startPlay,
+	type PlayOptions,
 	streamOffsets,
 } from '../play';
 import { hub } from './hub';
@@ -148,10 +149,10 @@ const answerResult = async (
 
 /** A seated player's only play is the round's, which already exists when they join it. */
 const startUnlessSeated = async (
-	character: CharacterRow, beatmapId: number, xpMultiplier: number, rate: number,
+	character: CharacterRow, beatmapId: number, options: PlayOptions,
 ): Promise<PlayStartResult> => await ownMatch(character.id) && !await isPlaying(character.id)
 	? { status: 'inMatch' }
-	: startPlay(character, beatmapId, xpMultiplier, rate);
+	: startPlay(character, beatmapId, options);
 
 export const handlePlay = async (
 	msg: ClientMessage,
@@ -165,9 +166,9 @@ export const handlePlay = async (
 			try {
 				const fresh = await freshCharacter() ?? character;
 				console.log(fresh.name, 'wants to play', msg.beatmapId);
-				const result = await startUnlessSeated(
-					fresh, msg.beatmapId, isProd ? 1 : msg.xpMultiplier ?? 1, msg.rate ?? 1,
-				);
+				const result = await startUnlessSeated(fresh, msg.beatmapId, {
+					xpMultiplier: isProd ? 1 : msg.xpMultiplier ?? 1, rate: msg.rate, mods: msg.mods,
+				});
 				console.log(fresh.name, 'play status', result.status);
 				hub.sendLocal(ws, {
 					type: 'play:start', result,
