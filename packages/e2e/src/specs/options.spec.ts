@@ -28,6 +28,13 @@ test.describe('options', () => {
 		});
 		await expect(page.locator('.options__container.open')).toBeHidden();
 		expect(await game.scene()).toBe('SELECT');
+
+		// closed, none of it takes a click: its dropdowns once caught them at the screen's left edge
+		await expect.poll(() => page.evaluate(() => {
+			const hits = [];
+			for (let y = 0; y < innerHeight; y += 10) hits.push(document.elementFromPoint(40, y));
+			return hits.some(hit => hit?.closest('.options__container'));
+		})).toBe(false);
 	});
 
 	test('the search narrows the settings list', async ({ game, page }) => {

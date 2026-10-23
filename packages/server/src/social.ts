@@ -8,7 +8,10 @@ import {
 	isNull,
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
-import { playerCards } from './playerCards';
+import {
+	cardColumns,
+	playerCards,
+} from './playerCards';
 import { db } from './db/client';
 import {
 	getUserById,
@@ -33,16 +36,8 @@ const theirs = alias(userFollows, 'their_follow');
 export const friendsOf = async (userId: number) => {
 	const rows = await db
 		.select({
-			userId: users.id,
-			country: users.country,
-			lastActiveAt: users.lastActiveAt,
-			userAvatarUrl: users.avatarUrl,
+			...cardColumns,
 			mutual: sql<number>`${theirs.userId} is not null`.mapWith(Boolean),
-			character: {
-				id: characters.id,
-				name: characters.name,
-				avatarUrl: characters.avatarUrl,
-			},
 		})
 		.from(userFollows)
 		.innerJoin(users, eq(users.id, userFollows.targetId))

@@ -13,6 +13,7 @@ export const sampleRepoAddon = (): OwnAddon => ({
 	name: 'oss!idle sim',
 	description: 'Simulates your character on every downloaded map to rank farm value.',
 	tags: ['sim', 'playlists'],
+	types: ['gameplay'],
 	icon: null,
 	version: '0.8.1',
 	gameVersion: '1.0.3.0',

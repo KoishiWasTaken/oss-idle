@@ -55,6 +55,8 @@ packages/web/dist.next/
 profiles/
 # the staging desktop app's build (idle dev)
 packages/client/dist.staging/
+packages/client/dist.e2e/
+packages/web/dist.e2e/
 packages/web/dist.staging/
 packages/desktop/release-staging/
 packages/desktop/electron-builder.staging.yml
@@ -90,3 +92,6 @@ backups/
 packages/e2e/test-results
 packages/e2e/playwright-report
 packages/e2e/blob-report
+
+# idle e2e reports from nm
+e2e-results/

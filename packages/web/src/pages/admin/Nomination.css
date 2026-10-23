@@ -206,9 +206,8 @@
 	align-items: center;
 	gap: 0.35rem;
 	padding: 0.2rem 0.55rem;
-	border: 1px solid hsl(var(--hsl-b1));
-	border-radius: 10000px;
-	background-color: hsl(var(--hsl-b4));
+	border: 0;
+	background-color: transparent;
 	color: hsl(var(--hsl-f1));
 	font: inherit;
 	font-size: 0.75rem;
@@ -226,7 +225,6 @@
 	text-decoration: line-through;
 }
 .nomination__diff.is-ranked {
-	border-color: hsl(var(--hsl-lime-1));
 	background-color: hsl(var(--hsl-b3));
 	color: hsl(var(--hsl-c1));
 }
@@ -308,12 +306,40 @@
 	gap: 1rem;
 }
 
-/* hand-set map tags: SV/LN per difficulty, bundled per set */
+/* one pill per difficulty: ranked toggle, then its SV/LN tag segments */
 .nomination__diff-group {
 	display: inline-flex;
-	align-items: center;
-	gap: 0.15rem;
+	align-items: stretch;
+	overflow: hidden;
+	border: 1px solid hsl(var(--hsl-b1));
+	border-radius: 10000px;
+	background-color: hsl(var(--hsl-b4));
 }
+.nomination__diff-group.is-ranked {
+	border-color: hsl(var(--hsl-lime-1));
+}
+.nomination__diff-tag {
+	padding: 0.2rem 0.45rem;
+	border: 0;
+	border-left: 1px solid hsl(var(--hsl-b1));
+	background-color: transparent;
+	color: hsl(var(--hsl-f1));
+	font: inherit;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+	opacity: 0.6;
+}
+.nomination__diff-tag.is-on {
+	background-color: hsla(var(--hsl-blue-1), 0.25);
+	color: hsl(var(--hsl-c1));
+	opacity: 1;
+}
+.nomination__diff-tag:disabled {
+	cursor: default;
+}
+
+/* bundled/categorized per set */
 .nomination__tag {
 	padding: 0.2rem 0.45rem;
 	border: 1px solid hsl(var(--hsl-b1));

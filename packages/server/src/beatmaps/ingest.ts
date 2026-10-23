@@ -1,5 +1,6 @@
 import { starsAtRates } from '../pp';
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import {
 	existsSync,
 	mkdirSync,
@@ -17,10 +18,17 @@ import type {
 import { ManiaRuleset } from 'osu-mania-stable';
 import * as rosu from 'rosu-pp-js';
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
+import { timingColumns } from './timingPoints';
+import {
+	OWN_ID_FROM,
+	fileIdsOf,
+	withFileIds,
+} from '@oss-idle/shared/editor/chart';
 import {
 	and,
 	eq,
 	isNull,
+	notInArray,
 } from 'drizzle-orm';
 import { db } from '../db/client';
 import {
@@ -34,6 +42,7 @@ import {
 	oszPath,
 	previewPath,
 } from './storage';
+import { creditMapper } from './credit';
 
 /**
  * The single runtime beatmap pipeline - replaces the old client `index-beatmaps`
@@ -44,7 +53,8 @@ import {
  * rows. It never touches `status`/`rankedAt`/`announced` on an existing set, so
  * re-ingesting (a re-upload) leaves its nomination state intact - new sets land
  * as `pending`. Ids are ours: osu!'s ids are kept in `osuId`, and the .osz is
- * stored as uploaded - the catalog names each difficulty's file inside it.
+ * stored as uploaded - the catalog names each difficulty's file inside it. A
+ * player's upload is stored with the ids it got written into its files.
  */
 
 const decoder = new BeatmapDecoder();
@@ -54,10 +64,12 @@ export type IngestResult = {
 	setId: number;
 	osuSetId?: number;
 	difficulties: number;
+	/** a player's upload: the ids now in its files - the set's, and each .osu's by name */
+	ids?: { setId: number, beatmaps: Record<string, number> };
 };
 
-/** osu! writes 0 or -1 for a map it doesn't know. */
-const osuId = (id: number | undefined) => id && id > 0 ? id : undefined;
+/** osu! writes 0 or -1 for a map it doesn't know; an id from 1e9 is ours. */
+const osuId = (id: number | undefined) => id && id > 0 && id < OWN_ID_FROM ? id : undefined;
 
 /** The set this upload updates: by osu! id, else an unsubmitted set with the same metadata. */
 const findSet = async (
@@ -68,6 +80,7 @@ const findSet = async (
 		? eq(beatmapset.osuId, osuSetId)
 		: and(
 			isNull(beatmapset.osuId),
+			isNull(beatmapset.uploadedAt),
 			eq(beatmapset.artist, meta.artist),
 			eq(beatmapset.title, meta.title),
 			eq(beatmapset.creator, meta.creator),
@@ -75,15 +88,23 @@ const findSet = async (
 	return row;
 };
 
-/** The difficulty this .osu updates: by osu! id, else by name within an unsubmitted set. */
+/** The difficulty this .osu updates: by our id when the file has one of the set's, by
+ *  osu! id, else by name within an unsubmitted set. A player's upload only ever finds one
+ *  of its own set's: a file naming another set's difficulty must not take it over. */
 const findBeatmap = async (
 	setId: number,
 	osuBeatmapId: number | null | undefined,
 	version: string,
+	{ ownId, player }: { ownId?: number, player: boolean },
 ) => {
-	const [row] = await db.select({ id: beatmaps.id }).from(beatmaps).where(osuBeatmapId
-		? eq(beatmaps.osuId, osuBeatmapId)
-		: and(eq(beatmaps.setId, setId), isNull(beatmaps.osuId), eq(beatmaps.version, version))).limit(1);
+	const byOsuId = osuBeatmapId && (player
+		? and(eq(beatmaps.osuId, osuBeatmapId), eq(beatmaps.setId, setId))
+		: eq(beatmaps.osuId, osuBeatmapId));
+	const [row] = await db.select({ id: beatmaps.id }).from(beatmaps).where(ownId
+		? and(eq(beatmaps.id, ownId), eq(beatmaps.setId, setId))
+		: byOsuId
+			|| and(eq(beatmaps.setId, setId), isNull(beatmaps.osuId), eq(beatmaps.version, version)))
+		.limit(1);
 	return row?.id;
 };
 
@@ -123,6 +144,51 @@ const upsertSet = async (metas: BeatmapMetadataSection[], allowRanked: boolean) 
 	};
 };
 
+/** A player's own upload: a new `unranked` set they own (linked to `osuSetId`, osu!'s
+ *  set it comes from, when they mapped it there), or `setId`, one the route has
+ *  checked is theirs to replace. */
+export type Owner = { userId: number, setId?: number, osuSetId?: number };
+
+/** Creates or updates a player's own set: unranked, and theirs to manage from now on. */
+const ownSet = async (metas: BeatmapMetadataSection[], owner: Owner) => {
+	const { artist, title, creator } = metas[0];
+	const fields = {
+		artist, title, creator, status: 'unranked' as const, uploadedAt: new Date(), deletedAt: null,
+	};
+	if (owner.setId === undefined) {
+		const [{ id }] = await db.insert(beatmapset).values({
+			...fields, ownerUserId: owner.userId, osuId: owner.osuSetId,
+		}).$returningId();
+		return {
+			setId: id, osuSetId: owner.osuSetId, ranked: false,
+		};
+	}
+	await db.update(beatmapset).set(fields).where(eq(beatmapset.id, owner.setId));
+	const [set] = await db.select({ osuId: beatmapset.osuId }).from(beatmapset)
+		.where(eq(beatmapset.id, owner.setId)).limit(1);
+	return {
+		setId: owner.setId, osuSetId: set?.osuId ?? undefined, ranked: false,
+	};
+};
+
+/** A difficulty as stored: its .osu, and the ids it got. */
+type Written = { entry: { entryName: string }, text: string, id: number, osuBeatmapId?: number };
+
+/** The ids a difficulty's file gives it: osu!'s (kept by a player's map only when its
+ *  set is osu!'s), and ours when a player's file already carries one. */
+const difficultyIds = (
+	text: string,
+	decoded: Beatmap,
+	player: boolean,
+	osuSetId: number | undefined,
+) => {
+	const fileId = fileIdsOf(text).beatmapId;
+	return {
+		osuBeatmapId: player && osuSetId === undefined ? undefined : osuId(decoded.metadata.beatmapId),
+		ownId: player && fileId !== undefined && fileId >= OWN_ID_FROM ? fileId : undefined,
+	};
+};
+
 /** Key count, star rating and note counts of one chart. */
 const chartStats = (text: string, decoded: Beatmap) => {
 	// Column count needs the mania ruleset; the intro is standard mode, so
@@ -149,8 +215,11 @@ const upsertBeatmap = async (
 	row: Omit<NewBeatmapRow, 'id'>,
 	setRanked: boolean,
 	used: Set<number>,
+	{ ownId, player }: { ownId?: number, player: boolean },
 ) => {
-	let id = await findBeatmap(row.setId, row.osuId, row.version);
+	let id = await findBeatmap(row.setId, row.osuId, row.version, {
+		ownId, player, 
+	});
 	if (id === undefined || used.has(id)) {
 		[{ id }] = await db.insert(beatmaps).values({
 			...row,
@@ -169,24 +238,28 @@ const upsertBeatmap = async (
 };
 
 /** `allowRanked` re-reads a ranked set's own stored file: its difficulties stay as
- *  they are, and the ones it never had are added like any other. */
+ *  they are, and the ones it never had are added like any other. With an `owner`,
+ *  it is a player's own upload (see {@link Owner}). */
 export const ingestOsz = async (
 	buffer: Buffer,
-	{ allowRanked = false } = {},
+	{ allowRanked = false, owner }: { allowRanked?: boolean, owner?: Owner } = {},
 ): Promise<IngestResult> => {
 	const zip = new AdmZip(buffer);
 	const entries = zip.getEntries();
 	const findEntry = (name: string) =>
 		entries.find(e => e.entryName.toLowerCase() === name.toLowerCase());
 
-	const parsed = entries
-		.filter(e => e.entryName.toLowerCase().endsWith('.osu'))
+	// osu! only reads the set's root: a nested .osu is a stale copy (e.g. an old
+	// set's folder zipped along) - unless the pack has nothing at its root.
+	const osuEntries = entries.filter(e => e.entryName.toLowerCase().endsWith('.osu'));
+	const rootOnly = osuEntries.filter(e => !e.entryName.includes('/'));
+	const parsed = (rootOnly.length ? rootOnly : osuEntries)
 		.flatMap(entry => {
 			const text = entry.getData().toString('utf8');
 			let decoded;
 			try { decoded = decoder.decodeFromString(text); } catch { return []; }
-			// mania-only, except the standard-mode intro set
-			const isIntro = decoded.metadata.beatmapSetId === INTRO_SET_ID;
+			// mania-only, except the standard-mode intro set (never a player's)
+			const isIntro = !owner && decoded.metadata.beatmapSetId === INTRO_SET_ID;
 			if (decoded.originalMode !== 3 && !isIntro) return [];
 			return [{
 				entry, text, decoded,
@@ -196,7 +269,10 @@ export const ingestOsz = async (
 	if (parsed.length === 0) throw new Error('No mania difficulties in this .osz');
 
 	const metas = parsed.map(p => p.decoded.metadata);
-	const { setId, osuSetId, ranked } = await upsertSet(metas, allowRanked);
+	const { setId, osuSetId, ranked } = owner
+		? await ownSet(metas, owner)
+		: await upsertSet(metas, allowRanked);
+	if (osuSetId !== undefined) await creditMapper(setId, osuSetId);
 
 	mkdirSync(BEATMAP_DIR, { recursive: true });
 	mkdirSync(PREVIEW_DIR, { recursive: true });
@@ -220,7 +296,10 @@ export const ingestOsz = async (
 		return out;
 	};
 
-	const resolveAudio = (audio: string | undefined, previewTimeMs: number): string | undefined => {
+	const resolveAudio = async (
+		audio: string | undefined,
+		previewTimeMs: number,
+	): Promise<string | undefined> => {
 		if (!audio) return undefined;
 		const key = audio.toLowerCase();
 		if (audioAssets.has(key)) return audioAssets.get(key);
@@ -233,10 +312,12 @@ export const ingestOsz = async (
 		const start = previewTimeMs > 0 ? (previewTimeMs / 1000).toFixed(2) : '40.00';
 		let result: string | undefined;
 		try {
-			execFileSync('ffmpeg', [
-				'-y', '-ss', start, '-i', temp, '-t', '10',
+			// a player's file: read from disk only, and only as audio
+			await promisify(execFile)('ffmpeg', [
+				'-y', '-protocol_whitelist', 'file', '-format_whitelist', 'mp3,ogg,wav,flac,aac,mov',
+				'-ss', start, '-i', temp, '-t', '10',
 				'-c:a', 'libmp3lame', '-q:a', '4', previewPath(out),
-			], { stdio: 'ignore' });
+			], { timeout: 30_000 });
 			result = out;
 		} catch (err) {
 			console.error(`  ffmpeg failed to create preview for ${setId}:`, err);
@@ -249,9 +330,10 @@ export const ingestOsz = async (
 
 	// 2. Build + upsert the difficulty rows.
 	const used = new Set<number>();
+	const written: Written[] = [];
 	for (const { entry, text, decoded } of parsed) {
 		const stats = chartStats(text, decoded);
-		const osuBeatmapId = osuId(decoded.metadata.beatmapId);
+		const { osuBeatmapId, ownId } = difficultyIds(text, decoded, !!owner, osuSetId);
 		const row = {
 			osuId: osuBeatmapId,
 			setId,
@@ -268,19 +350,54 @@ export const ingestOsz = async (
 			objects: stats.objects,
 			rice: stats.rice,
 			ln: stats.ln,
+			...timingColumns(text),
 			mode: decoded.originalMode,
-			audio: resolveAudio(decoded.general.audioFilename, decoded.general.previewTime),
+			audio: await resolveAudio(decoded.general.audioFilename, decoded.general.previewTime),
 			background: resolveBackground(decoded.events.backgroundPath ?? undefined),
 		};
 
-		const id = await upsertBeatmap(row, ranked, used);
+		const id = await upsertBeatmap(row, ranked, used, {
+			ownId, player: !!owner, 
+		});
 		used.add(id);
+		written.push({
+			entry, text, id, osuBeatmapId,
+		});
 	}
 
+	// A player's re-upload is the whole set: difficulties it no longer has go.
+	if (owner) {
+		await db.delete(beatmaps).where(and(eq(beatmaps.setId, setId), notInArray(beatmaps.id, [...used])));
+	}
+
+	const ids = owner ? await writeIds(zip, written, osuSetId ?? setId) : undefined;
+
 	// 3. Store the .osz keyed by set id.
-	writeFileSync(oszPath(setId), buffer);
+	writeFileSync(oszPath(setId), ids ? zip.toBuffer() : buffer);
 
 	return {
-		setId, osuSetId, difficulties: used.size,
+		setId, osuSetId, difficulties: used.size, ids,
+	};
+};
+
+/** A player's upload with its ids written into each .osu (osu!'s where the map has
+ *  them, ours otherwise), in the stored charts and in `zip`; returns them by file. */
+const writeIds = async (
+	zip: AdmZip,
+	written: Written[],
+	fileSetId: number,
+): Promise<NonNullable<IngestResult['ids']>> => {
+	const ids: Record<string, number> = {};
+	for (const { entry, text, id, osuBeatmapId } of written) {
+		const beatmapId = osuBeatmapId ?? id;
+		const stamped = withFileIds(text, {
+			setId: fileSetId, beatmapId,
+		});
+		await db.update(beatmaps).set({ chart: stamped }).where(eq(beatmaps.id, id));
+		zip.updateFile(entry.entryName, Buffer.from(stamped, 'utf8'));
+		ids[entry.entryName] = beatmapId;
+	}
+	return {
+		setId: fileSetId, beatmaps: ids,
 	};
 };

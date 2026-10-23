@@ -1,4 +1,5 @@
 import { ScoreDTO } from '@oss-idle/shared/score';
+import Memory from '@oss-idle/shared/sim/skills/memory';
 import Synced from '@oss-idle/shared/helpers/synced';
 import {
 	boolean,
@@ -178,18 +179,22 @@ export class Score extends DAO(t) {
 	 *  memory skill for guest / unranked plays (ranked uses the server count).
 	 *  Plays from before memory was last prestiged do not count: that training
 	 *  is what the prestige spent. */
+	/** Plays of this map that still train memory: those since its last prestige,
+	 *  less what each memory upgrade bought after that forgot. */
 	static countPlays(
 		characterId: number,
 		beatmapId: number,
 		since = 0,
+		forgetAt: readonly number[] = [],
 	): Promise<number> {
 		return DB.read(db => {
 			const res = db.exec(
-				`SELECT COUNT(*) AS n FROM score
+				`SELECT playedAt FROM score
 					WHERE characterId = ? AND beatmapId = ? AND playedAt >= ?`,
 				[characterId, beatmapId, since],
 			);
-			return (res[0]?.values[0][0] as number) ?? 0;
+			const playedAt = (res[0]?.values ?? []).map(r => r[0] as number);
+			return Memory.recall(playedAt, forgetAt.filter(t => t >= since));
 		});
 	}
 }

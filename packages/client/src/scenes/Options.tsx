@@ -7,6 +7,7 @@ import {
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import './Options.css';
 import { isOptionsOpen } from '../globals';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 import {
 	mapped,
 	ValueIn,
@@ -42,6 +43,8 @@ import ManageAddons from '../components/options/ManageAddons';
 import BrowseAddons from '../components/options/BrowseAddons';
 import ManageSkins from '../components/options/ManageSkins';
 import BrowseSkins from '../components/options/BrowseSkins';
+import CursorSize from '../components/options/CursorSize';
+import ReportBug from '../components/options/ReportBug';
 
 /** A consumer component rendered inside a group. */
 type OptComponent = () => JSX.Element;
@@ -67,7 +70,7 @@ export default function Options() {
 		[CATEGORY.GENERAL]: t`GENERAL`,
 		[CATEGORY.GRAPHICS]: t`GRAPHICS`,
 		[CATEGORY.GAMEPLAY]: t`GAMEPLAY`,
-		[CATEGORY.SKIN]: t`Skin`,
+		[CATEGORY.SKIN]: t`SKIN`,
 		[CATEGORY.CONTROLS]: t`CONTROLS`,
 		[CATEGORY.ADDONS]: t`ADD-ONS`,
 		[CATEGORY.MAINTENANCE]: t`MAINTENANCE`,
@@ -98,6 +101,10 @@ export default function Options() {
 						{
 							search: t`discord|link|role`,
 							component: () => LinkDiscord,
+						},
+						{
+							search: t`bug|report|issue|problem|crash|help`,
+							component: () => ReportBug,
 						},
 					],
 				},
@@ -239,6 +246,10 @@ export default function Options() {
 							search: t`skin|skins|browse|catalog|install`,
 							component: () => BrowseSkins,
 						},
+						{
+							search: t`cursor|size|scale`,
+							component: () => CursorSize,
+						},
 					],
 				},
 			],
@@ -293,6 +304,10 @@ export default function Options() {
 							search: t`move|install|installation|folder|location|portable`,
 							component: () => MoveInstall,
 						},
+						{
+							search: t`bug|report|issue|problem|crash|help`,
+							component: () => ReportBug,
+						},
 					],
 				},
 			],
@@ -316,6 +331,7 @@ export default function Options() {
 		.filter(category => category.groups.length > 0);
 
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const searchRef = useRef<HTMLInputElement>(null);
 	const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
 	const scrollTo = (name: string) => {
@@ -342,6 +358,9 @@ export default function Options() {
 		scrollRef.current?.scrollTo({ top: 0 });
 		setActive(visible[0]?.name ?? null);
 	}, [open]);
+	useKeyboardOwner(searchRef, {
+		active: open, layer: LAYER.OPTIONS, close: () => isOptionsOpen.set(false),
+	});
 
 	const close = () => isOptionsOpen.set(false);
 
@@ -388,6 +407,7 @@ export default function Options() {
 							/>
 						</svg>
 						<input
+							ref={searchRef}
 							className='options__search_input'
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}

@@ -21,6 +21,7 @@ import {
 } from './metrics';
 import { presenceCount } from './ws/presence';
 import { getPlaying } from './play';
+import { clientCount } from './queue';
 
 /**
  * Once a minute, one worker checks every service prod depends on and samples the
@@ -101,6 +102,7 @@ const sampleHost = async () => {
 		await gaugeMax('system', `db_${row.Variable_name.toLowerCase()}`, Number(row.Value));
 	}
 	await gaugeMax('activity', 'online', await presenceCount());
+	await gaugeMax('activity', 'clients', await clientCount());
 	await gaugeMax('activity', 'playing', await getPlaying());
 };
 

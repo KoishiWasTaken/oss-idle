@@ -16,7 +16,11 @@ import { characterNameHistory } from '../db/schema/name_history';
 import { reindexCharacter } from '../rankings';
 import { hub } from '../ws/hub';
 import { rekey as presenceRekey } from '../ws/presence';
-import { resetMemory } from '../db/schema/beatmaps_played';
+import {
+	forgetMemory,
+	resetMemory,
+} from '../db/schema/beatmaps_played';
+import Memory from '@oss-idle/shared/sim/skills/memory';
 import {
 	applyPrestige,
 	applyUpgrade,
@@ -204,6 +208,8 @@ export const performUpgrade = async (
 			spent, ratio: next.ratio,
 		};
 	});
+
+	if (skill === SKILL.memory) await forgetMemory(row.id, Memory.FORGET_PLAYS);
 
 	await reindexCharacter(row.id);
 	return purchase;

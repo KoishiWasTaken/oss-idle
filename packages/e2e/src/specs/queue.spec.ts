@@ -16,11 +16,7 @@ test.describe('play queue', () => {
 		const other = set.versions.find(v => v.id !== version.id);
 		test.skip(!other, 'the easiest set has a single difficulty');
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		await game.playThenLeave(set.title, version.id);
 
 		// the dock's queue button opens song select in queue mode: a click queues
 		await page.getByRole('button', { name: 'Edit the queue' }).click();
@@ -39,11 +35,7 @@ test.describe('play queue', () => {
 		const { set, version } = await game.installEasiest();
 		test.skip(set.versions.length < 3, 'the easiest set has too few difficulties');
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		await game.playThenLeave(set.title, version.id);
 
 		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		const others = set.versions.filter(v => v.id !== version.id).slice(0, 2);
@@ -74,10 +66,7 @@ test.describe('play queue', () => {
 		const other = set.versions.find(v => v.id !== version.id);
 		test.skip(!other, 'the easiest set has a single difficulty');
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		const first = await game.waitForPlay();
-		await page.locator('.play__quit').click();
+		const first = await game.playThenLeave(set.title, version.id);
 
 		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
@@ -119,6 +108,11 @@ test.describe('play queue', () => {
 		await game.expectScene('SAVER');
 		await expect(page.locator('.screensaver')).toBeVisible();
 		await expect(page.locator('.play__quit')).toBeHidden();
+
+		// burn-in: the card wanders, and left alone the fixed chrome fades out
+		await expect(page.locator('.screensaver__now')).toHaveCSS('animation-name', 'screensaver-wander');
+		await expect(page.locator('html.is-saver-idle')).toBeAttached({ timeout: 10_000 });
+		await expect(page.locator('.dock')).toHaveCSS('opacity', '0');
 
 		await page.keyboard.press('F9');
 		await expect(page.locator('.community-chat-container.is-enabled')).toBeVisible();

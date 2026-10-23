@@ -8,7 +8,10 @@ import { db } from '../db/client';
 import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
 import { announceRanked } from './announce';
-import { hub } from '../ws/hub';
+import {
+	flushCatalogInvalidate,
+	invalidateCatalog,
+} from './catalog';
 import { recordCurators } from '../medals';
 
 /**
@@ -58,5 +61,6 @@ export const sweepRankedMaps = async (): Promise<void> => {
 	}
 
 	// Tell connected clients the catalog grew, so song select refetches it.
-	if (wentLive) hub.broadcast({ type: 'catalog:invalidate' });
+	if (wentLive) await invalidateCatalog();
+	else await flushCatalogInvalidate();
 };

@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import {
 	and,
 	count,
@@ -8,7 +7,6 @@ import {
 	inArray,
 	isNull,
 } from 'drizzle-orm';
-import { z } from 'zod';
 import {
 	beatmapRequestBody,
 	beatmapRequestPatch,
@@ -42,11 +40,11 @@ import {
 } from '../osu/api';
 import { downloadOsz } from '../beatmaps/mirror';
 import { ingestOsz } from '../beatmaps/ingest';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
-
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => { if (!result.success) throw result.error; });
 
 /** Metadata for a set nobody has requested yet: the stats mirror first (free,
  *  local), then osu! itself for anything it doesn't carry - which is also what
@@ -157,7 +155,7 @@ export const beatmapRequestRoutes = new Hono()
 		return c.json(await searchManiaSets(q));
 	})
 
-	.post('/', requireActive, jsonBody(beatmapRequestBody), async c => {
+	.post('/', requireActive, valid('json', beatmapRequestBody), async c => {
 		const userId = c.get('userId');
 		const setId = parseBeatmapsetId(c.req.valid('json').map);
 		if (!setId || setId === INTRO_SET_ID) {
@@ -245,7 +243,7 @@ export const beatmapRequestRoutes = new Hono()
 	})
 
 	// Admin: accept or reject, with a reason players can read.
-	.patch('/:setId', requireAdmin, jsonBody(beatmapRequestPatch), async c => {
+	.patch('/:setId', requireAdmin, valid('json', beatmapRequestPatch), async c => {
 		const setId = idParam.parse(c.req.param('setId'));
 		const body = c.req.valid('json');
 

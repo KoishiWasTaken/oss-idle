@@ -25,9 +25,12 @@ const load = async (rate: number): Promise<ReadonlyMap<number, number>> => {
 export const starsAtRate = async (rate: number): Promise<ReadonlyMap<number, number>> =>
 	rate === 1 ? new Map() : await load(rate).catch(() => new Map());
 
-void selectedRate.sync(async rate => {
-	const stars = await starsAtRate(rate);
-	if (selectedRate.get() === rate) void rateStars.set(stars);
+// not awaited: selectedRate's later listeners (the rate shown everywhere) would wait
+// on the fetch, and a slower earlier one would hand them its stale rate last
+void selectedRate.sync(rate => {
+	void starsAtRate(rate).then(stars => {
+		if (selectedRate.get() === rate) void rateStars.set(stars);
+	});
 });
 
 /** A difficulty's stars at the picked rate: its own ones at x1, or when the server

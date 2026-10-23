@@ -1,8 +1,16 @@
 import './ReportMessageDialog.css';
-import { useState } from 'react';
+import {
+	useRef,
+	useState,
+} from 'react';
+import useKeyboardOwner from '../../../input/keyboardOwner';
 import { useLingui } from '@lingui/react/macro';
 import Log from '@oss-idle/shared/helpers/log';
-import type { ReportReason } from '@oss-idle/shared/social';
+import {
+	REPORT_REASON,
+	type ReportReason,
+} from '@oss-idle/shared/social';
+import { reportReasonLabel } from '@oss-idle/shared/display/social';
 import { rpc } from '../../../online/client';
 import type { PlayerChatLine } from '../state';
 
@@ -14,25 +22,9 @@ export default function ReportMessageDialog({ line, onClose }: {
 	const { t } = useLingui();
 	const [reason, setReason] = useState<ReportReason>('chat');
 	const [comment, setComment] = useState('');
+	const commentRef = useRef<HTMLTextAreaElement>(null);
+	useKeyboardOwner(commentRef, { close: onClose });
 	const [sending, setSending] = useState(false);
-
-	const reasons: { value: ReportReason; label: string }[] = [
-		{
-			value: 'cheating', label: t`Cheating`,
-		},
-		{
-			value: 'multiple_accounts', label: t`Using multiple accounts`,
-		},
-		{
-			value: 'chat', label: t`Inappropriate chat behaviour`,
-		},
-		{
-			value: 'content', label: t`Inappropriate content`,
-		},
-		{
-			value: 'other', label: t`Other (type below)`,
-		},
-	];
 
 	const send = async () => {
 		setSending(true);
@@ -60,9 +52,14 @@ export default function ReportMessageDialog({ line, onClose }: {
 				<div className="report-message__title">{t`Report ${name}?`}</div>
 				<div className="report-message__quote">{line.text}</div>
 				<select value={reason} onChange={e => setReason(e.target.value as ReportReason)}>
-					{reasons.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+					{REPORT_REASON.map(r => <option key={r} value={r}>{reportReasonLabel(r)}</option>)}
 				</select>
-				<textarea value={comment} onChange={e => setComment(e.target.value)} maxLength={2000} />
+				<textarea
+					ref={commentRef}
+					value={comment}
+					onChange={e => setComment(e.target.value)}
+					maxLength={2000}
+				/>
 				<button
 					type="button"
 					className="report-message__btn report-message__btn--send"

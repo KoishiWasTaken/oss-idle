@@ -71,7 +71,7 @@ if (!isProd) void separateStagingMapIds();
 // matches it (one cluster worker wins the lock; the rest return immediately).
 void ensureRankings();
 
-// Stars at every rate for the difficulties ingested before rates existed.
+// Stars at every rate and timing counts for the difficulties ingested before them.
 void backfillRateStars();
 
 // Finalise plays whose end time has passed even if no client ever returns to

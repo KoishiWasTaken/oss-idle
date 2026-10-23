@@ -102,7 +102,7 @@
 	font-family: inherit;
 }
 .web__address:focus {
-	outline: 1px solid rgba(255, 102, 170, 0.6);
+	outline: none;
 	color: #f3eef1;
 }
 

@@ -31,6 +31,26 @@ export function skillName(skill: SkillName | 'overall'): string {
 	return __(SKILL_NAMES[skill]);
 }
 
+/** What a skill does in a play. */
+const SKILL_DESCRIPTIONS = defineMessages({
+	accuracy: 'How accurately you hit the notes as a baseline',
+	speed: 'Determines how many notes you\'re comfortable hitting in short periods of time',
+	stamina: 'How long you can keep up with patterns that are too dense for you',
+	jackspeed: 'Raw individual finger speed',
+	coordination: 'How well you handle other patterns while holding long notes',
+	release: 'How accurate and stable you are when timing releases',
+	reading: 'How well you are able to decipher complex patterns on screen without mashing',
+	consistency: 'Determines how often you will get random chokes during plays',
+	concentration: 'Determines whether you will start drifting away during longer plays',
+	speedjam: 'How comfortable you generally are during SV sections',
+	memory: 'Determines how fast and how well you are able to learn SV maps',
+} satisfies Record<SkillName, string>);
+
+/** The player-facing, localized description of what a skill does. */
+export function skillDescription(skill: SkillName): string {
+	return __(SKILL_DESCRIPTIONS[skill]);
+}
+
 /** What a skill's upgrade line is about - the story behind its gear list. */
 const UPGRADE_DESCRIPTIONS = defineMessages({
 	accuracy: 'Upgrade your keyboard to increase your synergy',

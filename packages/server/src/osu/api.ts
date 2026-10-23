@@ -100,6 +100,8 @@ export type OsuBeatmapset = {
 	artist: string;
 	title: string;
 	creator: string;
+	/** the mapper's osu! user id */
+	user_id: number;
 	status: string;
 	beatmaps?: OsuBeatmapsetDiff[];
 };

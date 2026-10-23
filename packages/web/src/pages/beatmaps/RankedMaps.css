@@ -40,3 +40,17 @@
 .list__beatmap_sort a:hover {
 	background-color: hsl(var(--hsl-b3));
 }
+
+.list__beatmap_search {
+	padding: 16px 45px 6px;
+	background-color: hsl(var(--hsl-b4));
+}
+.list__beatmap_search .search__box {
+	background-color: hsl(var(--hsl-b5));
+}
+
+@media (max-width: 760px) {
+	.list__beatmap_search {
+		padding: 10px;
+	}
+}

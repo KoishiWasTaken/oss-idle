@@ -61,6 +61,21 @@ export const getCharacterRankedMaps = (id: number | string, page: number | strin
 		}, 
 	}));
 
+/** The account's own maps: the ranked ones they mapped, or their unranked uploads. */
+export type MappedStatus = 'ranked' | 'unranked';
+export const getCharacterNbMapped = (id: number | string, status: MappedStatus) =>
+	unwrap(rpc.v1.characters[':id'].countmapped[':status'].$get({
+		param: {
+			id: String(id), status, 
+		}, 
+	}));
+export const getCharacterMapped = (id: number | string, status: MappedStatus, page: number) =>
+	unwrap(rpc.v1.characters[':id'].mapped[':status'][':page'].$get({
+		param: {
+			id: String(id), status, page: String(page), 
+		}, 
+	}));
+
 /** Players whose name holds `q`. */
 export const searchPlayers = (q: string) =>
 	unwrap(rpc.v1.characters.search.$get({ query: { q } }));

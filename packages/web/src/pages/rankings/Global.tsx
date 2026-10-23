@@ -1,12 +1,14 @@
 import { useNavigate } from '@tanstack/react-router';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
-import PlayerLeaderboard from '../../components/leaderboard/PlayerLeaderboard';
+import PlayerLeaderboard, { type ScoreSort } from '../../components/leaderboard/PlayerLeaderboard';
 import type { getGlobalRanking } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 type Players = Awaited<ReturnType<typeof getGlobalRanking>>;
 
-export default function GlobalRankings({ page, country, players }: {
+/** The global rankings, by performance or by ranked score. */
+export default function GlobalRankings({ sort, page, country, players }: {
+	sort: ScoreSort,
 	page: number,
 	country?: string,
 	players: Players,
@@ -16,13 +18,13 @@ export default function GlobalRankings({ page, country, players }: {
 		<main>
 			<RankingsNav current={'global'} />
 			<CountryFilter selected={country} onSelect={value => navigate({
-				to: '/rankings/global', search: prev => ({
+				to: sort === 'pp' ? '/rankings/global' : '/rankings/score', search: prev => ({
 					...prev, country: value || undefined, page: 1,
 				}),
 			})} />
 
 			<div className='page-contents'>
-				<PlayerLeaderboard sort={'pp'} country={country} page={page} players={players} />
+				<PlayerLeaderboard sort={sort} country={country} page={page} players={players} />
 			</div>
 		</main>
 	);

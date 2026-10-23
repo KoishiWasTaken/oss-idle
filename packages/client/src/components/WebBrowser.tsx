@@ -5,7 +5,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import Controls from '../input/Controls';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 import {
 	isWebOpen,
 	SITE_URL,
@@ -35,6 +35,9 @@ export default function WebBrowser() {
 	const [open] = useSynced(isWebOpen);
 	const [url] = useSynced(webUrl);
 	const frameRef = useRef<HTMLIFrameElement>(null);
+	useKeyboardOwner(frameRef, {
+		active: open, layer: LAYER.WEB, close: () => isWebOpen.set(false),
+	});
 	const [mounted, setMounted] = useState(false);
 	const [loaded, setLoaded] = useState(false);
 
@@ -52,8 +55,6 @@ export default function WebBrowser() {
 		return () => clearInterval(timer);
 	}, [open]);
 
-	// Esc closes when the game (not the frame) holds focus.
-	Controls.back.usePress(() => { if (isWebOpen.get()) isWebOpen.set(false); });
 
 	// Create the iframe on first open and never tear it down.
 	useEffect(() => { if (open) setMounted(true); }, [open]);
@@ -74,6 +75,15 @@ export default function WebBrowser() {
 			return; // keep the spinner up; the replace reloads the site
 		}
 		setLoaded(true);
+		// the frame holds the keyboard, so Escape lands in it: an Escape the page
+		// itself did not use, outside its fields (a rename, a search), closes the browser
+		win?.addEventListener('keydown', (e) => {
+			// the frame's own elements: no instanceof across windows
+			const el = e.target as HTMLElement | null;
+			const field = !!el
+				&& (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable);
+			if (e.key === 'Escape' && !e.defaultPrevented && !field) close();
+		});
 		// Re-show the spinner the instant the next full navigation starts, so the
 		// game never flashes inside the frame while the origin root loads.
 		win?.addEventListener('beforeunload', () => setLoaded(false), { once: true });

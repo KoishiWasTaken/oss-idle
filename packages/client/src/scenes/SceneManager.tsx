@@ -2,8 +2,13 @@ import type { MedalBatch } from '@oss-idle/shared/play';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import IntroScreen from './IntroScreen';
 import MainMenu from './MainMenu';
-import SongSelect, { STRAIN_DEBUG_KEY } from './SongSelect';
-import Gameplay from './Gameplay';
+import SongSelect, {
+	STRAIN_DEBUG_KEY,
+	type SongSelectMode,
+} from './SongSelect';
+import Editor from './Editor';
+import type EditorSession from '../editor/session';
+import Gameplay, { type TestPlay } from './Gameplay';
 import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
 import { Score } from '../db/schema/score';
 import Result from './Result';
@@ -28,6 +33,7 @@ export const SCENE = mapped([
 	'LOBBY',
 	'MATCH',
 	'SAVER',
+	'EDITOR',
 ]);
 export type Scene = ValueIn<typeof SCENE>;
 
@@ -47,16 +53,18 @@ export default class SceneManager {
 	private static get = {
 		[SCENE.INTRO]: () => <IntroScreen />,
 		[SCENE.MENU]: (flash: boolean = false) => <MainMenu flash={flash} />,
-		[SCENE.SELECT]: () =>  <SongSelect />,
+		[SCENE.SELECT]: (mode?: SongSelectMode) => <SongSelect mode={mode} />,
 		[SCENE.GAME]: (
 			beatmapInfo: LightBeatmap, 
 			transition: Transition, 
 			debug = false,
+			test?: TestPlay,
 		) => <Gameplay 
 			key={++mounts}
 			beatmapInfo={beatmapInfo}
 			transition={transition} 
 			debugPlay={debug} 
+			test={test}
 		/>,
 		[SCENE.RESULT]: (
 			score: Score | ScoreDTO,
@@ -77,6 +85,8 @@ export default class SceneManager {
 		[SCENE.LOBBY]: () => <Lobby />,
 		[SCENE.MATCH]: () => <MatchSetup />,
 		[SCENE.SAVER]: () => <Screensaver />,
+		[SCENE.EDITOR]: (beatmap: LightBeatmap, session?: EditorSession) =>
+			<Editor key={beatmap.metadata.id} beatmap={beatmap} resume={session} />,
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as const satisfies Record<Scene, (...args: any[]) => JSX.Element>;

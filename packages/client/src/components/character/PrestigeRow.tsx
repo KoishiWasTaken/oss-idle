@@ -7,6 +7,7 @@ import {
 import type Skill from '@oss-idle/shared/sim/skills/skill';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { skillName } from '@oss-idle/shared/display/skills';
+import { SKILL } from '@oss-idle/shared/skills';
 import {
 	canPrestige,
 	maxUpgrades,
@@ -68,7 +69,10 @@ export default function PrestigeRow({
 		const name = skillName(skill.name);
 		setConfirming({
 			title: t`Prestige ${name}?`,
-			sub: t`XP Lv${level} → XP Lv0 · Loses every upgrade and all Overdrive · Keeps +${ph({ bonus: prestige + 1 })} bonus levels, ${ph({ slots: maxUpgrades(prestige + 1) })} gear slots and x${ph({ multiplier: next.toFixed(2) })} XP`,
+			sub: [
+				t`XP Lv${level} → XP Lv0 · Loses every upgrade and all Overdrive · Keeps +${ph({ bonus: prestige + 1 })} bonus levels, ${ph({ slots: maxUpgrades(prestige + 1) })} gear slots and x${ph({ multiplier: next.toFixed(2) })} XP`,
+				...skill.name === SKILL.memory ? [t`Resets every learned map`] : [],
+			].join(' · '),
 			confirmLabel: t`Prestige`,
 			color: '#ff4089',
 			onConfirm: () => void run(),

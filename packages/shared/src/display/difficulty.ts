@@ -37,6 +37,9 @@ const interpolate = (stops: typeof STOPS, stars: number): string | undefined => 
 export const difficultyColor = (stars: number): string =>
 	interpolate(STOPS, stars) ?? '#1a1a2e'; // expert+
 
+/** A star rating as shown everywhere: two decimals. */
+export const starsText = (stars: number): string => stars.toFixed(2);
+
 /** Past this, difficultyColor is too dark to read on a dark background. */
 export const isDarkDifficulty = (stars: number): boolean => stars >= 6.5;
 

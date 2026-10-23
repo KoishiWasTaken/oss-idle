@@ -34,10 +34,8 @@ import {
 import { showsDivine } from '@oss-idle/shared/rebirth';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import num from '@oss-idle/shared/display/num';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
-import accuracy from '@oss-idle/shared/display/accuracy';
-import Grade from '../../components/score/Grade';
-import { headlineGrades } from './headlineGrades';
+import CharacterTotals from './CharacterTotals';
+import CharacterFigures from './CharacterFigures';
 import { CharacterRanks } from '../../components/character/CharacterRanks';
 import RankGraph from '../../components/character/RankGraph';
 import CharacterMedals from '../../components/character/CharacterMedals';
@@ -50,7 +48,11 @@ import ProfileTabs from '../../components/character/ProfileTabs';
 import ProfileSection from '../../components/character/ProfileSection';
 import UserPage from '../../components/character/UserPage';
 import type { ProfileSection as Section } from '@oss-idle/shared/profile';
-import { Trans } from '@lingui/react/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import { ph } from '@lingui/core/macro';
 import { countryName } from '@oss-idle/shared/display/country';
 import { i18n } from '../../i18n';
 
@@ -58,12 +60,22 @@ import { i18n } from '../../i18n';
 type Character = Awaited<ReturnType<typeof getCharacter>>;
 type Stats = Awaited<ReturnType<typeof getCharacterStats>>;
 
+/** Days, hours and minutes, each unit's own word left to the translation. */
+const playTime = (seconds: number) => {
+	const minutes = Math.floor(seconds / 60);
+	return {
+		days: Math.floor(minutes / 1440), hours: Math.floor(minutes / 60) % 24, minutes: minutes % 60,
+	};
+};
+
 export default function CharacterPage({ id, character, stats }: {
 	id: string;
 	character: Character;
 	stats: Stats;
 }) {
+	const { t } = useLingui();
 	const user = useAsync(() => getUser(character.userId), [character]);
+	const { days, hours, minutes } = playTime(stats.playTime);
 
 	const me = useCurrentUser();
 	const isSelf = !!me && me.id === character.userId;
@@ -141,45 +153,17 @@ export default function CharacterPage({ id, character, stats }: {
 					<div className='character__graph'>
 						{stats.rankHistory.length > 0 && <RankGraph ranks={stats.rankHistory} />}
 					</div>
-					<div className='character__totals'>
-						<div className='character__totals_left'>
-							<div className='character__totals-left-area'>
-								<div className='character__totals-left-label'>pp</div>
-								<div className='character__totals-left-num'>{num(Math.round(stats.pp))}</div>
-							</div>
-							<div className='character__totals-left-area'>
-								<div className='character__totals-left-label'><Trans>Play Count</Trans></div>
-								<div className='character__totals-left-num'>{num(stats.playCount)}</div>
+					<CharacterTotals stats={stats}>
+						<div className='character__totals-left-area'>
+							<div className='character__totals-left-label'><Trans>Play Time</Trans></div>
+							<div className='character__totals-left-num'>
+								{t`${ph({ days })}d ${ph({ hours })}h ${ph({ minutes })}m`}
 							</div>
 						</div>
-						<div className='character__totals_grades'>
-							{headlineGrades(stats).map(g => (
-								<div key={g} className='character__grades-area'>
-									<Grade grade={g} />
-									<div className='character__grades-num'>{num(stats[g])}</div>
-								</div>
-							))}
-						</div>
-					</div>
+					</CharacterTotals>
 				</div>
 				<div className='character__stats_sep'></div>
-				<div className='character__all_stats'>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Ranked Score</Trans></div>
-						<div className='character__stats-num'>{num(stats.rankedScore)}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Hit Accuracy</Trans></div>
-						<div className='character__stats-num'>{accuracy(hitAccuracy(stats))}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Total Score</Trans></div>
-						<div className='character__stats-num'>{num(stats.totalScore)}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Total Hits</Trans></div>
-						<div className='character__stats-num'>{num(stats.totalHits)}</div>
-					</div>
+				<CharacterFigures stats={stats}>
 					{Judgements
 						.filter(j => j !== JUDGEMENT.DIVINE || showsDivine(stats[j]))
 						.map(j => (
@@ -188,7 +172,7 @@ export default function CharacterPage({ id, character, stats }: {
 								<div className='character__stats-num'>{num(stats[j])}</div>
 							</div>
 						))}
-				</div>
+				</CharacterFigures>
 			</div>
 			<div className='character__submeta'>
 			</div>

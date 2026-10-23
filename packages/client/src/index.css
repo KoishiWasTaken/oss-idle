@@ -105,35 +105,76 @@ button {
    CSS has no `easeOutBounce` timing function (a transition only takes one
    cubic-bezier), so Penner's easeOutBounce — the element repeatedly "hitting
    the floor" at its destination — is sampled into keyframe stops. It animates
-   from translate*(0) to translate*(--bounce-to), bouncing as it settles. Use
-   `forwards` so it stays at the target. */
+   from translate*(0) to translate*(--bounce-to), bouncing as it settles; the x
+   one starts from --bounce-from when set. Use `forwards` so it stays at the
+   target. */
 @keyframes ease-out-bounce-x {
 	0% {
-		transform: translateX(0);
+		transform: translateX(var(--bounce-from, 0px));
 	}
 	12% {
-		transform: translateX(calc(var(--bounce-to) * 0.1089));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.1089
+			)
+		);
 	}
 	24% {
-		transform: translateX(calc(var(--bounce-to) * 0.4356));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.4356
+			)
+		);
 	}
 	36% {
-		transform: translateX(calc(var(--bounce-to) * 0.9801));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.9801
+			)
+		);
 	}
 	54% {
-		transform: translateX(calc(var(--bounce-to) * 0.7502));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.7502
+			)
+		);
 	}
 	74% {
-		transform: translateX(calc(var(--bounce-to) * 0.9837));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.9837
+			)
+		);
 	}
 	82% {
-		transform: translateX(calc(var(--bounce-to) * 0.9375));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.9375
+			)
+		);
 	}
 	92% {
-		transform: translateX(calc(var(--bounce-to) * 0.9934));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.9934
+			)
+		);
 	}
 	96% {
-		transform: translateX(calc(var(--bounce-to) * 0.9846));
+		transform: translateX(
+			calc(
+				var(--bounce-from, 0px) +
+					(var(--bounce-to) - var(--bounce-from, 0px)) * 0.9846
+			)
+		);
 	}
 	100% {
 		transform: translateX(var(--bounce-to));

@@ -1,3 +1,4 @@
+import { desktop } from './desktop.js';
 /**
  * Which API origin a page talks to: the build's own, or an edge closer to the
  * player (`VITE_API_EDGES`). A page starts on the one it stored last time; a few
@@ -172,3 +173,27 @@ export const failoverFetch = (doFetch: typeof fetch): typeof fetch => async (inp
 /** The comma-separated `VITE_API_EDGES` as a list. */
 export const edgeList = (value: string | undefined): string[] =>
 	(value ?? '').split(',').map(edge => edge.trim().replace(/\/$/, '')).filter(Boolean);
+
+/**
+ * Apply the live session auth to an outgoing API request:
+ *  - browser: the session is an HttpOnly cookie, sent via `credentials: 'include'`.
+ *  - desktop: the app loads from an `app://` origin the API cookie can't ride, so
+ *    its main process adds the token as a `Bearer` header (no cookie).
+ */
+export const withAuth = (init?: RequestInit): RequestInit => ({
+	...init, credentials: desktop() ? 'omit' : 'include',
+});
+
+type JsonResponse<T> = { ok: boolean; status: number; json: () => Promise<T> };
+
+/** Parse a JSON response, throwing the server's error message on failure. */
+export const json = async <T>(res: JsonResponse<unknown>): Promise<T> => {
+	if (!res.ok) {
+		const body = await res.json().catch(() => ({})) as { error?: string };
+		throw new Error(body.error ?? `Request failed (${res.status})`);
+	}
+	return res.json() as Promise<T>;
+};
+
+/** Await a typed RPC response, throwing the server's error message on failure. */
+export const unwrap = async <T>(p: Promise<JsonResponse<T>>): Promise<T> => json<T>(await p);

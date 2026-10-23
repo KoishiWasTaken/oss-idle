@@ -136,7 +136,7 @@ const probes = async () => {
 };
 
 const ACTIVITY = [
-	'online', 'playing', 'plays_started', 'plays_finished', 'logins', 'signups', 'chat', 'sockets',
+	'online', 'clients', 'playing', 'plays_started', 'plays_finished', 'logins', 'signups', 'chat', 'sockets',
 ] as const;
 const SYSTEM = [
 	'load1', 'mem', 'lag_p99', 'redis_mb', 'redis_ops', 'redis_clients',

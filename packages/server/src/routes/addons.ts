@@ -1,21 +1,18 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	desc,
-	asc,
 	eq,
 	isNotNull,
-	isNull,
 	like,
 	or,
-	sql,
 } from 'drizzle-orm';
 import { z } from 'zod';
 import {
 	ADDON_KIND,
 	ADDON_STATUS,
+	AddonTypes,
 	addonBuildResult,
 	addonCreateBody,
 	addonModerateBody,
@@ -48,38 +45,29 @@ import { requireAuth } from '../auth/middleware';
 import { requireActive } from '../auth/active';
 import { requireAdmin } from '../auth/admin';
 import { saveUploadedImage } from '../uploads';
+import {
+	idParam,
+	valid,
+} from '../validate';
+import { dailyLimit } from '../rateLimit';
+import { csv } from '../db/columns';
+import {
+	browseQuery,
+	countDownload,
+	owned,
+	withAuthor,
+} from '../authored';
 
-const idParam = z.coerce.number().int().positive();
 const trustedBody = z.object({ trusted: z.boolean() });
 
-// Re-throw the ZodError so the app's onError returns the standard shape.
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => {
-		if (!result.success) throw result.error;
-	});
-
-/** Join the author's username onto an add-on row and map to the wire shape. */
-const withAuthor = async <T,>(
-	row: typeof addons.$inferSelect,
-	toDTO: (row: typeof addons.$inferSelect, authorName: string) => T,
-) => {
-	const [author] = await db
-		.select({ username: users.username })
-		.from(users)
-		.where(eq(users.id, row.authorId))
-		.limit(1);
-	return toDTO(row, author?.username ?? 'unknown');
-};
+// icon uploads are capped per account, like skins'
+const ICONS_PER_DAY = 5;
 
 /** Load an add-on the caller owns, or throw 404/403. */
 const ownedBy = async (id: number, userId: number) => {
 	const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
-	if (!row) throw new HTTPException(404, { message: 'Add-on not found' });
-	if (row.authorId !== userId) throw new HTTPException(403, { message: 'Not your add-on' });
-	return row;
+	return owned(row, userId, 'Add-on');
 };
-
-const csv = (list: string[]) => list.join(',');
 
 /** The author's view: with the repository webhook. */
 const toOwnAddonDTO = (row: AddonRow, authorName: string) => ({
@@ -128,13 +116,6 @@ const reread = async (id: number) => {
 	return withAuthor(row!, toOwnAddonDTO);
 };
 
-// Browse sort column keyed by the `sort` query; defaults to publish date.
-const SORT_COLUMNS = {
-	updated: addons.updatedAt,
-	downloads: addons.downloads,
-	created: addons.publishedAt,
-} as const;
-
 /**
  * Add-ons (user-published mods). Browsing the catalog is public but only exposes
  * published add-ons; authoring is auth-gated and owner-checked; moderation is
@@ -144,27 +125,16 @@ export const addonsRoutes = new Hono()
 	// Public: browse the published catalog. q matches name/author; tag filters;
 	// sort by created or updated date.
 	.get('/', async c => {
-		const q = c.req.query('q')?.trim();
-		const tag = c.req.query('tag')?.trim().toLowerCase();
-		const sort = SORT_COLUMNS[c.req.query('sort') as keyof typeof SORT_COLUMNS]
-			?? SORT_COLUMNS.created;
-		const dir = c.req.query('dir') === 'asc' ? asc : desc;
-
-		const where = [isNotNull(addons.publishedSource), isNull(users.restrictedAt)];
-		if (q) where.push(
-			or(
-				like(addons.name, `%${q}%`), 
-				like(users.username, `%${q}%`), 
-				like(addons.tags, `%${q}%`),
-			)!);
-		if (tag) where.push(like(addons.tags, `%${tag}%`));
-
+		const type = AddonTypes.find(known => known === c.req.query('type'));
+		const { where, orderBy } = browseQuery(c, addons);
+		where.push(isNotNull(addons.publishedSource));
+		if (type) where.push(like(addons.types, `%${type}%`));
 		const rows = await db
 			.select()
 			.from(addons)
 			.innerJoin(users, eq(users.id, addons.authorId))
 			.where(and(...where))
-			.orderBy(dir(sort));
+			.orderBy(orderBy);
 		return c.json(rows.map(r => toLiveAddonDTO(r.addons, r.user.username)));
 	})
 
@@ -178,7 +148,7 @@ export const addonsRoutes = new Hono()
 
 	// Auth: create a draft add-on owned by the caller. A repo add-on starts on its
 	// first build.
-	.post('/', requireActive, jsonBody(addonCreateBody), async c => {
+	.post('/', requireActive, valid('json', addonCreateBody), async c => {
 		const body = c.req.valid('json');
 		const repo = body.kind === ADDON_KIND.repo;
 		if (!repo) assertAllowed(body.source);
@@ -186,6 +156,7 @@ export const addonsRoutes = new Hono()
 			name: body.name,
 			description: body.description,
 			tags: csv(body.tags),
+			types: csv(body.types),
 			version: body.version,
 			gameVersion: body.gameVersion,
 			icon: body.icon,
@@ -203,13 +174,13 @@ export const addonsRoutes = new Hono()
 	.post('/builds/claim', requireBuilder, async c => c.json({ job: await claimBuild() }))
 
 	// Builder: report on a claimed build.
-	.post('/builds/:id', requireBuilder, jsonBody(addonBuildResult), async c => {
+	.post('/builds/:id', requireBuilder, valid('json', addonBuildResult), async c => {
 		await applyBuild(idParam.parse(c.req.param('id')), c.req.valid('json'));
 		return c.json({ ok: true });
 	})
 
 	// Auth: upload an icon image; returns the public path to store as `icon`.
-	.post('/icon', requireActive, async c => {
+	.post('/icon', requireActive, dailyLimit('addon-icons', ICONS_PER_DAY), async c => {
 		const body = await c.req.parseBody();
 		return c.json({ url: await saveUploadedImage(body['file']) });
 	})
@@ -227,7 +198,7 @@ export const addonsRoutes = new Hono()
 	})
 
 	// Admin: let a repo add-on's builds go live without review, or not.
-	.patch('/admin/:id/trusted', requireAdmin, jsonBody(trustedBody), async c => {
+	.patch('/admin/:id/trusted', requireAdmin, valid('json', trustedBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		await db.update(addons).set({ trusted: c.req.valid('json').trusted }).where(eq(addons.id, id));
 		const [row] = await db.select().from(addons).where(eq(addons.id, id)).limit(1);
@@ -238,7 +209,7 @@ export const addonsRoutes = new Hono()
 	// Admin: moderate - approve (→ published, stamps publishedAt, makes this code
 	// the live release), deny, unpublish (takes the live release down). Denying or
 	// holding an update leaves the previously approved release live.
-	.patch('/admin/:id', requireAdmin, jsonBody(addonModerateBody), async c => {
+	.patch('/admin/:id', requireAdmin, valid('json', addonModerateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const {
 			status, feedback, source,
@@ -291,7 +262,7 @@ export const addonsRoutes = new Hono()
 	// published add-on likewise reverts to pending, its approved release staying
 	// live meanwhile. Other edits keep the status and go live as they are.
 	// A repo add-on's source and versions come from its builds only.
-	.patch('/:id', requireActive, jsonBody(addonUpdateBody), async c => {
+	.patch('/:id', requireActive, valid('json', addonUpdateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const existing = await ownedBy(id, c.get('userId'));
 		const body = editsOf(existing, c.req.valid('json'));
@@ -311,6 +282,7 @@ export const addonsRoutes = new Hono()
 		await db.update(addons).set({
 			...body,
 			tags: body.tags ? csv(body.tags) : undefined,
+			types: body.types ? csv(body.types) : undefined,
 			status,
 			...live,
 		}).where(eq(addons.id, id));
@@ -382,18 +354,10 @@ export const addonsRoutes = new Hono()
 			.limit(1);
 		if (!pub) throw new HTTPException(404, { message: 'Add-on not found' });
 
-		const [res] = await db.insert(addonDownloads).ignore()
-			.values({
-				addonId: id, userId: c.get('userId'), 
-			});
-		if (res.affectedRows > 0) {
-			await db.update(addons)
-				.set({ downloads: sql`${addons.downloads} + 1` })
-				.where(eq(addons.id, id));
-		}
-		const [row] = await db.select({ downloads: addons.downloads })
-			.from(addons).where(eq(addons.id, id)).limit(1);
-		return c.json({ downloads: row?.downloads ?? 0 });
+		const inserted = await db.insert(addonDownloads).ignore().values({
+			addonId: id, userId: c.get('userId'),
+		});
+		return c.json(await countDownload(addons, id, inserted));
 	})
 
 	// Public: a single live add-on (its approved release, incl source, for

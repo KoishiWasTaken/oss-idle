@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/react/macro';
 import type { SkinDAO } from '../../db/schema/skin';
-import SkinIcon from './SkinIcon';
+import { skinIconUrl } from '../../online/skins';
+import ListingIcon from '../listing/ListingIcon';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { currentSkinDAO } from '../../osu/skin/Skin';
 
@@ -27,16 +28,16 @@ export default function SkinDAORow({
 	const [current] = useSynced(currentSkinDAO);
 
 	return (
-		<div className={`skin ${skin.id === current?.id ? 'is-on' : ''}`}>
-			<SkinIcon icon={skin.icon} name={skin.name} />
-			<div className='skin__main'>
-				<div className='skin__name'>
-					{skin.name}<span className='skin__ver'>v{skin.version}</span>
+		<div className={`listing ${skin.id === current?.id ? 'is-on' : ''}`}>
+			<ListingIcon url={skinIconUrl(skin.icon)} name={skin.name} />
+			<div className='listing__main'>
+				<div className='listing__name'>
+					{skin.name}<span className='listing__ver'>v{skin.version}</span>
 				</div>
-				<div className='skin__by'><Trans>by</Trans> {skin.authorName}</div>
+				<div className='listing__by'><Trans>by</Trans> {skin.authorName}</div>
 			</div>
-			<div className='skin__actions'>
-				<label className='skin-toggle'>
+			<div className='listing__actions'>
+				<label className='listing-toggle'>
 					<input 
 						type='checkbox' 
 						checked={skin.id === current?.id} 
@@ -48,20 +49,20 @@ export default function SkinDAORow({
 					</span>
 				</label>
 				<button 
-					className='skin-btn' 
+					className='listing-btn' 
 					disabled={busy} 
 					onClick={onDetails}>
 					<Trans>Details</Trans>
 				</button>
 				{hasUpdate && <button 
-					className='skin-btn skin-btn--primary'
+					className='listing-btn listing-btn--primary'
 					disabled={busy} 
 					onClick={onUpdate}
 				>
 					<Trans>Update</Trans>
 				</button>}
 				<button 
-					className='skin-btn skin-btn--danger' 
+					className='listing-btn listing-btn--danger' 
 					disabled={busy} 
 					onClick={onUninstall}
 				>

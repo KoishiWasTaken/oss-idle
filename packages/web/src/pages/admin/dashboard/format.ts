@@ -21,9 +21,4 @@ export const bytes = (value: number) => {
 	return `${Math.round(value / 1e3)} KB`;
 };
 
-export const clock = (at: number) =>
-	new Date(at).toLocaleTimeString([], {
-		hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-	});
-
-export const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
+export { default as clock } from '@oss-idle/shared/display/clock';

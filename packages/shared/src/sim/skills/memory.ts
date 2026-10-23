@@ -54,6 +54,10 @@ export default class Memory extends Skill {
 	// like a fully-blamed note credits any other skill (XP parity with the rest).
 	public static readonly TRAIN_SCALE = 4;
 
+	// Plays each memory upgrade forgets on every map, so a ladder bought at
+	// mastery has something left to train.
+	public static readonly FORGET_PLAYS = 10;
+
 	// times-played progress → memorization (0..1)
 	private static readonly LEARN_CB = cubic_bezier(.2, 0, .15, 1);
 	// skill → learning-rate boost shape
@@ -86,6 +90,24 @@ export default class Memory extends Skill {
 			this.maxPlays = lerp(this.maxPlays, Memory.MAX_PLAYS_BONUS, bonus);
 			this.maxImprove = lerp(this.maxImprove, Memory.IMPROVE_BONUS, bonus);
 		});
+	}
+
+	/** Plays that still train memory, from a map's play times and the times
+	 *  memory upgrades were bought (each forgets {@link FORGET_PLAYS}). */
+	static recall(playedAt: readonly number[], forgetAt: readonly number[]): number {
+		const events = [
+			...playedAt.map(t => ({
+				t, forget: false, 
+			})),
+			...forgetAt.map(t => ({
+				t, forget: true, 
+			})),
+		].sort((a, b) => a.t - b.t);
+		let plays = 0;
+		for (const e of events) {
+			plays = e.forget ? Math.max(0, plays - Memory.FORGET_PLAYS) : plays + 1;
+		}
+		return plays;
 	}
 
 	analyze(

@@ -171,7 +171,8 @@ export function buildBarlines(
 		// Clamped beatLength (6 to 60000ms): gimmick maps put red lines as short
 		// as 6e-96ms, a step that never advances `t` past the section start.
 		const measure = tp.beatLength * Math.max(1, tp.timeSignature);
-		for (let t = tp.startTime; t < end - 1; t += measure) {
+		const omitFirst = beatmap.controlPoints.effectPointAt(tp.startTime).omitFirstBarLine;
+		for (let t = tp.startTime + (omitFirst ? measure : 0); t < end - 1; t += measure) {
 			lines.push({
 				time: t / rate, pos: scroll.positionAt(t / rate),
 			});

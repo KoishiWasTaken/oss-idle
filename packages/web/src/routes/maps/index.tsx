@@ -14,17 +14,22 @@ import RankedMaps from '../../pages/beatmaps/RankedMaps';
 const mapsSearch = z.object({
 	sort: fallback(z.enum(['date', 'plays']), 'date').default('date'),
 	dir: fallback(z.enum(['asc', 'desc']), 'desc').default('desc'),
+	status: fallback(z.enum(['ranked', 'unranked', 'any']), 'ranked').default('ranked'),
+	q: fallback(z.string(), '').default(''),
 });
 
 export const Route = createFileRoute('/maps/')({
 	validateSearch: zodValidator(mapsSearch),
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => deps.sort === 'plays' ? getPopularMaps(deps.dir) : getAllMaps(deps.dir),
+	loader: ({ deps: { sort, dir, status, q } }) =>
+		(sort === 'plays' ? getPopularMaps : getAllMaps)(dir, {
+			status, q: q || undefined, 
+		}),
 	component: MapsRoute,
 	staticData: { title: msg`beatmap listing` },
 });
 
 function MapsRoute() {
-	const { sort, dir } = Route.useSearch();
-	return <RankedMaps sort={sort} dir={dir} mapsets={Route.useLoaderData()} />;
+	const { sort, dir, status, q } = Route.useSearch();
+	return <RankedMaps sort={sort} dir={dir} status={status} q={q} mapsets={Route.useLoaderData()} />;
 }

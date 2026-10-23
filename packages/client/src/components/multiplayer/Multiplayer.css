@@ -73,7 +73,6 @@
 }
 .mp-input:focus {
 	outline: none;
-	border-color: #fff;
 }
 .mp-input:disabled,
 .mp-input:read-only {

@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/react/macro';
-import SkinCodeEditor from './SkinCodeEditor';
-import SkinCodeView from './SkinCodeView';
+import CodeEditor from '../listing/CodeEditor';
+import CodeView from '../listing/CodeView';
 
 type Props = {
 	editing?: boolean,
@@ -20,13 +20,13 @@ export default function SkinCodePane({
 }: Props) {
 	return (
 		<>
-			<div className='skin-view__codehead'>
-				<span className='skin-view__codelabel'><Trans>Code</Trans></span>
+			<div className='listing-view__codehead'>
+				<span className='listing-view__codelabel'><Trans>Code</Trans></span>
 			</div>
 
 			{editing
-				? <SkinCodeEditor value={source} onChange={onChange} />
-				: <SkinCodeView source={source} />}
+				? <CodeEditor value={source} onChange={onChange} className='skin-code' />
+				: <CodeView source={source} />}
 		</>
 	);
 }

@@ -2,18 +2,15 @@ import Listener from '@oss-idle/shared/helpers/listener';
 import Synced from '@oss-idle/shared/helpers/synced';
 import SceneManager, { SCENE } from '../scenes/SceneManager';
 import { SETTINGS } from '../db/settings';
+import { closeTop } from './keyboardOwner';
 import { music } from '../audio/MusicPlayer';
 import {
-	isCommunityOpen,
 	isOptionsOpen,
 	isStandalone,
 	message,
 	openPage,
 } from '../globals';
-import {
-	showChat,
-	showUsers,
-} from '../components/community/state';
+import { showChat } from '../components/community/state';
 
 type KeyCallback = (press: boolean, release: boolean) => void;
 
@@ -123,13 +120,9 @@ export default class Controls {
 				case 'browserback':
 					e.preventDefault();
 				case 'escape':
-					if (isCommunityOpen.get()) {
-						isCommunityOpen.set(false);
-						showChat.set(false);
-						showUsers.set(false);
-						break;
-					}
-					if (openPage.get()) {
+					// the topmost overlay, menu or dialog first; the scene only when none is open
+					if (press && closeTop()) break;
+					if (press && openPage.get()) {
 						openPage.set(undefined);
 						break;
 					}
@@ -204,8 +197,14 @@ export default class Controls {
 		// document, so it keeps the native menu untouched.
 		window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+		// alt+wheel is the volume's alone: nothing under the cursor scrolls
 		window.addEventListener('wheel', (e) => {
-			if (this.mode_Alt.get() 
+			const alt = this.mode_Alt.get();
+			if (alt) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+			if (alt
 				|| (SceneManager.current.get() === SCENE.MENU
 					&& !isOptionsOpen.get() && !openPage.get() && !showChat.get())
 			) {
@@ -215,6 +214,8 @@ export default class Controls {
 					this.volumeUp.trigger(false, false);
 				}
 			}
+		}, {
+			capture: true, passive: false,
 		});
 
 		this.increaseScrollSpeed.onPress(async () => {

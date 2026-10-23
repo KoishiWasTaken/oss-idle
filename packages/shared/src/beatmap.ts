@@ -5,8 +5,9 @@
  * - `pending`  uploaded, not scheduled (no rankedAt yet)
  * - `ranked`   scheduled/live - live once rankedAt has passed
  * - `rejected` pulled from the queue
+ * - `unranked` a player's own upload: public, and theirs to replace
  */
-export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected'] as const;
+export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected', 'unranked'] as const;
 export type BeatmapStatus = (typeof BEATMAP_STATUS)[number];
 
 /** Tags set by hand on a difficulty, on top of what its .osu says. */
@@ -30,8 +31,11 @@ export type MapCover = {
 	background?: string | null;
 };
 
+/** A difficulty as a set's panel lists it. */
+export type PanelDiff = { id: number, version: string, sr: number, keys: number };
+
 /** A set's cover: osu!'s when it is on osu!, else our own preview background. */
-export const mapCoverUrl = (set: MapCover, size: 'list' | 'cover', apiBase = '') => {
+export const mapCoverUrl = (set: MapCover, size: 'list' | 'card' | 'cover', apiBase = '') => {
 	if (set.osuId) return `https://assets.ppy.sh/beatmaps/${set.osuId}/covers/${size}.jpg`;
 	if (set.background) return `${apiBase}/v1/beatmap/preview/${set.id}/${set.background}`;
 };

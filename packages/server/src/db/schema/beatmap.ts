@@ -42,6 +42,9 @@ export const beatmaps = mysqlTable('beatmap', {
 	objects: int().notNull().default(0),
 	rice: int().notNull().default(0),
 	ln: int().notNull().default(0),
+	// timing line counts, filled at ingest, backfilled at boot
+	bpmPoints: int(),
+	svPoints: int(),
 	mode: int().notNull().default(3),
 	audio: text(),
 	background: text(),

@@ -16,6 +16,7 @@ import {
 	type InputEvent,
 } from './bot.js';
 import RuntimeNote from './runtimeNote.js';
+import { noteSounds } from './noteSounds.js';
 import type { Beatmap } from 'osu-classes';
 import { ManiaRuleset } from 'osu-mania-stable';
 import beatSnap from './beat_snap.js';
@@ -148,7 +149,11 @@ export class ManiaGame {
 
 		this.notes = beatmap.hitObjects
 			.filter(o => 'column' in o)
-			.map(o => RuntimeNote.fromHitObject(o, beatSnap(o.startTime, beatmap.controlPoints.timingPoints)));
+			.map(o => RuntimeNote.fromHitObject(
+				o,
+				beatSnap(o.startTime, beatmap.controlPoints.timingPoints),
+				(samples, time) => noteSounds(samples, time, beatmap.controlPoints, beatmap.general.sampleSet),
+			));
 		const rate = options.rate ?? 1;
 		if (rate !== 1) for (const n of this.notes) {
 			n.time /= rate;

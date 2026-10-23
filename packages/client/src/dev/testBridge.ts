@@ -2,7 +2,10 @@ import {
 	Skills,
 	type SkillName,
 } from '@oss-idle/shared/skills';
-import SceneManager, { type Scene } from '../scenes/SceneManager';
+import SceneManager, {
+	SCENE,
+	type Scene,
+} from '../scenes/SceneManager';
 import Entities from '../entity/entities';
 import Account from '../online/account';
 import PlayManager from '../online/playManager';
@@ -19,6 +22,7 @@ import { SETTINGS } from '../db/settings';
 import { DB } from '../db/dao';
 import type Synced from '@oss-idle/shared/helpers/synced';
 import { music } from '../audio/MusicPlayer';
+import { menuWarmed } from '../warmup/menuWarmed';
 
 /**
  * Dev-only window handle the end-to-end suite (`packages/e2e`) drives the app
@@ -182,6 +186,12 @@ const bridge = {
 		return true;
 	},
 	scene: (): Scene => SceneManager.current.get(),
+	/** skip the intro and the menu clicks, for tests whose subject is not them.
+	 *  Like the intro, it waits for the hidden boot copy of the menu to go. */
+	enter: async (scene: typeof SCENE.MENU | typeof SCENE.SELECT): Promise<void> => {
+		await menuWarmed;
+		SceneManager.set(scene);
+	},
 	/** the difficulty the music player has, playing or not */
 	nowPlaying: (): number | undefined => music.beatmap.get()?.metadata.id,
 	/** The session has answered *and* the live character it decided on is in

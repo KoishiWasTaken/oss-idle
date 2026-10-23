@@ -16,6 +16,7 @@ import {
 	SUPPORTER_AWAY_HOURS,
 } from '@oss-idle/shared/queue';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
+import { faFlask } from '@fortawesome/free-solid-svg-icons/faFlask';
 
 /** What a supporter tag gives. */
 export default function SupporterPerks() {
@@ -84,6 +85,11 @@ export default function SupporterPerks() {
 				<div className='store__perk-icon'><FontAwesomeIcon icon={faDiscord} /></div>
 				<h3><Trans>Discord role</Trans></h3>
 				<p><Trans>A pink Supporter role on our Discord server, once you link your Discord account in the options.</Trans></p>
+			</div>
+			<div className='store__perk'>
+				<div className='store__perk-icon'><FontAwesomeIcon icon={faFlask} /></div>
+				<h3><Trans>Development previews</Trans></h3>
+				<p><Trans>See what's coming before anyone else in the #leaks channel, open to the Supporter role on our Discord.</Trans></p>
 			</div>
 		</div>
 	</section>;

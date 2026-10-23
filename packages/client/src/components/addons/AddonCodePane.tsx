@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
 import AddonCodeCheck from './AddonCodeCheck';
-import AddonCodeEditor from './AddonCodeEditor';
-import AddonCodeView from './AddonCodeView';
-import CodeDiff from './CodeDiff';
+import CodeEditor from '../listing/CodeEditor';
+import CodeView from '../listing/CodeView';
+import CodeDiff from '@oss-idle/shared/display/CodeDiff';
 
 type Props = {
 	editing: boolean,
@@ -14,6 +14,12 @@ type Props = {
 };
 
 type Shown = 'none' | 'code' | 'diff';
+
+const DIFF = {
+	root: 'listing-diff',
+	line: 'listing-diff__line',
+	sigil: 'listing-diff__sigil',
+};
 
 /**
  * The right column shared by every add-on view: an editable editor, or in view
@@ -32,10 +38,10 @@ export default function AddonCodePane({
 	if (editing) {
 		return (
 			<>
-				<div className='addon-view__codehead'>
-					<span className='addon-view__codelabel'><Trans>Code</Trans></span>
+				<div className='listing-view__codehead'>
+					<span className='listing-view__codelabel'><Trans>Code</Trans></span>
 				</div>
-				<AddonCodeEditor value={source} onChange={onChange} />
+				<CodeEditor value={source} onChange={onChange} className='addon-code' />
 				<AddonCodeCheck source={source} />
 			</>
 		);
@@ -43,24 +49,26 @@ export default function AddonCodePane({
 
 	return (
 		<>
-			<div className='addon-view__codehead'>
+			<div className='listing-view__codehead'>
 				<button
-					className={`addons__sort-btn ${shown === 'code' ? 'is-active' : ''}`}
+					className={`listings__sort-btn ${shown === 'code' ? 'is-active' : ''}`}
 					onClick={() => toggle('code')}
 				>
 					{shown === 'code' ? <Trans>Hide code</Trans> : <Trans>View code</Trans>}
 				</button>
 				{diffAgainst !== undefined && (
 					<button
-						className={`addons__sort-btn ${shown === 'diff' ? 'is-active' : ''}`}
+						className={`listings__sort-btn ${shown === 'diff' ? 'is-active' : ''}`}
 						onClick={() => toggle('diff')}
 					>
 						{shown === 'diff' ? <Trans>Hide changes</Trans> : <Trans>View changes</Trans>}
 					</button>
 				)}
 			</div>
-			{shown === 'code' && <AddonCodeView source={source} />}
-			{shown === 'diff' && diffAgainst !== undefined && <CodeDiff before={diffAgainst} after={source} />}
+			{shown === 'code' && <CodeView source={source} />}
+			{shown === 'diff' && diffAgainst !== undefined && (
+				<CodeDiff before={diffAgainst} after={source} classes={DIFF} />
+			)}
 		</>
 	);
 }

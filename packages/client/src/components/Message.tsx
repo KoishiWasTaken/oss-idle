@@ -19,14 +19,16 @@ let id = 0;
 export default function Message() {
 	const [messages, setMessages] = useState<MessageState[]>([]);
 
-	const addMessage = useCallback((message: string) => {
-		if (!message) return;
+	const addMessage = useCallback((text: string) => {
+		if (!text) return;
+		// shown: cleared, so the same message set again shows again
+		void message.set('');
 		const assignedId = id++;
 		setMessages(prev => [...prev.map(m => ({
 			...m, close: true, 
 		})), {
 			id: assignedId,
-			message,
+			message: text,
 			animate: false,
 			close: false,
 		}]);

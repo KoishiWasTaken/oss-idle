@@ -1,4 +1,6 @@
 import { stretchBuffer } from './stretchBuffer';
+import liveStretchUrl from './liveStretch.worklet?worker&url';
+import type { LiveStretchMessage } from './liveStretch.worklet';
 import { Beatmap } from 'osu-classes';
 import BeatmapStore from '../osu/beatmap/beatmap_store';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
@@ -323,10 +325,11 @@ export class MusicPlayer {
 	private history: LightBeatmap[] = [];
 
 	async next() {
-		const all = (await BeatmapStore.getAllSets()).flatMap(set => set.beatmaps);
+		const all = (await BeatmapStore.getAllSets()).flatMap(set => set.getPlayableBeatmaps());
 		if (!all.length) return;
 		const current = music.beatmap.get();
-		if (current) this.history = [...this.history, current].slice(-50);
+		// the intro is never stepped back to
+		if (current?.isPlayable()) this.history = [...this.history, current].slice(-50);
 		await music.beatmap.set(all[Math.floor(Math.random() * all.length)]);
 		await music.play(0);
 	}
@@ -409,7 +412,13 @@ export class MusicPlayer {
 	 *  stretched to it beforehand to keep its pitch */
 	private gameSpeed = 1;
 	/** the last stretched track, so a retry of the same map doesn't stretch again */
-	private stretched?: { url: string, rate: number, buffer: AudioBuffer };
+	private stretched?: { track: string, rate: number, buffer: AudioBuffer };
+	/** the last decoded track, so another speed doesn't fetch and decode it again */
+	private decoded?: { track: string, buffer: Promise<AudioBuffer | undefined> };
+	/** the track stretched as it plays (see liveStretch.worklet), for a kept pitch */
+	private live?: { node: Promise<AudioWorkletNode>, loaded?: AudioBuffer };
+	private liveNode?: AudioWorkletNode;
+	private livePlaying = false;
 	/** bumped by every stop, so a track still decoding for a play that ended is dropped */
 	private prepares = 0;
 
@@ -419,12 +428,23 @@ export class MusicPlayer {
 	 * At a rate the track speeds up; unless its pitch follows, it is stretched to
 	 * that speed first, on the same clock as everything else.
 	 */
-	async prepareGameplay(map: LightBeatmap, rate = 1, pitchFollows = true): Promise<boolean> {
-		this.stopGameplay();
+	async prepareGameplay(
+		map: LightBeatmap,
+		rate = 1,
+		pitchFollows = true,
+		/** a kept pitch is stretched as it plays, not first: a new speed is heard at once */
+		live = false,
+	): Promise<boolean> {
+		// the decoded track stays: another speed of the same song needs no decoding again
+		this.stopTrack();
 		const call = this.prepares;
 		try {
-			const prepared = await this.decodeGameplay(map, rate, pitchFollows);
+			const prepared = await this.decodeGameplay(map, rate, pitchFollows || live);
 			if (!prepared || call !== this.prepares) return false;
+			const stretched = rate !== 1 && !pitchFollows && live;
+			const node = stretched ? await this.liveTrack(prepared.buffer) : undefined;
+			if (call !== this.prepares) return false;
+			this.liveNode = node;
 			this.gameBuffer = prepared.buffer;
 			this.gameSpeed = prepared.speed;
 			return true;
@@ -436,23 +456,65 @@ export class MusicPlayer {
 	}
 
 	private async decodeGameplay(map: LightBeatmap, rate: number, pitchFollows: boolean) {
-		const url = await this.getAudioSource(map);
-		if (!url) return undefined;
-		if (rate !== 1 && !pitchFollows) {
-			if (this.stretched?.url !== url || this.stretched.rate !== rate) {
-				const decoded = await this.context.decodeAudioData(await (await fetch(url)).arrayBuffer());
-				this.stretched = {
-					url, rate, buffer: await stretchBuffer(this.context, decoded, rate),
-				};
-			}
+		// by set and file: a stored file's URL is a new one at every ask
+		const track = `${map.set.metadata.id}/${map.metadata.audio}`;
+		const kept = rate !== 1 && !pitchFollows;
+		// a retry at the same rate: stretched already, nothing to read or decode
+		if (kept && this.stretched?.track === track && this.stretched.rate === rate) {
 			return {
 				buffer: this.stretched.buffer, speed: 1,
 			};
 		}
-		const bytes = await (await fetch(url)).arrayBuffer();
-		return {
-			buffer: await this.context.decodeAudioData(bytes), speed: rate,
+		if (this.decoded?.track !== track) {
+			const buffer = this.getAudioSource(map).then(async url => {
+				if (!url) return undefined;
+				try {
+					return await this.context.decodeAudioData(await (await fetch(url)).arrayBuffer());
+				} finally {
+					if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+				}
+			});
+			this.decoded = {
+				track, buffer,
+			};
+			buffer.catch(() => { if (this.decoded?.buffer === buffer) this.decoded = undefined; });
+		}
+		const decoded = await this.decoded.buffer;
+		if (!decoded) return undefined;
+		if (!kept) return {
+			buffer: decoded, speed: rate,
 		};
+		this.stretched = {
+			track, rate, buffer: await stretchBuffer(this.context, decoded, rate),
+		};
+		return {
+			buffer: this.stretched.buffer, speed: 1, 
+		};
+	}
+
+	/** The live stretcher, holding `track`: made once, sent each new track once. */
+	private async liveTrack(track: AudioBuffer): Promise<AudioWorkletNode> {
+		this.live ??= {
+			node: this.context.audioWorklet.addModule(liveStretchUrl).then(() => {
+				const node = new AudioWorkletNode(this.context, 'live-stretch', {
+					numberOfInputs: 0, outputChannelCount: [2],
+				});
+				node.connect(this._analyser!);
+				return node;
+			}),
+		};
+		const live = this.live;
+		// a failed setup is tried again next time
+		live.node.catch(() => { if (this.live === live) this.live = undefined; });
+		const node = await live.node;
+		if (live.loaded !== track) {
+			live.loaded = track;
+			const channels = Array.from({ length: track.numberOfChannels }, (_, c) => track.getChannelData(c));
+			node.port.postMessage({
+				type: 'load', channels, 
+			} satisfies LiveStretchMessage);
+		}
+		return node;
 	}
 
 	/** Start the prepared track so song position `atMs` is heard now. Restarting
@@ -471,6 +533,14 @@ export class MusicPlayer {
 		this.playing.set(true);
 
 		if (offset >= this.gameBuffer.duration) return; // past the end: clock only
+		if (this.liveNode) {
+			const at = offset * this.gameBuffer.sampleRate;
+			this.liveNode.port.postMessage({
+				type: 'play', at, when, rate: this.gameSpeed,
+			} satisfies LiveStretchMessage);
+			this.livePlaying = true;
+			return;
+		}
 		const src = this.context.createBufferSource();
 		src.buffer = this.gameBuffer;
 		src.playbackRate.value = this.gameSpeed;
@@ -498,6 +568,16 @@ export class MusicPlayer {
 			return Math.max(0, (this.context.currentTime - heard) * 1000);
 		}
 		return ((this.context.outputLatency || 0) + this.context.baseLatency) * 1000;
+	}
+
+	/** The prepared gameplay track (stretched when a speed keeps its pitch). */
+	gameplayAudio(): AudioBuffer | undefined {
+		return this.gameBuffer;
+	}
+
+	/** The prepared gameplay track's length in song ms; 0 when none is prepared. */
+	gameDuration(): number {
+		return this.gameBuffer ? this.gameBuffer.duration * 1000 / this.gameSpeed : 0;
 	}
 
 	/** Gameplay song position (ms) from the shared audio clock. Advances smoothly
@@ -537,10 +617,31 @@ export class MusicPlayer {
 
 	/** Tear down the gameplay buffer source and release the decoded track. */
 	stopGameplay(): void {
+		this.stopTrack();
+		// a whole song is tens of MB: kept only while it is in use
+		this.decoded = undefined;
+	}
+
+	/** Forget the decoded and stretched song: its file changed under the same name. */
+	forgetTrack(): void {
+		this.decoded = undefined;
+		this.stretched = undefined;
+	}
+
+	/** Let go of the song the live stretcher holds (the editor closed). */
+	releaseLiveStretch(): void {
+		if (!this.live) return;
+		this.live.loaded = undefined;
+		const unload: LiveStretchMessage = { type: 'unload' };
+		void this.live.node.then(node => node.port.postMessage(unload));
+	}
+
+	private stopTrack(): void {
 		this.prepares++;
 		this.gameRiding = false;
 		this.disposeGameSource();
 		this.gameBuffer = undefined;
+		this.liveNode = undefined;
 		this.gameStartCtx = undefined;
 		this._playing = false;
 		this.playing.set(false);
@@ -556,6 +657,10 @@ export class MusicPlayer {
 	}
 
 	private disposeGameSource(): void {
+		if (this.livePlaying) {
+			this.livePlaying = false;
+			this.liveNode?.port.postMessage({ type: 'stop' } satisfies LiveStretchMessage);
+		}
 		if (!this.gameSource) return;
 		// we're stopping it deliberately, don't hand back
 		this.gameSource.onended = null;

@@ -8,8 +8,11 @@ import {
 	useLingui,
 } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import compareVersions from '@oss-idle/shared/helpers/compareVersions';
-import { ADDON_KIND } from '@oss-idle/shared/addon';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+import {
+	ADDON_KIND,
+	parseAddonTypes,
+} from '@oss-idle/shared/addon';
 import Auth from '../../online/auth';
 import {
 	Addon as InstalledAddon,
@@ -18,6 +21,7 @@ import {
 import {
 	disableAddon,
 	enableAddon,
+	installAddon,
 	remountAddon,
 	uninstallAddon,
 } from '../../addons/runtime';
@@ -38,6 +42,7 @@ import MyAddonRow from './MyAddonRow';
 import InstalledAddonRow from './InstalledAddonRow';
 import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import PageBarActions from '../page/PageBarActions';
+import { useHasUpdate } from '../listing/useHasUpdate';
 
 /** What the editor is editing: a blank draft (`{}`) or an existing add-on. */
 type Editing = { addon?: OwnAddon };
@@ -49,30 +54,11 @@ const detailOfInstalled = (a: InstalledAddon): AddonDetail => ({
 	gameVersion: a.gameVersion,
 	description: a.description,
 	tags: a.tags ? a.tags.split(',') : [],
+	types: parseAddonTypes(a.types ?? ''),
 	icon: a.icon,
 	source: a.source,
 	kind: ADDON_KIND.inline,
 });
-
-/** Persist a catalog add-on's source + metadata locally and enable it. */
-const installAndEnable = async (dto: Addon) => {
-	const installed = await new InstalledAddon({
-		id: dto.id,
-		name: dto.name,
-		description: dto.description,
-		version: dto.version,
-		gameVersion: dto.gameVersion,
-		source: dto.source,
-		icon: dto.icon,
-		authorId: dto.authorId,
-		authorName: dto.authorName,
-		tags: dto.tags.join(','),
-		status: dto.status,
-		enabled: false,
-		installedAt: Date.now(),
-	}).add();
-	await enableAddon(installed);
-};
 
 export default function ManageAddonsView() {
 	const { t } = useLingui();
@@ -81,15 +67,15 @@ export default function ManageAddonsView() {
 	const [editing, setEditing] = useState<Editing | undefined>();
 	const [installed, setInstalled] = useState<InstalledAddon[]>([]);
 	const [mine, setMine] = useState<OwnAddon[]>([]);
-	const [latest, setLatest] = useState<Record<number, string>>({});
 	const [details, setDetails] = useState<AddonDetail | undefined>();
 	const [updating, setUpdating] = useState<{ 
 		remote: Addon, 
 		local: InstalledAddon 
 	} | undefined>();
 	const [confirming, setConfirming] = useState<Confirm | undefined>();
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | undefined>();
+	const {
+		busy, error, setError, run: act,
+	} = useAction();
 
 	useEffect(() => { 
 		void InstalledAddon.getAll()
@@ -101,25 +87,9 @@ export default function ManageAddonsView() {
 		return myAddons().then(setMine).catch(e => setError(String(e.message ?? e)));
 	};
 	useEffect(() => { void refreshMine(); }, [user]);
+	const hasUpdate = useHasUpdate(installed, getAddon);
 
-	// Look up the latest published version of each installed add-on (best effort)
-	// so we can offer updates. A 404 (unpublished/removed) just yields no update.
-	useEffect(() => {
-		Promise.all(installed.map(a =>
-			getAddon(a.id).then(d => [a.id, d.version] as const).catch(() => undefined),
-		)).then(pairs => {
-			const existing = pairs.filter(Boolean) as [number, string][];
-			setLatest(Object.fromEntries(existing));
-		});
-	}, [installed]);
-
-	const run = async (fn: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(undefined);
-		try { await fn(); await refreshMine(); }
-		catch (e) { setError(String((e as Error).message ?? e)); }
-		finally { setBusy(false); }
-	};
+	const run = (fn: () => Promise<unknown>) => act(fn, refreshMine);
 
 	const openUpdate = (a: InstalledAddon) => run(async () => {
 		setUpdating({
@@ -136,6 +106,7 @@ export default function ManageAddonsView() {
 			name: remote.name,
 			description: remote.description,
 			tags: remote.tags.join(','),
+			types: remote.types.join(','),
 			icon: remote.icon, 
 			status: remote.status, 
 		});
@@ -211,7 +182,7 @@ export default function ManageAddonsView() {
 							color: '#ff66ab',
 							onConfirm: () => run(() => submitAddon(a.id)),
 						})}
-						onInstall={() => run(() => installAndEnable(a))}
+						onInstall={() => run(() => installAddon(a))}
 						onDelete={() => setConfirming({
 							title: t`Delete add-on`,
 							sub: t`Permanently delete "${ph({ addon: a.name })}"? This cannot be undone.`,
@@ -233,7 +204,7 @@ export default function ManageAddonsView() {
 						key={a.id}
 						addon={a}
 						busy={busy}
-						hasUpdate={latest[a.id] !== undefined && compareVersions(latest[a.id], a.version) > 0}
+						hasUpdate={hasUpdate(a)}
 						onToggle={enabled => run(() => enabled ? enableAddon(a) : disableAddon(a))}
 						onDetails={() => setDetails(detailOfInstalled(a))}
 						onUpdate={() => openUpdate(a)}

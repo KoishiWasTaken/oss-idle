@@ -1,8 +1,10 @@
 import type {
 	HitObject,
+	HitSample,
 	IHasColumn,
 	IHoldableObject,
 } from 'osu-classes';
+import type { NoteSound } from './noteSounds.js';
 
 export default class RuntimeNote {
 
@@ -16,10 +18,15 @@ export default class RuntimeNote {
 		public holding: boolean,
 		/** beat-snap divisor (1 = on-beat, 4 = 1/4, …; 0 = unsnapped) */
 		public snap: number = 0,
-		/** custom sample filenames carried from the beatmap (keysounds), if any.
-		 *  Resolved to actual sounds by the client; the sim never reads them. */
-		public samples: string[] = [],
+		/** the sounds it plays when hit, resolved by the client to actual samples;
+		 *  the sim never reads them */
+		public sounds: NoteSound[] = [],
 	) {}
+
+	/** the map's own sample files among its sounds (keysounds) */
+	get samples(): string[] {
+		return this.sounds.flatMap(sound => ('file' in sound ? [sound.file] : []));
+	}
 
 	/** song time (ms) at which the tail resolved as a MISS (a dropped/fumbled
 	 *  hold) - lets the renderer keep the remaining body on screen, dimmed,
@@ -53,10 +60,10 @@ export default class RuntimeNote {
 	public static fromHitObject(
 		hitObject: HitObject | IHoldableObject | IHasColumn,
 		snap: number,
+		soundsOf: (samples: HitSample[], time: number) => NoteSound[] = () => [],
 	): RuntimeNote {
-		const samples = 'samples' in hitObject
-			? hitObject.samples.map(s => s.filename).filter((f): f is string => !!f)
-			: [];
+		const time = 'startTime' in hitObject ? hitObject.startTime : 0;
+		const sounds = 'samples' in hitObject ? soundsOf(hitObject.samples, time) : [];
 		return new RuntimeNote(
 			'startTime' in hitObject ? hitObject.startTime : 0,
 			'endTime' in hitObject ? hitObject.endTime : 0,
@@ -66,7 +73,7 @@ export default class RuntimeNote {
 			false,
 			false,
 			snap,
-			samples,
+			sounds,
 		);
 	}
 

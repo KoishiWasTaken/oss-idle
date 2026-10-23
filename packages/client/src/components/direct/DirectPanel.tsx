@@ -5,6 +5,7 @@ import {
 import {
 	difficultyColor,
 	difficultyTextColor,
+	starsText,
 } from '@oss-idle/shared/display/difficulty';
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
 import { coverStyle } from './directState';
@@ -54,7 +55,7 @@ export default function DirectPanel({ set }: { set?: Metadata }) {
 								color: difficultyTextColor(v.difficulty),
 							}}
 						>
-							★ {v.difficulty.toFixed(2)}
+							★ {starsText(v.difficulty)}
 						</span>
 						<span className='direct-panel__version'>{v.version}</span>
 						{v.tags.map(tag => <span key={tag} className='direct-panel__tag'>{tag.toUpperCase()}</span>)}

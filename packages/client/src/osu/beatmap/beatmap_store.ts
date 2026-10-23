@@ -4,6 +4,7 @@ import { Unzipped } from 'fflate';
 import {
 	Manifest,
 	Metadata,
+	VersionMetadata,
 } from './beatmap_api';
 import { Beatmap } from 'osu-classes';
 import { BeatmapDecoder } from 'osu-parsers';
@@ -79,6 +80,8 @@ export type RuntimeMetadata = {
 export type RuntimeVersionMetadata = {
 	id: number,
 	runtime: true,
+	/** the .osu's name in the archive; missing on sets stored before it was kept */
+	file?: string,
 	version: string,
 	difficulty: number,
 	mode: number,
@@ -96,6 +99,13 @@ export type RuntimeVersionMetadata = {
 /** Bumped whenever the stored library changes (e.g. a wipe), so views like the
  *  song-select carousel can reload off it. */
 export const beatmapsVersion = new Synced(0);
+
+/** What storing a set needs: catalog metadata, or a local import's own. */
+export type StoreMetadata = Pick<
+	Metadata, 'id' | 'artist' | 'title' | 'creator' | 'audio' | 'background'
+> & {
+	versions: Pick<VersionMetadata, 'id' | 'file' | 'difficulty'>[],
+};
 
 export type SetRecord = {
 	setId: number,
@@ -319,9 +329,12 @@ const request = async <T>(
 
 export default class BeatmapStore {
 
+	/** Store a set's files; with `replace`, what it held before goes in the same
+	 *  transaction, so a failed write leaves the old set whole. */
 	public static async storeOsz(
-		metadata: Metadata, 
+		metadata: StoreMetadata,
 		files: Unzipped,
+		replace = false,
 	): Promise<SetRecord> {
 		const decoder = new TextDecoder();
 		
@@ -367,6 +380,7 @@ export default class BeatmapStore {
 				runtimeMetadata.versions.push({
 					id: meta.id,
 					runtime: true,
+					file,
 					audio: beatmap.general.audioFilename,
 					background: beatmap.events.backgroundPath ?? runtimeMetadata.background,
 					difficulty: meta.difficulty,
@@ -405,6 +419,7 @@ export default class BeatmapStore {
 			// uses. Paths are kept verbatim so references resolve against the
 			// original archive structure.
 			const fs = tx.objectStore('files');
+			if (replace) fs.delete(IDBKeyRange.bound(`${metadata.id}/`, `${metadata.id}/\uffff`));
 			for (const name of Object.keys(files)) {
 				if (name.toLowerCase().endsWith('.osu')) continue;
 				if (skippedAudio.has(normalizeName(name))) continue;
@@ -600,6 +615,26 @@ export default class BeatmapStore {
 			if (url) return url;
 		}
 		return undefined;
+	}
+
+	/** Every stored file of a set but its charts, by normalized name. */
+	public static async getFiles(setId: number): Promise<Unzipped> {
+		const d = await db();
+		const prefix = `${setId}/`;
+		const blobs = await new Promise<[string, Blob][]>((resolve, reject) => {
+			const found: [string, Blob][] = [];
+			const cursor = d.transaction('files', 'readonly').objectStore('files')
+				.openCursor(IDBKeyRange.bound(prefix, `${prefix}\uffff`));
+			cursor.onerror = () => reject(cursor.error);
+			cursor.onsuccess = () => {
+				const c = cursor.result;
+				if (!c) return resolve(found);
+				found.push([String(c.key).slice(prefix.length), c.value as Blob]);
+				c.continue();
+			};
+		});
+		return Object.fromEntries(await Promise.all(blobs.map(async ([name, blob]) =>
+			[name, new Uint8Array(await blob.arrayBuffer())] as const)));
 	}
 
 	/** Decode a stored text asset (e.g. a `.osb` storyboard) to a string. */

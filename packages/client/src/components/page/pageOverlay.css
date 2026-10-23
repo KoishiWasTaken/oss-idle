@@ -18,9 +18,35 @@
 	animation: page-overlay-out 0.25s ease both;
 	pointer-events: none;
 }
+/* slides in and settles with one small rebound */
 .page-overlay.from-right.is-open {
-	animation-name: page-overlay-slide-in;
-	animation-duration: 0.45s;
+	animation: page-overlay-slide-in 0.65s
+		linear(
+			0,
+			0.1565 5.2%,
+			0.294 10.3%,
+			0.4141 15.5%,
+			0.5185 20.7%,
+			0.6091 25.8%,
+			0.6875 31%,
+			0.7555 36.2%,
+			0.8148 41.3%,
+			0.8672 46.5%,
+			0.9144 51.7%,
+			0.958 56.8%,
+			1 62%,
+			0.9889 66.3%,
+			0.9822 70.7%,
+			0.98 75%,
+			0.9822 79.3%,
+			0.9889 83.7%,
+			1 88%,
+			0.9962 91%,
+			0.995 94%,
+			0.9962 97%,
+			1
+		)
+		both;
 }
 .page-overlay.from-right.is-closing {
 	animation: page-overlay-slide-out 0.3s cubic-bezier(0.55, 0, 1, 0.45) both;

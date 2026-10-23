@@ -20,10 +20,13 @@ export default function Activity({ metrics }: Props) {
 				<TimeChart
 					{...chart}
 					title='Online and playing'
-					note='highest each 5 minutes'
+					note='highest each 5 minutes; online includes games closed but playing on'
 					series={[
 						{
 							label: 'Online', slot: 1, values: gauge(a.online),
+						},
+						{
+							label: 'Game open', slot: 3, values: gauge(a.clients),
 						},
 						{
 							label: 'In a play', slot: 2, values: gauge(a.playing),

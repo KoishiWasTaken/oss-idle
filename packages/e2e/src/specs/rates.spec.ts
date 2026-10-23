@@ -59,7 +59,7 @@ test.describe('rates', () => {
 
 		await game.skipToEnd();
 		await game.expectScene('RESULT');
-		await expect(page.locator('.result__mod')).toContainText('x1.5');
+		await expect(page.locator('.result__mod[data-side="double"]')).toHaveText('1.5');
 		const score = await latestScore();
 		expect(Number(score.rate)).toBe(1.5);
 		expect(score.sr).not.toBeNull();
@@ -93,7 +93,7 @@ test.describe('rates', () => {
 		expect((await game.waitForPlay()).rate).toBe(0.5);
 		await game.skipToEnd();
 		await game.expectScene('RESULT');
-		await expect(page.locator('.result__mod')).toContainText('x0.5');
+		await expect(page.locator('.result__mod[data-side="half"]')).toHaveText('0.5');
 		const score = await latestScore();
 		expect(Number(score.rate)).toBe(0.5);
 		expect(score.score).toBeLessThanOrEqual(300_000);

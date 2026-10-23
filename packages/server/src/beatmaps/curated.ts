@@ -5,9 +5,7 @@ import {
 	eq,
 	getTableColumns,
 	isNull,
-	max,
 	or,
-	sum,
 } from 'drizzle-orm';
 import { OWNER_ID } from '@oss-idle/shared/groups';
 import { db } from '../db/client';
@@ -15,7 +13,10 @@ import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
 import { beatmapRequests } from '../db/schema/beatmap_request';
 import { profilePage } from '../db/profilePage';
-import { listedCondition } from './catalog';
+import {
+	listedCondition,
+	panelColumns,
+} from './catalog';
 
 /** Ranked sets the account proposed. Adri also gets the ranked maps nobody proposed. */
 const curatedCondition = (userId: number) => and(
@@ -39,8 +40,7 @@ export const getCurated = (userId: number, page: number) =>
 	profilePage(page, (offset, limit) => db
 		.select({
 			...getTableColumns(beatmapset),
-			plays: sum(beatmaps.plays),
-			background: max(beatmaps.background),
+			...panelColumns(),
 		})
 		.from(beatmapset)
 		.innerJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))

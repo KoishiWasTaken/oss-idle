@@ -5,6 +5,7 @@ import {
 	useState,
 } from 'react';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import clock from '@oss-idle/shared/display/clock';
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
 import Socket from '../../../online/socket';
 import Auth from '../../../online/auth';
@@ -127,8 +128,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 	return (<>
 		<div className="chat__log" ref={logRef}>
 			{shown.map(line => {
-				const d = new Date(line.at);
-				const time = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+				const time = clock(line.at);
 
 				if (line.name === undefined) {
 					return (

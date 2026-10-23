@@ -31,12 +31,10 @@ export default function LinkDiscord() {
 	};
 
 	return (
-		<div className="opt-signin">
-			<Button
-				label={linked ? <Trans>Relink Discord account</Trans> : <Trans>Link Discord account</Trans>}
-				accent="#5865f2"
-				onClick={() => void open()}
-			/>
-		</div>
+		<Button
+			label={linked ? <Trans>Relink Discord account</Trans> : <Trans>Link Discord account</Trans>}
+			accent="#5865f2"
+			onClick={() => void open()}
+		/>
 	);
 }

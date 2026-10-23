@@ -29,6 +29,25 @@ const IGNORED = [
 	/401 \(Unauthorized\)/,
 ];
 
+/** A character's first pass, upgrade or chat earns a medal, and its overlay
+ *  covers the screen. The per-worker accounts earn them on their first runs:
+ *  press it away (it keeps Escape to itself: skip the animation, then close). */
+/** CSS and web animations at 4x: a click waits for its target to stop moving. */
+const fastAnimations = async (page: Page) => {
+	const cdp = await page.context().newCDPSession(page);
+	await cdp.send('Animation.enable');
+	await cdp.send('Animation.setPlaybackRate', { playbackRate: 4 });
+};
+
+const dismissMedals = async (page: Page) => {
+	await page.addLocatorHandler(page.locator('.medal-overlay'), async overlay => {
+		await expect(async () => {
+			await page.keyboard.press('Escape');
+			await expect(overlay).toBeHidden({ timeout: 1000 });
+		}).toPass({ timeout: 15_000 });
+	});
+};
+
 type Fixtures = {
 	game: Game;
 	/** Errors the page logged during the test, for specs that assert on them. */
@@ -56,6 +75,8 @@ export const test = base.extend<Fixtures>({
 		// a new player's Next song would queue the whole listing behind every
 		// launch; the specs build the queues they test
 		await page.addInitScript(() => localStorage.setItem('autopilotMode', '"PLAYLIST"'));
+		await fastAnimations(page);
+		await dismissMedals(page);
 		await use(new Game(page));
 	},
 	playerAs: async ({ browser, baseURL }, use) => {
@@ -64,7 +85,10 @@ export const test = base.extend<Fixtures>({
 			const context = await browser.newContext();
 			contexts.push(context);
 			await signIn(context, account, baseURL!);
-			return context.newPage();
+			const page = await context.newPage();
+			await fastAnimations(page);
+			await dismissMedals(page);
+			return page;
 		});
 		await Promise.all(contexts.map(c => c.close()));
 	},

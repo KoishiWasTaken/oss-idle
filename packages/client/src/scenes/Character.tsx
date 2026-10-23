@@ -8,11 +8,12 @@ import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { openPage } from '../globals';
 import Entities from '../entity/entities';
 import Page from '../components/page/Page';
+import SkillsView from '../components/skills/SkillsView';
 import UpgradesView from '../components/upgrades/UpgradesView';
 import PrestigeView from '../components/character/PrestigeView';
 import RebirthView from '../components/character/RebirthView';
 
-/** The character page: the three progression loops, one per tab. */
+/** The character page: the skills, then the three progression loops, one per tab. */
 export default function Character() {
 	const { t } = useLingui();
 	const [character] = useSynced(Entities.character);
@@ -21,7 +22,14 @@ export default function Character() {
 		<Page
 			title={<Trans>Character</Trans>}
 			onBack={() => openPage.set(undefined)}
+			initialTab="upgrades"
 			tabs={[
+				{
+					id: 'skills',
+					label: <Trans>Skills</Trans>,
+					subtitle: t`What each skill does and what multiplies its XP`,
+					render: () => <SkillsView character={character} />,
+				},
 				{
 					id: 'upgrades',
 					label: <Trans>Upgrades</Trans>,

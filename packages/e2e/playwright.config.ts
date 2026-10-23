@@ -4,16 +4,19 @@ import {
 } from '@playwright/test';
 
 /**
- * The end-to-end suite runs against the *dev* stack (client on :5173, which
- * proxies /web to :5174, both talking to the API on :3873). It is deliberately
- * kept out of `npm test`: a spec here boots a browser, downloads a beatmap and
- * plays it, so it is minutes where the vitest suite is seconds.
+ * The end-to-end suite runs against the *dev* stack's API (:3873) and web app
+ * (:5174), with the client built in development mode (the test bridge kept) and
+ * served on :5175 - a fresh page loads a few bundles instead of ~700 dev modules.
+ * It is deliberately kept out of `npm test`: a spec here boots a browser,
+ * downloads a beatmap and plays it, so it is minutes where the vitest suite is
+ * seconds.
  *
- * `webServer` reuses the dev server the developer already has running and only
- * starts one when there is none.
+ * `webServer` reuses the dev stack the developer already has running (and only
+ * starts one when there is none), and builds and serves the client each run.
  */
 
-const PORT = Number(process.env.E2E_PORT ?? 5173);
+const PORT = Number(process.env.E2E_PORT ?? 5175);
+const API_PORT = Number(process.env.DEV_API_PORT ?? 3873);
 
 export default defineConfig({
 	testDir: './src/specs',
@@ -21,17 +24,19 @@ export default defineConfig({
 	// a play is a real clock, and a first-run context downloads a beatmap
 	timeout: 180_000,
 	expect: { timeout: 20_000 },
-	fullyParallel: false,
-	workers: process.env.CI ? 1 : 2,
-	retries: process.env.CI ? 1 : 0,
+	// every test has a context and accounts of its own (accounts.ts)
+	fullyParallel: true,
+	workers: Number(process.env.E2E_WORKERS ?? (process.env.CI ? 1 : 4)),
+	// a failure runs again, recorded: recording every test cost a third of the run
+	retries: 1,
 	forbidOnly: !!process.env.CI,
 	reporter: process.env.CI
 		? [['github'], ['html', { open: 'never' }]]
 		: [['list'], ['html', { open: 'never' }]],
 	use: {
 		baseURL: `http://localhost:${PORT}`,
-		trace: 'retain-on-failure',
-		video: 'retain-on-failure',
+		trace: 'on-first-retry',
+		video: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		actionTimeout: 20_000,
 	},
@@ -57,13 +62,22 @@ export default defineConfig({
 			},
 		},
 	],
-	webServer: {
+	webServer: [{
 		command: 'npm run dev',
 		cwd: '../..',
-		url: `http://localhost:${PORT}`,
+		url: `http://localhost:${API_PORT}/health`,
 		reuseExistingServer: true,
 		timeout: 180_000,
 		stdout: 'ignore',
 		stderr: 'pipe',
-	},
+	}, {
+		command: `npm -w @oss-idle/client run e2e:serve -- --port ${PORT}`,
+		cwd: '../..',
+		url: `http://localhost:${PORT}`,
+		// a runner that builds and serves the client itself (ops e2e/nm/job)
+		reuseExistingServer: !!process.env.E2E_APP_UP,
+		timeout: 180_000,
+		stdout: 'ignore',
+		stderr: 'pipe',
+	}],
 });

@@ -12,6 +12,7 @@ import {
 	saveUserPage,
 } from '../../api/characters';
 import BBCodeToolbar from './BBCodeToolbar';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 export type UserPageContent = Awaited<ReturnType<typeof saveUserPage>>['userPage'];
 
@@ -26,20 +27,7 @@ export default function UserPageEditor({ characterId, raw, onSaved, onCancel }: 
 	const textarea = useRef<HTMLTextAreaElement>(null);
 	const [text, setText] = useState(raw);
 	const [preview, setPreview] = useState<string>();
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string>();
-
-	const run = async (fn: () => Promise<void>) => {
-		setBusy(true);
-		setError(undefined);
-		try {
-			await fn();
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		} finally {
-			setBusy(false);
-		}
-	};
+	const { busy, error, run } = useAction();
 
 	const save = () => run(async () => onSaved((await saveUserPage(characterId, text)).userPage));
 	const showPreview = () => run(async () => setPreview((await previewUserPage(text)).html));

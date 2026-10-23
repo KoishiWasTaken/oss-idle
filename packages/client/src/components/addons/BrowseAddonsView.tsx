@@ -1,8 +1,10 @@
 import { ph } from '@lingui/core/macro';
 import {
 	useEffect,
+	useRef,
 	useState,
 } from 'react';
+import useKeyboardOwner from '../../input/keyboardOwner';
 import {
 	Plural,
 	Trans,
@@ -13,39 +15,25 @@ import {
 	Addon as InstalledAddon,
 	addonsVersion,
 } from '../../db/schema/addon';
-import { enableAddon } from '../../addons/runtime';
+import { installAddon } from '../../addons/runtime';
 import {
+	AddonTypes,
+	type AddonType,
+} from '@oss-idle/shared/addon';
+import { addonTypeLabel } from '@oss-idle/shared/display/addon';
+import {
+	addonIconUrl,
 	browseAddons,
 	recordAddonDownload,
 	type Addon,
 } from '../../online/addons';
 import Account from '../../online/account';
-import AddonIcon from './AddonIcon';
+import ListingIcon from '../listing/ListingIcon';
 import AddonView, { detailOfDTO } from './AddonView';
 import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import type { PageAction } from '../page/pageBar';
 
 type Sort = 'created' | 'updated' | 'downloads';
-
-/** Persist a catalog add-on locally and enable it. */
-const install = async (dto: Addon) => {
-	const installed = await new InstalledAddon({
-		id: dto.id,
-		name: dto.name,
-		description: dto.description,
-		version: dto.version,
-		gameVersion: dto.gameVersion,
-		source: dto.source,
-		icon: dto.icon,
-		authorId: dto.authorId,
-		authorName: dto.authorName,
-		tags: dto.tags.join(','),
-		status: dto.status,
-		enabled: false,
-		installedAt: Date.now(),
-	}).add();
-	await enableAddon(installed);
-};
 
 export default function BrowseAddonsView() {
 	const { t } = useLingui();
@@ -55,7 +43,10 @@ export default function BrowseAddonsView() {
 	const [detail, setDetail] = useState<Addon | undefined>();
 	const [confirming, setConfirming] = useState<Confirm | undefined>();
 	const [query, setQuery] = useState('');
+	const searchRef = useRef<HTMLInputElement>(null);
+	useKeyboardOwner(searchRef, { active: !detail });
 	const [sort, setSort] = useState<Sort>('created');
+	const [type, setType] = useState<AddonType>();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | undefined>();
 
@@ -64,15 +55,18 @@ export default function BrowseAddonsView() {
 			.then(rows => setInstalledIds(new Set(rows.map(r => r.id))));
 	}, [version]);
 
+	// only the newest request's answer is shown: an older one landing late is dropped
+	const requests = useRef(0);
 	const refresh = () => {
 		setError(undefined);
+		const request = ++requests.current;
 		return browseAddons({
-			q: query.trim() || undefined, sort, dir: 'desc', 
+			q: query.trim() || undefined, type, sort, dir: 'desc', 
 		})
-			.then(setList)
-			.catch(e => setError(String(e.message ?? e)));
+			.then(list => request === requests.current && setList(list))
+			.catch(e => request === requests.current && setError(String(e.message ?? e)));
 	};
-	useEffect(() => { void refresh(); }, [sort]);
+	useEffect(() => { void refresh(); }, [sort, type]);
 
 	// Count this player's install once (server dedupes); reflect the new total in
 	// the list/detail. Signed-out players can't be counted, so skip the call.
@@ -91,7 +85,7 @@ export default function BrowseAddonsView() {
 
 	const doInstall = (dto: Addon) => {
 		setBusy(true);
-		void install(dto)
+		void installAddon(dto)
 			.then(() => recordDownload(dto.id))
 			.catch(e => setError(String((e as Error).message ?? e)))
 			.finally(() => setBusy(false));
@@ -107,9 +101,9 @@ export default function BrowseAddonsView() {
 
 	// Row action (inline, in the list).
 	const installButton = (a: Addon) => installedIds.has(a.id)
-		? <span className='addon__installed'><Trans>Installed</Trans></span>
+		? <span className='listing__installed'><Trans>Installed</Trans></span>
 		: <button 
-			className='addon-btn addon-btn--primary' 
+			className='listing-btn listing-btn--primary' 
 			disabled={busy} 
 			onClick={() => askInstall(a)}
 		>
@@ -143,35 +137,49 @@ export default function BrowseAddonsView() {
 				/>
 				: (
 					<>
-						<div className='addons__toolbar'>
-							<span className='addons__search-label'><Trans>Search:</Trans></span>
+						<div className='listings__toolbar'>
+							<span className='listings__search-label'><Trans>Search:</Trans></span>
 							<input
-								className='addons__search'
+								ref={searchRef}
+								className='listings__search'
 								value={query}
 								placeholder={t`name, author or tag`}
 								onChange={e => setQuery(e.target.value)}
 								onKeyDown={e => { if (e.key === 'Enter') void refresh(); }}
 							/>
-							<div className='addons__sort'>
+							<div className='listings__sort'>
 								<button 
-									className={`addons__sort-btn ${sort === 'created' ? 'is-active' : ''}`} 
+									className={`listings__sort-btn ${sort === 'created' ? 'is-active' : ''}`} 
 									onClick={() => setSort('created')}
 								>
 									<Trans>Newest</Trans>
 								</button>
 								<button
-									className={`addons__sort-btn ${sort === 'updated' ? 'is-active' : ''}`}
+									className={`listings__sort-btn ${sort === 'updated' ? 'is-active' : ''}`}
 									onClick={() => setSort('updated')}
 								>
 									<Trans>Updated</Trans>
 								</button>
 								<button
-									className={`addons__sort-btn ${sort === 'downloads' ? 'is-active' : ''}`}
+									className={`listings__sort-btn ${sort === 'downloads' ? 'is-active' : ''}`}
 									onClick={() => setSort('downloads')}
 								>
 									<Trans>Most downloaded</Trans>
 								</button>
 							</div>
+						</div>
+
+						<div className='addon-types'>
+							<span className='listings__search-label'><Trans>Type:</Trans></span>
+							{[undefined, ...AddonTypes].map(option => (
+								<button
+									key={option ?? 'all'}
+									className={`addon-type ${option === type ? 'is-active' : ''}`}
+									onClick={() => setType(option)}
+								>
+									{option ? addonTypeLabel(option) : t`All`}
+								</button>
+							))}
 						</div>
 
 						{error && <div className='page__error'>{error}</div>}
@@ -182,28 +190,31 @@ export default function BrowseAddonsView() {
 
 						<div className='page__list'>
 							{list?.map(a => (
-								<div key={a.id} className='addon'>
-									<AddonIcon icon={a.icon} name={a.name} />
-									<div className='addon__main'>
-										<div className='addon__name'>
-											{a.name}<span className='addon__ver'>v{a.version}</span>
+								<div key={a.id} className='listing'>
+									<ListingIcon url={addonIconUrl(a.icon)} name={a.name} />
+									<div className='listing__main'>
+										<div className='listing__name'>
+											{a.name}<span className='listing__ver'>v{a.version}</span>
 										</div>
-										<div className='addon__by'>
+										<div className='listing__by'>
 											<Trans>by {ph({ author: a.authorName })}</Trans>
 											<span className='addon__downloads'>
 												{' · '}
 												<Plural value={ph({ downloads: a.downloads })} one='# download' other='# downloads' />
 											</span>
 										</div>
-										{a.description && <div className='addon__desc'>{a.description}</div>}
-										{a.tags.length > 0 && <div className='addon__tags'>
-											{a.tags.map(tag => <span key={tag} className='addon__tag'>{tag}
+										{a.description && <div className='listing__desc'>{a.description}</div>}
+										<div className='listing__tags'>
+											{a.types.map(kind => (
+												<span key={kind} className='addon-type is-active'>{addonTypeLabel(kind)}</span>
+											))}
+											{a.tags.map(tag => <span key={tag} className='listing__tag'>{tag}
 											</span>)}
-										</div>}
+										</div>
 									</div>
-									<div className='addon__actions'>
+									<div className='listing__actions'>
 										<button
-											className='addon-btn' 
+											className='listing-btn' 
 											onClick={() => setDetail(a)}>
 											<Trans>Details</Trans>
 										</button>

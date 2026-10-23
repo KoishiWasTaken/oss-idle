@@ -3,6 +3,7 @@ import {
 	useEffect,
 	type ReactNode,
 } from 'react';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import Auth from '../online/auth';
@@ -115,6 +116,9 @@ export default function Tutorial() {
 		return () => clearTimeout(t);
 	}, [isOpen, resolved, user, scene, step]);
 
+	useKeyboardOwner(undefined, {
+		active: isOpen && step < STEPS.length, layer: LAYER.TUTORIAL, 
+	});
 	if (!isOpen || step >= STEPS.length) return null;
 
 	const current = STEPS[step];

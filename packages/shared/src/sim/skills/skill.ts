@@ -7,7 +7,10 @@ import type RuntimeNote from '../runtimeNote.js';
 import Synced from '../../helpers/synced.js';
 import type { SkillName } from '../../skills.js';
 import { xpForLevel } from './xp.js';
-import { skillXPMultiplier } from '../../upgrades.js';
+import {
+	skillXPMultiplier,
+	type UpgradeState,
+} from '../../upgrades.js';
 import {
 	effectiveLevelOf,
 	mapLevel,
@@ -47,6 +50,26 @@ export default abstract class Skill {
 			this.overdrive.get(),
 			this.prestige.get(),
 		);
+	}
+
+	/** The progress the upgrade and prestige math reads. */
+	public state(): UpgradeState {
+		return {
+			level: this.level.get(),
+			xp: this.xp.get(),
+			upgrades: this.upgrades.get(),
+			overdrive: this.overdrive.get(),
+			prestige: this.prestige.get(),
+		};
+	}
+
+	/** Write back what that math returned. */
+	public apply(next: UpgradeState): void {
+		void this.level.set(next.level);
+		void this.xp.set(next.xp);
+		void this.upgrades.set(next.upgrades);
+		void this.overdrive.set(next.overdrive);
+		void this.prestige.set(next.prestige);
 	}
 
 	/** Effective level: what the player earned, how far into the next level they

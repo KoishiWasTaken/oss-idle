@@ -1,5 +1,6 @@
 import './Ticker.css';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import clock from '@oss-idle/shared/display/clock';
 import Socket from '../../online/socket';
 import ChatText from './chat/ChatText';
 import { menuIdle } from '../../globals';
@@ -11,8 +12,7 @@ export default function Ticker() {
 	const latest = lines[lines.length - 1];
 	if (!latest) return null;
 	
-	const d = new Date(latest.at);
-	const time = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+	const time = clock(latest.at);
 
 	if (latest.kind === 'system') {
 		return (

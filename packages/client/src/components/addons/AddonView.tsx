@@ -3,7 +3,9 @@ import { Trans } from '@lingui/react/macro';
 import {
 	ADDON_KIND,
 	ADDON_TEMPLATE,
+	ADDON_TYPE,
 	type AddonKind,
+	type AddonType,
 } from '@oss-idle/shared/addon';
 import { VERSION } from '@oss-idle/shared/version';
 import {
@@ -17,7 +19,10 @@ import AddonCodePane from './AddonCodePane';
 import AddonRepoPane from './AddonRepoPane';
 import AddonReadMeta from './AddonReadMeta';
 import PageBarActions from '../page/PageBarActions';
-import type { PageAction } from '../page/pageBar';
+import {
+	editorBarActions,
+	type PageAction,
+} from '../page/pageBar';
 
 /**
  * Normalised add-on info:
@@ -30,6 +35,7 @@ export type AddonDetail = {
 	gameVersion: string,
 	description: string,
 	tags: string[],
+	types: AddonType[],
 	icon: string | null,
 	source: string,
 	kind: AddonKind,
@@ -46,6 +52,7 @@ export const detailOfDTO = (a: Addon): AddonDetail => ({
 	gameVersion: a.gameVersion,
 	description: a.description,
 	tags: a.tags,
+	types: a.types,
 	icon: a.icon,
 	source: a.source,
 	kind: a.kind,
@@ -62,6 +69,7 @@ export const newAddonDetail = (): AddonDetail => ({
 	gameVersion: VERSION,
 	description: '',
 	tags: [],
+	types: [ADDON_TYPE.gameplay],
 	icon: null,
 	source: ADDON_TEMPLATE,
 	kind: ADDON_KIND.inline,
@@ -71,6 +79,7 @@ const formOf = (detail: AddonDetail): AddonForm => ({
 	name: detail.name,
 	description: detail.description,
 	tags: detail.tags.join(', '),
+	types: detail.types,
 	version: detail.version,
 	gameVersion: detail.gameVersion ?? VERSION,
 	icon: detail.icon,
@@ -82,6 +91,7 @@ const bodyOf = (form: AddonForm, source: string) => ({
 	name: form.name.trim(),
 	description: form.description.trim(),
 	tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+	types: form.types,
 	version: form.version.trim(),
 	gameVersion: form.gameVersion.trim(),
 	icon: form.icon,
@@ -109,38 +119,6 @@ type Props = {
 	| EditAddonprops
 	| ViewAddonprops
 );
-
-type BarOpts = {
-	editing: boolean,
-	busy: boolean,
-	canSave: boolean,
-	onBack: () => void,
-	onSave: () => void,
-	viewActions?: PageAction[],
-};
-
-/**
- * Bottom-bar actions:
- * back/cancel, plus Save (edit) or the caller's view actions.
- */
-const barActions = (o: BarOpts): PageAction[] => {
-	const back: PageAction = {
-		id: 'back',
-		label: o.editing ? <Trans>Cancel</Trans> : <Trans>Back</Trans>,
-		onClick: o.onBack,
-		disabled: o.busy,
-		order: 10,
-	};
-	if (!o.editing) return [back, ...o.viewActions ?? []];
-	const save: PageAction = {
-		id: 'save',
-		label: o.busy ? <Trans>Saving…</Trans> : <Trans>Save</Trans>,
-		onClick: o.onSave,
-		disabled: o.busy || !o.canSave,
-		order: 20,
-	};
-	return [back, save];
-};
 
 /**
  * The single add-on view, shared by the editor, details, install preview and
@@ -184,15 +162,15 @@ export default function AddonView(props: Props) {
 	};
 
 	return (
-		<div className='addon-view'>
-			<div className='addon-view__cols'>
-				<div className='addon-view__meta'>
+		<div className='listing-view'>
+			<div className='listing-view__cols'>
+				<div className='listing-view__meta'>
 					{editing
 						? <AddonEditMeta form={form} set={set} feedback={own?.feedback} />
 						: <AddonReadMeta detail={detail} />}
 				</div>
 
-				<div className='addon-field addon-field--code'>
+				<div className='listing-field listing-field--code'>
 					{editing && repo
 						? <AddonRepoPane addon={repoAddon} onChange={setRepoAddon} />
 						: <AddonCodePane
@@ -205,14 +183,14 @@ export default function AddonView(props: Props) {
 			</div>
 
 			{editing && (
-				<p className='addon-view__notice'>
+				<p className='listing-view__notice'>
 					<Trans>Published add-on code must be licensed under the AGPLv3 (or a compatible licence), regardless of its source code's license.</Trans>
 				</p>
 			)}
 			{error && <div className='page__error'>{error}</div>}
 
 			<PageBarActions 
-				actions={barActions({
+				actions={editorBarActions({
 					editing,
 					busy,
 					canSave: !!form.name.trim() && (!repo || !!form.repoUrl.trim()),

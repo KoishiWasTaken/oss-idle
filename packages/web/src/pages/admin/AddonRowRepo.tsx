@@ -34,13 +34,13 @@ export default function AddonRowRepo({
 	return (
 		<>
 			<AddonRepoLine row={row} />
-			{partial && <p className='addons-admin__error'>
+			{partial && <p className='admin-list__error'>
 				The diff is too big to show whole: read the repository itself before approving.
 			</p>}
 			<div className='addons-admin__codebar'>
 				{diff !== undefined && (
 					<button
-						className={`addons-admin__btn ${view === 'diff' ? 'current' : ''}`}
+						className={`admin-list__btn ${view === 'diff' ? 'current' : ''}`}
 						onClick={() => toggle('diff')}
 					>
 						{view === 'diff' ? 'Hide changes' : diffLabel}
@@ -48,7 +48,7 @@ export default function AddonRowRepo({
 				)}
 				{row.buildLog && (
 					<button
-						className={`addons-admin__btn ${view === 'log' ? 'current' : ''}`}
+						className={`admin-list__btn ${view === 'log' ? 'current' : ''}`}
 						onClick={() => toggle('log')}
 					>
 						{view === 'log' ? 'Hide build log' : 'View build log'}

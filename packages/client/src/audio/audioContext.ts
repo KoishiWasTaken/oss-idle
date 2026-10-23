@@ -12,7 +12,19 @@ const windowAudioContext = window as unknown as {
 const Ctx = window.AudioContext
 	|| windowAudioContext.webkitAudioContext;
 
+/** Mobile browsers stop the context when the tab is left (iOS: `interrupted`) and
+ *  may only start it again on a gesture, so every return and touch wakes it. */
+function keepRunning(ctx: AudioContext): void {
+	const wake = () => {
+		if (document.visibilityState !== 'visible') return;
+		if (ctx.state !== 'running' && ctx.state !== 'closed') void ctx.resume().catch(() => {});
+	};
+	for (const event of ['visibilitychange', 'pageshow', 'pointerdown', 'touchend', 'keydown'])
+		window.addEventListener(event, wake, { capture: true });
+}
+
 // HMR reuse so hot reloads don't leak contexts
 const globalStore = globalThis as unknown as { __ossIdleCtx?: AudioContext };
 export const audioContext: AudioContext = globalStore.__ossIdleCtx ?? new Ctx();
+if (!globalStore.__ossIdleCtx) keepRunning(audioContext);
 globalStore.__ossIdleCtx = audioContext;

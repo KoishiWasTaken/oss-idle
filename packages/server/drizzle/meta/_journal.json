@@ -540,6 +540,62 @@
       "when": 1794700800000,
       "tag": "0084_server_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "5",
+      "when": 1794787200000,
+      "tag": "0085_timing_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "5",
+      "when": 1794960000000,
+      "tag": "0087_memory_forget",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "5",
+      "when": 1795046400000,
+      "tag": "0088_bug_reports",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "5",
+      "when": 1795132800000,
+      "tag": "0089_unranked_maps",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "5",
+      "when": 1795219200000,
+      "tag": "0090_unranked_leaderboards",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "5",
+      "when": 1795305600000,
+      "tag": "0091_rank_submissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "5",
+      "when": 1795392000000,
+      "tag": "0092_player_managed_sets",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "5",
+      "when": 1795478400000,
+      "tag": "0093_addon_types",
+      "breakpoints": true
     }
   ]
 }

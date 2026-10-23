@@ -5,6 +5,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 import Auth from '../online/auth';
 import Account from '../online/account';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
@@ -28,6 +29,10 @@ export default function Onboarding() {
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const fileInput = useRef<HTMLInputElement>(null);
+	const nameRef = useRef<HTMLInputElement>(null);
+	useKeyboardOwner(nameRef, {
+		active: !!needs && !!user, layer: LAYER.ONBOARDING, 
+	});
 
 	// Prefill the name with the osu! username once it's known.
 	useEffect(() => { if (user) setName(user.username); }, [user]);
@@ -104,12 +109,12 @@ export default function Onboarding() {
 				<label className="onboard__field">
 					<span className="onboard__label"><Trans>Character name</Trans></span>
 					<input
+						ref={nameRef}
 						className="onboard__input"
 						value={name}
 						onChange={e => setName(e.target.value)}
 						maxLength={32}
 						disabled={busy}
-						autoFocus
 					/>
 				</label>
 

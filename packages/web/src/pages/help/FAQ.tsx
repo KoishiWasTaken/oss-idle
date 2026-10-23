@@ -191,6 +191,9 @@ export default function FAQ() {
 				the team before they are published, but they run inside your game: only install the ones you
 				trust.
 			</Trans></p>
+			<p><Trans>
+				To make one, see <Link to='/docs/addons'>the add-on documentation</Link>.
+			</Trans></p>
 		</details>
 		<details>
 			<summary><Trans>Can I talk to other players?</Trans></summary>

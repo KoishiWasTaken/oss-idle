@@ -27,6 +27,12 @@ import {
 } from './auth';
 import { handleDeepLink } from './deeplink';
 import { recordTrace } from './trace';
+import {
+	closeMapFolder,
+	openMapFolder,
+	writeMapFolder,
+	type SetFiles,
+} from './mapFolder';
 import { isAppFrame } from './frames';
 import {
 	checkForUpdate,
@@ -224,6 +230,17 @@ if (!app.requestSingleInstanceLock()) {
 		ipcMain.handle('oss-idle:trace', () => recordTrace());
 		ipcMain.handle('oss-idle:streams', () => listStreams());
 		ipcMain.handle('oss-idle:switch-stream', (_event, name: string) => switchStream(String(name)));
+
+		// The editor's map as a folder in the file explorer.
+		ipcMain.handle('oss-idle:map-folder-open', (event, name: string, files: SetFiles, show = true) =>
+			(isAppFrame(event.senderFrame)
+				? openMapFolder(USER_DATA, event.sender, String(name), files, show !== false) : undefined));
+		ipcMain.on('oss-idle:map-folder-write', (event, files: SetFiles) => {
+			if (isAppFrame(event.senderFrame)) writeMapFolder(files);
+		});
+		ipcMain.on('oss-idle:map-folder-close', (event) => {
+			if (isAppFrame(event.senderFrame)) closeMapFolder();
+		});
 
 		// Discord Rich Presence. The renderer pushes scene/map changes; the client
 		// is self-healing, so this is fire-and-forget too.

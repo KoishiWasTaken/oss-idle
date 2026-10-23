@@ -4,7 +4,9 @@ import {
 } from '../i18n/translate.js';
 import {
 	ADDON_STATUS,
+	ADDON_TYPE,
 	type AddonStatus,
+	type AddonType,
 } from '../addon.js';
 
 // Player-facing labels for the add-on moderation states, kept apart from the
@@ -21,3 +23,11 @@ const STATUS_LABELS = defineMessages({
 export const addonStatusLabel = (
 	status: AddonStatus,
 ): string => __(STATUS_LABELS[status]);
+
+const TYPE_LABELS = defineMessages({
+	[ADDON_TYPE.gameplay]: 'Gameplay',
+	[ADDON_TYPE.editor]: 'Editor',
+} satisfies Record<AddonType, string>);
+
+/** The localized label of an add-on type. */
+export const addonTypeLabel = (type: AddonType): string => __(TYPE_LABELS[type]);

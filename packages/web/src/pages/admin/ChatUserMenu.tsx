@@ -5,27 +5,7 @@ import {
 	useState,
 } from 'react';
 import type { ModerateBody } from '../../api/chat';
-
-const TIMEOUTS: { label: string; seconds: number }[] = [
-	{
-		label: '10m', seconds: 600, 
-	},
-	{
-		label: '1h', seconds: 3600, 
-	},
-	{
-		label: '1d', seconds: 86400, 
-	},
-	{
-		label: '7d', seconds: 604800, 
-	},
-	{
-		label: '1mo', seconds: 2592000, 
-	},
-	{
-		label: '1y', seconds: 31536000, 
-	},
-];
+import { SILENCE_LENGTHS } from '../../components/character/silenceLengths';
 
 type Props = {
 	x: number;
@@ -79,7 +59,7 @@ export default function ChatUserMenu(props: Props) {
 			/>
 			<span className='chat-menu__label'>Timeout</span>
 			<div className='chat-menu__timeouts'>
-				{TIMEOUTS.map(t => (
+				{SILENCE_LENGTHS.map(t => (
 					<button
 						key={t.seconds}
 						onClick={() => act({

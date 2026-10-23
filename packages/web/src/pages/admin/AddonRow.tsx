@@ -11,11 +11,7 @@ import {
 } from '../../api/addons';
 import AddonRowCode from './AddonRowCode';
 import AddonRowRepo from './AddonRowRepo';
-
-const fmt = (iso: string | null): string =>
-	iso ? new Date(iso).toLocaleString(undefined, {
-		dateStyle: 'medium', timeStyle: 'short', 
-	}) : '—';
+import { formatDate } from './formatDate';
 
 export default function AddonRow({
 	row, busy, onModerate, onTrusted,
@@ -38,34 +34,34 @@ export default function AddonRow({
 	const icon = addonIconUrl(row.icon);
 
 	return (
-		<div className='addons-admin__entry'>
-			<div className='addons-admin__info'>
+		<div className='admin-list__entry'>
+			<div className='admin-list__info'>
 				{icon
-					? <img className='addons-admin__cover' src={icon} alt='' />
-					: <div className='addons-admin__cover addons-admin__cover--empty' />}
-				<div className='addons-admin__meta'>
-					<span className='addons-admin__title'>
-						{row.name} <span className='addons-admin__ver'>v{row.version}</span>
+					? <img className='admin-list__cover' src={icon} alt='' />
+					: <div className='admin-list__cover admin-list__cover--empty' />}
+				<div className='admin-list__meta'>
+					<span className='admin-list__title'>
+						{row.name} <span className='admin-list__ver'>v{row.version}</span>
 					</span>
-					<span className='addons-admin__creator'>
+					<span className='admin-list__creator'>
 						by {row.authorName} · game v{row.gameVersion}
 						{row.publishedVersion && row.status !== ADDON_STATUS.published
 							&& ` · live v${row.publishedVersion}`}
 					</span>
-					{row.tags.length > 0 && <span className='addons-admin__tags'>{row.tags.join(', ')}</span>}
+					{row.tags.length > 0 && <span className='admin-list__tags'>{row.tags.join(', ')}</span>}
 				</div>
 
-				<span className={`addons-admin__badge addons-admin__badge--${row.status}`}>{row.status}</span>
+				<span className={`admin-list__badge admin-list__badge--${row.status}`}>{row.status}</span>
 
-				<div className='addons-admin__stat'>
-					<span className='addons-admin__label'>Submitted</span><span>{fmt(row.updatedAt)}</span>
+				<div className='admin-list__stat'>
+					<span className='admin-list__label'>Submitted</span><span>{formatDate(row.updatedAt)}</span>
 				</div>
-				<div className='addons-admin__stat'>
-					<span className='addons-admin__label'>Published</span><span>{fmt(row.publishedAt)}</span>
+				<div className='admin-list__stat'>
+					<span className='admin-list__label'>Published</span><span>{formatDate(row.publishedAt)}</span>
 				</div>
 			</div>
 
-			{row.description && <p className='addons-admin__desc'>{row.description}</p>}
+			{row.description && <p className='admin-list__desc'>{row.description}</p>}
 
 			{row.kind === ADDON_KIND.repo
 				? <AddonRowRepo row={row} busy={busy} onTrusted={trusted => onTrusted(row.id, trusted)} />
@@ -79,11 +75,11 @@ export default function AddonRow({
 				onChange={e => setFeedback(e.target.value)}
 			/>
 
-			<div className='addons-admin__actions'>
-				<button className='addons-admin__btn' disabled={busy} onClick={sendFeedback}>Send feedback</button>
+			<div className='admin-list__actions'>
+				<button className='admin-list__btn' disabled={busy} onClick={sendFeedback}>Send feedback</button>
 				{row.status !== ADDON_STATUS.published && (
 					<button 
-						className='addons-admin__btn addons-admin__btn--primary' 
+						className='admin-list__btn admin-list__btn--primary' 
 						disabled={busy} 
 						onClick={() => moderate(ADDON_STATUS.published)}
 					>
@@ -92,7 +88,7 @@ export default function AddonRow({
 				)}
 				{(row.status === ADDON_STATUS.pending || row.status === ADDON_STATUS.onHold) && (
 					<button
-						className='addons-admin__btn addons-admin__btn--warn'
+						className='admin-list__btn admin-list__btn--warn'
 						disabled={busy}
 						onClick={() => moderate(ADDON_STATUS.denied)}
 					>
@@ -101,7 +97,7 @@ export default function AddonRow({
 				)}
 				{row.publishedVersion && (
 					<button 
-						className='addons-admin__btn addons-admin__btn--warn'
+						className='admin-list__btn admin-list__btn--warn'
 						disabled={busy} 
 						onClick={() => moderate(ADDON_STATUS.unpublished)}
 					>

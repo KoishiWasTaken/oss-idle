@@ -48,3 +48,63 @@
 	background: var(--osu-pink-light);
 	transition: width 1s linear;
 }
+
+/* Burn-in: nothing stays still. The card moves, the background pans, and the
+ * dock and cursor fade out when idle (is-saver-idle, see Screensaver.tsx). */
+.screensaver__now {
+	animation: screensaver-wander 660s linear infinite alternate;
+}
+@keyframes screensaver-wander {
+	0% {
+		translate: 0 0;
+	}
+	17% {
+		translate: 34vw -24vh;
+	}
+	33% {
+		translate: 12vw 22vh;
+	}
+	50% {
+		translate: 38vw 8vh;
+	}
+	67% {
+		translate: 4vw -18vh;
+	}
+	83% {
+		translate: 26vw 25vh;
+	}
+	100% {
+		translate: 18vw -6vh;
+	}
+}
+.screensaver__backdrop {
+	position: absolute;
+	inset: 0;
+	animation: screensaver-pan 300s ease-in-out infinite alternate;
+}
+@keyframes screensaver-pan {
+	0% {
+		transform: scale(1) translate(0, 0);
+	}
+	50% {
+		transform: scale(1.08) translate(-3%, 2%);
+	}
+	100% {
+		transform: scale(1.04) translate(3%, -2%);
+	}
+}
+/* !important beats the dock's entry animation. Opacity, not display, so the
+ * dock still gets the pointer that wakes it. */
+html.is-saver-idle .dock,
+html.is-saver-idle .community-controls,
+html.is-saver-idle .fps-counter {
+	opacity: 0 !important;
+	transition: opacity 1s ease;
+}
+/* the cursor's opacity is set inline; body > span is a HoverCard's card (a
+ * dock tooltip left up under a resting mouse) */
+html.is-saver-idle .cursor,
+html.is-saver-idle .cursor-trail,
+html.is-saver-idle body > span {
+	visibility: hidden;
+}

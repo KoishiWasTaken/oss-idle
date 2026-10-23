@@ -106,7 +106,6 @@
 }
 .onboard__input:focus {
 	outline: none;
-	border-color: #ff66aa;
 }
 
 .onboard__summary {

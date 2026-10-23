@@ -19,7 +19,8 @@ export default function PlayDock() {
 	const [page] = useSynced(openPage);
 
 	// the intro and the main menu are the game's front door - nothing docks there
-	if (scene === SCENE.INTRO || scene === SCENE.MENU) return null;
+	// the editor is the whole screen, and leaving it asks first about unsaved changes
+	if (scene === SCENE.INTRO || scene === SCENE.MENU || scene === SCENE.EDITOR) return null;
 
 	// while the carousel is open for queueing, the dock moves into the column it
 	// leaves empty: it is the queue, and there is only one of it. In song select

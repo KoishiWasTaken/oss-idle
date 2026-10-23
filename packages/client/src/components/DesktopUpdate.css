@@ -3,7 +3,8 @@
 	bottom: 30px;
 	left: 50%;
 	transform: translateX(-50%);
-	z-index: 9000;
+	/* over the menu, under pages (5000) */
+	z-index: 20;
 	display: flex;
 	align-items: center;
 	max-width: 92vw;

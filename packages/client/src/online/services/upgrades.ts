@@ -1,14 +1,12 @@
-import type { SkillName } from '@oss-idle/shared/skills';
+import {
+	SKILL,
+	type SkillName,
+} from '@oss-idle/shared/skills';
 import { applyUpgrade } from '@oss-idle/shared/upgrades';
-import Log from '@oss-idle/shared/helpers/log';
 import { rpc } from '../client';
-import Account from '../account';
 import Entities from '../../entity/entities';
 import type Character from '../../db/schema/character';
-import {
-	flushCharacter,
-	flushCharacterStats,
-} from './characters';
+import { sendCharacterAction } from './characterAction';
 
 /** Buy the live character's next upgrade: guests locally, signed-in via the
  *  server. Returns true when it landed. */
@@ -20,23 +18,14 @@ export const purchaseUpgrade = async (skillName: SkillName): Promise<boolean> =>
 	// the purchase simply happens
 	if (character.isGuest()) return spendLocally(character, skillName);
 
-	const res = await rpc.v1.me.upgrade.$post({ json: { skill: skillName } });
-	if (!res.ok) {
-		const detail = await res.text().catch(() => '');
-		Log.errorPopup(`Upgrade failed (${res.status})${detail ? `: ${detail}` : ''}`);
-		return false;
-	}
-	const body = await res.json();
 	// Parked behind a running play: the server does it when the play ends, and
 	// until then the character here spends it exactly as it will there. The real
 	// values land when the play ends and the character is re-read.
-	if ('queued' in body && body.queued) return spendLocally(character, skillName);
-
-	const dto = body.character;
-	flushCharacter(dto.id);
-	flushCharacterStats(dto.id);
-	await Account.character.set(dto);
-	return true;
+	return sendCharacterAction(
+		'Upgrade',
+		rpc.v1.me.upgrade.$post({ json: { skill: skillName } }),
+		() => spendLocally(character, skillName),
+	);
 };
 
 /** Run the purchase against the character in hand, with the shared math. */
@@ -48,20 +37,14 @@ const spendLocally = async (
 	if (!skill) return false;
 	let spent = 0;
 	try {
-		const purchase = applyUpgrade({
-			level: skill.level.get(),
-			xp: skill.xp.get(),
-			upgrades: skill.upgrades.get(),
-			overdrive: skill.overdrive.get(),
-			prestige: skill.prestige.get(),
-		});
-		skill.level.set(purchase.level);
-		skill.xp.set(purchase.xp);
-		skill.upgrades.set(purchase.upgrades);
-		skill.overdrive.set(purchase.overdrive);
+		const purchase = applyUpgrade(skill.state());
+		skill.apply(purchase);
 		spent = purchase.spent;
 	} catch {
 		return false;
+	}
+	if (skillName === SKILL.memory) {
+		character.memoryForgetAt = JSON.stringify([...character.memoryForgets(), Date.now()]);
 	}
 	await character.spendXP(skillName, spent);
 	return true;

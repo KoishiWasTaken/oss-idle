@@ -1,5 +1,6 @@
 import type { InferResponseType } from 'hono/client';
 import { rpc } from '../client';
+import { unwrap } from '@oss-idle/shared/apiBase';
 import MemCache from '@oss-idle/shared/storage/memcache';
 
 const endpoint = rpc.v1.news;
@@ -12,9 +13,6 @@ export type News = InferResponseType<typeof endpoint.latest.$get, 200>;
  * route, so it always matches the API's actual response with no duplication.
  */
 export async function getLatest(): Promise<News> {
-	return MemCache.get<News>('API.News.getLatest').process('latest', async () => {
-		const res = await endpoint.latest.$get();
-		if (!res.ok) throw new Error(`News.getLatest() failed: ${res.status}`);
-		return res.json();
-	}, 1000 * 300);
+	return MemCache.get<News>('API.News.getLatest').process('latest', () =>
+		unwrap<News>(endpoint.latest.$get()), 1000 * 300);
 }

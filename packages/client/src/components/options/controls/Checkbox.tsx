@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { isChanged } from '../../../db/settings';
 import './Checkbox.css';
 
 interface Props {
@@ -24,6 +25,8 @@ interface Props {
 export default function Checkbox({ value, label, onChange, disabled }: Props) {
 	const [checked] = useSynced(value);
 
+	const changed = isChanged(value, checked) ? 'is-changed' : '';
+
 	const toggle = () => {
 		const next = !checked;
 		onChange?.(next);
@@ -33,7 +36,7 @@ export default function Checkbox({ value, label, onChange, disabled }: Props) {
 	return (
 		<button 
 			type="button"
-			className={`opt-checkbox ${checked ? 'is-on' : ''}`} 
+			className={`opt-checkbox ${checked ? 'is-on' : ''} ${changed}`}
 			onClick={toggle}
 			disabled={disabled}
 		>

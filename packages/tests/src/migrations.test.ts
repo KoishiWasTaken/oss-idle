@@ -47,7 +47,8 @@ const database = (live = false): Database => {
 		overallTotalXp INTEGER DEFAULT 0,
 		overallLevel INTEGER DEFAULT 0,
 		generation INTEGER DEFAULT 1,
-		local INTEGER DEFAULT 0${live ? ', memoryResetAt INTEGER DEFAULT 0, current INTEGER DEFAULT 0' : ''}
+		local INTEGER DEFAULT 0${live ? `, memoryResetAt INTEGER DEFAULT 0,
+			memoryForgetAt TEXT NOT NULL DEFAULT '[]', current INTEGER DEFAULT 0` : ''}
 	);`);
 	db.run(`CREATE TABLE score (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -155,6 +156,19 @@ describe('client database migrations', () => {
 		// after a reset the earlier plays stop counting, but the scores remain
 		expect(since(1000)).toBe(1);
 		expect(one(db, 'SELECT COUNT(*) FROM score')).toBe(3);
+	});
+
+	it('makes the memory upgrades already bought forget their plays', () => {
+		const db = oldDatabase();
+		db.run(`INSERT INTO character (id, name, local, memoryUpgrades)
+			VALUES (1, 'Guest', 1, 2), (2, 'Other', 1, 0);`);
+
+		migrate(db);
+
+		const forgets = (id: number) => JSON.parse(String(one(db,
+			`SELECT memoryForgetAt FROM character WHERE memoryUpgrades = ${id}`))) as number[];
+		expect(forgets(2)).toHaveLength(2);
+		expect(forgets(0)).toEqual([]);
 	});
 
 	it('keeps every playlist entry unlocked and lets a locked one sit beside it', () => {

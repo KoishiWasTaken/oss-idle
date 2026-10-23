@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-22 23:02\n"
+"PO-Revision-Date: 2026-10-23 19:43\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -41,6 +41,10 @@ msgstr "{days, plural, =0 {aujourd'hui} one {il y a # jour} other {il y a # jour
 #: src/components/character/SanctionLength.tsx
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# jour} other {# jours}}"
+
+#: src/pages/characters/CharacterPage.tsx
+msgid "{days}d {hours}h {minutes}m"
+msgstr ""
 
 #: src/pages/beatmaps/RequestSearchHit.tsx
 msgid "{diffs} × 4K"
@@ -179,6 +183,10 @@ msgstr "Un rôle Supporter rose sur le serveur Discord, après avoir lié votre 
 msgid "a player"
 msgstr "un joueur"
 
+#: src/pages/bugs/NewBug.tsx
+msgid "A short summary"
+msgstr "Un court résumé"
+
 #: src/pages/beatmaps/RequestActions.tsx
 msgid "Accept"
 msgstr "Accepter"
@@ -233,6 +241,18 @@ msgstr "Joueurs actifs"
 msgid "add friend"
 msgstr "ajouter en ami"
 
+#: src/pages/bugs/BugReport.tsx
+msgid "Add more details"
+msgstr "Ajouter des détails"
+
+#: src/pages/bugs/BugImagesField.tsx
+msgid "Add screenshots"
+msgstr "Ajouter des captures d'écran"
+
+#: src/routes/docs_.addons.tsx
+msgid "Add-on documentation"
+msgstr "Documentation des add-ons"
+
 #: src/pages/admin/AdminNav.tsx
 #: src/routes/admin/addons.tsx
 msgid "add-ons"
@@ -267,6 +287,10 @@ msgstr "Une erreur est survenue lors de la communication avec osu!... Si votre c
 #: src/pages/help/FAQ.tsx
 msgid "An idle game built on osu!mania 4K. You don't press the keys: your character plays the maps for you. Every play earns experience in its skills, better skills mean better plays, and better plays climb the rankings."
 msgstr "Un jeu idle basé sur osu!mania 4K. Vous n'appuyez pas sur les touches : votre personnage joue les maps à votre place. Chaque partie fait gagner de l'expérience à ses compétences, de meilleures compétences donnent de meilleures parties, et de meilleures parties font grimper dans les classements."
+
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Any"
+msgstr "Toutes"
 
 #: src/pages/beatmaps/MapRequests.tsx
 msgid "Anyone can propose a map for ranking in oss!idle - osu!mania 4K only. Support the ones you want to play so it shows what people are after. Accepted maps join the nomination queue and are ranked from there."
@@ -314,6 +338,10 @@ msgstr "Clients autorisés"
 #: src/pages/rankings/Country.tsx
 msgid "Avg. Performance"
 msgstr "Performance Moy."
+
+#: src/pages/bugs/BugList.tsx
+msgid "awaiting reply"
+msgstr "en attente de réponse"
 
 #: src/pages/DesktopDone.tsx
 msgid "Back in oss!idle already? You can close this tab."
@@ -372,6 +400,17 @@ msgstr "BPM"
 msgid "Browse every ranked map from the game's main menu and download any of them in one click, and open maps linked in the chat there too"
 msgstr "Parcourez toutes les maps classées depuis le menu principal du jeu et téléchargez-les en un clic, y compris les maps partagées dans le chat"
 
+#: src/components/BugReplyBanner.tsx
+#: src/routes/bugs/$id.tsx
+msgid "bug report"
+msgstr "signalement de bug"
+
+#: src/pages/admin/AdminNav.tsx
+#: src/routes/admin/bugs.tsx
+#: src/routes/bugs/index.tsx
+msgid "bug reports"
+msgstr "signalements de bugs"
+
 #: src/pages/store/SupporterTag.tsx
 msgid "Buying one while your tag is active adds to the time you have left."
 msgstr "Acheter lorsque vous avez déjà un tag actif rajoute du temps supplémentaire."
@@ -401,11 +440,7 @@ msgstr "Puis-je changer l'apparence du jeu ?"
 msgid "Can I talk to other players?"
 msgstr "Puis-je parler aux autres joueurs ?"
 
-#: src/components/character/DeleteAccountDialog.tsx
-#: src/components/character/ReportDialog.tsx
-#: src/components/character/RestrictDialog.tsx
-#: src/components/character/RollbackUpgradeDialog.tsx
-#: src/components/character/SilenceDialog.tsx
+#: src/components/character/ConfirmDialog.tsx
 #: src/components/character/UserPageEditor.tsx
 #: src/components/EditableCharacterName.tsx
 #: src/pages/oauth/Authorize.tsx
@@ -413,6 +448,10 @@ msgstr "Puis-je parler aux autres joueurs ?"
 #: src/pages/settings/OAuthNewClientDialog.tsx
 msgid "Cancel"
 msgstr "Annuler"
+
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Categories"
+msgstr "Catégories"
 
 #: src/components/character/ProfileBanner.tsx
 msgid "Change banner"
@@ -442,10 +481,6 @@ msgstr "personnages"
 msgid "chat console"
 msgstr "console de chat"
 
-#: src/components/character/ReportDialog.tsx
-msgid "Cheating"
-msgstr "Triche"
-
 #: src/pages/store/SupporterTag.tsx
 msgid "Checkout"
 msgstr "Acheter"
@@ -470,9 +505,17 @@ msgstr "ID du client"
 msgid "Client Secret"
 msgstr "Secret du client"
 
+#: src/pages/bugs/useBugStatusLabels.ts
+msgid "Closed"
+msgstr "Fermé"
+
 #: src/pages/matches/MatchGameScore.tsx
 msgid "combo"
 msgstr "combo"
+
+#: src/pages/bugs/useBugStatusLabels.ts
+msgid "Confirmed"
+msgstr "Confirmé"
 
 #: src/pages/Login.tsx
 msgid "Connect your osu! account to appear in the leaderboards."
@@ -511,6 +554,7 @@ msgid "dashboard"
 msgstr "tableau de bord"
 
 #: src/components/character/AccountStanding.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
 #: src/pages/store/OrderHistory.tsx
 msgid "Date"
 msgstr "Date"
@@ -541,9 +585,18 @@ msgstr "Supprimer pour toujours"
 msgid "Delete selected"
 msgstr "Supprimer la sélection"
 
+#: src/pages/bugs/BugMessage.tsx
+msgid "deleted account"
+msgstr "compte supprimé"
+
 #: src/components/character/AccountStanding.tsx
+#: src/pages/bugs/NewBug.tsx
 msgid "Description"
 msgstr "Description"
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Development previews"
+msgstr "Aperçus du développement"
 
 #: src/routes/auth/discord.tsx
 msgid "Discord linked"
@@ -561,6 +614,7 @@ msgstr "Dois-je regarder mes parties ?"
 msgid "Do I need an osu! account?"
 msgstr "Ai-je besoin d'un compte osu! ?"
 
+#: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/DownloadButton.tsx
 msgid "Download"
 msgstr "Télécharger"
@@ -638,6 +692,10 @@ msgstr "trouver"
 #: src/components/character/CharacterTopRanks.tsx
 msgid "First Place Ranks"
 msgstr "Premières places"
+
+#: src/pages/bugs/useBugStatusLabels.ts
+msgid "Fixed"
+msgstr "Corrigé"
 
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Font Size"
@@ -744,8 +802,7 @@ msgstr "Meilleur score"
 msgid "Historical"
 msgstr "Historique"
 
-#: src/pages/characters/CharacterPage.tsx
-#: src/pages/characters/CharacterPreview.tsx
+#: src/pages/characters/CharacterFigures.tsx
 msgid "Hit Accuracy"
 msgstr "Précision"
 
@@ -792,14 +849,6 @@ msgstr "Image"
 #: src/pages/beatmaps/requestPhase.ts
 msgid "in nomination"
 msgstr "en nomination"
-
-#: src/components/character/ReportDialog.tsx
-msgid "Inappropriate chat behaviour"
-msgstr "Comportement inapproprié dans le chat"
-
-#: src/components/character/ReportDialog.tsx
-msgid "Inappropriate content"
-msgstr "Contenu inapproprié"
 
 #: src/pages/beatmaps/RequestActions.tsx
 msgid "Ingest"
@@ -930,13 +979,13 @@ msgstr "nomination de maps"
 msgid "map requests"
 msgstr "propositions"
 
-#: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/RequestRow.tsx
 #: src/pages/beatmaps/RequestSearchHit.tsx
 msgid "mapped by {creator}"
 msgstr "mappé par {creator}"
 
 #: src/components/character/CharacterHistorical.tsx
+#: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/BeatmapsetHeader.tsx
 #: src/pages/scores/ScorePage.tsx
 msgid "mapped by <0>{creator}</0>"
@@ -1026,6 +1075,10 @@ msgstr "les plus demandées"
 #: src/UserMenu.tsx
 msgid "My Profile"
 msgstr "Mon Profil"
+
+#: src/pages/bugs/BugList.tsx
+msgid "new answer"
+msgstr "nouvelle réponse"
 
 #: src/pages/settings/OAuthSettings.tsx
 msgid "New OAuth Application"
@@ -1175,6 +1228,10 @@ msgstr "Joueurs en ligne"
 msgid "open"
 msgstr "proposé"
 
+#: src/pages/bugs/useBugStatusLabels.ts
+msgid "Open"
+msgstr "Ouvert"
+
 #: src/pages/store/Store.tsx
 msgid "order history"
 msgstr "historique des commandes"
@@ -1194,10 +1251,6 @@ msgstr "page osu!"
 #: src/pages/help/FAQ.tsx
 msgid "osu!mania 4K difficulties only. Ranking is decided per difficulty, so a set can have some of its difficulties ranked and others not."
 msgstr "Uniquement les difficultés osu!mania 4K. Le classement se décide par difficulté : un set peut avoir certaines difficultés classées et d'autres non."
-
-#: src/components/character/ReportDialog.tsx
-msgid "Other (type below)"
-msgstr "Autre (précisez ci-dessous)"
 
 #: src/pages/PlayOssIdle.tsx
 msgid "Other platforms:"
@@ -1222,6 +1275,14 @@ msgstr "page {page}"
 msgid "Payment received, thank you! Your tag shows up as soon as Stripe confirms it."
 msgstr "Paiement reçu, merci ! Votre tag apparaîtra dès que Stripe l'aura confirmé."
 
+#: src/pages/beatmaps/BeatmapsetHeader.tsx
+msgid "pending"
+msgstr "en attente"
+
+#: src/components/MapsetCard.tsx
+msgid "Pending"
+msgstr "En attente"
+
 #: src/components/leaderboard/PlayerGradesLeaderboard.tsx
 #: src/components/leaderboard/PlayerLeaderboard.tsx
 #: src/components/leaderboard/PlayerLeaderboard.tsx
@@ -1244,8 +1305,7 @@ msgstr "Parties"
 #: src/components/leaderboard/PlayerGradesLeaderboard.tsx
 #: src/components/leaderboard/PlayerLeaderboard.tsx
 #: src/components/leaderboard/PlayerMedalLeaderboard.tsx
-#: src/pages/characters/CharacterPage.tsx
-#: src/pages/characters/CharacterPreview.tsx
+#: src/pages/characters/CharacterTotals.tsx
 #: src/pages/rankings/Country.tsx
 msgid "Play Count"
 msgstr "Parties"
@@ -1266,6 +1326,10 @@ msgstr "Jouer plus longtemps"
 #: src/routes/download.tsx
 msgid "play oss!idle"
 msgstr "jouer à oss!idle"
+
+#: src/pages/characters/CharacterPage.tsx
+msgid "Play Time"
+msgstr "Temps de jeu"
 
 #: src/pages/scores/ScorePage.tsx
 msgid "Played by"
@@ -1308,6 +1372,7 @@ msgstr "Appuyez sur F9 en jeu pour ouvrir l'overlay communautaire : qui est en l
 msgid "prestige"
 msgstr "prestige"
 
+#: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/PreviewButton.tsx
 msgid "preview"
 msgstr "prévisualiser"
@@ -1352,6 +1417,10 @@ msgstr "Proposez-la sur la page des <0>propositions de maps</0>. N'importe quell
 msgid "Propose up to {supporterMax} maps for ranking at once, instead of {max}."
 msgstr "Proposez jusqu'à {supporterMax} maps au classement en même temps, au lieu de {max}."
 
+#: src/components/character/CharacterBeatmaps.tsx
+msgid "Proposed Beatmaps"
+msgstr "Beatmaps proposées"
+
 #: src/pages/beatmaps/MapClaims.tsx
 msgid "Proposed maps for ranking on Discord? Tick the ones you proposed and save, and they will count for your curator medals once an admin confirms."
 msgstr "Vous aviez proposé des maps classées sur Discord ? Cochez-les et sauvegardez, et elles vous seront attribuées une fois qu'un administrateur l'aura confirmé."
@@ -1372,6 +1441,7 @@ msgstr "classé"
 
 #: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/RankedMaps.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
 msgid "Ranked"
 msgstr "Classé"
 
@@ -1382,8 +1452,7 @@ msgstr "Maps classées"
 #: src/components/leaderboard/PlayerGradesLeaderboard.tsx
 #: src/components/leaderboard/PlayerLeaderboard.tsx
 #: src/components/leaderboard/PlayerLeaderboard.tsx
-#: src/pages/characters/CharacterPage.tsx
-#: src/pages/characters/CharacterPreview.tsx
+#: src/pages/characters/CharacterFigures.tsx
 #: src/pages/rankings/Country.tsx
 msgid "Ranked Score"
 msgstr "Score classé"
@@ -1479,6 +1548,10 @@ msgstr "Renouveler automatiquement"
 msgid "Renewing automatically charges the same amount again at the end of each period. Cancel it any time."
 msgstr "Le renouvellement automatique effectuera le même paiement à la fin de la période choisie. Vous pouvez annuler à tout moment."
 
+#: src/pages/bugs/BugReport.tsx
+msgid "Reply"
+msgstr "Répondre"
+
 #: src/components/character/ProfileMenu.tsx
 msgid "Report"
 msgstr "Signaler"
@@ -1486,6 +1559,14 @@ msgstr "Signaler"
 #: src/components/character/ReportDialog.tsx
 msgid "Report {name}?"
 msgstr "Signaler {name} ?"
+
+#: src/routes/bugs/new.tsx
+msgid "report a bug"
+msgstr "signaler un bug"
+
+#: src/pages/bugs/MyBugs.tsx
+msgid "Report a bug"
+msgstr "Signaler un bug"
 
 #: src/pages/beatmaps/RequestForm.tsx
 msgid "Request"
@@ -1605,6 +1686,10 @@ msgstr "recherche"
 msgid "Search a 4K map, or paste its beatmapset link"
 msgstr "Cherchez une map 4K, ou collez son lien"
 
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Search by title, artist or mapper"
+msgstr "Rechercher par titre, artiste ou mappeur"
+
 #: src/pages/search/Search.tsx
 msgid "Search players and beatmaps"
 msgstr "Rechercher des joueurs et des maps"
@@ -1613,6 +1698,10 @@ msgstr "Rechercher des joueurs et des maps"
 #: src/pages/Home.tsx
 msgid "See more"
 msgstr "Voir plus"
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "See what's coming before anyone else in the #leaks channel, open to the Supporter role on our Discord."
+msgstr "Découvrez ce qui arrive avant tout le monde dans le salon #leaks, ouvert au rôle Supporter sur notre Discord."
 
 #: src/pages/oauth/scopes.ts
 msgid "See who you are friends with."
@@ -1626,9 +1715,29 @@ msgstr "À bientôt !"
 msgid "Select page"
 msgstr "Sélectionner la page"
 
+#: src/pages/bugs/BugReport.tsx
+msgid "Send"
+msgstr "Envoyer"
+
+#: src/pages/bugs/NewBug.tsx
+msgid "Send report"
+msgstr "Envoyer le signalement"
+
 #: src/components/character/ReportDialog.tsx
 msgid "Send Report"
 msgstr "Envoyer le signalement"
+
+#: src/pages/bugs/NewBug.tsx
+msgid "Sent with it: version {version} and your browser."
+msgstr "Envoyé avec : la version {version} et votre navigateur."
+
+#: src/pages/bugs/NewBug.tsx
+msgid "Sent with it: version {version} and your desktop app."
+msgstr "Envoyé avec : la version {version} et votre appli bureau."
+
+#: src/pages/bugs/BugMessage.tsx
+msgid "set the status to <0/>"
+msgstr "a passé le statut à <0/>"
 
 #: src/routes/settings.tsx
 msgid "settings"
@@ -1663,6 +1772,11 @@ msgstr "Connectez-vous pour modifier vos paramètres."
 #: src/pages/oauth/Authorize.tsx
 msgid "Sign in to continue."
 msgstr "Connectez-vous pour continuer."
+
+#: src/pages/bugs/MyBugs.tsx
+#: src/pages/bugs/NewBug.tsx
+msgid "Sign in to report a bug."
+msgstr "Connectez-vous pour signaler un bug."
 
 #: src/pages/beatmaps/MapScoreboard.tsx
 msgid "Sign in to see this ranking."
@@ -1809,9 +1923,14 @@ msgid "Supporter tag"
 msgstr "Tag supporter"
 
 #: src/pages/admin/AdminNav.tsx
+#: src/pages/bugs/BugMessage.tsx
 #: src/routes/admin/team.tsx
 msgid "team"
 msgstr "équipe"
+
+#: src/pages/bugs/NewBug.tsx
+msgid "Tell us what went wrong: what you were doing, what you expected and what happened instead. The team answers here, and you can add more details later."
+msgstr "Dites-nous ce qui ne va pas : ce que vous faisiez, ce que vous attendiez et ce qui s'est passé à la place. L'équipe vous répond ici, et vous pourrez ajouter des détails plus tard."
 
 #: src/routes/legal/terms.tsx
 msgid "terms"
@@ -1840,6 +1959,10 @@ msgstr "la partie a été dissoute"
 #: src/pages/help/FAQ.tsx
 msgid "The queue is the list of maps your character plays one after the other. Autopilot fills it from the song select: a playlist, the next songs, shuffle, or the same map on loop (or not at all, when disabled). You can reorder it, skip ahead or stop after the current map. Signed in, the queue is your character's: every device shows the same one, and your character keeps playing it for 12 hours after you close the game (24 with oss!supporter), ranked maps only. You can turn that off in the options."
 msgstr "La playlist, ce sont les maps que votre personnage joue les unes après les autres. L'autopilote la remplit depuis la sélection des musiques : une playlist enregistrée, les musiques suivantes, en aléatoire, ou la même map en boucle (ou pas du tout, quand il est désactivé). Vous pouvez la réordonner, passer à la suivante ou vous arrêter après la map en cours. Une fois connecté, la playlist appartient à votre personnage : tous vos appareils affichent la même, et votre personnage continue à la jouer pendant 12 heures après la fermeture du jeu (24 avec oss!supporter), uniquement les maps classées. Vous pouvez désactiver cela dans les options."
+
+#: src/components/BugReplyBanner.tsx
+msgid "The team answered you!"
+msgstr "L'équipe vous a répondu !"
 
 #: src/pages/PublicLanding.tsx
 msgid "The ultimate<0/>VSRG idle game"
@@ -1877,9 +2000,14 @@ msgstr "Temps"
 msgid "Tiny"
 msgstr "Minuscule"
 
+#: src/pages/bugs/NewBug.tsx
 #: src/pages/settings/Settings.tsx
 msgid "Title"
 msgstr "Titre"
+
+#: src/pages/help/FAQ.tsx
+msgid "To make one, see <0>the add-on documentation</0>."
+msgstr "Pour en faire un, consultez <0>la documentation des add-ons</0>."
 
 #: src/pages/rankings/RankingsNav.tsx
 msgid "top plays"
@@ -1889,8 +2017,7 @@ msgstr "meilleurs plays"
 msgid "Total"
 msgstr "Total"
 
-#: src/pages/characters/CharacterPage.tsx
-#: src/pages/characters/CharacterPreview.tsx
+#: src/pages/characters/CharacterFigures.tsx
 msgid "Total Hits"
 msgstr "Notes totales"
 
@@ -1898,8 +2025,7 @@ msgstr "Notes totales"
 msgid "Total score"
 msgstr "Score total"
 
-#: src/pages/characters/CharacterPage.tsx
-#: src/pages/characters/CharacterPreview.tsx
+#: src/pages/characters/CharacterFigures.tsx
 msgid "Total Score"
 msgstr "Score total"
 
@@ -1910,6 +2036,23 @@ msgstr "Entrez le nom osu! pour confirmer."
 #: src/components/character/ProfileMenu.tsx
 msgid "Unblock"
 msgstr "Débloquer"
+
+#: src/pages/beatmaps/BeatmapsetHeader.tsx
+msgid "unranked"
+msgstr "non classée"
+
+#: src/components/MapsetCard.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Unranked"
+msgstr "Non classée"
+
+#: src/components/character/CharacterBeatmaps.tsx
+msgid "Unranked Beatmaps"
+msgstr "Beatmaps non classées"
+
+#: src/pages/bugs/BugImagesField.tsx
+msgid "Up to {max}, or paste them into the text."
+msgstr "Jusqu'à {max}, ou collez-les dans le texte."
 
 #: src/pages/settings/OAuthClientDialog.tsx
 msgid "Update"
@@ -1927,13 +2070,13 @@ msgstr "Envoyer un avatar"
 msgid "Upload banner"
 msgstr "Envoyer une bannière"
 
+#: src/pages/bugs/BugImagesField.tsx
+msgid "Uploading…"
+msgstr "Envoi…"
+
 #: src/components/UserList.tsx
 msgid "Username"
 msgstr "Pseudo"
-
-#: src/components/character/ReportDialog.tsx
-msgid "Using multiple accounts"
-msgstr "Multicompte"
 
 #: src/pages/admin/AdminNav.tsx
 #: src/routes/admin/versions.tsx
@@ -2043,6 +2186,10 @@ msgstr "Vous avez déjà {max} propositions en attente. Attendez que l'une d'ent
 #: src/pages/store/SupporterStatus.tsx
 msgid "You don't have a supporter tag right now."
 msgstr "Vous n'avez actuellement pas de tag supporter."
+
+#: src/pages/bugs/MyBugs.tsx
+msgid "You haven't reported any bug yet."
+msgstr "Vous n'avez encore signalé aucun bug."
 
 #: src/pages/DesktopDone.tsx
 msgid "You're signed in!"

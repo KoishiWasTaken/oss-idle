@@ -212,6 +212,12 @@ export const serverMessage = z.discriminatedUnion('type', [
 		type: z.literal('medals'),
 		medals: medalBatchDTO,
 	}),
+	// The team answered one of the account's bug reports.
+	z.object({
+		type: z.literal('bug:reply'),
+		id: z.number().int(),
+		title: z.string(),
+	}),
 	z.object({
 		type: z.literal('error'),
 		message: z.string(),

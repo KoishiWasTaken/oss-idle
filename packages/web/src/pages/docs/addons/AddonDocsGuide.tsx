@@ -1,0 +1,112 @@
+import DocsCode from './DocsCode';
+import {
+	CONTRACT,
+	SCAFFOLD,
+	SDK_ADDON,
+	SHARED_REACT,
+} from './addonDocs';
+
+/** The guide's first part: what add-ons are, making and publishing one, the contract, types, React. */
+export default function AddonDocsGuide() {
+	return <>
+		<h1 id='introduction'>Introduction</h1>
+		<p>
+			Add-ons are scripts players install from the game&apos;s Add-ons page (Options, then Browse
+			add-ons). They run inside oss!idle with the same access the game has: its page, its database,
+			its maps. That is what makes them useful, and why every published add-on is read by the team
+			before anyone can install it.
+		</p>
+		<p>
+			An add-on is one JavaScript module. It may not load anything else: everything it uses, apart from
+			what the game hands it, is inside that one file.
+		</p>
+
+		<h1 id='making-one'>Making one</h1>
+		<p>
+			The <a href='https://github.com/oss-idle/addon-sdk'>add-on SDK</a> sets up a project, bundles it
+			into the one file the game wants, and gives you helpers for the game&apos;s data, settings, keys
+			and React overlays.
+		</p>
+		<DocsCode code={SCAFFOLD} language='bash' caption='A new project:' />
+		<p>Then, in game, under Add-ons, Manage, Create new add-on, either:</p>
+		<ul>
+			<li>
+				<strong>Code written here</strong>: paste or write the file in the editor, save, and submit
+				it for review;
+			</li>
+			<li>
+				<strong>Built from a git repository</strong>: give the address of a public repository, add
+				the webhook it shows you, and release by tagging a version (<code>v1.2.3</code>). We build
+				it ourselves from that tag (<code>npm ci --ignore-scripts</code>, then <code>npm run build</code>
+				{' '}without network) and the reviewers read the repository&apos;s changes, not a bundle.
+			</li>
+		</ul>
+		<p>
+			Published add-on code must be licensed under the AGPLv3 or a compatible licence.
+		</p>
+
+		<h1 id='the-contract'>The contract</h1>
+		<p>
+			The game imports the module and calls two of its exports. <code>mount</code> runs when the
+			player enables the add-on, and at every start after that. <code>unmount</code> runs when the add-on
+			is disabled, updated or removed, without a reload: it must undo everything <code>mount</code>
+			{' '}did, or what it leaves keeps running in the player&apos;s game.
+		</p>
+		<DocsCode code={CONTRACT} />
+		<p>
+			<code>mount</code> gets the add-on&apos;s own details and the game&apos;s host:
+		</p>
+		<table>
+			<thead><tr><th>Field</th><th>What it is</th></tr></thead>
+			<tbody>
+				<tr><td><code>host.version</code></td><td>The game&apos;s version.</td></tr>
+				<tr>
+					<td><code>host.react</code></td>
+					<td>
+						The game&apos;s React, by import path: <code>react</code>, <code>react-dom</code>,
+						{' '}<code>react-dom/client</code>, <code>react/jsx-runtime</code>.
+					</td>
+				</tr>
+				<tr>
+					<td><code>host.editor</code></td>
+					<td>The editor, for add-ons of the Editor type (see <a href='#the-editor'>The editor</a>).</td>
+				</tr>
+			</tbody>
+		</table>
+		<p>
+			The same host is on <code>globalThis.ossIdle</code>, for code that runs before <code>mount</code>.
+			With the SDK, <code>defineAddon</code> and the <code>Addon</code> class do the bookkeeping:
+			whatever you register through <code>this.on</code>, <code>this.own</code>,
+			{' '}<code>this.interval</code> or <code>this.editor</code> is undone for you.
+		</p>
+		<DocsCode code={SDK_ADDON} caption='With the SDK:' />
+
+		<h1 id='types-and-tags'>Types and tags</h1>
+		<p>
+			Every add-on has a type, picked when you make it, and Browse filters on them:
+		</p>
+		<ul>
+			<li><strong>Gameplay</strong>, the default: it works around play, song select, the menus.</li>
+			<li><strong>Editor</strong>: it works in the map editor, through the editor API.</li>
+		</ul>
+		<p>
+			An add-on can be both. Tags are your own words on top (up to 8, lowercase), to help players
+			search.
+		</p>
+
+		<h1 id='react'>The game&apos;s React</h1>
+		<p>
+			The game already runs React, so an add-on does not need its own. With the SDK, set
+			{' '}<code>sharedReact</code> in <code>addon.config.json</code> and import React as usual: the
+			bundle reads the game&apos;s copy from the host and ships none of it. Without the SDK, take it
+			from <code>host.react</code>. Either way there is one React on the page, and your add-on is
+			smaller.
+		</p>
+		<DocsCode code={SHARED_REACT} />
+		<p>
+			A game too old to hand out its React refuses such an add-on with a clear message. To support older
+			games, leave <code>sharedReact</code> off. The SDK&apos;s README covers the rest: overlays,
+			settings, keys and the game&apos;s data.
+		</p>
+	</>;
+}

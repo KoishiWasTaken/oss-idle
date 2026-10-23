@@ -1,0 +1,229 @@
+.admin-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1.25rem;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.admin-list__muted {
+	color: hsl(var(--hsl-f1));
+	font-size: 0.85rem;
+}
+.admin-list__error {
+	color: hsl(var(--hsl-red-1));
+	background: hsl(var(--colour-red-hue), 30%, 18%);
+	padding: 0.6rem 0.9rem;
+	border-radius: 8px;
+}
+
+/* toolbar */
+.admin-list__toolbar {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	padding: 0.6rem 0.8rem;
+	background-color: hsl(var(--hsl-b4));
+	border-radius: 8px;
+}
+.admin-list__sort {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex-wrap: wrap;
+}
+.admin-list__count {
+	margin-left: auto;
+	color: hsl(var(--hsl-f1));
+	font-size: 0.85rem;
+}
+
+.admin-list__sort-btn {
+	background: none;
+	border: none;
+	border-radius: 4px;
+	padding: 0.3rem 0.6rem;
+	color: inherit;
+	font: inherit;
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+.admin-list__sort-btn:hover {
+	background-color: hsl(var(--hsl-b3));
+}
+.admin-list__sort-btn.current {
+	background-color: hsl(var(--hsl-b3));
+	color: hsl(var(--hsl-c1));
+	font-weight: 600;
+}
+
+/* shared button */
+.admin-list__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.4rem 0.75rem;
+	border: none;
+	border-radius: 6px;
+	background-color: hsl(var(--hsl-b3));
+	color: hsl(var(--hsl-c1));
+	font: inherit;
+	font-size: 0.82rem;
+	cursor: pointer;
+	transition:
+		background-color 0.12s,
+		opacity 0.12s;
+}
+.admin-list__btn:hover:not(:disabled) {
+	background-color: hsl(var(--hsl-b1));
+}
+.admin-list__btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.admin-list__btn--primary {
+	background-color: hsl(var(--hsl-pink-3));
+	color: hsl(var(--hsl-b5));
+	font-weight: 700;
+}
+.admin-list__btn--primary:hover:not(:disabled) {
+	background-color: hsl(var(--hsl-pink-2));
+}
+.admin-list__btn--warn {
+	background-color: hsl(var(--hsl-orange-4));
+}
+.admin-list__btn--warn:hover:not(:disabled) {
+	background-color: hsl(var(--hsl-orange-3));
+}
+
+/* list of entries */
+.admin-list__list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.admin-list__entry {
+	display: flex;
+	flex-direction: column;
+	gap: 0.7rem;
+	padding: 0.8rem 1rem;
+	background-color: hsl(var(--hsl-b2));
+	border-radius: 10px;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+/* full-width info row */
+.admin-list__info {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+.admin-list__cover {
+	width: 52px;
+	height: 52px;
+	border-radius: 6px;
+	background-color: hsl(var(--hsl-b4));
+	object-fit: cover;
+	flex: none;
+}
+.admin-list__cover--empty {
+	background-color: hsl(var(--hsl-b4));
+}
+.admin-list__meta {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 14rem;
+	min-width: 0;
+}
+.admin-list__title {
+	color: hsl(var(--hsl-c1));
+	font-weight: 600;
+}
+.admin-list__ver {
+	color: hsl(var(--hsl-f1));
+	font-size: 0.8rem;
+	font-weight: 400;
+}
+.admin-list__creator {
+	color: hsl(var(--hsl-f1));
+	font-size: 0.8rem;
+}
+.admin-list__tags {
+	color: hsl(var(--hsl-f1));
+	font-size: 0.78rem;
+}
+
+.admin-list__stat {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	flex: none;
+	font-size: 0.85rem;
+}
+.admin-list__label {
+	color: hsl(var(--hsl-f1));
+	font-size: 0.68rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* status badge */
+.admin-list__badge {
+	flex: none;
+	padding: 0.15rem 0.6rem;
+	border-radius: 10000px;
+	font-size: 0.7rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	line-height: 16px;
+}
+.admin-list__badge--unpublished {
+	background-color: hsl(var(--hsl-b4));
+	color: hsl(var(--hsl-c2));
+}
+.admin-list__badge--pending {
+	background-color: hsl(var(--hsl-orange-1));
+	color: hsl(var(--hsl-b4));
+}
+.admin-list__badge--onHold {
+	background-color: hsl(var(--hsl-blue-1));
+	color: hsl(var(--hsl-b4));
+}
+.admin-list__badge--published {
+	background-color: hsl(var(--hsl-lime-1));
+	color: hsl(var(--hsl-b4));
+}
+.admin-list__badge--denied {
+	background-color: hsl(var(--hsl-red-2));
+	color: hsl(var(--hsl-b5));
+}
+.admin-list__badge--UNPUBLISHED {
+	background-color: hsl(var(--hsl-b4));
+	color: hsl(var(--hsl-c2));
+}
+.admin-list__badge--PUBLISHED {
+	background-color: hsl(var(--hsl-lime-1));
+	color: hsl(var(--hsl-b4));
+}
+
+.admin-list__desc {
+	color: hsl(var(--hsl-c2));
+	font-size: 0.85rem;
+	margin: 0;
+}
+
+.admin-list__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}

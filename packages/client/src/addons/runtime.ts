@@ -1,11 +1,17 @@
 import { message } from '../globals';
 import { Addon } from '../db/schema/addon';
+import type { Addon as AddonDTO } from '../online/addons';
+import {
+	hostFor,
+	type AddonHost,
+} from './host';
 
 /**
  * Add-on runtime. Add-ons are unsandboxed userscripts: we run them by turning
  * their source into an ES module (via a Blob URL) and importing it in the page
- * realm, so they have full window/DOM access. The *only* contract is the two
- * exports `mount` / `unmount`; `mount` gets the add-on's own metadata.
+ * realm, so they have full window/DOM access. The contract is the two exports
+ * `mount` / `unmount`; `mount` gets the add-on's own metadata and the game's host
+ * (its React, the editor: see host.ts).
  *
  * A live add-on's `unmount` is held here so enabling/disabling, updating, or
  * uninstalling can tear it down cleanly without a page reload.
@@ -14,7 +20,7 @@ import { Addon } from '../db/schema/addon';
 type AddonMeta = Pick<Addon, 'id' | 'name' | 'version' | 'gameVersion' | 'authorId' | 'authorName'>;
 
 type AddonModule = {
-	mount?: (addon: AddonMeta) => void,
+	mount?: (addon: AddonMeta, host: AddonHost) => void,
 	unmount?: () => void | Promise<void>,
 };
 
@@ -41,13 +47,22 @@ const mount = async ({
 	id, name, version, gameVersion, authorId, authorName, source,
 }: Addon): Promise<void> => {
 	if (live.has(id)) return;
+	const { host, release } = hostFor();
 	try {
 		const mod = await load(source);
 		mod.mount?.({
 			id, name, version, gameVersion, authorId, authorName,
+		}, host);
+		live.set(id, async () => {
+			try {
+				await mod.unmount?.();
+			} finally {
+				release();
+			}
 		});
-		live.set(id, mod.unmount ?? (() => {}));
 	} catch (e) {
+		// what it hooked into the editor before failing goes with it
+		release();
 		console.error(`Add-on "${name}" failed to load`, e);
 		message.set(`Add-on "${name}" failed to load`);
 	}
@@ -71,6 +86,27 @@ const unmount = async (id: number, name: string): Promise<void> => {
 export const enableAddon = async (addon: Addon): Promise<void> => {
 	await addon.setEnabled(true);
 	await mount(addon);
+};
+
+/** Save a catalog add-on locally and enable it. */
+export const installAddon = async (dto: AddonDTO): Promise<void> => {
+	const installed = await new Addon({
+		id: dto.id,
+		name: dto.name,
+		description: dto.description,
+		version: dto.version,
+		gameVersion: dto.gameVersion,
+		source: dto.source,
+		icon: dto.icon,
+		authorId: dto.authorId,
+		authorName: dto.authorName,
+		tags: dto.tags.join(','),
+		types: dto.types.join(','),
+		status: dto.status,
+		enabled: false,
+		installedAt: Date.now(),
+	}).add();
+	await enableAddon(installed);
 };
 
 /** Disable an installed add-on: persist the flag and unmount it. */

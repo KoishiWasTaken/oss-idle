@@ -1,4 +1,5 @@
 import { t } from '@lingui/core/macro';
+import accuracy from '@oss-idle/shared/display/accuracy';
 import type { Mod } from '@oss-idle/shared/mods';
 import { MOD_LOOK } from '@oss-idle/shared/display/mods';
 import { rateShort } from '../mods/rateShort';
@@ -206,7 +207,7 @@ const drawScore = (ctx: CanvasRenderingContext2D, card: ScoreCard) => {
 	const stats: [string, string][] = [
 		[t`Performance`, `${num(card.pp)}pp`],
 		[t`Combo`, `${card.maxCombo}x${card.pfc ? ' PFC' : ''}`],
-		[t`Accuracy`, `${(card.accuracy * 100).toFixed(2)}%`],
+		[t`Accuracy`, accuracy(card.accuracy)],
 		['UR', card.ur.toFixed(2)],
 	];
 	const top = 290 + Math.ceil(card.judges.length / 2) * 44 + 14;
@@ -303,7 +304,7 @@ const drawStandings = (ctx: CanvasRenderingContext2D, standings: Standing[]) => 
 		ctx.fillText(Math.round(s.score).toLocaleString('en-US'), PAD + 590, mid);
 		ctx.font = font(600, 20);
 		ctx.fillStyle = GREY;
-		if (s.accuracy !== undefined) ctx.fillText(`${(s.accuracy * 100).toFixed(2)}%`, PAD + 730, mid);
+		if (s.accuracy !== undefined) ctx.fillText(accuracy(s.accuracy), PAD + 730, mid);
 		ctx.fillText(`${s.combo}x`, PAD + 850, mid);
 		ctx.textAlign = 'left';
 		ctx.fillText(s.mods, PAD + 880, mid);

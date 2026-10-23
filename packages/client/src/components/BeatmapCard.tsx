@@ -14,6 +14,7 @@ import BeatmapStore from '../osu/beatmap/beatmap_store';
 import {
 	difficultyColor,
 	isDarkDifficulty,
+	starsText,
 } from '@oss-idle/shared/display/difficulty';
 import { DownloadState } from './BeatmapCarousel';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
@@ -149,7 +150,7 @@ function BeatmapCard({
 					<div className="bm-card__artist">{artist}</div>
 					<div className="bm-card__meta" data-dark={isDarkDifficulty(stars)}>
 						<span className="bm-card__stars" style={{ color }}>
-							★ {stars.toFixed(2)}
+							★ {starsText(stars)}
 						</span>
 						<span className="bm-card__version" style={{ color }}>
 							{version}

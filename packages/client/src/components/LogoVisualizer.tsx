@@ -4,6 +4,7 @@ import {
 } from 'react';
 import { music } from '../audio/MusicPlayer';
 import { logoPulse } from './logoPulse';
+import { sizeCanvas } from '../sizeCanvas';
 
 interface Props {
 	/** diameter of the logo this wraps, in px */
@@ -96,13 +97,8 @@ export default function LogoVisualizer({
 	useEffect(() => {
 		const canvas = canvasRef.current!;
 		const ctx = canvas.getContext('2d')!;
-		const dpr = Math.min(window.devicePixelRatio || 1, 2);
 		const dim = size * 2;
-		canvas.width = dim * dpr;
-		canvas.height = dim * dpr;
-		canvas.style.width = `${dim}px`;
-		canvas.style.height = `${dim}px`;
-		ctx.scale(dpr, dpr);
+		const dpr = sizeCanvas(canvas, ctx, dim, dim);
 
 		const cx = dim / 2;
 		const cy = dim / 2;

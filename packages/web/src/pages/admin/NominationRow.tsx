@@ -6,10 +6,9 @@ import {
 } from '../../api/maps';
 import NominationDiffs from './NominationDiffs';
 import { phaseOf } from './nominationStatus';
-import {
-	type MapTag,
-	osuSetUrl,
-} from '@oss-idle/shared/beatmap';
+import type { MapTag } from '@oss-idle/shared/beatmap';
+import NominationMeta from './NominationMeta';
+import { formatDate } from './formatDate';
 
 /** ISO timestamp -> value for an <input type="datetime-local"> (local time). */
 const toLocalInput = (iso: string | null): string => {
@@ -18,11 +17,6 @@ const toLocalInput = (iso: string | null): string => {
 	const pad = (n: number) => String(n).padStart(2, '0');
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
-
-const fmt = (iso: string | null): string =>
-	iso ? new Date(iso).toLocaleString(undefined, {
-		dateStyle: 'medium', timeStyle: 'short', 
-	}) : '—';
 
 const HOUR = 3600e3;
 // Quick-schedule windows: a random moment within the next hour/day/week/month.
@@ -68,6 +62,14 @@ export default function NominationRow({
 			status: 'pending', rankedAt: null,
 		});
 	const reject = () => onPatch(row.id, { status: 'rejected' });
+	// a player's own map, submitted for rank: theirs again, with the reason why
+	const player = !!row.submittedBy;
+	const sendBack = () => {
+		const note = prompt('Why does it go back to its mapper? They see this.');
+		if (note !== null) onPatch(row.id, {
+			status: 'unranked', note, 
+		});
+	};
 
 	return (
 		<div className='nomination__entry'>
@@ -76,20 +78,7 @@ export default function NominationRow({
 					className='nomination__cover'
 					style={{ backgroundImage: coverBackground(row, 'list') }}
 				/>
-				<div className='nomination__meta'>
-					<a
-						className='nomination__title'
-						href={osuSetUrl(row.osuId)}
-						target='_blank'
-						rel='noreferrer'
-					>
-						{row.artist} - {row.title}
-					</a>
-					<span className='nomination__creator'>by {row.creator}</span>
-					{row.requestedBy && (
-						<span className='nomination__creator'>requested by {row.requestedBy.username}</span>
-					)}
-				</div>
+				<NominationMeta row={row} player={player} />
 
 				<span className={`nomination__badge nomination__badge--${phase}`}>{phase}</span>
 
@@ -103,12 +92,12 @@ export default function NominationRow({
 				</div>
 				<div className='nomination__stat'>
 					<span className='nomination__label'>Submitted</span>
-					<span>{fmt(row.submittedAt)}</span>
+					<span>{formatDate(row.submittedAt)}</span>
 				</div>
 				<div className='nomination__stat'>
 					<span className='nomination__label'>Ranked</span>
 					{live
-						? <span>{fmt(row.rankedAt)}</span>
+						? <span>{formatDate(row.rankedAt)}</span>
 						: <input 
 							className='nomination__field'
 							type='datetime-local'
@@ -172,9 +161,9 @@ export default function NominationRow({
 				{row.status === 'pending' && <button
 					className='nomination__btn nomination__btn--warn' 
 					disabled={busy} 
-					onClick={reject}
+					onClick={player ? sendBack : reject}
 				>
-					Reject
+					{player ? 'Send back' : 'Reject'}
 				</button>}
 				<button 
 					className='nomination__btn nomination__btn--danger'

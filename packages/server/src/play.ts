@@ -13,8 +13,14 @@ import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
 import { hasUnlock } from '@oss-idle/shared/rebirth';
 import {
 	MINDBLOCK_SKILLS,
+	Skills,
 	type SkillName,
 } from '@oss-idle/shared/skills';
+import {
+	boardDifficulty,
+	hasUnrankedBoard,
+	recordUnrankedScore,
+} from './beatmaps/unrankedBoard';
 import {
 	compareGradeGT,
 	compareGradeGTE,
@@ -139,6 +145,8 @@ type Pending = {
 	failProgress?: number,
 	/** NF in a match round: played on the server, never submitted */
 	unranked?: true,
+	/** scored on a player's unranked map's leaderboard: no XP, no pp, nothing ranked */
+	board?: 'unranked',
 };
 
 /** The end a client is told: the map's, so a fail can't be read off it before it streams in. */
@@ -422,6 +430,8 @@ export type PlayOptions = {
 	mods?: Mod[],
 	/** a match round: NF plays here unsubmitted, and a fail plays on to the end */
 	round?: boolean,
+	/** onto a player's unranked map's leaderboard: no XP, no pp, nothing ranked */
+	board?: boolean,
 };
 
 export async function startPlay(
@@ -464,15 +474,22 @@ export async function startPlay(
 		);
 		return { status: 'refused' };
 	}
-	const beatmap = await getLiveBeatmap(beatmapId);
-	// An unranked diff, or one whose set isn't live, plays like an unknown map: local play, no submit.
-	if (!beatmap) {
-		await redis.zrem(PLAYING_KEY, String(character.id));
-		return { status: 'unranked' };
-	}
-	return simulateAndStore(character, beatmapId, beatmap, {
+	const play = {
 		...options, mods, rate: allowedRate(options.rate ?? 1, character.speedUpgrades),
-	});
+	};
+	const beatmap = await getLiveBeatmap(beatmapId);
+	if (beatmap) return simulateAndStore(character, beatmapId, beatmap, play);
+	// A player's unranked map with a leaderboard (or one a supporter opens) plays like a
+	// ranked one, onto that board only.
+	const board = await boardDifficulty(beatmapId, character.userId);
+	if (board) {
+		return simulateAndStore(character, beatmapId, board, {
+			...play, board: true,
+		});
+	}
+	// Any other unranked diff, or one whose set isn't live, plays like an unknown map: local play, no submit.
+	await redis.zrem(PLAYING_KEY, String(character.id));
+	return { status: 'unranked' };
 }
 
 /** The xp a finished play is worth: mindblock and the bonus for a first X.
@@ -537,7 +554,7 @@ async function simulateAndStore(
 	beatmapId: number,
 	beatmap: Awaited<ReturnType<typeof getBeatmap>>,
 	{
-		xpMultiplier = 1, rate = 1, mods = [], round = false,
+		xpMultiplier = 1, rate = 1, mods = [], round = false, board = false,
 	}: PlayOptions,
 ): Promise<StartPlayResult> {
 	const skills = await loadCharacterSkills(character, beatmapId);
@@ -621,7 +638,7 @@ async function simulateAndStore(
 		songEndMs: lastNoteEnd,
 		draft,
 		samples,
-		skillXp: scaleXp(await getServerXP(
+		skillXp: board ? noXp() : scaleXp(await getServerXP(
 			character,
 			bot,
 			beatmap,
@@ -632,6 +649,7 @@ async function simulateAndStore(
 			mods,
 		), xpMultiplier),
 		...fail,
+		...board ? { board: 'unranked' as const } : {},
 	};
 	if (!isRankedMods(mods)) entry.unranked = true;
 	await redis.set(playKey(character.id), JSON.stringify(entry));
@@ -679,6 +697,30 @@ const getAndDeletePlay = async(characterId: number): Promise<Pending | undefined
 	return JSON.parse(result) as Pending;
 };
 
+const noXp = () => Object.fromEntries(Skills.map(s => [s, 0])) as Record<SkillName, number>;
+
+/** A play on an unranked map's leaderboard: onto the board, nothing else moves. Dropped
+ *  when the map lost its board mid-play (updated, ranked or taken down). */
+const parseUnrankedResult = async (play: Pending, notify: boolean): Promise<StoredResult> => {
+	if (!await hasUnrankedBoard(play.draft.beatmapId)) {
+		return {
+			token: play.token, failed: true, notify,
+		};
+	}
+	play.draft.playedAt = new Date();
+	const row = await recordUnrankedScore(play.draft);
+	return {
+		token: play.token,
+		failed: false,
+		score: scoreRowToDTO(row),
+		gains: [],
+		deltas: {
+			rank: 0, rankedScore: 0, pp: 0,
+		},
+		notify,
+	};
+};
+
 const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredResult> => {
 	const characterId = play.characterId;
 
@@ -690,6 +732,7 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 			failProgress: play.failProgress,
 		};
 	}
+	if (play.board === 'unranked') return parseUnrankedResult(play, notify);
 
 	if (play.unranked) {
 		return {

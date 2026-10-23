@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-22 23:02\n"
+"PO-Revision-Date: 2026-10-23 19:43\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -271,6 +271,10 @@ msgstr "Centurion"
 msgid "Change your way of learning SV maps"
 msgstr "Change ta façon de train les maps SV"
 
+#: src/display/social.ts
+msgid "Cheating"
+msgstr "Triche"
+
 #: src/skills.ts
 msgid "Circle skin LNs"
 msgstr "LN skin cercles"
@@ -366,6 +370,22 @@ msgstr "Clavier chiclet Dell XPS"
 msgid "Denied"
 msgstr "Refusé"
 
+#: src/display/skills.ts
+msgid "Determines how fast and how well you are able to learn SV maps"
+msgstr "Détermine à quelle vitesse et à quel point vous êtes capable d'apprendre des maps SV"
+
+#: src/display/skills.ts
+msgid "Determines how many notes you're comfortable hitting in short periods of time"
+msgstr "Détermine combien de notes vous gérez confortablement en peu de temps"
+
+#: src/display/skills.ts
+msgid "Determines how often you will get random chokes during plays"
+msgstr "Détermine la fréquence des chokes aléatoires pendant vos parties"
+
+#: src/display/skills.ts
+msgid "Determines whether you will start drifting away during longer plays"
+msgstr "Détermine si vous commencez à décrocher pendant les parties longues"
+
 #: src/display/medals.ts
 msgid "Devoted"
 msgstr "Dévoué"
@@ -409,6 +429,10 @@ msgstr "Focalisation dynamique du regard"
 #: src/display/mods.ts
 msgid "Easy"
 msgstr "Easy"
+
+#: src/display/addon.ts
+msgid "Editor"
+msgstr "Éditeur"
 
 #: src/display/medals.ts
 msgid "Eight Stars Up"
@@ -477,6 +501,10 @@ msgstr "Full combo une map de {stars}★ ou plus"
 #: src/display/medals.ts
 msgid "Fully Loaded"
 msgstr "Jusqu’aux dents"
+
+#: src/display/addon.ts
+msgid "Gameplay"
+msgstr "Gameplay"
 
 #: src/display/medals.ts
 msgid "Gearing Up"
@@ -566,6 +594,30 @@ msgstr "Maintenir la première place sur {count} maps classées"
 msgid "Hold the Line"
 msgstr "Tenir la ligne"
 
+#: src/display/skills.ts
+msgid "How accurate and stable you are when timing releases"
+msgstr "Votre précision et votre stabilité au moment de relâcher les longues notes"
+
+#: src/display/skills.ts
+msgid "How accurately you hit the notes as a baseline"
+msgstr "Votre précision de base quand vous jouez confortablement"
+
+#: src/display/skills.ts
+msgid "How comfortable you generally are during SV sections"
+msgstr "Votre aisance générale pendant les sections SV"
+
+#: src/display/skills.ts
+msgid "How long you can keep up with patterns that are too dense for you"
+msgstr "Combien de temps vous tenez sur des patterns trop denses pour vous"
+
+#: src/display/skills.ts
+msgid "How well you are able to decipher complex patterns on screen without mashing"
+msgstr "Votre capacité à déchiffrer les patterns complexes à l'écran sans mash"
+
+#: src/display/skills.ts
+msgid "How well you handle other patterns while holding long notes"
+msgstr "Votre aisance sur les autres patterns en maintenant des LN"
+
 #: src/display/medals.ts
 msgid "Hush-Hush"
 msgstr "Hush-Hush"
@@ -577,6 +629,14 @@ msgstr "Idle"
 #: src/display/medals.ts
 msgid "In the Running"
 msgstr "Dans la course"
+
+#: src/display/social.ts
+msgid "Inappropriate chat behaviour"
+msgstr "Comportement inapproprié dans le chat"
+
+#: src/display/social.ts
+msgid "Inappropriate content"
+msgstr "Contenu inapproprié"
 
 #: src/display/medals.ts
 msgid "Inferno"
@@ -764,6 +824,10 @@ msgstr "Un pour cent"
 msgid "Optimized MasterPlus+"
 msgstr "MasterPlus+ optimisé"
 
+#: src/display/social.ts
+msgid "Other (type below)"
+msgstr "Autre (précisez ci-dessous)"
+
 #: src/skills.ts
 msgid "Outdated stock Windows drivers"
 msgstr "Pilotes Windows obsolètes"
@@ -888,6 +952,10 @@ msgstr "AZP^"
 #: src/display/medals.ts
 msgid "Ranked"
 msgstr "Classé"
+
+#: src/display/skills.ts
+msgid "Raw individual finger speed"
+msgstr "La vitesse brute de chaque doigt"
 
 #: src/skills.ts
 msgid "Razer BlackShark V3"
@@ -1170,6 +1238,10 @@ msgstr "Moitié haute"
 #: src/skills.ts
 msgid "Used earbuds"
 msgstr "Écouteurs d'occasion"
+
+#: src/display/social.ts
+msgid "Using multiple accounts"
+msgstr "Multicompte"
 
 #: src/skills.ts
 msgid "Vibe playing"

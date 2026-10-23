@@ -1,4 +1,5 @@
 import './PlayerLeaderboard.css';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
 import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
 import Link from '../Link';
 import Pager from './Pager';
@@ -33,7 +34,7 @@ export default function PlayerMedalLeaderboard({ page, players }: {
 						key={player.character.id}
 						className={player.character.id === self?.id ? 'is-self' : undefined}
 					>
-						<td>{rank(r+1+((page - 1) * 50))}</td>
+						<td>{rank(r+1+((page - 1) * PAGE_SIZE))}</td>
 						<td className='main'><div className='player__lb_listing_main'>
 							<Flag country={player.user.country} />
 							<Link to='/c/$id' params={{ id: String(player.character.id) }}>{player.character.name}</Link>
@@ -45,6 +46,6 @@ export default function PlayerMedalLeaderboard({ page, players }: {
 				</tbody>
 			</table>
 		</div>
-		<Pager page={page} hasNext={players.length === 50} />
+		<Pager page={page} hasNext={players.length === PAGE_SIZE} />
 	</div>);
 }

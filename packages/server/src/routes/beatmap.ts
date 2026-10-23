@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import {
 	and,
 	asc,
@@ -11,6 +10,8 @@ import {
 	max,
 	sum,
 	isNotNull,
+	ne,
+	or,
 } from 'drizzle-orm';
 import { z } from 'zod';
 import {
@@ -28,10 +29,6 @@ import {
 	oszResponse,
 	previewResponse,
 } from '../beatmaps/serve';
-import {
-	readdir,
-	rm,
-} from 'node:fs/promises';
 import { beatmapClaimRoutes } from './beatmapClaim';
 import { db } from '../db/client';
 import {
@@ -41,47 +38,82 @@ import {
 import {
 	beatmapset,
 	getBeatmapsetById,
+	type BeatmapsetRow,
 } from '../db/schema/beatmapset';
 import { requireAdmin } from '../auth/admin';
 import { ingestOsz } from '../beatmaps/ingest';
 import { purgeBeatmapScores } from '../scores';
 import {
-	buildCatalog,
+	LIST_STATUSES,
+	deferCatalogInvalidate,
+	getCatalog,
+	invalidateCatalog,
 	isSetLive,
+	isSetPublic,
+	listCondition,
+	setLiveChanged,
+	listedAt,
 	listedCondition,
 	liveDiffCondition,
+	nameMatches,
+	panelColumns,
+	playerMapCondition,
+	unrankedSet,
 } from '../beatmaps/catalog';
-import {
-	PREVIEW_DIR,
-	oszPath,
-	previewPath,
-} from '../beatmaps/storage';
-import { hub } from '../ws/hub';
+import { deleteSetFiles } from '../beatmaps/storage';
+import { clearForStatus } from '../beatmaps/upload';
+import { beatmapUploadRoutes } from './beatmapUpload';
+import { users } from '../db/schema/user';
 import {
 	acceptRequestsForSet,
 	beatmapRequestRoutes,
 	requestersForSets,
 } from './beatmapRequest';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-/** Nomination changed what the catalog lists: connected clients refetch. */
-const invalidateCatalog = () => hub.broadcast({ type: 'catalog:invalidate' });
 
-const idParam = z.coerce.number().int().positive();
+/** The listing's filters: which maps, and a name to look for. */
+const listQuery = z.object({
+	status: z.enum(LIST_STATUSES).default('ranked'),
+	q: z.string().optional(),
+});
 
-// Re-throw zValidator failures so the app's onError returns our standard 400.
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => { if (!result.success) throw result.error; });
 
 const nominationPatch = z.object({
 	rankedAt: z.string().datetime().nullable().optional(),
 	status: z.enum(BEATMAP_STATUS).optional(),
 	bundled: z.boolean().optional(),
 	categorized: z.boolean().optional(),
+	/** why a player's submission goes back to them (status 'unranked') */
+	note: z.string().max(2000).optional(),
 });
+
+type NominationPatch = z.infer<typeof nominationPatch>;
+
+/** What a queue edit writes on the set. Only a player's own upload goes back to being
+ *  theirs ('unranked'), with the reason why; (re)ranking re-arms the announce. */
+const nominationUpdates = (existing: BeatmapsetRow, body: NominationPatch) => {
+	const player = existing.uploadedAt !== null;
+	if (body.status === 'unranked' && !player) {
+		throw new HTTPException(400, { message: 'Only a player\'s own map can be sent back' });
+	}
+	const updates: Partial<typeof beatmapset.$inferInsert> = {};
+	if (body.rankedAt !== undefined) updates.rankedAt = body.rankedAt ? new Date(body.rankedAt) : null;
+	if (body.bundled !== undefined) updates.bundled = body.bundled;
+	if (body.categorized !== undefined) updates.categorized = body.categorized;
+	if (body.status === undefined) return updates;
+	updates.status = body.status;
+	if (body.status === 'ranked') updates.announced = false;
+	if (body.status === 'unranked') updates.reviewNote = body.note?.trim() || null;
+	return updates;
+};
 
 export const beatmapsRoutes = new Hono()
 	// Public, live-only (status='ranked' AND rankedAt <= now()).
-	.get('/catalog', async c => c.json(await buildCatalog()))
+	.get('/catalog', async c => c.json(await getCatalog()))
 
 	// Every difficulty's stars at a rate, by id: song select's cards and sort follow it.
 	.get('/stars/:rate', async c => {
@@ -105,19 +137,19 @@ export const beatmapsRoutes = new Hono()
 		return c.json(stars);
 	})
 
-	.get('/all/:dir', async c => {
+	.get('/all/:dir', valid('query', listQuery), async c => {
 		const sort = c.req.param('dir') === 'asc' ? asc : desc;
+		const { status, q } = c.req.valid('query');
 		return c.json(await db
 			.select({
 				...getTableColumns(beatmapset),
-				plays: sum(beatmaps.plays),
-				background: max(beatmaps.background),
+				...panelColumns(),
 			})
 			.from(beatmapset)
 			.innerJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
-			.where(listedCondition)
+			.where(and(listCondition(status), nameMatches(q)))
 			.groupBy(beatmapset.id)
-			.orderBy(sort(beatmapset.rankedAt)),
+			.orderBy(sort(listedAt)),
 		);
 	})
 	.get('/recent', async c => {
@@ -134,38 +166,46 @@ export const beatmapsRoutes = new Hono()
 			.limit(10),
 		);
 	})
-	.get('/popular/:dir', async c => {
+	.get('/popular/:dir', valid('query', listQuery), async c => {
 		const sort = c.req.param('dir') === 'asc' ? asc : desc;
+		const { status, q } = c.req.valid('query');
 		const plays = sum(beatmaps.plays).as('plays');
 		return c.json(await db
 			.select({
 				...getTableColumns(beatmapset),
+				...panelColumns(),
 				plays,
-				background: max(beatmaps.background),
 			})
 			.from(beatmapset)
 			.innerJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
-			.where(listedCondition)
+			.where(and(listCondition(status), nameMatches(q)))
 			.groupBy(beatmapset.id)
 			.orderBy(sort(plays)),
 		);
 	})
 
-	// A live set's .osz (404 until it's ranked + due).
+	// A player's unranked upload, catalog-shaped for the game to download it.
+	.get('/unranked/:setId', async c => {
+		const set = await unrankedSet(idParam.parse(c.req.param('setId')));
+		if (!set) throw new HTTPException(404, { message: 'Beatmap not available' });
+		return c.json(set);
+	})
+
+	// A live set's .osz (404 until it's ranked + due), or a player's unranked upload.
 	// The client fetches this URL directly, not via the typed RPC.
 	// `?bulk` (download every ranked map) is rate-capped, a double-click isn't.
 	.get('/osz/:setId', async c => {
 		const id = idParam.parse(c.req.param('setId'));
-		if (!await isSetLive(id)) throw new HTTPException(404, { message: 'Beatmap not available' });
+		if (!await isSetPublic(id)) throw new HTTPException(404, { message: 'Beatmap not available' });
 		return oszResponse(id, c.req.query('bulk') !== undefined);
 	})
 
-	// A live set's preview audio/background. File names are set-id prefixed.
+	// A downloadable set's preview audio/background. File names are set-id prefixed.
 	.get('/preview/:setId/:file', async c => {
 		const id = idParam.parse(c.req.param('setId'));
 		const file = c.req.param('file');
 		checkPreviewName(id, file);
-		if (!await isSetLive(id)) throw new HTTPException(404, { message: 'Beatmap not available' });
+		if (!await isSetPublic(id)) throw new HTTPException(404, { message: 'Beatmap not available' });
 		return previewResponse(file);
 	})
 
@@ -176,10 +216,14 @@ export const beatmapsRoutes = new Hono()
 				...getTableColumns(beatmapset),
 				plays: sum(beatmaps.plays),
 				background: max(beatmaps.background),
+				// who submitted a player's own map
+				submittedBy: max(users.username),
 			})
 			.from(beatmapset)
 			.leftJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
-			.where(isNull(beatmapset.deletedAt))
+			.leftJoin(users, and(eq(users.id, beatmapset.ownerUserId), isNotNull(beatmapset.uploadedAt)))
+			// players' own uploads only reach the queue once submitted for rank
+			.where(and(isNull(beatmapset.deletedAt), ne(beatmapset.status, 'unranked')))
 			.groupBy(beatmapset.id)
 			.orderBy(desc(beatmapset.id));
 
@@ -193,6 +237,10 @@ export const beatmapsRoutes = new Hono()
 				plays: beatmaps.plays,
 				ranked: beatmaps.ranked,
 				tags: beatmaps.tags,
+				ln: beatmaps.ln,
+				objects: beatmaps.objects,
+				bpmPoints: beatmaps.bpmPoints,
+				svPoints: beatmaps.svPoints,
 			})
 			.from(beatmaps);
 
@@ -231,7 +279,7 @@ export const beatmapsRoutes = new Hono()
 			throw new HTTPException(400, { message: e instanceof Error ? e.message : 'Could not ingest beatmap' });
 		}
 	})
-	.patch('/nomination/:setId', requireAdmin, jsonBody(nominationPatch), async c => {
+	.patch('/nomination/:setId', requireAdmin, valid('json', nominationPatch), async c => {
 		const id = idParam.parse(c.req.param('setId'));
 		const body = c.req.valid('json');
 
@@ -239,34 +287,16 @@ export const beatmapsRoutes = new Hono()
 		if (!existing) throw new HTTPException(404, { message: 'Beatmap set not found' });
 		const wasLive = await isSetLive(id);
 
-		const updates: Partial<typeof beatmapset.$inferInsert> = {};
-		if (body.rankedAt !== undefined) updates.rankedAt = body.rankedAt ? new Date(body.rankedAt) : null;
-		if (body.status !== undefined) {
-			updates.status = body.status;
-			// Re-arm the announce when (re)ranking, so the sweep posts it once due.
-			if (body.status === 'ranked') updates.announced = false;
-		}
-		if (body.bundled !== undefined) updates.bundled = body.bundled;
-		if (body.categorized !== undefined) updates.categorized = body.categorized;
+		await db.update(beatmapset).set(nominationUpdates(existing, body)).where(eq(beatmapset.id, id));
+		if (body.status !== undefined) await clearForStatus(existing, body.status);
 
-		await db.update(beatmapset).set(updates).where(eq(beatmapset.id, id));
-
-		// Unranking the set wipes all progression earned on its difficulties.
-		if (existing.status === 'ranked' && body.status !== undefined && body.status !== 'ranked') {
-			const diffs = await db
-				.select({ id: beatmaps.id })
-				.from(beatmaps)
-				.where(eq(beatmaps.setId, id));
-			for (const diff of diffs) await purgeBeatmapScores(diff.id);
-		}
-
-		if (wasLive || await isSetLive(id)) invalidateCatalog();
+		await setLiveChanged(wasLive, await isSetLive(id));
 		return c.json({ ok: true });
 	})
 	// Toggle one difficulty in/out of the ranked set. Works before the set is
 	// live (choose which diffs go ranked) and after (unrank a single diff).
 	.patch('/nomination/:setId/beatmap/:beatmapId', requireAdmin,
-		jsonBody(z.object({ ranked: z.boolean() })), async c => {
+		valid('json', z.object({ ranked: z.boolean() })), async c => {
 			const setId = idParam.parse(c.req.param('setId'));
 			const beatmapId = idParam.parse(c.req.param('beatmapId'));
 			const { ranked } = c.req.valid('json');
@@ -292,11 +322,11 @@ export const beatmapsRoutes = new Hono()
 
 			// Unranking a difficulty wipes all progression earned on it.
 			if (!ranked) await purgeBeatmapScores(beatmapId);
-			if (await isSetLive(setId)) invalidateCatalog();
+			if (await isSetLive(setId)) await (ranked ? invalidateCatalog() : deferCatalogInvalidate());
 			return c.json({ ok: true });
 		})
 	.put('/nomination/:setId/beatmap/:beatmapId/tags', requireAdmin,
-		jsonBody(z.object({ tags: z.array(z.enum(MAP_TAGS)) })), async c => {
+		valid('json', z.object({ tags: z.array(z.enum(MAP_TAGS)) })), async c => {
 			const setId = idParam.parse(c.req.param('setId'));
 			const beatmapId = idParam.parse(c.req.param('beatmapId'));
 			const { tags } = c.req.valid('json');
@@ -305,7 +335,7 @@ export const beatmapsRoutes = new Hono()
 				.set({ tags: [...new Set(tags)].join(',') })
 				.where(and(eq(beatmaps.id, beatmapId), eq(beatmaps.setId, setId)));
 			if (!res.affectedRows) throw new HTTPException(404, { message: 'Beatmap not found' });
-			if (await isSetLive(setId)) invalidateCatalog();
+			if (await isSetLive(setId)) await deferCatalogInvalidate();
 			return c.json({ ok: true });
 		})
 	.delete('/nomination/:setId', requireAdmin, async c => {
@@ -324,21 +354,17 @@ export const beatmapsRoutes = new Hono()
 			deletedAt: new Date(), status: 'pending', rankedAt: null, announced: false,
 		}).where(eq(beatmapset.id, id));
 
-		await rm(oszPath(id), { force: true });
-		const previews = await readdir(PREVIEW_DIR).catch(() => [] as string[]);
-		await Promise.all(previews
-			.filter(f => f.startsWith(`${id}.`) || f.startsWith(`${id}-`))
-			.map(f => rm(previewPath(f), { force: true })),
-		);
+		await deleteSetFiles(id);
 
 		if (!res.affectedRows) throw new HTTPException(404, { message: 'Beatmap set not found' });
-		if (wasLive) invalidateCatalog();
+		if (wasLive) await deferCatalogInvalidate();
 		return c.json({ ok: true });
 	})
 
 	// Player-facing ranking propositions. Mounted before the `:id` catch-all so
 	// `/request` isn't swallowed by it.
 	.route('/request', beatmapRequestRoutes)
+	.route('/upload', beatmapUploadRoutes)
 	.route('/claim', beatmapClaimRoutes)
 
 	// A set's page: the set and its live difficulties, easiest first.
@@ -350,7 +376,7 @@ export const beatmapsRoutes = new Hono()
 			})
 			.from(beatmaps)
 			.innerJoin(beatmapset, eq(beatmaps.setId, beatmapset.id))
-			.where(and(eq(beatmapset.id, id), liveDiffCondition))
+			.where(and(eq(beatmapset.id, id), or(liveDiffCondition, playerMapCondition)))
 			.orderBy(asc(beatmaps.sr));
 		if (!rows.length) throw new HTTPException(404, { message: 'Beatmap set not found' });
 		return c.json({

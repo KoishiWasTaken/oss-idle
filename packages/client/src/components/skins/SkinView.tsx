@@ -8,7 +8,10 @@ import {
 	useLingui,
 } from '@lingui/react/macro';
 import PageBarActions from '../page/PageBarActions';
-import type { PageAction } from '../page/pageBar';
+import {
+	editorBarActions,
+	type PageAction,
+} from '../page/pageBar';
 import {
 	defaultSkin,
 	validateSkinSource,
@@ -22,9 +25,11 @@ import { z } from 'zod';
 import {
 	createSkin,
 	SkinDetail,
+	skinIconUrl,
 	updateSkin,
+	uploadSkinIcon,
 } from '../../online/skins';
-import SkinIconField from './SkinIconField';
+import IconField from '../listing/IconField';
 import SkinReadMeta from './SkinReadMeta';
 import SkinCodePane from './SkinCodePane';
 import GameplayPreview from './GameplayPreview';
@@ -39,33 +44,6 @@ export const newSkin = (): SkinCreateBody => ({
 	definition: JSON.stringify(defaultSkin()),
 });
 
-type BarOpts = {
-	editing?: boolean,
-	busy: boolean,
-	canSave: boolean,
-	onBack: () => void,
-	onSave: () => void,
-	viewActions?: PageAction[],
-};
-
-const barActions = (o: BarOpts): PageAction[] => {
-	const back: PageAction = {
-		id: 'back',
-		label: o.editing ? <Trans>Cancel</Trans> : <Trans>Back</Trans>,
-		onClick: o.onBack,
-		disabled: o.busy,
-		order: 10,
-	};
-	if (!o.editing) return [back, ...o.viewActions ?? []];
-	const save: PageAction = {
-		id: 'save',
-		label: o.busy ? <Trans>Saving…</Trans> : <Trans>Save</Trans>,
-		onClick: o.onSave,
-		disabled: o.busy || !o.canSave,
-		order: 20,
-	};
-	return [back, save];
-};
 type Props = {
 	detail?: SkinDetail | SkinCreateBody,
 	editing?: boolean,
@@ -126,9 +104,9 @@ export default function SkinView({
 	}, [editing, body]);
 
 	return (
-		<div className='skin-view'>
-			<div className='skin-view__cols'>
-				<div className='skin-view__meta'>
+		<div className='listing-view'>
+			<div className='listing-view__cols'>
+				<div className='listing-view__meta'>
 					{editing ? (
 						<>
 							<div className='skin-view__preview'>
@@ -136,20 +114,20 @@ export default function SkinView({
 								<GameplayPreview definition={definition} />
 							</div>
 					
-							<label className='skin-field'>
+							<label className='listing-field'>
 								<span><Trans>Name</Trans></span>
 								<input value={name} onChange={e => setName(e.target.value)} maxLength={80} />
 							</label>
-							<label className='skin-field'>
+							<label className='listing-field'>
 								<span><Trans>Description</Trans></span>
 								<textarea 
-									className='skin-desc'
+									className='listing-desc'
 									value={description} 
 									onChange={e => setDescription(e.target.value)} maxLength={500} 
 								/>
 							</label>
-							<div className='skin-field-row'>
-								<label className='skin-field'>
+							<div className='listing-field-row'>
+								<label className='listing-field'>
 									<span><Trans>Version</Trans></span>
 									<input 
 										value={version} 
@@ -158,7 +136,7 @@ export default function SkinView({
 									/>
 								</label>
 							</div>
-							<label className='skin-field'>
+							<label className='listing-field'>
 								<span><Trans>Tags</Trans></span>
 								<input 
 									value={tags}
@@ -166,7 +144,12 @@ export default function SkinView({
 									placeholder={t`comma, separated, tags`} 
 								/>
 							</label>
-							<SkinIconField value={icon} onChange={setIcon} />
+							<IconField
+								value={icon}
+								onChange={setIcon}
+								iconUrl={skinIconUrl}
+								upload={uploadSkinIcon}
+							/>
 							{validation && (
 								<div className='skin-view__validation'>
 									<span><Trans>Validation errors</Trans></span>
@@ -185,7 +168,7 @@ export default function SkinView({
 					}
 				</div>
 
-				<div className='addon-field addon-field--code'>
+				<div className='listing-field listing-field--code'>
 					<SkinCodePane
 						editing={editing} 
 						source={definition}
@@ -199,7 +182,7 @@ export default function SkinView({
 			<PageBarActions 
 				actions={[
 					...(actions ? actions : []),
-					...barActions({
+					...editorBarActions({
 						editing,
 						busy,
 						canSave: !!name.trim() && !validation,

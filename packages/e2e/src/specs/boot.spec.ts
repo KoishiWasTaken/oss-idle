@@ -3,6 +3,9 @@ import {
 	test,
 } from '../support/fixtures';
 
+/** The intro's set (shared INTRO_SET_ID). */
+const INTRO_SET_ID = 355322;
+
 test.describe('boot', () => {
 
 	test('the intro hands over to the main menu, which reaches song select', async ({ game, page }) => {
@@ -30,7 +33,8 @@ test.describe('boot', () => {
 
 	test('the catalog lists downloadable sets and none are installed yet', async ({ game }) => {
 		await game.open();
-		expect(await game.installedSets()).toHaveLength(0);
+		// the intro's own set downloads at boot, for the intro
+		expect((await game.installedSets()).filter(id => id !== INTRO_SET_ID)).toHaveLength(0);
 
 		const { set, version } = await game.easiestMap();
 		expect(set.versions.length).toBeGreaterThan(0);
@@ -39,7 +43,9 @@ test.describe('boot', () => {
 	});
 
 	test('booting logs no errors', async ({ game, errors }) => {
-		await game.start();
+		await game.open();
+		await game.enterMenu();
+		await game.enterSongSelect();
 		expect(errors).toEqual([]);
 	});
 

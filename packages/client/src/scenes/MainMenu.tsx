@@ -27,9 +27,7 @@ import Controls from '../input/Controls';
 import normalize from '@oss-idle/shared/math/normalize';
 import {
 	isOptionsOpen,
-	isWebOpen,
 	menuIdle,
-	webUrl,
 } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import Entities from '../entity/entities';
@@ -50,23 +48,32 @@ import { desktop } from '@oss-idle/shared/desktop';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
 import { DISCORD_URL } from '@oss-idle/shared/links';
+import { pickOsz } from '../osu/beatmap/oszImport';
+import { pickFile } from '../pickFile';
+import { createSet } from '../editor/save';
+import { message } from '../globals';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
 
 interface Props {
 	/** play the white-flash "drop" entrance (true when arriving from the intro) */
 	flash?: boolean
 }
 
-const MENU = mapped(['CLOSED', 'OPEN', 'PLAY']);
+const MENU = mapped(['CLOSED', 'OPEN', 'PLAY', 'EDIT']);
 type Menu = ValueIn<typeof MENU>;
 
 const OPTION = mapped([
 	'PLAY',
-	'WEBSITE', 
+	'EDITOR',
 	'OPTIONS', 
 	'EXIT', 
 	'SOLO',
 	'MULTI',
 	'BACK',
+	'EDIT_SELECT',
+	'EDIT_IMPORT',
+	'EDIT_NEW',
+	'EDIT_BACK',
 ]);
 type Option = ValueIn<typeof OPTION>;
 
@@ -143,10 +150,43 @@ export default function MainMenu({ flash = false }: Props) {
 			case MENU.PLAY:
 				toSongSelect();
 				break;
+			case MENU.EDIT:
+				toEditSelect();
+				break;
 		}
 	}, [menu]);
 
 	const toSongSelect = () => SceneManager.set(SCENE.SELECT);
+
+	const toEditSelect = () => SceneManager.set(SCENE.SELECT, 'edit');
+
+	/** Import an .osz, then open song select to edit, on the imported map. */
+	const importToEdit = async () => {
+		const set = await pickOsz();
+		if (!set) return;
+		const [easiest] = LightBeatmapSet.fromMetadata(set.metadata).getPlayableBeatmaps()
+			.sort((a, b) => a.metadata.difficulty - b.metadata.difficulty);
+		if (easiest) await music.beatmap.set(easiest);
+		await SETTINGS.search.set('');
+		toEditSelect();
+	};
+
+	/** Start a map on an audio file, straight into the editor. */
+	const newMap = async () => {
+		const audio = await pickFile('audio/*,.mp3,.ogg,.wav');
+		if (!audio) return;
+		try {
+			const beatmap = await createSet(audio, {
+				creator: user?.username ?? character.name,
+				version: t`New difficulty`,
+				keys: 4,
+			});
+			SceneManager.set(SCENE.EDITOR, beatmap);
+		} catch (e) {
+			console.error('[editor] new map failed', e);
+			message.set(t`Could not start a map on ${ph({ name: audio.name })}`);
+		}
+	};
 
 	// Exit only works in the desktop app; the browser forbids closing its own tab.
 	const isDesktop = !!desktop();
@@ -161,6 +201,7 @@ export default function MainMenu({ flash = false }: Props) {
 				setMenu(MENU.CLOSED);
 				break;
 			case MENU.PLAY:
+			case MENU.EDIT:
 				setMenu(MENU.OPEN);
 				break;
 		}
@@ -178,17 +219,13 @@ export default function MainMenu({ flash = false }: Props) {
 			order: 1,
 			onSelect: () => setMenu(MENU.PLAY),
 		},
-		[OPTION.WEBSITE]: {
+		[OPTION.EDITOR]: {
 			menu: MENU.OPEN,
-			title: t`Website`,
+			title: t`Editor`,
 			band: 'mid',
 			flip: false,
 			order: 2,
-			onSelect: async () => {
-				if (character.isGuest()) { Auth.signIn(); return; }
-				await webUrl.set(`c/${character.id}`);
-				await isWebOpen.set(true);
-			},
+			onSelect: () => setMenu(MENU.EDIT),
 		},
 		[OPTION.OPTIONS]: {
 			menu: MENU.OPEN,
@@ -237,6 +274,40 @@ export default function MainMenu({ flash = false }: Props) {
 			band: 'out',
 			flip: true,
 			order: 3,
+			onSelect: () => setMenu(MENU.OPEN),
+		},
+
+		// Editor menu
+		[OPTION.EDIT_SELECT]: {
+			menu: MENU.EDIT,
+			title: t`Select`,
+			band: 'out',
+			flip: false,
+			order: 1,
+			onSelect: toEditSelect,
+		},
+		[OPTION.EDIT_IMPORT]: {
+			menu: MENU.EDIT,
+			title: t`Import`,
+			band: 'mid',
+			flip: false,
+			order: 2,
+			onSelect: () => void importToEdit(),
+		},
+		[OPTION.EDIT_NEW]: {
+			menu: MENU.EDIT,
+			title: t`New`,
+			band: 'mid',
+			flip: true,
+			order: 3,
+			onSelect: () => void newMap(),
+		},
+		[OPTION.EDIT_BACK]: {
+			menu: MENU.EDIT,
+			title: t`Back`,
+			band: 'out',
+			flip: true,
+			order: 4,
 			onSelect: () => setMenu(MENU.OPEN),
 		},
 	};

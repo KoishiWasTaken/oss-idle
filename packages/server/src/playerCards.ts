@@ -1,5 +1,9 @@
 import { groupsByUser } from './groups';
-import { resolveAvatarUrl } from './db/schema/character';
+import {
+	characters,
+	resolveAvatarUrl,
+} from './db/schema/character';
+import { users } from './db/schema/user';
 import { areOnline } from './ws/presence';
 import { globalRanks } from './rankings';
 
@@ -9,6 +13,19 @@ type CardRow = {
 	lastActiveAt: Date | null;
 	userAvatarUrl: string | null;
 	character: { id: number; name: string; avatarUrl: string | null };
+};
+
+/** What playerCards needs, selected from users joined on their current character. */
+export const cardColumns = {
+	userId: users.id,
+	country: users.country,
+	lastActiveAt: users.lastActiveAt,
+	userAvatarUrl: users.avatarUrl,
+	character: {
+		id: characters.id,
+		name: characters.name,
+		avatarUrl: characters.avatarUrl,
+	},
 };
 
 /** osu!web's user list entries (friends, a group): presence, global rank and groups. */

@@ -1,15 +1,6 @@
 import { betterScore } from '@oss-idle/shared/scoreOrder';
-import {
-	count,
-	eq,
-	sql,
-	sum,
-} from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { type SkillName } from '@oss-idle/shared/skills';
-import {
-	JUDGEMENT,
-	Judgements,
-} from '@oss-idle/shared/judgement';
 import { db } from './db/client';
 import {
 	characters,
@@ -46,12 +37,8 @@ import {
 	setNewBestPlay,
 } from './db/schema/best';
 import {
-	addBestScoreToTotals,
-	addScoreToTotals,
 	getCharacterTotals,
-	removeBestScoreFromTotals,
-	updateCharacterTotals,
-	type CharacterTotalsRow,
+	refreshCharacterTotals,
 } from './db/schema/character_totals';
 import {
 	bestPP,
@@ -102,36 +89,12 @@ export async function recomputePP(characterId: number): Promise<void> {
  * is unranked. Skill XP is not reverted - there is no per-map XP ledger.
  */
 export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
-	const nonMiss = Judgements.filter(j => j !== JUDGEMENT.MISS);
 	const perCharacter = await db
-		.select({
-			characterId: scores.characterId,
-			plays: count(),
-			score: sum(scores.score),
-			hits: sql<string | null>`sum(${sql.join(nonMiss.map(j => sql`${scores[j]}`), sql` + `)})`,
-			// plays counted at their real duration, as addScoreToTotals does
-			lengths: sql<string | null>`sum(1 / ${scores.rate})`,
-		})
+		.selectDistinct({ characterId: scores.characterId })
 		.from(scores)
-		.where(eq(scores.beatmapId, beatmapId))
-		.groupBy(scores.characterId);
+		.where(eq(scores.beatmapId, beatmapId));
 	// No scores, nothing derived from them either.
 	if (!perCharacter.length) return;
-
-	const beatmap = await getBeatmapById(beatmapId);
-	// playTime accumulated per submitted score, in seconds (see addScoreToTotals)
-	const lengthSec = beatmap ? Math.round(beatmap.total_length / 1000) : 0;
-
-	for (const row of perCharacter) {
-		const totals = await getCharacterTotals(row.characterId);
-		totals.playCount -= row.plays;
-		totals.totalScore -= Number(row.score ?? 0);
-		totals.hits -= Number(row.hits ?? 0);
-		totals.playTime -= Math.round(Number(row.lengths ?? 0) * lengthSec);
-		const bestRow = await getBestPlay(row.characterId, beatmapId);
-		if (bestRow) removeBestScoreFromTotals(totals, bestRow);
-		await updateCharacterTotals(totals);
-	}
 
 	await db.delete(best).where(eq(best.beatmapId, beatmapId));
 	await db.delete(bestPP).where(eq(bestPP.beatmapId, beatmapId));
@@ -142,6 +105,7 @@ export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
 
 	await unindexBeatmap(beatmapId);
 	for (const row of perCharacter) {
+		await refreshCharacterTotals(row.characterId);
 		await recomputePP(row.characterId);
 		await reindexCharacter(row.characterId);
 	}
@@ -151,24 +115,22 @@ export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
  *  entry point for a new ranked play. */
 export async function submitScore(draft: NewScoreRow) {
 	await addBeatmapPlayed(draft.characterId, draft.beatmapId);
-	const totals = await getCharacterTotals(draft.characterId);
 	const [ins] = await db.insert(scores).values(draft);
 	const score = (await getScoreById(ins.insertId))!;
-	await onSubmitScore(totals, score);
+	await onSubmitScore(score);
 	return score;
 }
 
-export const onSubmitScore = async (
-	totals: CharacterTotalsRow, 
-	score: ScoreRow, 
-	recompute = true,
-) => {
-	await addScoreToTotals(totals, score);
-	await checkNewBest(totals, score);
+export const onSubmitScore = async (score: ScoreRow, recompute = true) => {
+	const before = (await getCharacterTotals(score.characterId)).rankedScore;
+	await checkNewBest(score);
+	await refreshCharacterTotals(score.characterId);
+	const after = (await getCharacterTotals(score.characterId)).rankedScore;
+	if (Math.floor(after / 1_000_000_000) > Math.floor(before / 1_000_000_000)) {
+		await announceBillions(score, after);
+	}
 	await checkNewBestPP(score, recompute);
 	await checkNewFirstPlace(score);
-
-	await updateCharacterTotals(totals);
 };
 
 export const compareScores = (s1: ScoreRow, s2: ScoreRow) => betterScore(s1, s2);
@@ -180,23 +142,10 @@ export const compareScoresPP = (s1: ScoreRow, s2: ScoreRow) => {
 	return (s1.id - s2.id) < 0;
 };
 
-export const checkNewBest = async (totals: CharacterTotalsRow, score: ScoreRow) => {
-	const billionsBefore = Math.floor(totals.rankedScore / 1_000_000_000);
-
+export const checkNewBest = async (score: ScoreRow) => {
 	const best = await getBestPlay(score.characterId, score.beatmapId);
-	if (best) {
-		if (compareScores(best, score)) return;
-		removeBestScoreFromTotals(totals, best);
-	}
-
-	addBestScoreToTotals(totals, score);
+	if (best && compareScores(best, score)) return;
 	await setNewBestPlay(score);
-
-	const billionsAfter = Math.floor(totals.rankedScore / 1_000_000_000);
-
-	if (billionsAfter > billionsBefore) {
-		await announceBillions(score, totals.rankedScore);
-	}
 };
 
 export const checkNewBestPP = async (score: ScoreRow, recompute = true) => {

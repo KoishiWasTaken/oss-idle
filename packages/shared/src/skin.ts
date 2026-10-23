@@ -3,6 +3,10 @@ import {
 	mapped,
 	type ValueIn,
 } from './helpers/mapped.js';
+import {
+	semver,
+	tags,
+} from './addon.js';
 
 export const SkinStatuses = [
 	'UNPUBLISHED',
@@ -10,16 +14,6 @@ export const SkinStatuses = [
 ] as const;
 export const SKIN_STATUS = mapped(SkinStatuses);
 export type SkinStatus = ValueIn<typeof SKIN_STATUS>;
-
-const semver = z.string().trim().regex(/^\d+\.\d+\.\d+$/, 'Version must look like 1.2.3');
-
-const tags = z.array(
-	z.string()
-		.trim()
-		.toLowerCase()
-		.regex(/^[a-z0-9][a-z0-9-]*$/, 'Tags use lowercase letters, numbers and hyphens')
-		.max(24),
-).max(8).transform(list => [...new Set(list)]);
 
 export const skinCreateBody = z.object({
 	name: z.string().trim().min(1).max(80),

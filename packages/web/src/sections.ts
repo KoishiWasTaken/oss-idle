@@ -1,4 +1,5 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faBug } from '@fortawesome/free-solid-svg-icons/faBug';
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons/faCircleQuestion';
 import { faCode } from '@fortawesome/free-solid-svg-icons/faCode';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -35,6 +36,7 @@ const SECTIONS: Record<string, [hue: number, icon: IconDefinition]> = {
 	store: [340, faHeart],
 	download: [20, faDownload],
 	help: [20, faCircleQuestion],
+	bugs: [20, faBug],
 	docs: [20, faCode],
 	legal: [20, faScaleBalanced],
 	admin: [0, faShieldHalved],

@@ -7,6 +7,7 @@ import {
 	removeBanner,
 	uploadBanner,
 } from '../../api/users';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import {
 	Trans,
 	useLingui,
@@ -24,20 +25,10 @@ export default function ProfileBanner({ bannerUrl, editable }: Props) {
 
 	const fileInput = useRef<HTMLInputElement>(null);
 	const [url, setUrl] = useState(bannerUrl);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string>();
+	const { busy, error, run: runAction } = useAction();
 
 	const run = async (action: () => Promise<{ bannerUrl?: string }>) => {
-		if (busy) return;
-		setBusy(true);
-		setError(undefined);
-		try {
-			setUrl((await action()).bannerUrl);
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		} finally {
-			setBusy(false);
-		}
+		if (!busy) await runAction(async () => setUrl((await action()).bannerUrl));
 	};
 
 	const pick = (file: File | undefined) => { if (file) void run(() => uploadBanner(file)); };

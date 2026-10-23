@@ -62,6 +62,7 @@ import { ScoreXP } from '../db/schema/score_xp';
 import { logPlayFinished } from '../logs';
 import Memory from '@oss-idle/shared/sim/skills/memory';
 import { Beatmap } from 'osu-classes';
+import { BeatmapDecoder } from 'osu-parsers';
 import calculatePP from '../osu/pp';
 import {
 	music,
@@ -69,15 +70,14 @@ import {
 } from '../audio/MusicPlayer';
 import {
 	preloadSamples,
+	prepareNoteSounds,
 	scheduleHitsound,
 	stopScheduledHitsounds,
+	type SoundResolver,
 } from '../audio/hitsounds';
 import { SampleSchedule } from '../audio/SampleSchedule';
 import { effects } from '../audio/EffectPlayer';
-import {
-	assetKey,
-	loadStoryboardAssets,
-} from '../osu/beatmap/storyboard';
+import { loadStoryboardAssets } from '../osu/beatmap/storyboard';
 import BeatmapStore from '../osu/beatmap/beatmap_store';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import Multiplayer from '../online/multiplayer';
@@ -108,6 +108,20 @@ import GameplayRenderer, {
 	type PlayfieldGeometry,
 	type StrainHud,
 } from '../gameplay/gameplayRenderer';
+import { sizeCanvas } from '../sizeCanvas';
+
+/** A play of a chart open in the editor: the character plays it from `start`,
+ *  like a debug play (no-fail, never saved), then the editor takes over again. */
+export type TestPlay = {
+	/** the .osu text as it stands in the editor, saved or not */
+	chart: string,
+	start: number,
+	back: () => void,
+};
+
+/** Where a play goes when it ends early: song select, or back to the editor it tests. */
+const leavePlay = (test?: TestPlay) =>
+	(test ? test.back() : SceneManager.set(Multiplayer.afterPlay()));
 
 type InnerProps = {
 	beatmapInfo: LightBeatmap,
@@ -116,6 +130,7 @@ type InnerProps = {
 	/** prior plays of this map by the live character - seeds the memory skill */
 	timesPlayed: number,
 	transition: Transition,
+	test?: TestPlay,
 };
 
 /** approach time at base speed (ms a note is visible) lower = faster scroll */
@@ -147,6 +162,7 @@ function GameplayInner({
 	play,
 	timesPlayed, 
 	transition, 
+	test,
 }: InnerProps) {
 	music.mode.set(PLAYER_MODE.SINGLE);
 
@@ -235,9 +251,10 @@ function GameplayInner({
 	// the manager never re-enters gameplay on its own, so leaving stays left.
 	const onQuit = () => onExit();
 
-	// abort (default, Esc) asks for confirmation first; Esc again cancels
+	// abort (default, Esc) asks for confirmation first; Esc again cancels. A test
+	// play has nothing to lose: it goes straight back to the editor.
 	const [confirmAbort, setConfirmAbort] = useState(false);
-	const onAbort = () => setConfirmAbort(c => !c);
+	const onAbort = () => (test ? abortPlay() : setConfirmAbort(c => !c));
 
 	Controls.back.usePress(onAbort);
 
@@ -257,7 +274,7 @@ function GameplayInner({
 		// simulated locally from the character's skills; debug play uses the same
 		// fixed-level bot as the strain debug view.
 		botRef.current = play.mode === 'debug'
-			? new CharacterBot(makeOrderedSkills(DEBUG_BOT_LEVEL))
+			? new CharacterBot(test ? character.skills : makeOrderedSkills(DEBUG_BOT_LEVEL))
 			: new ReplayBot(play.offsets);
 		// scroll speed is a purely visual preference (applied below via pxPerUnit);
 		// the bot's reading window must stay scroll-speed-independent so the same map
@@ -300,7 +317,9 @@ function GameplayInner({
 
 	const onExit = () => {
 		releaseAudio();
-		SceneManager.set(Multiplayer.afterPlay());
+		leavePlay(test);
+		// a test play can be left while its cover is still up
+		if (test) void transition.reveal();
 	};
 
 	// --- play lifecycle -----------------------------------------------------
@@ -462,6 +481,10 @@ function GameplayInner({
 	};
 
 	const showResult = (source: 'owner' | 'local', failed: boolean) => {
+		if (test) {
+			onExit();
+			return;
+		}
 		if (failed && owned && !playOn && retriesOnFail(mods)) {
 			PlayManager.playAgain(beatmapInfo);
 			return;
@@ -586,7 +609,7 @@ function GameplayInner({
 
 	Controls.pause.usePress(() => {
 		const clock = clockRef.current;
-		if (!debug || !clock) return;
+		if (!(debug || test) || !clock) return;
 		if (clock.pauseAt === undefined) {
 			clock.pauseAt = nowRef.current;
 			music.pauseGameplay();
@@ -600,7 +623,7 @@ function GameplayInner({
 
 	const seekBy = (delta: number) => {
 		const clock = clockRef.current;
-		if (!debug || !clock || !game) return;
+		if (!(debug || test) || !clock || !game) return;
 		const cur = clock.pauseAt ?? nowRef.current;
 		const t = Math.max(0, Math.min(cur + delta, game.songEndMs));
 		game.seek(t);
@@ -710,14 +733,12 @@ function GameplayInner({
 		if (!game) return;
 		const canvas = canvasRef.current!;
 		const ctx = canvas.getContext('2d')!;
-		const setId = beatmapInfo.set.metadata.id;
 		const keys = game.keyCount;
 		const fieldWidth = keys * skin.data.playfield.columnWidth;
 		const mobile = window.innerWidth < 850;
 
 		let w = 0;
 		let h = 0;
-		const dpr = Math.min(window.devicePixelRatio || 1, 2);
 		// the whole gameplay frame (playfield + HUD) is drawn by the shared renderer;
 		// this scene keeps the clock/audio plumbing and the play-only chrome
 		const renderer = new GameplayRenderer(ctx, game, skin);
@@ -725,11 +746,7 @@ function GameplayInner({
 		const resize = () => {
 			w = window.innerWidth;
 			h = window.innerHeight;
-			canvas.width = w * dpr;
-			canvas.height = h * dpr;
-			canvas.style.width = `${w}px`;
-			canvas.style.height = `${h}px`;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			sizeCanvas(canvas, ctx, w, h);
 		};
 		resize();
 		window.addEventListener('resize', resize);
@@ -813,6 +830,13 @@ function GameplayInner({
 						c0.leadStart = performance.now() - LEAD_IN_MS - t;
 					}
 					void transition.reveal();
+				} else if (test) {
+					// a test play starts where the editor was
+					const seekTo = Math.min(test.start, game.songEndMs);
+					c0.paused = false;
+					game.seek(seekTo);
+					resumeAt(c0, seekTo);
+					void transition.reveal();
 				}
 			});
 		}
@@ -842,6 +866,13 @@ function GameplayInner({
 		// keysounds and storyboard samples are part of the song: pitched like its track
 		const samplePitch = SETTINGS.pitchFollowsRate.get() ? rate : 1;
 
+		// what each note's sounds play from, once the map's samples are loaded; until
+		// then a note plays the default hitsound
+		let resolveSound: SoundResolver | undefined;
+		void prepareNoteSounds(beatmapInfo.set.metadata.id, game.notes).then(resolve => {
+			resolveSound = resolve;
+		});
+
 		// Queue hitsounds onto the audio clock up to LOOKAHEAD ahead of the song
 		// position. Because they're scheduled (not played reactively), they fire on
 		// time even while the tab is blurred, and a tab that resumes after a gap
@@ -858,15 +889,18 @@ function GameplayInner({
 			) {
 				const { time, note } = heads[hitsoundPtr.current++];
 				if (time < now) continue; // already past - drop, don't fire late
-				if (note.samples.length) {
-					// a keysounded note plays its own sample(s) instead of the default
-					for (const file of note.samples) {
-						effects.play(assetKey(setId, file), {
-							atMs: effects.now() + (time - now), rate: samplePitch,
-						});
-					}
-				} else {
+				if (!resolveSound) {
 					scheduleHitsound(time, now);
+					continue;
+				}
+				for (const sound of note.sounds) {
+					const from = resolveSound(sound);
+					if (!from) continue;
+					effects.play(from.key, {
+						atMs: effects.now() + (time - now),
+						volume: sound.volume,
+						rate: from.mapFile ? samplePitch : 1,
+					});
 				}
 			}
 			sampleSchedRef.current?.queue(now, HITSOUND_LOOKAHEAD_MS, 1, samplePitch);
@@ -919,11 +953,15 @@ function GameplayInner({
 					? {
 						text: 'Unranked', color: '#bb2727', 
 					}
-					: play.mode === 'debug'
+					: test
 						? {
-							text: 'Debug bot - no fail', color: '#63b3ff', 
+							text: 'Test play - no fail', color: '#ff66aa',
 						}
-						: undefined;
+						: play.mode === 'debug'
+							? {
+								text: 'Debug bot - no fail', color: '#63b3ff',
+							}
+							: undefined;
 			if (label) {
 				ctx.fillStyle = label.color;
 				ctx.font = '800 23px "Exo 2", sans-serif';
@@ -991,7 +1029,7 @@ function GameplayInner({
 			// skip it here.
 			if (firstFrame) {
 				firstFrame = false;
-				if (clock.paused && !owned) {
+				if (clock.paused && !owned && !test) {
 					void transition.reveal().then(() => {
 						const c = clockRef.current;
 						if (!c) return;
@@ -1136,6 +1174,17 @@ type Props = {
 	transition: Transition,
 	/** dev: play with the debug bot, no-fail, never saved/submitted */
 	debugPlay?: boolean,
+	test?: TestPlay,
+};
+
+/** The chart a play runs: the stored one, or for a test play the editor's, decoded
+ *  under the ids of the difficulty it edits. */
+const playChart = async (beatmapInfo: LightBeatmap, test?: TestPlay): Promise<Beatmap> => {
+	if (!test) return beatmapInfo.load();
+	const beatmap = new BeatmapDecoder().decodeFromString(test.chart);
+	beatmap.metadata.beatmapId = beatmapInfo.metadata.id;
+	beatmap.metadata.beatmapSetId = beatmapInfo.set.metadata.id;
+	return beatmap;
 };
 
 /**
@@ -1154,6 +1203,7 @@ export default function Gameplay({
 	beatmapInfo,
 	transition,
 	debugPlay, 
+	test,
 }: Props) {
 	const [boot, setBoot] = useState<{ 
 		beatmap: Beatmap;
@@ -1191,7 +1241,7 @@ export default function Gameplay({
 							label: t`Back`, onClick: () => resolve(),
 						}]} />
 				));
-				SceneManager.set(Multiplayer.afterPlay());
+				leavePlay(test);
 				await transition.reveal();
 			})();
 		}, BOOT_TIMEOUT_MS);
@@ -1209,9 +1259,9 @@ export default function Gameplay({
 			));
 		};
 
-		// swap back to song select behind the cover, then fade it out to reveal it
+		// swap back to song select (or the editor) behind the cover, then fade it out to reveal it
 		const backToSelect = async () => {
-			SceneManager.set(Multiplayer.afterPlay());
+			leavePlay(test);
 			await transition.reveal();
 		};
 
@@ -1229,10 +1279,13 @@ export default function Gameplay({
 			await backToSelect();
 		};
 
+		// debug and test plays are purely local: no character validation, no server session
+		const localOnly = debugPlay || !!test;
+
 		void (async () => {
 			let live: Beatmap;
 			try {
-				live = await beatmapInfo.load();
+				live = await playChart(beatmapInfo, test);
 			} catch (e) {
 				console.error('[gameplay] beatmap load failed', e);
 				await fail(t`This difficulty failed to load.`);
@@ -1243,8 +1296,7 @@ export default function Gameplay({
 				return;
 			}
 
-			// debug play is purely local: no character validation, no server session.
-			if (debugPlay) {
+			if (localOnly) {
 				done();
 				setBoot({
 					beatmap: live, play: { mode: 'debug' }, timesPlayed: 0, 
@@ -1336,13 +1388,14 @@ export default function Gameplay({
 				character.id, 
 				live.metadata.beatmapId,
 				character.memoryResetAt,
+				character.memoryForgets(),
 			);
 			done();
 			setBoot({
 				beatmap: live, play, timesPlayed, 
 			});
 		})();
-	}, [beatmapInfo, transition, debugPlay, t]);
+	}, [beatmapInfo, transition, debugPlay, test, t]);
 
 	// nothing to show until the play is resolved - the cover is hiding this anyway
 	if (!boot) return <div className="play" />;
@@ -1352,5 +1405,6 @@ export default function Gameplay({
 		play={boot.play} 
 		timesPlayed={boot.timesPlayed} 
 		transition={transition} 
+		test={test}
 	/>;
 }

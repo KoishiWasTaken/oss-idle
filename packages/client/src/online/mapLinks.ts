@@ -4,15 +4,24 @@ import {
 } from '@lingui/core/macro';
 import { desktop } from '@oss-idle/shared/desktop';
 import { MAP_LINK_CHANNEL } from '@oss-idle/shared/beatmap';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import BeatmapAPI, { type Metadata } from '../osu/beatmap/beatmap_api';
 import { message } from '../globals';
+import { rpc } from './client';
+
+/** A set the link names: from the ranked catalog, or a player's unranked upload. */
+const linkedSet = async (id: number): Promise<Metadata | undefined> => {
+	const ranked = (await BeatmapAPI.getManifest()).beatmaps.find(s => s.id === id);
+	if (ranked) return ranked;
+	const res = await rpc.v1.beatmap.unranked[':setId'].$get({ param: { setId: String(id) } });
+	return res.ok ? await res.json() : undefined;
+};
 
 /** `oss-idle://dl/<setId>` from the site: download that set into the library. */
 const open = async (link: string) => {
 	const url = URL.parse(link);
 	if (url?.host !== 'dl') return;
 	const id = Number(url.pathname.slice(1));
-	const meta = (await BeatmapAPI.getManifest()).beatmaps.find(s => s.id === id);
+	const meta = await linkedSet(id);
 	if (!meta) return;
 	if (await BeatmapAPI.isDownloaded(meta)) {
 		message.set(t`${ph({ title: meta.title })} is already downloaded`);

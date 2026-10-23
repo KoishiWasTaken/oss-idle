@@ -8,6 +8,7 @@ import {
 import Header from '../Header';
 import Footer from '../Footer';
 import RestrictedBanner from '../components/RestrictedBanner';
+import BugReplyBanner from '../components/BugReplyBanner';
 import Blackout from '../components/Blackout';
 import RouteProgress from '../components/RouteProgress';
 import PublicLanding from '../pages/PublicLanding';
@@ -45,7 +46,7 @@ function RootLayout() {
 	// renders on its own without the header, title and footer around it.
 	if (leafId === '/preview') return <Outlet />;
 	// the API docs are their own page, like osu!'s
-	if (leafId === '/docs') return <Outlet />;
+	if (leafId === '/docs' || leafId === '/docs_/addons') return <Outlet />;
 
 	// On the index the signed-out vs signed-in UI diverge entirely; wait for the
 	// session so we don't flash the public landing to a signed-in user.
@@ -58,6 +59,7 @@ function RootLayout() {
 		<Header />
 		<div className={WIDE.has(leafId) ? 'page page--wide' : 'page'}>
 			<RestrictedBanner />
+			<BugReplyBanner />
 			<h1 className='page-title'>
 				<FontAwesomeIcon icon={icon} className='page-title__icon' />
 				{title}

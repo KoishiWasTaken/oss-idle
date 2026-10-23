@@ -17,6 +17,7 @@ import { DEBUG_BOT_LEVEL } from '../../gameplay/strainDebug';
 import GameplayRenderer, { strainLabels } from '../../gameplay/gameplayRenderer';
 import BeatmapStore from '../../osu/beatmap/beatmap_store';
 import Skin, { validateSkinSource } from '../../osu/skin/Skin';
+import { sizeCanvas } from '../../sizeCanvas';
 
 /** parse a skin source, or undefined when it isn't valid yet (mid-edit) */
 const safeSkin = (source: string): Skin | undefined => {
@@ -92,15 +93,12 @@ export default function GameplayPreview({ definition }: { definition: string }) 
 			});
 
 			const scrollMs = scrollSpeedToMs(SETTINGS.scrollspeed.get());
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
 			let w = 0;
 			let h = 0;
 			const resize = () => {
 				w = wrap.clientWidth;
 				h = wrap.clientHeight;
-				canvas.width = w * dpr;
-				canvas.height = h * dpr;
-				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+				sizeCanvas(canvas, ctx, w, h, false);
 			};
 			resize();
 			ro = new ResizeObserver(resize);

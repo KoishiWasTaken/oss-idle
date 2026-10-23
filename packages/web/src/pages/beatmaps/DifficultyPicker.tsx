@@ -1,4 +1,7 @@
-import { difficultyColor } from '@oss-idle/shared/display/difficulty';
+import {
+	difficultyColor,
+	starsText,
+} from '@oss-idle/shared/display/difficulty';
 import Link from '../../components/Link';
 import type { MapDiff } from '../../api/maps';
 
@@ -16,7 +19,7 @@ export default function DifficultyPicker({ setId, diffs, current }: {
 			search={{ diff: d.id }}
 			resetScroll={false}
 			className={`mapset__picker-diff ${d.id === current ? 'active' : ''}`}
-			title={`${d.version} (${d.sr.toFixed(2)}★)`}
+			title={`${d.version} (${starsText(d.sr)}★)`}
 		>
 			<span style={{ backgroundColor: difficultyColor(d.sr) }} />
 		</Link>)}

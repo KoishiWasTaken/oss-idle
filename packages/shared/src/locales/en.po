@@ -266,6 +266,10 @@ msgstr "Centurion"
 msgid "Change your way of learning SV maps"
 msgstr "Change your way of learning SV maps"
 
+#: src/display/social.ts
+msgid "Cheating"
+msgstr "Cheating"
+
 #: src/skills.ts
 msgid "Circle skin LNs"
 msgstr "Circle skin LNs"
@@ -361,6 +365,22 @@ msgstr "Dell XPS chiclet keyboard"
 msgid "Denied"
 msgstr "Denied"
 
+#: src/display/skills.ts
+msgid "Determines how fast and how well you are able to learn SV maps"
+msgstr "Determines how fast and how well you are able to learn SV maps"
+
+#: src/display/skills.ts
+msgid "Determines how many notes you're comfortable hitting in short periods of time"
+msgstr "Determines how many notes you're comfortable hitting in short periods of time"
+
+#: src/display/skills.ts
+msgid "Determines how often you will get random chokes during plays"
+msgstr "Determines how often you will get random chokes during plays"
+
+#: src/display/skills.ts
+msgid "Determines whether you will start drifting away during longer plays"
+msgstr "Determines whether you will start drifting away during longer plays"
+
 #: src/display/medals.ts
 msgid "Devoted"
 msgstr "Devoted"
@@ -404,6 +424,10 @@ msgstr "Dynamic sight focus"
 #: src/display/mods.ts
 msgid "Easy"
 msgstr "Easy"
+
+#: src/display/addon.ts
+msgid "Editor"
+msgstr "Editor"
 
 #: src/display/medals.ts
 msgid "Eight Stars Up"
@@ -472,6 +496,10 @@ msgstr "Full combo a ranked map of {stars}★ or more"
 #: src/display/medals.ts
 msgid "Fully Loaded"
 msgstr "Fully Loaded"
+
+#: src/display/addon.ts
+msgid "Gameplay"
+msgstr "Gameplay"
 
 #: src/display/medals.ts
 msgid "Gearing Up"
@@ -561,6 +589,30 @@ msgstr "Hold #1 on {count} ranked maps"
 msgid "Hold the Line"
 msgstr "Hold the Line"
 
+#: src/display/skills.ts
+msgid "How accurate and stable you are when timing releases"
+msgstr "How accurate and stable you are when timing releases"
+
+#: src/display/skills.ts
+msgid "How accurately you hit the notes as a baseline"
+msgstr "How accurately you hit the notes as a baseline"
+
+#: src/display/skills.ts
+msgid "How comfortable you generally are during SV sections"
+msgstr "How comfortable you generally are during SV sections"
+
+#: src/display/skills.ts
+msgid "How long you can keep up with patterns that are too dense for you"
+msgstr "How long you can keep up with patterns that are too dense for you"
+
+#: src/display/skills.ts
+msgid "How well you are able to decipher complex patterns on screen without mashing"
+msgstr "How well you are able to decipher complex patterns on screen without mashing"
+
+#: src/display/skills.ts
+msgid "How well you handle other patterns while holding long notes"
+msgstr "How well you handle other patterns while holding long notes"
+
 #: src/display/medals.ts
 msgid "Hush-Hush"
 msgstr "Hush-Hush"
@@ -572,6 +624,14 @@ msgstr "Idle"
 #: src/display/medals.ts
 msgid "In the Running"
 msgstr "In the Running"
+
+#: src/display/social.ts
+msgid "Inappropriate chat behaviour"
+msgstr "Inappropriate chat behaviour"
+
+#: src/display/social.ts
+msgid "Inappropriate content"
+msgstr "Inappropriate content"
 
 #: src/display/medals.ts
 msgid "Inferno"
@@ -759,6 +819,10 @@ msgstr "One Percent"
 msgid "Optimized MasterPlus+"
 msgstr "Optimized MasterPlus+"
 
+#: src/display/social.ts
+msgid "Other (type below)"
+msgstr "Other (type below)"
+
 #: src/skills.ts
 msgid "Outdated stock Windows drivers"
 msgstr "Outdated stock Windows drivers"
@@ -883,6 +947,10 @@ msgstr "QWP{"
 #: src/display/medals.ts
 msgid "Ranked"
 msgstr "Ranked"
+
+#: src/display/skills.ts
+msgid "Raw individual finger speed"
+msgstr "Raw individual finger speed"
 
 #: src/skills.ts
 msgid "Razer BlackShark V3"
@@ -1165,6 +1233,10 @@ msgstr "Upper Half"
 #: src/skills.ts
 msgid "Used earbuds"
 msgstr "Used earbuds"
+
+#: src/display/social.ts
+msgid "Using multiple accounts"
+msgstr "Using multiple accounts"
 
 #: src/skills.ts
 msgid "Vibe playing"

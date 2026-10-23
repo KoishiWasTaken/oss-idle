@@ -42,7 +42,7 @@ import {
 import UserCard from '../components/songselect/UserCard';
 import SongSelectFooter from '../components/songselect/SongSelectFooter';
 import { modSelectOpen } from '../components/mods/modSelectOpen';
-import useTypeToSearch from '../components/songselect/useTypeToSearch';
+import useKeyboardOwner from '../input/keyboardOwner';
 import CardOverlays from '../components/songselect/CardOverlays';
 import { playFromList } from '../components/songselect/listPlay';
 import { matchesSearch } from '../osu/beatmap/beatmapSearch';
@@ -61,7 +61,6 @@ import SceneManager, { SCENE } from './SceneManager';
 import Multiplayer from '../online/multiplayer';
 import {
 	debugMode,
-	isCommunityOpen,
 	openPage,
 } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
@@ -238,15 +237,16 @@ function buildCarouselRows(
 }
 
 /**
- * Song select, in one of two modes.
+ * Song select, in one of three modes.
  *
  * `launch` is the scene: clicking a downloaded map plays it. `queue` is the same
  * carousel mounted as an overlay above whatever is running, where clicking adds
  * to the queue instead - the whole point being that you can rebuild what plays
- * next without stopping what is playing. Search, grouping, sorting, downloads
- * and the card menu are the same in both.
+ * next without stopping what is playing. `edit` opens the clicked map in the
+ * editor. Search, grouping, sorting, downloads and the card menu are the same in all.
  */
-type Props = { mode?: 'launch' | 'queue' };
+export type SongSelectMode = 'launch' | 'queue' | 'edit';
+type Props = { mode?: SongSelectMode };
 
 export default function SongSelect({ mode = 'launch' }: Props) {
 	const { overlay, queueing } = useQueueMode(mode);
@@ -295,6 +295,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	const [debugBeatmap, setDebugBeatmap] = useState<LightBeatmap>();
 	const [search] = useSynced(SETTINGS.search);
 	const searchRef = useRef<HTMLInputElement>(null);
+	const scrubRef = useRef<HTMLDivElement>(null);
 	const [scoreView, setScoreView] = useState(false);
 
 	/** (Re)load the whole library from the manifest, returning the sorted items. */
@@ -346,7 +347,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	const [showUndownloaded] = useSynced(SETTINGS.showUndownloaded);
 	useEffect(() => { void loadLibrary(); }, [loadLibrary, library, showUndownloaded]);
 
-	useTypeToSearch(searchRef, [menuItem, playlistItem]);
+	useKeyboardOwner(searchRef, { active: !debugBeatmap });
 
 	const [sort] = useSynced(SETTINGS.sortby);
 	const [group] = useSynced(SETTINGS.groupby);
@@ -512,6 +513,11 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		if (pick) void selectItem(pick.beatmap);
 	}, [selectableItems, selectItem, selection]);
 
+	// entered with the intro still playing: move on to a map of the list
+	useEffect(() => {
+		if (selection.get()?.isPlayable() === false) random();
+	}, [random]);
+
 	// osu!'s F3: the selected card's menu
 	const beatmapOptions = useCallback(() => {
 		const item = orderedItems.find(i => i.beatmap.is(selection.get()));
@@ -613,6 +619,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		console.log('Clicked on card', beatmap.metadata.version);
 		if (beatmap.metadata.runtime && beatmap.is(selection.get())) {
 			if (queueing) PlayQueue.append(beatmap, queueLabel);
+			else if (mode === 'edit') SceneManager.set(SCENE.EDITOR, beatmap);
 			else if (Multiplayer.picking.get()) Multiplayer.picked(beatmap.metadata.id);
 			else play(beatmap);
 			return true;
@@ -622,7 +629,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 			void selectItem(beatmap);
 		}
 		return false;
-	}, [scoreView, play, selectItem, queueing, expanded, selection]);
+	}, [scoreView, play, selectItem, queueing, mode, expanded, selection]);
 
 	// double click: download the set - but do nothing if it's already downloaded
 	const handleCardDoubleClick = useCallback((beatmap: LightBeatmap) => {
@@ -696,62 +703,60 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 				    stays visible; queueing swaps the metadata and the leaderboard for
 				    the grouping controls, which are how you find what to queue */}
 				{!overlay && <SongSelectBackdrop />}
-				<TopBar
-					version={version}
-					scrollSpeed={scrollSpeed}
-					scoreView={scoreView}
-					setScoreView={setScoreView}
-					compact={queueing}
-				/>
+				{/* the right button scrubs the carousel from the whole body, the
+				    leaderboard included; the card overlays stay outside */}
+				<div ref={scrubRef} className="game__scrub">
+					<TopBar
+						version={version}
+						scrollSpeed={scrollSpeed}
+						scoreView={scoreView}
+						setScoreView={setScoreView}
+						compact={queueing}
+					/>
 
-				<main className="game__body">
+					<main className="game__body">
 
-					{error ? (
-						<div className="game__library-error">
-							<Trans>Couldn't load beatmaps: {error}</Trans>
-						</div>
-					) : (
-						<BeatmapCarousel
-							rows={rows}
-							onCardClick={handleCardClick}
-							onCardDoubleClick={handleCardDoubleClick}
-							onCardRightClick={handleCardRightClick}
-							onToggleGroup={toggleGroup}
-							loading={loading}
-							downloads={downloads}
-							xpInsights={xpInsights}
-							totalCount={filteredItems.length}
-						/>
-					)}
-
-					<div className="songsearch">
-						<div className="songsearch__row">
-							<span><Trans>Search:</Trans> </span>
-							<input
-								ref={searchRef}
-								className="songsearch__input"
-								value={search}
-								onChange={(e) => SETTINGS.search.set(e.target.value)}
-								onKeyDown={(e) => { if (e.key === 'Tab') e.preventDefault(); }}
-								onBlur={() => {
-									// keep the box focused (osu!-style), unless another surface
-									// legitimately owns the keyboard (debug view, an open overlay, chat)
-									if (!debugBeatmap && !menuItem && !playlistItem && !isCommunityOpen.get()) {
-										requestAnimationFrame(() => searchRef.current?.focus());
-									}
-								}}
-								placeholder={t`Type to search!`}
-								spellCheck={false}
-								autoComplete="off"
+						{error ? (
+							<div className="game__library-error">
+								<Trans>Couldn't load beatmaps: {error}</Trans>
+							</div>
+						) : (
+							<BeatmapCarousel
+								rows={rows}
+								onCardClick={handleCardClick}
+								onCardDoubleClick={handleCardDoubleClick}
+								onCardRightClick={handleCardRightClick}
+								onToggleGroup={toggleGroup}
+								loading={loading}
+								downloads={downloads}
+								xpInsights={xpInsights}
+								totalCount={filteredItems.length}
+								scrubArea={scrubRef}
 							/>
+						)}
+
+						<div className="songsearch">
+							<div className="songsearch__row">
+								<span><Trans>Search:</Trans> </span>
+								<input
+									ref={searchRef}
+									className="songsearch__input"
+									value={search}
+									onChange={(e) => SETTINGS.search.set(e.target.value)}
+									onKeyDown={(e) => { if (e.key === 'Tab') e.preventDefault(); }}
+									placeholder={t`Type to search!`}
+									spellCheck={false}
+									autoComplete="off"
+								/>
+							</div>
+							<div className="songsearch__count">
+								{search.trim()
+									? <Trans>{ph({ shown: filteredItems.length })} of {total} results</Trans>
+									: <Plural value={ph({ results: items.length })} one="# result" other="# results" />}
+							</div>
 						</div>
-						<div className="songsearch__count">
-							{search.trim()
-								? <Trans>{ph({ shown: filteredItems.length })} of {total} results</Trans>
-								: <Plural value={ph({ results: items.length })} one="# result" other="# results" />}
-						</div>
-					</div>
-				</main>
+					</main>
+				</div>
 
 				{!overlay && (
 					<div className="game__botbar">

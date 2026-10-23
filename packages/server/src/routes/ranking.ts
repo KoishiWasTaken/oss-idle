@@ -3,7 +3,6 @@ import {
 	type Context,
 } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { SkillName } from '@oss-idle/shared/skills';
 import {
@@ -47,8 +46,11 @@ import {
 	type GoodGrade,
 	type Judgement,
 } from '@oss-idle/shared/judgement';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 const isValidSkill = (str: string): str is ('overall' | SkillName) => `${str}Level` in characters;
 
@@ -125,11 +127,7 @@ const topPlaysPage = (page: number, among?: number[]) => db
 	.offset((page - 1) * PAGE_SIZE);
 
 /** `?friends=1` narrows a board to the signed-in player and their friends. */
-const friendsQuery = zValidator(
-	'query',
-	z.object({ friends: z.literal('1').optional() }),
-	result => { if (!result.success) throw result.error; },
-);
+const friendsQuery = valid('query', z.object({ friends: z.literal('1').optional() }));
 
 const amongFor = async (c: Context): Promise<number[] | undefined> => {
 	if (c.req.query('friends') !== '1') return undefined;
@@ -137,13 +135,9 @@ const amongFor = async (c: Context): Promise<number[] | undefined> => {
 	return viewer === undefined ? [] : friendCharacterIds(viewer);
 };
 
-const progressQuery = zValidator(
-	'query',
-	z.object({
-		friends: z.literal('1').optional(), country: z.string().optional(),
-	}),
-	result => { if (!result.success) throw result.error; },
-);
+const progressQuery = valid('query', z.object({
+	friends: z.literal('1').optional(), country: z.string().optional(),
+}));
 
 export const rankingRoutes = new Hono()
 	.get('/country/:page', async c => c.json(await countryPage(idParam.parse(c.req.param('page')))))

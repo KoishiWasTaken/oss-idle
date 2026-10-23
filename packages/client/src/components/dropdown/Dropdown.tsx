@@ -6,6 +6,7 @@ import {
 } from 'react';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { isChanged } from '../../db/settings';
 import './Dropdown.css';
 
 export interface DropdownOption<T> {
@@ -51,6 +52,7 @@ export default function Dropdown<T>({
 	}, [open]);
 
 	const current = options.find((o) => o.value === selected);
+	const changed = isChanged(value, selected) ? 'is-changed' : '';
 	const style = accent ? ({ 
 		'--dropdown-accent': accent, 
 		'--dropdown-border': accent,
@@ -59,7 +61,7 @@ export default function Dropdown<T>({
 	return (
 		<div
 			ref={root}
-			className={`dropdown ${open ? 'is-open' : ''} ${className ?? ''}`}
+			className={`dropdown ${open ? 'is-open' : ''} ${changed} ${className ?? ''}`}
 			style={style}
 		>
 			<button 

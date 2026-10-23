@@ -2,7 +2,10 @@ import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import mysql from 'mysql2/promise';
 import Redis from 'ioredis';
-import type { BrowserContext } from '@playwright/test';
+import {
+	test,
+	type BrowserContext,
+} from '@playwright/test';
 
 /**
  * Signed-in players without osu! OAuth: test accounts written straight into the
@@ -36,13 +39,16 @@ const user = (id: number, name: string) => ({
 	id, name,
 });
 
-// a pair per spec file, so two workers never share an account
+// a pair per spec file and per worker, so two tests running at once never share
+// an account. Worker n > 0 moves them to 2_147_470_000 + n * 100 and names them `e2e<n> ...`.
 const TEST_USERS = {
 	social: [user(2_147_480_001, 'e2e Alice'), user(2_147_480_002, 'e2e Bob')],
 	multiplayer: [user(2_147_480_003, 'e2e Carol'), user(2_147_480_004, 'e2e Dave')],
 	rates: [user(2_147_480_005, 'e2e Erin'), user(2_147_480_006, 'e2e Frank')],
 	mods: [user(2_147_480_011, 'e2e Kim'), user(2_147_480_012, 'e2e Leo')],
 	queue: [user(2_147_480_007, 'e2e Grace'), user(2_147_480_008, 'e2e Heidi')],
+	editor: [user(2_147_480_013, 'e2e Mia'), user(2_147_480_014, 'e2e Noah')],
+	leaderboard: [user(2_147_480_009, 'e2e Ivan'), user(2_147_480_010, 'e2e Judy')],
 };
 
 // the dev server's Redis keys (redisKeyPrefix in packages/server/src/env.ts)
@@ -75,10 +81,26 @@ const clearPlays = async (characterIds: number[]) => {
 	}
 };
 
+/** Forget the maps the accounts uploaded, so a month of runs never fills their quota. */
+const dropUploads = async (db: mysql.Connection, ids: number[]) => {
+	try {
+		await db.query(
+			'DELETE b FROM beatmap b JOIN beatmapset s ON s.id = b.set_id WHERE s.owner_user_id IN (?)', [ids],
+		);
+		await db.query('DELETE FROM beatmapset WHERE owner_user_id IN (?)', [ids]);
+	} catch (e) {
+		// a database without player uploads yet
+		if ((e as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw e;
+	}
+};
+
 /** The test accounts, each with a character, cleared of whatever an earlier run
  *  left between them (friendships, blocks, reports, a restriction, Speed upgrades, a play still running). */
 export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Account[]> => {
-	const users = TEST_USERS[spec];
+	const slot = test.info().parallelIndex;
+	const users = TEST_USERS[spec].map(u => slot ? user(
+		u.id - 10_000 + slot * 100, u.name.replace('e2e', `e2e${slot}`),
+	) : u);
 	const ids = users.map(u => u.id);
 	const db = await connect();
 	try {
@@ -86,7 +108,8 @@ export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Accou
 		for (const { id, name } of users) {
 			await db.query(
 				`INSERT INTO user (id, username, country) VALUES (?, ?, 'FR')
-				ON DUPLICATE KEY UPDATE restricted_at = NULL, restricted_reason = NULL, pm_from_anyone = 1`,
+				ON DUPLICATE KEY UPDATE username = VALUES(username), restricted_at = NULL,
+				restricted_reason = NULL, pm_from_anyone = 1`,
 				[id, name],
 			);
 			await db.query('INSERT IGNORE INTO `character` (user_id, name) VALUES (?, ?)', [id, name]);
@@ -108,6 +131,7 @@ export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Accou
 		await db.query('DELETE FROM user_follow WHERE user_id IN (?) OR target_id IN (?)', [ids, ids]);
 		await db.query('DELETE FROM user_block WHERE user_id IN (?) OR target_id IN (?)', [ids, ids]);
 		await db.query('DELETE FROM user_report WHERE user_id IN (?) OR target_id IN (?)', [ids, ids]);
+		await dropUploads(db, ids);
 		await clearPlays(accounts.map(a => a.characterId));
 		return accounts;
 	} finally {

@@ -1,5 +1,9 @@
 import { ph } from '@lingui/core/macro';
-import { useState } from 'react';
+import {
+	useRef,
+	useState,
+} from 'react';
+import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
 import OverChat from './OverChat';
 import {
 	Trans,
@@ -28,6 +32,11 @@ export default function CreateMatch({ onClose }: { onClose: () => void }) {
 	const [name, setName] = useState(() =>
 		t`${ph({ name: Entities.character.get()?.name ?? '' })}'s game`);
 	const [password, setPassword] = useState('');
+	const nameRef = useRef<HTMLInputElement>(null);
+	// OverChat's layer: this runs outside it
+	useKeyboardOwner(nameRef, {
+		layer: LAYER.OVER_CHAT, close: onClose, 
+	});
 	const [usePassword] = useState(() => new Synced(false));
 	const [isPublic] = useState(() => new Synced(true));
 	const [size] = useState(() => new Synced(8));
@@ -53,10 +62,10 @@ export default function CreateMatch({ onClose }: { onClose: () => void }) {
 				<label className="mp-create__label" htmlFor="mp-name"><Trans>Game Name:</Trans></label>
 				<input
 					id="mp-name"
+					ref={nameRef}
 					className="mp-input"
 					value={name}
 					maxLength={MAX_MATCH_NAME}
-					autoFocus
 					onChange={e => setName(e.target.value)}
 				/>
 				<div className="mp-create__checks">

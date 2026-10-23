@@ -1,0 +1,153 @@
+.skill-legend {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	color: var(--text-dim);
+	font-size: 0.7rem;
+}
+.skill-legend i {
+	display: inline-block;
+	width: 10px;
+	height: 5px;
+	margin-left: 8px;
+}
+
+.skill-list {
+	container-type: inline-size;
+}
+
+.skill-row {
+	display: grid;
+	grid-template-columns: 290px minmax(0, 1fr);
+	align-items: center;
+	gap: 16px;
+	padding: 5px 14px 5px 0;
+	background: rgba(255, 255, 255, 0.03);
+	border-left: 3px solid var(--osu-pink-darkest);
+}
+.skill-row.is-base {
+	border-left-color: rgba(255, 255, 255, 0.1);
+}
+
+.skill-row__skill {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	column-gap: 10px;
+	align-self: stretch;
+	align-content: center;
+	padding: 4px 14px;
+	background: rgba(255, 255, 255, 0.025);
+}
+.skill-row__name {
+	color: #fff;
+	font-size: 1rem;
+}
+.skill-row__lv {
+	color: var(--text-dim);
+	font-size: 0.8rem;
+	font-weight: 300;
+}
+.skill-row__desc,
+.skill-row__gear {
+	grid-column: 1 / -1;
+	font-size: 0.68rem;
+	font-weight: 300;
+}
+.skill-row__desc {
+	color: var(--text-dim);
+}
+.skill-row__gear {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: 14px;
+	color: rgba(255, 255, 255, 0.75);
+}
+/* the perk row spreads to its box: keep the box to its text */
+.skill-row__perk {
+	display: inline-block;
+}
+
+.skill-row__mult {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+}
+
+.skill-eq {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	font-variant-numeric: tabular-nums;
+}
+.skill-eq__op {
+	color: var(--text-dim);
+}
+.skill-chip {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 74px;
+	padding: 3px 8px;
+	background: rgba(255, 255, 255, 0.05);
+	color: #fff;
+	font-size: 0.85rem;
+	font-weight: 300;
+	transform: skewX(-8deg);
+}
+.skill-chip small {
+	color: var(--text-dim);
+	font-size: 0.62rem;
+	white-space: nowrap;
+}
+.skill-chip.is-pink {
+	color: var(--osu-pink-light);
+}
+.skill-chip.is-base {
+	opacity: 0.35;
+}
+.skill-chip.is-total {
+	background: rgba(155, 228, 139, 0.12);
+	color: var(--ladder-green);
+	font-weight: 400;
+}
+
+.skill-bar {
+	display: flex;
+	gap: 2px;
+	height: 5px;
+}
+.skill-bar span {
+	transform: skewX(-12deg);
+}
+.is-upgrades {
+	background: var(--osu-pink-darkest);
+}
+.is-prestige {
+	background: #b18cff;
+}
+.is-medals {
+	background: var(--ladder-gold);
+}
+
+@container (max-width: 860px) {
+	.skill-row {
+		grid-template-columns: 200px minmax(0, 1fr);
+		gap: 12px;
+	}
+	.skill-chip {
+		min-width: 0;
+	}
+}
+@container (max-width: 560px) {
+	.skill-row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+		padding: 0 0 8px;
+	}
+	.skill-row__mult {
+		padding: 0 12px;
+	}
+}

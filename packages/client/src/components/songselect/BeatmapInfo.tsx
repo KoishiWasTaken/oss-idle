@@ -1,4 +1,5 @@
 import { ph } from '@lingui/core/macro';
+import { starsText } from '@oss-idle/shared/display/difficulty';
 import { Trans } from '@lingui/react/macro';
 import { bpm } from '@oss-idle/shared/display/num';
 import { length } from '@oss-idle/shared/display/length';
@@ -8,6 +9,7 @@ import useSynced from '@oss-idle/shared/hooks/useSynced';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { selectedRate } from '../../gameplay/playRate';
 import { starsAt } from '../../osu/difficulty';
+import { getMemoryPlays } from '../../online/services/characters';
 import {
 	rateStars,
 	starsAtRate,
@@ -38,6 +40,10 @@ export default function BeatmapInfo({
 			?? await starsAt(version.set.metadata.id, version.metadata.id, rate);
 	}, [version, rate, rated]);
 	const stars = local ?? starsOf(version);
+	const tries = useAsync(
+		() => getMemoryPlays(version.metadata.id).catch(() => undefined),
+		[version.metadata.id],
+	);
 	const shownVersion = useRatedVersion(version.metadata.version, version.lockedRate);
 	// pre-formatted so the <Trans> placeholders read by name (e.g. {totalLength})
 	// in the catalog instead of positional {0}. A rate changes all three.
@@ -68,9 +74,10 @@ export default function BeatmapInfo({
 					</div>
 					<div className="game__top_hos">
 						<Trans>Rice: {ph({ rice: version.metadata.rice })} LN: {ph({ ln: version.metadata.ln })}</Trans>
+						{tries !== undefined && <> <Trans>Tries: {tries}</Trans></>}
 					</div>
 					<div className="game__top_diff">
-						<Trans>Star Rating: {ph({ stars: Math.round(stars * 100) / 100 })}★</Trans>
+						<Trans>Star Rating: {ph({ stars: starsText(stars) })}★</Trans>
 					</div>
 				</div>
 			</div>

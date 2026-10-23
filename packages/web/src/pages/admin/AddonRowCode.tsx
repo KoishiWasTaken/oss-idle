@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Prism from 'prismjs';
 import 'prism-themes/themes/prism-vsc-dark-plus.css';
-import CodeDiff from './CodeDiff';
+import CodeDiff from '@oss-idle/shared/display/CodeDiff';
 
 type View = 'none' | 'code' | 'diff';
 
@@ -28,14 +28,14 @@ export default function AddonRowCode({
 		<>
 			<div className='addons-admin__codebar'>
 				<button 
-					className={`addons-admin__btn ${view === 'code' ? 'current' : ''}`}
+					className={`admin-list__btn ${view === 'code' ? 'current' : ''}`}
 					onClick={() => toggle('code')}
 				>
 					{view === 'code' ? 'Hide code' : 'View code'}
 				</button>
 				{hasChanges && (
 					<button 
-						className={`addons-admin__btn ${view === 'diff' ? 'current' : ''}`} 
+						className={`admin-list__btn ${view === 'diff' ? 'current' : ''}`} 
 						onClick={() => toggle('diff')}
 					>
 						{view === 'diff' ? 'Hide changes' : 'View changes since the live release'}

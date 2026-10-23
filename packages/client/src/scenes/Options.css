@@ -10,12 +10,18 @@
 	background: #00000055;
 	opacity: 0;
 	pointer-events: none;
-	transition: opacity 0.2s ease;
+	/* hidden once faded out: a dropdown inside takes clicks whatever its parent says */
+	visibility: hidden;
+	transition:
+		opacity 0.2s ease,
+		visibility 0s 0.25s;
 }
 
 .options__container.open {
 	opacity: 1;
 	pointer-events: auto;
+	visibility: visible;
+	transition: opacity 0.2s ease;
 }
 
 /* ---- left sidebar: category tabs ---- */
@@ -190,6 +196,15 @@
 	font-size: 16px;
 }
 
+/* off its default */
+.options__container .opt-checkbox.is-changed,
+.options__container .opt-slider.is-changed,
+.options__container .opt-row:has(> .dropdown.is-changed) {
+	border-radius: 0 6px 6px 0;
+	box-shadow: inset 3px 0 #ffcc22;
+	background-image: linear-gradient(to right, #ffcc220d, transparent);
+}
+
 .opt-row__hint {
 	padding: 0 10px 7px;
 	color: var(--text-dim);
@@ -200,9 +215,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	padding: 7px 10px;
+	padding: 7px 0;
 }
 .opt-signin__who {
+	padding: 0 10px;
 	color: var(--text);
 	font-size: 16px;
 }

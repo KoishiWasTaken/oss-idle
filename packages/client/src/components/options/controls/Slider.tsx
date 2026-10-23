@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { isChanged } from '../../../db/settings';
 import './Slider.css';
 
 interface Props {
@@ -35,7 +36,7 @@ export default function Slider({
 	;
 
 	return (
-		<label className="opt-slider">
+		<label className={`opt-slider ${isChanged(value, current) ? 'is-changed' : ''}`}>
 			<div className="opt-slider__head">
 				<span className="opt-slider__label">{label}</span>
 				<span className="opt-slider__value">{shown}</span>

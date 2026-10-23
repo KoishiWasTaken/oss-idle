@@ -39,12 +39,18 @@ export default function NominationDiffs({
 		diff.tags.includes(tag) ? diff.tags.filter(t => t !== tag) : [...diff.tags, tag],
 	);
 
+	const hint = (diff: Diff, tag: MapTag): string => {
+		if (tag === 'ln') return ` (${diff.objects ? Math.round(diff.ln / diff.objects * 100) : 0}%)`;
+		// null until the boot backfill reaches it
+		return diff.svPoints === null ? '' : ` (${diff.svPoints} sv, ${diff.bpmPoints} bpm)`;
+	};
+
 	return (
 		<div className='nomination__diffs'>
 			{diffs.map(diff => {
 				const locked = diff.keys !== 4 && setId !== INTRO_SET_ID;
 				return (
-					<span key={diff.id} className='nomination__diff-group'>
+					<span key={diff.id} className={`nomination__diff-group ${diff.ranked ? 'is-ranked' : ''}`}>
 						<button
 							className={`nomination__diff ${diff.ranked ? 'is-ranked' : ''} ${locked ? 'is-locked' : ''}`}
 							disabled={busy || (locked && !diff.ranked)}
@@ -58,11 +64,11 @@ export default function NominationDiffs({
 						{MAP_TAGS.map(tag => (
 							<button
 								key={tag}
-								className={`nomination__tag ${diff.tags.includes(tag) ? 'is-on' : ''}`}
+								className={`nomination__diff-tag ${diff.tags.includes(tag) ? 'is-on' : ''}`}
 								disabled={busy}
 								onClick={() => toggleTag(diff, tag)}
 							>
-								{tag.toUpperCase()}
+								{tag.toUpperCase()}{hint(diff, tag)}
 							</button>
 						))}
 					</span>

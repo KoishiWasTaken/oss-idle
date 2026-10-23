@@ -97,3 +97,13 @@ describe('Memory training weight is a learning hump', () => {
 		expect(mastered).toBeLessThan(0.05); // m -> 1, hump m*(1-m) -> 0
 	});
 });
+
+describe('Memory.recall', () => {
+	it('forgets FORGET_PLAYS per upgrade, never below zero, then keeps counting', () => {
+		const plays = (n: number, from: number) => Array.from({ length: n }, (_, i) => from + i);
+		expect(Memory.recall(plays(25, 0), [])).toBe(25);
+		expect(Memory.recall(plays(25, 0), [100])).toBe(15);
+		expect(Memory.recall(plays(5, 0), [100, 101])).toBe(0);
+		expect(Memory.recall([...plays(5, 0), ...plays(3, 200)], [100])).toBe(3);
+	});
+});

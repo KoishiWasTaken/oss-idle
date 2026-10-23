@@ -6,11 +6,7 @@ import {
 	skinIconUrl,
 	type AdminSkin,
 } from '../../api/skins';
-
-const fmt = (iso: string | null): string =>
-	iso ? new Date(iso).toLocaleString(undefined, {
-		dateStyle: 'medium', timeStyle: 'short', 
-	}) : '—';
+import { formatDate } from './formatDate';
 
 export default function SkinRow({ row, busy, onModerate }: {
 	row: AdminSkin;
@@ -22,35 +18,35 @@ export default function SkinRow({ row, busy, onModerate }: {
 	const icon = skinIconUrl(row.icon);
 
 	return (
-		<div className='skins-admin__entry'>
-			<div className='skins-admin__info'>
+		<div className='admin-list__entry'>
+			<div className='admin-list__info'>
 				{icon
-					? <img className='skins-admin__cover' src={icon} alt='' />
-					: <div className='skins-admin__cover skins-admin__cover--empty' />}
-				<div className='skins-admin__meta'>
-					<span className='skins-admin__title'>
-						{row.name} <span className='skins-admin__ver'>v{row.version}</span>
+					? <img className='admin-list__cover' src={icon} alt='' />
+					: <div className='admin-list__cover admin-list__cover--empty' />}
+				<div className='admin-list__meta'>
+					<span className='admin-list__title'>
+						{row.name} <span className='admin-list__ver'>v{row.version}</span>
 					</span>
-					<span className='skins-admin__creator'>by {row.authorName}</span>
-					{row.tags.length > 0 && <span className='skins-admin__tags'>{row.tags.join(', ')}</span>}
+					<span className='admin-list__creator'>by {row.authorName}</span>
+					{row.tags.length > 0 && <span className='admin-list__tags'>{row.tags.join(', ')}</span>}
 				</div>
 
-				<span className={`skins-admin__badge skins-admin__badge--${row.status}`}>{row.status}</span>
+				<span className={`admin-list__badge admin-list__badge--${row.status}`}>{row.status}</span>
 
-				<div className='skins-admin__stat'>
-					<span className='skins-admin__label'>Submitted</span><span>{fmt(row.updatedAt)}</span>
+				<div className='admin-list__stat'>
+					<span className='admin-list__label'>Submitted</span><span>{formatDate(row.updatedAt)}</span>
 				</div>
-				<div className='skins-admin__stat'>
-					<span className='skins-admin__label'>Published</span><span>{fmt(row.publishedAt)}</span>
+				<div className='admin-list__stat'>
+					<span className='admin-list__label'>Published</span><span>{formatDate(row.publishedAt)}</span>
 				</div>
 			</div>
 
-			{row.description && <p className='skins-admin__desc'>{row.description}</p>}
+			{row.description && <p className='admin-list__desc'>{row.description}</p>}
 
-			<div className='skins-admin__actions'>
+			<div className='admin-list__actions'>
 				{row.status !== SKIN_STATUS.PUBLISHED && (
 					<button 
-						className='skins-admin__btn skins-admin__btn--primary' 
+						className='admin-list__btn admin-list__btn--primary' 
 						disabled={busy} 
 						onClick={() => moderate(SKIN_STATUS.PUBLISHED)}
 					>
@@ -59,7 +55,7 @@ export default function SkinRow({ row, busy, onModerate }: {
 				)}
 				{row.status === SKIN_STATUS.PUBLISHED && (
 					<button 
-						className='skins-admin__btn skins-admin__btn--warn'
+						className='admin-list__btn admin-list__btn--warn'
 						disabled={busy} 
 						onClick={() => moderate(SKIN_STATUS.UNPUBLISHED)}
 					>

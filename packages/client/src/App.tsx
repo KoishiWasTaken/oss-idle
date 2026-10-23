@@ -32,6 +32,7 @@ import DirectLinkPanel from './components/direct/DirectLinkPanel';
 import './online/versionWatch';
 import './online/characterWatch';
 import './online/mapLinks';
+import './osu/beatmap/oszImport';
 import Multiplayer from './online/multiplayer';
 
 PlayManager.start();
@@ -60,12 +61,12 @@ export default function App() {
 			<DirectLinkPanel />
 			<PlayDock />
 			<TransitionOverlay />
-			<VolumeOverlay />
 			<Onboarding />
 			<Tutorial />
 			<OldHostPrompt />
 			<Message />
 			<Options />
+			<VolumeOverlay />
 			<WebBrowser />
 			<CommunityOverlay />
 			<FloatingDeltas />

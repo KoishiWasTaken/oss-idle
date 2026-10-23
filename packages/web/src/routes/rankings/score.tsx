@@ -5,7 +5,7 @@ import {
 	getCountryScoreRanking,
 	getScoreRanking,
 } from '../../api/rankings';
-import ScoreRankings from '../../pages/rankings/Score';
+import GlobalRankings from '../../pages/rankings/Global';
 import { pageCountrySearch } from '../-rankingSearch';
 
 export const Route = createFileRoute('/rankings/score')({
@@ -20,5 +20,10 @@ export const Route = createFileRoute('/rankings/score')({
 
 function ScoreRoute() {
 	const { page, country } = Route.useSearch();
-	return <ScoreRankings page={page} country={country} players={Route.useLoaderData()} />;
+	return <GlobalRankings
+		sort='rankedScore'
+		page={page}
+		country={country}
+		players={Route.useLoaderData()}
+	/>;
 }

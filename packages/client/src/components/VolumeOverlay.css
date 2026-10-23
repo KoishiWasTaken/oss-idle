@@ -2,7 +2,7 @@
 	position: fixed;
 	right: 32px;
 	bottom: 32px;
-	z-index: 5100; /* above the page overlay (5000) */
+	z-index: 10000; /* above options (same z, mounted after); under the web browser */
 	pointer-events: none; /* never steal clicks while hidden */
 	opacity: 0;
 	transform: translateY(14px);

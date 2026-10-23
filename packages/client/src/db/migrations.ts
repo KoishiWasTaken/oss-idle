@@ -314,12 +314,36 @@ const addMemoryReset: Migration = db => {
 	addColumn(db, 'character', 'memoryResetAt', 'INTEGER DEFAULT 0');
 };
 
+/** Memory upgrades forget plays on every map: a guest records when, as its
+ *  play counts are read back off its scores. The ones already bought forget now. */
+const addMemoryForget: Migration = db => {
+	if (!addColumn(db, 'character', 'memoryForgetAt', 'TEXT NOT NULL DEFAULT \'[]\'')) return;
+	const now = Date.now();
+	const rows = db.exec('SELECT id, memoryUpgrades FROM character WHERE memoryUpgrades > 0;');
+	for (const [id, upgrades] of rows[0]?.values ?? []) {
+		db.run('UPDATE character SET memoryForgetAt = ? WHERE id = ?;',
+			[JSON.stringify(Array<number>(upgrades as number).fill(now)), id]);
+	}
+};
+
 const addScoreRate: Migration = db => {
 	addColumn(db, 'score', 'rate', 'REAL DEFAULT 1');
 };
 
 const addScoreMods: Migration = db => {
 	addColumn(db, 'score', 'mods', 'TEXT DEFAULT \'\'');
+};
+
+/** What an installed add-on is for (gameplay, editor), as its listing says. */
+const addAddonTypes: Migration = db => {
+	// the editor's test builds ran this in addMemoryForget's place
+	addMemoryForget(db);
+	const tableExists = db.exec(`
+		SELECT EXISTS (
+			SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'addon'
+		);
+	`)[0].values[0][0] as number;
+	if (tableExists) addColumn(db, 'addon', 'types', 'TEXT NOT NULL DEFAULT \'gameplay\'');
 };
 
 /** A playlist holds a difficulty once per rate it is locked at, and once
@@ -358,6 +382,8 @@ const migrations: Migration[] = [
 	addScoreRate,
 	playlistEntryRate,
 	addScoreMods,
+	addMemoryForget,
+	addAddonTypes,
 ];
 
 /**

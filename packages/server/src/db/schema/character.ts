@@ -152,6 +152,17 @@ export function characterToDTO(
 	};
 }
 
+/** The account's current character with its user row, or undefined before onboarding. */
+export const currentCharacterOf = async (userId: number) => {
+	const [row] = await db
+		.select()
+		.from(characters)
+		.innerJoin(users, eq(users.currentCharacter, characters.id))
+		.where(eq(users.id, userId))
+		.limit(1);
+	return row;
+};
+
 export const getCharacterById = async (id: number) => {
 	const [row] = await db
 		.select()

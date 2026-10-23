@@ -13,6 +13,10 @@ import LinkMenu from './LinkMenu';
 import Chat from './chat/Chat';
 import ChannelPicker from './chat/ChannelPicker';
 import CommunityControls from './CommunityControls';
+import useKeyboardOwner, {
+	KeyboardLayer,
+	LAYER,
+} from '../../input/keyboardOwner';
 import Ticker from './Ticker';
 import {
 	autoHide,
@@ -20,6 +24,10 @@ import {
 	showTicker,
 	showUsers,
 } from './state';
+
+const COMMUNITY = {
+	layer: LAYER.COMMUNITY, open: true, 
+};
 
 /**
  * The community overlay (osu!stable's F9): online players, the world map and
@@ -32,6 +40,15 @@ export default function CommunityOverlay() {
 	const [chat = true] = useSynced(showChat);
 	const [users = true] = useSynced(showUsers);
 	const [ticker = true] = useSynced(showTicker);
+	useKeyboardOwner(undefined, {
+		active: open,
+		layer: LAYER.COMMUNITY,
+		close: () => {
+			void isCommunityOpen.set(false);
+			void showChat.set(false);
+			void showUsers.set(false);
+		},
+	});
 
 	// Auto-hide: close during gameplay, reopen afterwards - only if it was open
 	// and the toggle is on, so a manual close during play isn't undone.
@@ -70,18 +87,20 @@ export default function CommunityOverlay() {
 
 	return (
 		<>
-			<div className="community">
-				<div className={`community-panel ${open && users ? 'is-enabled' : ''}`}>
-					<CommunityHeader />
-					<CommunityBody />
+			<KeyboardLayer.Provider value={COMMUNITY}>
+				<div className="community">
+					<div className={`community-panel ${open && users ? 'is-enabled' : ''}`}>
+						<CommunityHeader />
+						<CommunityBody />
+					</div>
+					<div className={`community-chat-container ${open && chat ? 'is-enabled' : ''}`}>
+						<Chat />
+					</div>
+					<PlayerMenu />
+					<LinkMenu />
+					<ChannelPicker />
 				</div>
-				<div className={`community-chat-container ${open && chat ? 'is-enabled' : ''}`}>
-					<Chat />
-				</div>
-				<PlayerMenu />
-				<LinkMenu />
-				<ChannelPicker />
-			</div>
+			</KeyboardLayer.Provider>
 
 			{!open && ticker && <Ticker />}
 			<CommunityControls />

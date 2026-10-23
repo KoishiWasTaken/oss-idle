@@ -15,13 +15,15 @@ import {
 	type MapClaim,
 } from '../../api/mapRequests';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 /** Temporary: who claims to have proposed which ranked map on Discord. Accepting attributes the map to them. */
 export default function Claims() {
 	const me = useCurrentUser();
 	const [claims, setClaims] = useState<MapClaim[]>();
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string>();
+	const {
+		busy, error, setError, run: runAction,
+	} = useAction();
 
 	const refresh = useCallback(() => listMapClaims()
 		.then(setClaims)
@@ -29,17 +31,7 @@ export default function Claims() {
 
 	useEffect(() => { void refresh(); }, [refresh]);
 
-	const run = async (fn: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(undefined);
-		try {
-			await fn();
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		}
-		await refresh();
-		setBusy(false);
-	};
+	const run = (action: () => Promise<unknown>) => runAction(action, refresh);
 
 	const claimers = new Map<number, number>();
 	for (const claim of claims ?? []) claimers.set(claim.setId, (claimers.get(claim.setId) ?? 0) + 1);

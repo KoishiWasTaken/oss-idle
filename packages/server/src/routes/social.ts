@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { z } from 'zod';
 import {
 	requireAuth,
 	sessionUserId,
@@ -20,7 +19,6 @@ import {
 	setSocialSettings,
 	socialSettings,
 } from '../social';
-import { zValidator } from '@hono/zod-validator';
 import {
 	reportBody,
 	socialSettingsBody,
@@ -28,8 +26,11 @@ import {
 import { requireModerator } from '../auth/admin';
 import { requireActive } from '../auth/active';
 import { chatLine } from '../ws/chat';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 export const socialRoutes = new Hono()
 
@@ -65,9 +66,7 @@ export const socialRoutes = new Hono()
 		return c.json({ ok: true });
 	})
 
-	.post('/reports/:userId', requireActive, zValidator('json', reportBody, r => {
-		if (!r.success) throw r.error;
-	}), async c => {
+	.post('/reports/:userId', requireActive, valid('json', reportBody), async c => {
 		const userId = c.get('userId');
 		const targetId = idParam.parse(c.req.param('userId'));
 		if (targetId === userId) throw new HTTPException(400, { message: 'You cannot report yourself' });
@@ -92,9 +91,9 @@ export const socialRoutes = new Hono()
 
 	.get('/settings', requireAuth, async c => c.json(await socialSettings(c.get('userId'))))
 
-	.put('/settings', requireAuth, zValidator('json', socialSettingsBody, r => {
-		if (!r.success) throw r.error;
-	}), async c => c.json(await setSocialSettings(c.get('userId'), c.req.valid('json'))))
+	.put('/settings', requireAuth, valid('json', socialSettingsBody), async c => c.json(
+		await setSocialSettings(c.get('userId'), c.req.valid('json')),
+	))
 
 	// What a profile shows: the follower count, plus the viewer's side when signed in.
 	.get('/relation/:userId', async c => c.json(await relation(

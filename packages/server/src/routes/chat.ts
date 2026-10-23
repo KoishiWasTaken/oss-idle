@@ -1,8 +1,6 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
-import { eq } from 'drizzle-orm';
 import {
 	DEFAULT_CHANNEL,
 	TEAM_CHANNEL,
@@ -12,9 +10,7 @@ import { requireModerator } from '../auth/admin';
 import { groupsOf } from '../groups';
 import { silence } from '../restrictions';
 import { sanctionable } from './restrictions';
-import { db } from '../db/client';
-import { characters } from '../db/schema/character';
-import { users } from '../db/schema/user';
+import { currentCharacterOf } from '../db/schema/character';
 import {
 	adminAnnounce,
 	characterOwner,
@@ -29,12 +25,7 @@ import {
 	setBanned,
 	untimeoutUser,
 } from '../ws/chat';
-
-// Re-throw the ZodError so the app's onError returns the standard shape.
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => {
-		if (!result.success) throw result.error;
-	});
+import { valid } from '../validate';
 
 const characterId = z.number().int().positive();
 
@@ -81,28 +72,13 @@ const moderateBody = z.discriminatedUnion('action', [
 	}),
 ]);
 
-/** The signed-in admin's current character (to post as themselves). */
-const adminCharacter = async (userId: number) => {
-	const [row] = await db
-		.select({
-			id: characters.id, name: characters.name,
-		})
-		.from(characters)
-		.innerJoin(users, eq(users.currentCharacter, characters.id))
-		.where(eq(users.id, userId))
-		.limit(1);
-	return row;
-};
-
 /**
  * The admin chat console API: browse a channel's rolling-day history, post as
  * yourself (or `/announce`, admins only), and moderate (timeout / ban / delete). All gated by
  * `requireModerator`. Live game clients are updated over the socket by `../ws/chat`.
  */
 export const chatRoutes = new Hono()
-	.get('/history', requireModerator, zValidator('query', historyQuery, r => {
-		if (!r.success) throw r.error;
-	}), async c => {
+	.get('/history', requireModerator, valid('query', historyQuery), async c => {
 		const channel = c.req.valid('query').channel ?? DEFAULT_CHANNEL;
 		const messages = await chatHistory(channel);
 		const senders = [...new Set(
@@ -117,7 +93,7 @@ export const chatRoutes = new Hono()
 			channels: chatChannels(), channel, messages, moderation,
 		});
 	})
-	.post('/message', requireModerator, jsonBody(messageBody), async c => {
+	.post('/message', requireModerator, valid('json', messageBody), async c => {
 		const { channel, text } = c.req.valid('json');
 		const prefix = '/announce ';
 		if (text.startsWith(prefix)) {
@@ -128,14 +104,14 @@ export const chatRoutes = new Hono()
 			return c.json({ ok: true });
 		}
 		const userId = c.get('userId');
-		const character = await adminCharacter(userId);
+		const character = (await currentCharacterOf(userId))?.character;
 		if (!character) throw new HTTPException(400, { message: 'No character to post as' });
 		await handleChat({
 			characterId: character.id, name: character.name, color: await nameColor(userId),
 		}, userId, channel, text, { bypassRate: true });
 		return c.json({ ok: true });
 	})
-	.post('/moderate', requireModerator, jsonBody(moderateBody), async c => {
+	.post('/moderate', requireModerator, valid('json', moderateBody), async c => {
 		const body = c.req.valid('json');
 
 		if (body.action === 'delete') {

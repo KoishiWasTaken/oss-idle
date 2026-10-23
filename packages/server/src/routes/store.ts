@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { checkoutBody } from '@oss-idle/shared/supporter';
 import { requireAuth } from '../auth/middleware';
@@ -15,9 +14,12 @@ import {
 	refundUnused,
 	supporterStatus,
 } from '../supporter';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
 const recipientQuery = z.object({ name: z.string().trim().min(1) });
-const idParam = z.coerce.number().int().positive();
 
 export const storeRoutes = new Hono()
 
@@ -25,17 +27,16 @@ export const storeRoutes = new Hono()
 
 	.get('/orders', requireAuth, async c => c.json(await ordersOf(c.get('userId'))))
 
-	.get('/recipient', requireAuth, zValidator('query', recipientQuery, r => {
-		if (!r.success) throw r.error;
-	}), async c => {
+	.get('/recipient', requireAuth, valid('query', recipientQuery), async c => {
 		const recipient = await findRecipient(c.req.valid('query').name);
 		if (!recipient) throw new HTTPException(404, { message: 'Player not found' });
 		return c.json(recipient);
 	})
 
-	.post('/checkout', requireAuth, zValidator('json', checkoutBody, r => {
-		if (!r.success) throw r.error;
-	}), async c => c.json({ url: await checkout(c.get('userId'), c.req.valid('json')) }))
+	.post('/checkout', requireAuth, valid('json', checkoutBody), async c => {
+		const url = await checkout(c.get('userId'), c.req.valid('json'));
+		return c.json({ url });
+	})
 
 	.post('/portal', requireAuth, async c => c.json({ url: await portal(c.get('userId')) }))
 

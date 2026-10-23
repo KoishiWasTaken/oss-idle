@@ -21,16 +21,23 @@ const matches = (mapset: Mapset, words: string[]) => {
 	return words.every(w => text.includes(w));
 };
 
-/** Players by name and ranked maps by artist, title or mapper. */
+/** Best first: the title holding the whole search, then a ranked map over an unranked one. */
+const relevance = (mapset: Mapset, query: string) =>
+	(mapset.title.toLowerCase().includes(query) ? 0 : 2) + (mapset.status === 'ranked' ? 0 : 1);
+
+/** Players by name and maps, ranked or not, by artist, title or mapper. */
 export default function Search({ q }: { q: string }) {
 	const { t } = useLingui();
 	const navigate = useNavigate();
 	const [text, setText] = useState(q);
 	const query = q.trim();
 	const players = useAsync(() => query ? searchPlayers(query) : [], [query]);
-	const mapsets = useAsync(() => getAllMaps(), []);
+	const mapsets = useAsync(() => getAllMaps('desc', { status: 'any' }), []);
 	const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-	const found = words.length ? mapsets?.filter(m => matches(m, words)) : [];
+	const found = words.length
+		? mapsets?.filter(m => matches(m, words))
+			.sort((a, b) => relevance(a, query.toLowerCase()) - relevance(b, query.toLowerCase()))
+		: [];
 
 	return (
 		<div className='page-contents search'>

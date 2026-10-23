@@ -90,6 +90,9 @@ const RULES: [string, (node: Node) => boolean][] = [
 				|| args(node).some(arg => stringValue(arg) !== undefined))],
 ];
 
+/** What the rules forbid, in the words a violation reports: the add-on docs list them. */
+export const ADDON_RULES: string[] = RULES.map(([rule]) => rule);
+
 const walk = (node: Node, visit: (node: Node) => void) => {
 	visit(node);
 	for (const key in node) {

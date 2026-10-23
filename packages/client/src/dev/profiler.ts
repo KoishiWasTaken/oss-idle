@@ -19,6 +19,7 @@
 import { VERSION } from '@oss-idle/shared/version';
 import { SITE_URL } from '../globals';
 import { SETTINGS } from '../db/settings';
+import { devTools } from './devTools';
 import { flash } from './flash';
 import {
 	context,
@@ -149,7 +150,7 @@ const pulse = (now: number) => {
 	queue(pulse);
 };
 queue(pulse);
-startSampler();
+if (devTools.sampler) startSampler();
 
 const scriptKey = (s: LoafScript) =>
 	shortUrls([s.invoker, s.sourceFunctionName, s.sourceURL].filter(Boolean).join(' '));

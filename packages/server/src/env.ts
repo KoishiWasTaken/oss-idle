@@ -73,6 +73,8 @@ const schema = z.object({
 	NEWS_FEED_WEBHOOK: z.string(),
 	USER_FEED_WEBHOOK: z.string(),
 	ERROR_FEED_WEBHOOK: z.string(),
+	/** new bug reports and players' replies, for the team (prod only) */
+	BUG_FEED_WEBHOOK: z.string().optional(),
 
 	// The oss!idle Discord app: OAuth links a player's Discord account so the bot
 	// (packages/discord) can give them their level role. No secret, no linking.

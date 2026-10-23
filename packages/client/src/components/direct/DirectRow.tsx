@@ -18,12 +18,22 @@ type Props = {
 	onDownload: () => void,
 };
 
+const dayFormats = new Map<string, Intl.DateTimeFormat>();
+const dayFormat = (locale: string) => {
+	let format = dayFormats.get(locale);
+	if (!format) {
+		format = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+		dayFormats.set(locale, format);
+	}
+	return format;
+};
+
 /** One set in the oss!direct list: click to see it, double click to download it. */
 export default function DirectRow({
 	set, selected, downloaded, progress, onSelect, onDownload,
 }: Props) {
 	const { i18n } = useLingui();
-	const ranked = new Date(set.rankedAt).toLocaleDateString(i18n.locale, { dateStyle: 'medium' });
+	const ranked = dayFormat(i18n.locale).format(new Date(set.rankedAt));
 	const mapper = set.creator;
 
 	return (

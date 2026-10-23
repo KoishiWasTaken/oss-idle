@@ -1,6 +1,7 @@
 import './ModSelect.css';
 import '../ContextMenu.css';
 import { useEffect } from 'react';
+import useKeyboardOwner from '../../input/keyboardOwner';
 import {
 	Trans,
 	useLingui,
@@ -61,6 +62,7 @@ const cycleDeath = (mods: Mod[]) => {
 
 /** mod select over song select. */
 export default function ModSelect({ onClose }: { onClose: () => void }) {
+	useKeyboardOwner(undefined, { close: onClose });
 	const { t } = useLingui();
 	const [rate] = useSynced(selectedRate);
 	const [mods] = useSynced(selectedMods);

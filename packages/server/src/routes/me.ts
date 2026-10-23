@@ -6,7 +6,6 @@ import {
 	eq,
 } from 'drizzle-orm';
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
 import {
 	characterNameBody,
 	onboardingBody,
@@ -15,17 +14,22 @@ import { db } from '../db/client';
 import {
 	characters,
 	characterToDTO,
+	currentCharacterOf,
 	type CharacterRow,
 } from '../db/schema/character';
 import { requireAuth } from '../auth/middleware';
 import { requireActive } from '../auth/active';
 import { users } from '../db/schema/user';
 import { saveUploadedImage } from '../uploads';
-import { env } from '../env';
+import {
+	clientUrl,
+	env,
+} from '../env';
 import { publish } from '../discord/publish';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 import { reindexCharacter } from '../rankings';
 import { characterNameHistory } from '../db/schema/name_history';
+import { getPlays } from '../db/schema/beatmaps_played';
 import {
 	prestigeBody,
 	upgradeBody,
@@ -59,6 +63,7 @@ import {
 	renderUserPage,
 	userPageOf,
 } from '../userPage';
+import { valid } from '../validate';
 
 const characterId = z.number().int().positive();
 const characterRenameBody = characterNameBody.extend({ characterId: characterId.optional() });
@@ -81,23 +86,19 @@ const assertOwnCharacter = async (userId: number, characterId: number) => {
 	if (!row) throw new HTTPException(404, { message: 'Character not found' });
 };
 
-// Re-throw the ZodError so the app's onError returns the standard shape.
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => {
-		if (!result.success) throw result.error;
-	});
-
 /** The signed-in account's own character (created during first-login onboarding). */
 export const meRoutes = new Hono()
 	// The account's character, or null when onboarding is still needed.
 	.get('/character', requireAuth, async c => {
-		const [row] = await db
-			.select()
-			.from(characters)
-			.innerJoin(users, eq(users.currentCharacter, characters.id))
-			.where(eq(users.id, c.get('userId')))
-			.limit(1);
+		const row = await currentCharacterOf(c.get('userId'));
 		return c.json(row ? characterToDTO(row.character, row.user.avatarUrl, row.user.country) : null);
+	})
+
+	// How many plays of this map still train the current character's memory.
+	.get('/memory/:beatmap', requireAuth, async c => {
+		const { row } = await currentCharacter(c.get('userId'));
+		const beatmapId = characterId.parse(Number(c.req.param('beatmap')));
+		return c.json({ plays: await getPlays(row.id, beatmapId) });
 	})
 
 	// Onboarding: create the account's character once, always fresh.
@@ -135,7 +136,7 @@ export const meRoutes = new Hono()
 		void publish(env.USER_FEED_WEBHOOK, {
 			embeds: [{
 				title: `Welcome ${row.name} to oss!idle !`,
-				url: `https://oss.idle.rhythmgamers.net/web/c/${row.id}`,
+				url: `${clientUrl}/web/c/${row.id}`,
 				fields: [
 					{
 						name: `osu! user: ${user.username}`,
@@ -155,7 +156,7 @@ export const meRoutes = new Hono()
 
 	// Rename the account's current character (same rules as creation). The old
 	// name is kept permanently in the character's name history.
-	.post('/username', requireActive, jsonBody(characterRenameBody), async c => {
+	.post('/username', requireActive, valid('json', characterRenameBody), async c => {
 		const userId = c.get('userId');
 		const {
 			name, characterId,
@@ -212,7 +213,7 @@ export const meRoutes = new Hono()
 	})
 
 	// Show a held medal's name as the current character's title, or none.
-	.put('/title', requireActive, jsonBody(titleBody), async c => {
+	.put('/title', requireActive, valid('json', titleBody), async c => {
 		const { medalId } = c.req.valid('json');
 		const [user] = await db.select().from(users).where(eq(users.id, c.get('userId'))).limit(1);
 		const id = user?.currentCharacter;
@@ -228,7 +229,7 @@ export const meRoutes = new Hono()
 	})
 
 	// Save a character's me! page (osu! BBCode); returns it rendered.
-	.put('/page', requireActive, jsonBody(userPageBody), async c => {
+	.put('/page', requireActive, valid('json', userPageBody), async c => {
 		const userId = c.get('userId');
 		const { characterId, raw } = c.req.valid('json');
 		await requireSupporter(userId);
@@ -238,13 +239,13 @@ export const meRoutes = new Hono()
 	})
 
 	// Render a me! page draft without saving it.
-	.post('/page/preview', requireActive, jsonBody(previewBody), async c => {
+	.post('/page/preview', requireActive, valid('json', previewBody), async c => {
 		await requireSupporter(c.get('userId'));
 		return c.json({ html: await renderUserPage(c.req.valid('json').raw) });
 	})
 
 	// The order of a character's profile blocks, as its owner arranged them.
-	.put('/profile-order', requireActive, jsonBody(profileOrderBody), async c => {
+	.put('/profile-order', requireActive, valid('json', profileOrderBody), async c => {
 		const userId = c.get('userId');
 		const { characterId, order } = c.req.valid('json');
 		await requireSupporter(userId);
@@ -256,7 +257,7 @@ export const meRoutes = new Hono()
 	// Buy the current character's next upgrade for a skill: spends levels
 	// (and their lifetime XP, so leaderboards drop too) per the shared math.
 	// Mid-play it is parked instead - see character/pending.ts.
-	.post('/upgrade', requireAuth, jsonBody(upgradeBody), async c => {
+	.post('/upgrade', requireAuth, valid('json', upgradeBody), async c => {
 		const { user, row } = await currentCharacter(c.get('userId'));
 		const { skill } = c.req.valid('json');
 
@@ -294,7 +295,7 @@ export const meRoutes = new Hono()
 	})
 
 	// Switch which of the account's characters is live.
-	.post('/character/select', requireAuth, jsonBody(characterSelectBody), async c => {
+	.post('/character/select', requireAuth, valid('json', characterSelectBody), async c => {
 		const userId = c.get('userId');
 		const { characterId } = c.req.valid('json');
 
@@ -320,7 +321,7 @@ export const meRoutes = new Hono()
 	// Prestige one skill: its level, xp, upgrades and overdrive go, and it keeps a
 	// bonus level, an extra gear tier and a bigger multiplier. Lifetime totals and
 	// the ranking metrics are deliberately left alone.
-	.post('/prestige', requireAuth, jsonBody(prestigeBody), async c => {
+	.post('/prestige', requireAuth, valid('json', prestigeBody), async c => {
 		const { user, row } = await currentCharacter(c.get('userId'));
 		const { skill } = c.req.valid('json');
 
@@ -338,7 +339,7 @@ export const meRoutes = new Hono()
 	// Rebirth: the account starts a fresh character one generation up, which owns
 	// one more unlock. The previous one stays playable, ranked, and keeps its
 	// progress - it just gives up the name, osu!-style.
-	.post('/rebirth', requireAuth, jsonBody(rebirthBody), async c => {
+	.post('/rebirth', requireAuth, valid('json', rebirthBody), async c => {
 		const { user, row } = await currentCharacter(c.get('userId'));
 		const { name } = c.req.valid('json');
 
@@ -419,18 +420,10 @@ const queueWhilePlaying = async (
 
 /** The account's live character, or a 409 when onboarding never ran. */
 const currentCharacter = async (userId: number) => {
-	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-	if (!user?.currentCharacter) throw new HTTPException(409, { message: 'No character' });
-
-	const [row] = await db
-		.select()
-		.from(characters)
-		.where(eq(characters.id, user.currentCharacter))
-		.limit(1);
-	if (!row) throw new HTTPException(409, { message: 'No character' });
-
+	const found = await currentCharacterOf(userId);
+	if (!found) throw new HTTPException(409, { message: 'No character' });
 	return {
-		user, row,
+		user: found.user, row: found.character,
 	};
 };
 

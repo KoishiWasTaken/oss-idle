@@ -1,4 +1,5 @@
 import {
+	type RefObject,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -14,7 +15,6 @@ import BeatmapCard from './BeatmapCard';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import { useSelection } from './songselect/selection';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import Controls from '../input/Controls';
 import RightClick from '../input/RightClick';
 import type { BeatmapXPInsight } from '../xpInsights';
 import type { MapTag } from '@oss-idle/shared/beatmap';
@@ -66,7 +66,16 @@ interface Props {
 	xpInsights?: Map<number, BeatmapXPInsight>
 	/** total difficulties matching the search (for the footer; ignores collapse) */
 	totalCount: number
+	/** where the right button scrubs, besides the carousel itself */
+	scrubArea?: RefObject<HTMLElement | null>
 }
+
+/** a right press there scrubs: level with the carousel, and the carousel shown */
+const scrubsAt = (scroller: HTMLElement, clientY: number) => {
+	const { top, bottom } = scroller.getBoundingClientRect();
+	return clientY >= top && clientY <= bottom
+		&& getComputedStyle(scroller).pointerEvents !== 'none';
+};
 
 /**
  * A collapsible group header row.
@@ -170,6 +179,7 @@ export default function BeatmapCarousel({
 	downloads,
 	xpInsights,
 	totalCount,
+	scrubArea,
 }: Props) {
 	const selection = useSelection();
 	const scrollRef = useRef<HTMLDivElement>(null);
@@ -370,8 +380,6 @@ export default function BeatmapCarousel({
 		const onWheel = (e: WheelEvent) => {
 			if (e.ctrlKey) return; // let pinch-zoom through
 			e.preventDefault();
-			// don't scroll when holding alt (volume)
-			if (Controls.mode_Alt.get()) return;
 			// normalise line/page deltas to pixels
 			const unit =
 				e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? scroller.clientHeight : 1;
@@ -393,11 +401,12 @@ export default function BeatmapCarousel({
 	useEffect(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
+		const area = scrubArea?.current ?? scroller;
 		const DRAG_PX = 6;
 		let pendingY: number | null = null;
 		let scrubbing = false;
 		const onDown = (e: MouseEvent) => {
-			if (e.button !== 2) return;
+			if (e.button !== 2 || !scrubsAt(scroller, e.clientY)) return;
 			e.preventDefault();
 			pendingY = e.clientY;
 			scrubbing = false;
@@ -415,22 +424,22 @@ export default function BeatmapCarousel({
 			pendingY = null;
 			scrubbing = false;
 		};
-		scroller.addEventListener('mousedown', onDown);
+		area.addEventListener('mousedown', onDown);
 		window.addEventListener('mousemove', onMove);
 		window.addEventListener('mouseup', onUp);
 		return () => {
-			scroller.removeEventListener('mousedown', onDown);
+			area.removeEventListener('mousedown', onDown);
 			window.removeEventListener('mousemove', onMove);
 			window.removeEventListener('mouseup', onUp);
 		};
-	}, [scrubTo]);
+	}, [scrubTo, scrubArea]);
 
 	// the right-click commit (mouse right button, or touch long-press): over a
 	// card opens its contextual menu, off any card jumps the scroll there
 	useEffect(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
-		return RightClick.on(scroller, (e) => {
+		return RightClick.on(scrubArea?.current ?? scroller, (e) => {
 			const card = (e.target as HTMLElement | null)
 				?.closest?.('.bm-card[data-id]') as HTMLElement | null;
 
@@ -443,9 +452,9 @@ export default function BeatmapCarousel({
 				if (row?.type === 'card') onCardRightClick(row.item);
 				return;
 			}
-			scrubTo(e.clientY);
+			if (scrubsAt(scroller, e.clientY)) scrubTo(e.clientY);
 		});
-	}, [scrubTo, onCardRightClick]);
+	}, [scrubTo, onCardRightClick, scrubArea]);
 
 	// The single scroll handler: fires for native scrolls (scrollbar, touch, keys)
 	// AND for the animation's programmatic scrollTop writes. rAF-throttled; updates

@@ -31,6 +31,7 @@ import { hub } from './ws/hub';
 import {
 	areOnline,
 	leave,
+	presenceCount,
 	touch,
 } from './ws/presence';
 import {
@@ -489,6 +490,10 @@ const runDue = async (id: number): Promise<void> => {
 
 export const isAway = async (id: number): Promise<boolean> =>
 	await redis.zscore(AWAY, String(id)) !== null;
+
+/** Players with a game open: the roster minus characters playing with theirs closed. */
+export const clientCount = async (): Promise<number> =>
+	Math.max(0, await presenceCount() - await redis.zcard(AWAY));
 
 /** Whether the character would play on with its game closed: the option on,
  *  something queued, nothing holding it. */

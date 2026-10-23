@@ -12,12 +12,15 @@ import {
 import {
 	ADDON_BUILD_STATUS,
 	ADDON_KIND,
+	ADDON_TYPE,
+	parseAddonTypes,
 	ADDON_STATUS,
 	type AddonBuildStatus,
 	type AddonKind,
 	type AddonStatus,
 } from '@oss-idle/shared/addon';
 import { users } from './user';
+import { splitTags } from '../columns';
 
 export const addons = mysqlTable('addons', {
 	id: int().autoincrement().primaryKey(),
@@ -26,6 +29,7 @@ export const addons = mysqlTable('addons', {
 	name: varchar({ length: 80 }).notNull(),
 	description: varchar({ length: 500 }).notNull().default(''),
 	tags: varchar({ length: 255 }).notNull().default(''), // comma-separated
+	types: varchar({ length: 32 }).notNull().default(ADDON_TYPE.gameplay), // comma-separated
 	icon: varchar({ length: 512 }), // uploaded image path, null → no icon
 	version: varchar({ length: 20 }).notNull().default('0.1.0'),
 	gameVersion: varchar({ length: 20 }).notNull(),
@@ -70,8 +74,6 @@ export const addonDownloads = mysqlTable('addon_downloads', {
 export type AddonRow = typeof addons.$inferSelect;
 export type NewAddonRow = typeof addons.$inferInsert;
 
-const splitTags = (csv: string): string[] => csv ? csv.split(',').filter(Boolean) : [];
-
 /** Where a repo add-on's builds come from and stand. */
 const repoOf = (row: AddonRow) => ({
 	kind: row.kind as AddonKind,
@@ -99,6 +101,7 @@ export const toAddonDTO = (row: AddonRow, authorName: string) => {
 		name: row.name,
 		description: row.description,
 		tags: splitTags(row.tags),
+		types: parseAddonTypes(row.types),
 		icon: row.icon ?? null,
 		version: row.version,
 		gameVersion: row.gameVersion,

@@ -12,22 +12,20 @@ import {
 	DEFAULT_CHANNEL,
 } from '@oss-idle/shared/community/wire';
 import { VERSION } from '@oss-idle/shared/version';
-import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
 import {
-	characters,
 	characterToDTO,
+	currentCharacterOf,
 	type CharacterRow,
 } from '../db/schema/character';
-import {
-	users,
-	type UserRow,
-} from '../db/schema/user';
+import type { UserRow } from '../db/schema/user';
 import { SESSION_COOKIE } from '../auth/middleware';
+import { randomUUID } from 'node:crypto';
 import {
 	clientUrl,
 	isProd,
+	redisKeyPrefix,
 } from '../env';
+import { redis } from '../redis';
 import { verifySession } from '../auth/jwt';
 import {
 	clientIp,
@@ -78,6 +76,15 @@ import {
  *  sweep TTL) so a clean session is never pruned. */
 const TOUCH_MS = 30 * 1000;
 
+/** The account's newest socket, on any worker. A reconnect can land on another
+ *  worker before the old socket's close: that close must not take it offline. */
+const newestKey = (userId: number) => `${redisKeyPrefix}ws:newest:${userId}`;
+
+/** The newest socket's id, forgotten when it is this one. */
+const FORGET_NEWEST = `local v = redis.call('get', KEYS[1])
+if v == ARGV[1] then redis.call('del', KEYS[1]) end
+return v`;
+
 /** Lines of the default channel a client gets on connect. */
 const CHAT_HISTORY = 100;
 
@@ -91,20 +98,6 @@ const wsToken = (c: Context): string | undefined => {
 	const ownOrigin = !isProd || c.req.header('Origin') === clientUrl;
 	const cookie = ownOrigin ? getCookie(c, SESSION_COOKIE) : undefined;
 	return cookie ?? c.req.query('token');
-};
-
-const resolveCharacter = async (
-	userId: number,
-): Promise<{ character: CharacterRow; user: UserRow } | undefined> => {
-	const [row] = await db
-		.select()
-		.from(characters)
-		.innerJoin(users, eq(users.currentCharacter, characters.id))
-		.where(eq(users.id, userId))
-		.limit(1);
-	return row ? {
-		character: row.character, user: row.user,
-	} : undefined;
 };
 
 /** Put a character on the roster. join() resets status to idle, so a live play
@@ -128,7 +121,7 @@ const heartbeat = async (characterId: number, userId: number, geo: GeoResult): P
 		await touch(characterId);
 		return;
 	}
-	const now = await resolveCharacter(userId);
+	const now = await currentCharacterOf(userId);
 	if (now && !now.user.restrictedAt) await enter(now.character, now.user, geo);
 };
 
@@ -156,7 +149,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 	app.get('/v1/ws', upgradeWebSocket(async c => {
 		const token = wsToken(c);
 		const session = token ? await verifySession(token).catch(() => undefined) : undefined;
-		const resolved = session ? await resolveCharacter(session.uid) : undefined;
+		const resolved = session ? await currentCharacterOf(session.uid) : undefined;
 
 		if (!session || !resolved) {
 			return { onOpen: (_e, ws) => ws.close(1008, 'unauthorized') };
@@ -170,6 +163,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 		let beat: ReturnType<typeof setInterval> | undefined;
 		let feed: PlayFeed | undefined;
 		let scores: MatchFeed | undefined;
+		const conn = randomUUID();
 
 		// The account's character can change under a live socket - a rebirth parked
 		// during a play applies when it ends - and the hub is what knows where the
@@ -180,12 +174,13 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 		// account rebirths or renames, and holding it against any one of those
 		// signals only covers that one.
 		const currentRow = async () =>
-			(await resolveCharacter(userId))?.character ?? character;
+			(await currentCharacterOf(userId))?.character ?? character;
 
 		return {
 			onOpen: async (_e, ws) => {
 				count('activity', 'sockets');
 				hub.add(character.id, ws);
+				await redis.set(newestKey(userId), conn, 'EX', 86_400);
 				await comeBack(character.id);
 				feed = new PlayFeed(() => bound(ws), ws);
 				scores = new MatchFeed(() => bound(ws), ws);
@@ -246,7 +241,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 						feed,
 						// the row *is* the simulation's input: levels, upgrades and
 						// overdrive as they are now, not as they were at connect
-						freshCharacter: async () => (await resolveCharacter(userId))?.character,
+						freshCharacter: async () => (await currentCharacterOf(userId))?.character,
 					})],
 					['queue', () => handleQueue(msg, bound(ws), ws)],
 					['mp', () => handleMultiplayer(msg, bound(ws), ws, scores)],
@@ -294,7 +289,10 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 				// read before the remove, which is what forgets where it belonged
 				const id = bound(ws);
 				hub.remove(ws);
-				if (!hub.isLocal(id)) void socketClosed(id);
+				void (redis.eval(FORGET_NEWEST, 1, newestKey(userId), conn) as Promise<string | undefined>)
+					// a newer socket, here or on another worker, keeps it online
+					.then(newest => hub.isLocal(id) || (newest && newest !== conn) ? undefined : socketClosed(id))
+					.catch(e => console.error('[ws] close failed for', id, e));
 			},
 		};
 	}));

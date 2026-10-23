@@ -1,13 +1,15 @@
 import { hc } from 'hono/client';
 import type { AppType } from '@oss-idle/server';
-import { desktop } from '@oss-idle/shared/desktop';
 import {
 	edgeList,
 	failoverFetch,
 	onApiBaseChange,
 	pickApiBase,
+	withAuth,
 } from '@oss-idle/shared/apiBase';
 import API from './api';
+
+export { withAuth };
 
 /** The API origin, or the edge measured nearest on an earlier load; it follows
  *  the page onto another one when this one fails (a live binding). What it
@@ -29,17 +31,9 @@ onApiBaseChange(base => {
 	BASE_URL = base;
 });
 
-/**
- * Apply the live session auth to an outgoing API request:
- *  - browser: the session is an HttpOnly cookie, sent via `credentials: 'include'`.
- *  - desktop: the app loads from an `app://` origin the API cookie can't ride, so
- *    its main process adds the token as a `Bearer` header (no cookie).
- */
-export function withAuth(init?: RequestInit): RequestInit {
-	return {
-		...init, credentials: desktop() ? 'omit' : 'include',
-	};
-}
+/** An API path or stored media path as a full URL. */
+export const apiUrl = (path: string): string =>
+	/^https?:\/\//.test(path) ? path : `${BASE_URL}${path}`;
 
 /**
  * Typed RPC client generated from the server's `AppType`. Every route, its

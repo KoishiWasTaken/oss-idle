@@ -1,4 +1,5 @@
 import ResultMods from '../components/result/ResultMods';
+import accuracy from '@oss-idle/shared/display/accuracy';
 import DevianceGraph from '../gameplay/DevianceGraph';
 import HpGraph from '../gameplay/HpGraph';
 import { Score } from '../db/schema/score';
@@ -226,7 +227,7 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 								<div className="result__total">
 									<span className="result__total-label"><Trans>Accuracy</Trans></span>
 									<span className="result__total-value">
-										{(score.accuracy * 100).toFixed(2)}%
+										{accuracy(score.accuracy)}
 									</span>
 								</div>
 							</div>

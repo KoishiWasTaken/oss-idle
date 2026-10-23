@@ -13,6 +13,7 @@ import { initFullscreen } from './responsive/fullscreen';
 import { initFrameLimiter } from './responsive/frameLimiter';
 import { SETTINGS } from './db/settings';
 import { desktop } from '@oss-idle/shared/desktop';
+import './addons/host'; // globalThis.ossIdle, before any add-on loads
 import { bootAddons } from './addons/runtime';
 import App from './App.tsx';
 import {

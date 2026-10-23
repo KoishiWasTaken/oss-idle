@@ -1,6 +1,6 @@
 {
   "name": "@oss-idle/server",
-  "version": "1.1.0.0",
+  "version": "1.2.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -27,9 +27,13 @@
     "migrate:beatmaps:prod": "NODE_ENV=production tsx src/db/migrate-beatmaps.ts",
     "reingest:beatmaps": "tsx src/db/reingest-beatmaps.ts",
     "reingest:beatmaps:prod": "NODE_ENV=production tsx src/db/reingest-beatmaps.ts",
+    "credit:mappers": "tsx src/db/credit-mappers.ts",
+    "credit:mappers:prod": "NODE_ENV=production tsx src/db/credit-mappers.ts",
     "webhook:preview": "tsx src/db/webhookPreview.ts",
     "news:preview": "tsx src/news/preview.ts",
     "news:preview:prod": "NODE_ENV=production tsx src/news/preview.ts",
+    "bugs": "tsx src/bugsCli.ts",
+    "bugs:prod": "NODE_ENV=production tsx src/bugsCli.ts",
     "extract": "lingui extract --clean",
     "replay:scores": "tsx src/db/replay-scores.ts",
     "replay:scores:prod": "NODE_ENV=production tsx src/db/replay-scores.ts",
@@ -38,7 +42,11 @@
     "relevel": "tsx src/db/relevel-characters.ts",
     "relevel:prod": "NODE_ENV=production tsx src/db/relevel-characters.ts",
     "fix:ln": "tsx src/db/fix-ln-counts.ts",
-    "fix:ln:prod": "NODE_ENV=production tsx src/db/fix-ln-counts.ts"
+    "fix:ln:prod": "NODE_ENV=production tsx src/db/fix-ln-counts.ts",
+    "purge:intro": "tsx src/db/purge-intro-scores.ts",
+    "purge:intro:prod": "NODE_ENV=production tsx src/db/purge-intro-scores.ts",
+    "fix:totals": "tsx src/db/fix-totals.ts",
+    "fix:totals:prod": "NODE_ENV=production tsx src/db/fix-totals.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

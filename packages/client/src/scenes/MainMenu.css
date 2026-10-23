@@ -27,13 +27,19 @@
 	align-items: baseline;
 	gap: 0.15rem;
 }
-/* idle: these fade out slowly, and come back quickly when the menu opens */
+/* idle: these fade out slowly */
 .menu[data-fresh="true"] .direct-tab,
 .menu[data-idle="true"] .direct-tab,
 .menu[data-idle="true"] .announce {
 	opacity: 0;
 	pointer-events: none;
 	transition: opacity 3s ease;
+}
+/* bounces in like the menu buttons each time the menu opens */
+.menu:not([data-fresh="true"], [data-idle="true"]) .direct-tab {
+	--bounce-from: 100%;
+	--bounce-to: 0px;
+	animation: ease-out-bounce-x 0.8s both;
 }
 
 .menu__brand-name {

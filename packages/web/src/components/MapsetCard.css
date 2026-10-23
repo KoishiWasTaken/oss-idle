@@ -1,3 +1,7 @@
+/* osu!web's beatmapset panel (desktop): resting, the info is a light gradient over the
+   card cover and a sliver of menu shows on the right; on hover (or with its difficulty
+   list open) the info darkens, the play button and stats show, the menu slides out. */
+
 .list__beatmap-container {
 	display: flex;
 	flex-wrap: wrap;
@@ -5,125 +9,376 @@
 }
 
 .list__beatmap {
-	display: block;
-	color: hsl(var(--hsl-c1));
+	--info-bg: linear-gradient(
+		0.25turn,
+		hsl(var(--hsl-b2)),
+		hsla(var(--hsl-b2), 0.8)
+	);
+	--menu-bg: hsl(var(--hsl-b3));
+	--menu-container-width: 10px;
+	--menu-opacity: 0;
+	--play-bg: transparent;
+	--play-icon-opacity: 0;
+	--play-width: 90px;
+	--stats-opacity: 0;
+	--border-cover-opacity: 0;
+	--transition: all 150ms ease-in-out;
+
+	position: relative;
 	flex: none;
 	margin: 5px;
-	height: 90px;
 	width: calc(50% - 10px);
-	font-weight: 600;
+	height: 100px;
+	min-width: 0;
+	background-color: hsl(var(--hsl-b2));
+	border-radius: 10px;
+	color: hsl(var(--hsl-c1));
+	font-size: 12px;
+	isolation: isolate;
+}
 
+.list__beatmap:hover,
+.list__beatmap.is-popup {
+	--info-bg: linear-gradient(
+		0.25turn,
+		hsl(var(--hsl-b4)),
+		hsla(var(--hsl-b4), 0.8)
+	);
+	--menu-opacity: 1;
+	--menu-container-width: 30px;
+	--play-bg: hsla(var(--hsl-b6), 0.8);
+	--play-icon-opacity: 1;
+	--stats-opacity: 1;
+}
+
+.list__beatmap.is-popup {
+	--border-cover-opacity: 1;
+}
+
+.list__beatmap[data-audio-state] {
+	--play-bg: hsla(var(--hsl-b6), 0.8);
+	--play-icon-opacity: 1;
+}
+
+/* no hover on touch: what hover shows is always there */
+@media (hover: none) {
+	.list__beatmap {
+		--menu-opacity: 1;
+		--menu-container-width: 30px;
+		--stats-opacity: 1;
+	}
+}
+
+/* the bottom corners go square while the difficulty list hangs under the panel */
+.list__beatmap::before {
+	content: "";
+	background-color: inherit;
+	height: 10px;
+	width: 100%;
+	bottom: 0;
+	left: 0;
+	position: absolute;
+	opacity: var(--border-cover-opacity);
+	transition: var(--transition);
+}
+
+.list__beatmap_cover-container {
+	position: absolute;
+	inset: 0;
+	display: flex;
+}
+
+.list__beatmap_cover-col {
 	position: relative;
 }
 
-.list__beatmap_background {
-	position: absolute;
-	left: 0;
-	top: 0;
-	border-radius: 10px 0 0 10px;
-	width: 100px;
-	height: 90px;
-	background-color: #000;
-	background-repeat: no-repeat;
-	background-position: center center;
-	background-size: cover;
-	z-index: -1;
+.list__beatmap_cover-col--play {
+	width: calc(var(--play-width) + 10px);
+	flex: none;
 }
 
-.list__beatmap_right {
-	position: absolute;
-	right: 0;
-	top: 0;
-	border-radius: 0 10px 10px 0;
-	width: 100px;
-	height: 100%;
-	background-color: hsl(var(--hsl-b3));
-	z-index: -1;
-}
-
-.list__beatmap_safe,
-.list__beatmap_foreground,
-.list__beatmap_contents {
-	height: 100%;
-	width: 100%;
-	border-radius: 10px;
-}
-
-.list__beatmap_safe {
-	margin-left: auto;
+.list__beatmap_cover-col--info {
 	margin-right: 10px;
-	width: calc(100% - 90px);
-	background-color: hsl(var(--hsl-b2));
+	flex: 1;
 }
 
-.list__beatmap_foreground {
-	background-repeat: no-repeat;
-	background-position: center center;
+.list__beatmap_cover {
+	position: absolute;
+	inset: 0;
+	background-color: hsl(var(--hsl-b4));
+	background-position: center;
 	background-size: cover;
 }
 
-.list__beatmap_contents {
-	padding: 5px 10px;
-	background: linear-gradient(
-		90deg,
-		hsl(var(--hsl-b2)) 20%,
-		color-mix(in srgb, hsl(var(--hsl-b2)), transparent 20%)
-	);
+.list__beatmap_cover-col--play .list__beatmap_cover {
+	border-radius: 10px 0 0 10px;
+}
+
+.list__beatmap_content {
+	pointer-events: none;
+	position: relative;
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+/* the play column, its inner corners rounded off where it meets the info */
+.list__beatmap_play-container {
+	position: relative;
+	width: var(--play-width);
+	flex: none;
+	background-color: var(--play-bg);
+	border-radius: 9px 0 0 9px;
+}
+
+.list__beatmap_play-container::before,
+.list__beatmap_play-container::after,
+.list__beatmap_menu-container::before,
+.list__beatmap_menu-container::after {
+	content: "";
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background-color: inherit;
+}
+
+.list__beatmap_play-container::before {
+	left: 100%;
+	top: 0;
+	clip-path: path("M-1 -1 L-1 10 L0 10 A10 10 0 0 1 10 0 L10 -1 Z");
+}
+
+.list__beatmap_play-container::after {
+	left: 100%;
+	bottom: 0;
+	clip-path: path("M-1 11 L-1 0 L0 0 A10 10 0 0 0 10 10 L10 11 Z");
+}
+
+.list__beatmap_play {
+	position: absolute;
+	inset: 0;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	padding: 15px;
+	border: 0;
+	background: none;
+	color: #fff;
+	font-size: 14px;
+	pointer-events: auto;
+	cursor: pointer;
+	opacity: var(--play-icon-opacity);
+}
+
+.list__beatmap_play:hover {
+	color: hsl(var(--hsl-orange-1));
+}
+
+.list__beatmap_play-progress {
+	position: absolute;
+	left: calc(50% - 25px);
+	top: calc(50% - 25px);
+	width: 50px;
+	height: 50px;
+	opacity: var(--play-icon-opacity);
+	transform: rotate(-90deg);
+	pointer-events: none;
+}
+
+.list__beatmap_play-progress circle {
+	fill: none;
+	stroke: hsl(var(--hsl-h1));
+	stroke-width: 5;
+	stroke-dasharray: 1;
+	stroke-dashoffset: calc(1 - var(--progress));
+}
+
+.list__beatmap_info {
+	flex: 1;
+	min-width: 10px;
+	padding: 4px 10px 6px;
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
+	background: var(--info-bg);
+	border-radius: 9px 0 0 9px;
 }
 
-.list__beatmap_title,
-.list__beatmap_artist,
-.list__beatmap_creator {
+.list__beatmap_row {
+	display: flex;
+	align-items: baseline;
+	position: relative;
+	min-width: 0;
+}
+
+.list__beatmap_row--title {
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.list__beatmap_row--artist {
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.list__beatmap_row--mapper {
+	color: hsl(var(--hsl-c2));
+	font-weight: 600;
+	margin-top: auto;
+}
+
+.list__beatmap_mapper {
+	color: hsl(var(--hsl-c1));
+}
+
+.list__beatmap_row--stats {
+	opacity: var(--stats-opacity);
+	overflow: hidden;
+	display: grid;
+	grid-template: "plays date" / auto auto;
+	width: max-content;
 	max-width: 100%;
+	white-space: nowrap;
+	margin-bottom: 2px;
+}
+
+.list__beatmap_row--extra {
+	--gutter: 3px;
+	margin: 0 calc(var(--gutter) * -1);
+	align-items: center;
+	color: #fff;
+	text-decoration: none;
+	pointer-events: auto;
+}
+
+.list__beatmap_main-link,
+.list__beatmap_ellipsis {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.list__beatmap_title {
-	font-size: 18px;
+.list__beatmap_main-link {
+	color: #fff;
+	pointer-events: auto;
 }
 
-.list__beatmap_artist {
-	font-size: 14px;
+/* the site's link hover (underline, light colour) has no place on the panel */
+.list__beatmap a:hover,
+.list__beatmap a:focus,
+.list__beatmap a:active {
+	color: #fff;
+	text-decoration: none;
 }
 
-.list__beatmap_creator {
-	font-size: 12px;
-}
-
-.list__beatmap_bottom {
-	margin-top: auto;
+.list__beatmap_extra {
+	margin: 0 var(--gutter);
 	display: flex;
-	align-items: flex-end;
+}
+
+.list__beatmap_extra--dots {
+	align-items: center;
 }
 
 .list__beatmap_capsule {
-	height: fit-content;
+	padding: 0 5px 1px 5px;
 	border-radius: 10000px;
-	font-size: 12px;
-	padding: 0 5px;
-	text-transform: uppercase;
-	transition: all 0.12s ease-in-out;
-
-	background-color: hsl(var(--hsl-lime-1));
+	background-color: hsl(var(--bg-hsl));
 	color: hsl(var(--hsl-b3));
+	font-size: 12px;
 	font-weight: 800;
 	line-height: 14px;
+	text-transform: uppercase;
+	transition: all 150ms ease-in-out;
 }
 
-.list__beatmap_ago {
-	margin-left: 5px;
-	font-size: 12px;
+.list__beatmap_mode {
+	margin-right: 2px;
+	font-size: 14px;
+	display: flex;
 }
 
-.list__beatmap_plays {
-	color: hsl(var(--hsl-c2));
-	font-size: 10px;
+.list__beatmap_dot {
+	margin-right: 1px;
+	width: 6px;
+	height: 12px;
+	border-radius: 10000px;
+	background-color: var(--bg);
+}
+
+.list__beatmap_count {
+	font-weight: 600;
+}
+
+.list__beatmap_stat {
+	display: flex;
+	align-items: center;
+	margin-right: 10px;
+	pointer-events: auto;
+}
+
+.list__beatmap_stat--plays {
+	grid-area: plays;
+}
+
+.list__beatmap_stat--date {
+	grid-area: date;
+}
+
+.list__beatmap_stat-icon {
+	font-size: 8px;
 	margin-right: 4px;
+	color: hsl(var(--hsl-c2));
+}
+
+/* the menu column, its inner corners rounded off where it meets the info */
+.list__beatmap_menu-container {
+	position: relative;
+	width: var(--menu-container-width);
+	flex: none;
+	background-color: var(--menu-bg);
+	border-radius: 0 10px 10px 0;
+	transition: var(--transition);
+}
+
+.list__beatmap_menu-container::before {
+	right: 100%;
+	top: 0;
+	clip-path: path("M11 -1 L11 10 L10 10 A10 10 0 0 0 0 0 L0 -1 Z");
+}
+
+.list__beatmap_menu-container::after {
+	right: 100%;
+	bottom: 0;
+	clip-path: path("M11 11 L11 0 L10 0 A10 10 0 0 1 0 10 L 0 11 Z");
+}
+
+.list__beatmap_menu {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	overflow: hidden;
+	opacity: var(--menu-opacity);
+	color: hsl(var(--hsl-c2));
+	font-size: 12px;
+	pointer-events: auto;
+	transition: var(--transition);
+}
+
+.list__beatmap .list__beatmap_menu-item {
+	width: 20px;
+	padding: 3px 0;
+	text-align: center;
+	color: hsl(var(--hsl-l1));
+}
+
+.list__beatmap .list__beatmap_menu-item:hover {
+	color: hsl(var(--hsl-c1));
 }
 
 @media (max-width: 760px) {

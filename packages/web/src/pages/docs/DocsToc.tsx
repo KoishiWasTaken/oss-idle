@@ -1,6 +1,7 @@
 import {
 	Fragment,
 	useState,
+	type ReactNode,
 } from 'react';
 import { Asset } from '../../router';
 import Link from '../../components/Link';
@@ -11,13 +12,15 @@ import {
 
 export type TocItem = { id: string; title: string; children?: TocItem[] };
 
-/** The dark column on the left: logo, languages, search and the contents, the open section unfolded. */
-export default function DocsToc({ items, active, language, onLanguage, onGo }: {
+/** The dark column on the left: logo, languages (when a page has a choice), search and the
+ *  contents, the open section unfolded, then the page's links. */
+export default function DocsToc({ items, active, language, onLanguage, onGo, footer }: {
 	items: TocItem[];
 	active: string | undefined;
-	language: Language;
-	onLanguage: (language: Language) => void;
+	language?: Language;
+	onLanguage?: (language: Language) => void;
 	onGo: (id: string) => void;
+	footer?: ReactNode;
 }) {
 	const [search, setSearch] = useState('');
 	const needle = search.trim().toLowerCase();
@@ -36,14 +39,14 @@ export default function DocsToc({ items, active, language, onLanguage, onGo }: {
 
 	return <>
 		<img className='docs-toc__logo' src={Asset('/idle-white.png')} alt='oss!idle' />
-		<div className='docs-toc__languages'>
+		{onLanguage && <div className='docs-toc__languages'>
 			{LANGUAGES.map(l => <button
 				key={l}
 				type='button'
 				className={l === language ? 'docs__language--active' : undefined}
 				onClick={() => onLanguage(l)}
 			>{l}</button>)}
-		</div>
+		</div>}
 		<div className='docs-toc__search'>
 			<input type='text' placeholder='Search' value={search} onChange={e => setSearch(e.target.value)} />
 		</div>
@@ -59,9 +62,11 @@ export default function DocsToc({ items, active, language, onLanguage, onGo }: {
 			</Fragment>)}
 		</ul>
 		<ul className='docs-toc__footer'>
-			<li><Link to='/'>oss!idle</Link></li>
-			<li><Link to='/settings'>OAuth applications</Link></li>
-			<li><Link to='/legal/api'>API Terms of Use</Link></li>
+			{footer ?? <>
+				<li><Link to='/'>oss!idle</Link></li>
+				<li><Link to='/settings'>OAuth applications</Link></li>
+				<li><Link to='/legal/api'>API Terms of Use</Link></li>
+			</>}
 		</ul>
 	</>;
 }

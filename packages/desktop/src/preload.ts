@@ -65,6 +65,14 @@ ipcRenderer.on('oss-idle:deep-link', (_event, link: string) => {
 	}
 });
 
+type SetFiles = Record<string, Uint8Array | undefined>;
+const folderListeners = new Set<(files: SetFiles) => void>();
+ipcRenderer.on('oss-idle:map-folder-changed', (_event, files: SetFiles) => {
+	for (const cb of folderListeners) {
+		try { cb(files); } catch (e) { console.error('[desktop] map folder listener threw', e); }
+	}
+});
+
 const bridge: OssIdleDesktop = {
 	isDesktop: true,
 	version: boot.version,
@@ -107,6 +115,15 @@ const bridge: OssIdleDesktop = {
 		moveInstall: (dialogTitle: string) =>
 			ipcRenderer.invoke('oss-idle:move-install', dialogTitle) as Promise<DesktopMoveResult>,
 	} : {},
+	mapFolder: {
+		open: (name, files, show) => ipcRenderer.invoke('oss-idle:map-folder-open', name, files, show),
+		write: files => ipcRenderer.send('oss-idle:map-folder-write', files),
+		close: () => ipcRenderer.send('oss-idle:map-folder-close'),
+		onChanged: cb => {
+			folderListeners.add(cb);
+			return () => { folderListeners.delete(cb); };
+		},
+	},
 	steam: { available: false },
 };
 

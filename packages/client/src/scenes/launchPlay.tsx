@@ -2,6 +2,7 @@ import { versionLabel } from '@oss-idle/shared/rate';
 import { selectedRate } from '../gameplay/playRate';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import SceneManager, { SCENE } from './SceneManager';
+import type { TestPlay } from './Gameplay';
 import {
 	LoadingPanel,
 	Transition,
@@ -23,7 +24,9 @@ const LAUNCH_GUARD_MS = 5000;
  * a loading panel, then hands off to the gameplay scene, which loads the beatmap
  * and resolves the play session *behind* the cover
  */
-export function launchPlay(beatmap: LightBeatmap, debug = false): boolean {
+export function launchPlay(beatmap: LightBeatmap, debug = false, test?: TestPlay): boolean {
+	// the intro (standard mode) and any other non-4K diff; the editor's test play takes any
+	if (!test && !beatmap.isPlayable()) return false;
 	if (Date.now() - launching < LAUNCH_GUARD_MS) return false;
 	launching = Date.now();
 	const transition = Transition.begin(
@@ -36,7 +39,7 @@ export function launchPlay(beatmap: LightBeatmap, debug = false): boolean {
 	// change shows through the still-transparent fade-in. The outgoing scene stays
 	// up (behind the rising cover) until then; the cover persists past its unmount.
 	void transition.covered.then(() => {
-		SceneManager.set(SCENE.GAME, beatmap, transition, debug);
+		SceneManager.set(SCENE.GAME, beatmap, transition, debug, test);
 		launching = 0;
 	});
 	return true;

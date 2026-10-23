@@ -20,5 +20,5 @@ export const Route = createFileRoute('/rankings/global')({
 
 function GlobalRoute() {
 	const { page, country } = Route.useSearch();
-	return <GlobalRankings page={page} country={country} players={Route.useLoaderData()} />;
+	return <GlobalRankings sort='pp' page={page} country={country} players={Route.useLoaderData()} />;
 }

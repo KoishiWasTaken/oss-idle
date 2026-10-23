@@ -1,5 +1,13 @@
 import { customType } from 'drizzle-orm/mysql-core';
 
+/** A comma-separated tags column as a list. */
+export const splitTags = (csv: string): string[] => csv ? csv.split(',').filter(Boolean) : [];
+
+export const csv = (list: string[]) => list.join(',');
+
+/** `s` matched literally inside a LIKE pattern. */
+export const likeEscape = (s: string) => s.replace(/[\\%_]/g, '\\$&');
+
 /** drizzle's mysql `json()` never parses what mysql2 returns (a string over
  *  the prepared-statement protocol); this variant does. */
 export const jsonColumn = <T>() =>

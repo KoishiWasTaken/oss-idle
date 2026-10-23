@@ -5,7 +5,8 @@
  * context. Keep the two in step.
  */
 
-export type Scene = 'INTRO' | 'MENU' | 'SELECT' | 'GAME' | 'RESULT' | 'SAVER' | 'LOBBY' | 'MATCH';
+export type Scene =
+	'INTRO' | 'MENU' | 'SELECT' | 'GAME' | 'RESULT' | 'SAVER' | 'LOBBY' | 'MATCH' | 'EDITOR';
 
 export type SkillView = {
 	name: string;
@@ -84,6 +85,7 @@ export type XPGainView = {
 export type TestBridge = {
 	finishPlay: () => boolean;
 	scene: () => Scene;
+	enter: (scene: 'MENU' | 'SELECT') => Promise<void>;
 	nowPlaying: () => number | undefined;
 	sessionReady: () => boolean;
 	character: () => CharacterView;

@@ -1,5 +1,6 @@
 import type { InferResponseType } from 'hono/client';
 import { rpc } from '../client';
+import { unwrap } from '@oss-idle/shared/apiBase';
 import MemCache from '@oss-idle/shared/storage/memcache';
 
 const endpoint = rpc.v1.users[':id'].$get;
@@ -12,9 +13,6 @@ export type User = InferResponseType<typeof endpoint, 200>;
  * route, so it always matches the API's actual response with no duplication.
  */
 export async function getUser(id: number): Promise<User> {
-	return MemCache.get<User>('API.getUser').process(id, async () => {
-		const res = await endpoint({ param: { id: String(id) } });
-		if (!res.ok) throw new Error(`getUser(${id}) failed: ${res.status}`);
-		return res.json();
-	}, 1000 * 3600);
+	return MemCache.get<User>('API.getUser').process(id, () =>
+		unwrap<User>(endpoint({ param: { id: String(id) } })), 1000 * 3600);
 }

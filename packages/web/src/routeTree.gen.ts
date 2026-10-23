@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsIndexRouteImport } from './routes/news/index'
 import { Route as MapsIndexRouteImport } from './routes/maps/index'
 import { Route as ChangelogIndexRouteImport } from './routes/changelog/index'
+import { Route as BugsIndexRouteImport } from './routes/bugs/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ScoresIdRouteImport } from './routes/scores/$id'
 import { Route as RankingsScoreRouteImport } from './routes/rankings/score'
@@ -44,8 +45,11 @@ import { Route as LegalCopyrightRouteImport } from './routes/legal/copyright'
 import { Route as LegalApiRouteImport } from './routes/legal/api'
 import { Route as HelpFaqRouteImport } from './routes/help/faq'
 import { Route as GroupsGroupRouteImport } from './routes/groups/$group'
+import { Route as DocsAddonsRouteImport } from './routes/docs_.addons'
 import { Route as ChangelogVersionRouteImport } from './routes/changelog/$version'
 import { Route as CIdRouteImport } from './routes/c/$id'
+import { Route as BugsNewRouteImport } from './routes/bugs/new'
+import { Route as BugsIdRouteImport } from './routes/bugs/$id'
 import { Route as AuthErrorRouteImport } from './routes/auth/error'
 import { Route as AuthDiscordRouteImport } from './routes/auth/discord'
 import { Route as AuthDesktopRouteImport } from './routes/auth/desktop'
@@ -59,6 +63,7 @@ import { Route as AdminNominationRouteImport } from './routes/admin/nomination'
 import { Route as AdminMedalsRouteImport } from './routes/admin/medals'
 import { Route as AdminClaimsRouteImport } from './routes/admin/claims'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
+import { Route as AdminBugsRouteImport } from './routes/admin/bugs'
 import { Route as AdminBalancingRouteImport } from './routes/admin/balancing'
 import { Route as AdminAddonsRouteImport } from './routes/admin/addons'
 import { Route as RankingsMedalsIndexRouteImport } from './routes/rankings/medals/index'
@@ -137,6 +142,11 @@ const MapsIndexRoute = MapsIndexRouteImport.update({
 const ChangelogIndexRoute = ChangelogIndexRouteImport.update({
   id: '/changelog/',
   path: '/changelog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsIndexRoute = BugsIndexRouteImport.update({
+  id: '/bugs/',
+  path: '/bugs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -244,6 +254,11 @@ const GroupsGroupRoute = GroupsGroupRouteImport.update({
   path: '/groups/$group',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsAddonsRoute = DocsAddonsRouteImport.update({
+  id: '/docs_/addons',
+  path: '/docs/addons',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChangelogVersionRoute = ChangelogVersionRouteImport.update({
   id: '/changelog/$version',
   path: '/changelog/$version',
@@ -252,6 +267,16 @@ const ChangelogVersionRoute = ChangelogVersionRouteImport.update({
 const CIdRoute = CIdRouteImport.update({
   id: '/c/$id',
   path: '/c/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsNewRoute = BugsNewRouteImport.update({
+  id: '/bugs/new',
+  path: '/bugs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsIdRoute = BugsIdRouteImport.update({
+  id: '/bugs/$id',
+  path: '/bugs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthErrorRoute = AuthErrorRouteImport.update({
@@ -319,6 +344,11 @@ const AdminChatRoute = AdminChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminBugsRoute = AdminBugsRouteImport.update({
+  id: '/bugs',
+  path: '/bugs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminBalancingRoute = AdminBalancingRouteImport.update({
   id: '/balancing',
   path: '/balancing',
@@ -381,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/store': typeof StoreRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/balancing': typeof AdminBalancingRoute
+  '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/medals': typeof AdminMedalsRoute
@@ -394,8 +425,11 @@ export interface FileRoutesByFullPath {
   '/auth/desktop': typeof AuthDesktopRoute
   '/auth/discord': typeof AuthDiscordRoute
   '/auth/error': typeof AuthErrorRoute
+  '/bugs/$id': typeof BugsIdRoute
+  '/bugs/new': typeof BugsNewRoute
   '/c/$id': typeof CIdRoute
   '/changelog/$version': typeof ChangelogVersionRoute
+  '/docs/addons': typeof DocsAddonsRoute
   '/groups/$group': typeof GroupsGroupRoute
   '/help/faq': typeof HelpFaqRoute
   '/legal/api': typeof LegalApiRoute
@@ -417,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/rankings/score': typeof RankingsScoreRoute
   '/scores/$id': typeof ScoresIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/bugs/': typeof BugsIndexRoute
   '/changelog/': typeof ChangelogIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/news/': typeof NewsIndexRoute
@@ -441,6 +476,7 @@ export interface FileRoutesByTo {
   '/store': typeof StoreRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/balancing': typeof AdminBalancingRoute
+  '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/medals': typeof AdminMedalsRoute
@@ -454,8 +490,11 @@ export interface FileRoutesByTo {
   '/auth/desktop': typeof AuthDesktopRoute
   '/auth/discord': typeof AuthDiscordRoute
   '/auth/error': typeof AuthErrorRoute
+  '/bugs/$id': typeof BugsIdRoute
+  '/bugs/new': typeof BugsNewRoute
   '/c/$id': typeof CIdRoute
   '/changelog/$version': typeof ChangelogVersionRoute
+  '/docs/addons': typeof DocsAddonsRoute
   '/groups/$group': typeof GroupsGroupRoute
   '/help/faq': typeof HelpFaqRoute
   '/legal/api': typeof LegalApiRoute
@@ -477,6 +516,7 @@ export interface FileRoutesByTo {
   '/rankings/score': typeof RankingsScoreRoute
   '/scores/$id': typeof ScoresIdRoute
   '/admin': typeof AdminIndexRoute
+  '/bugs': typeof BugsIndexRoute
   '/changelog': typeof ChangelogIndexRoute
   '/maps': typeof MapsIndexRoute
   '/news': typeof NewsIndexRoute
@@ -503,6 +543,7 @@ export interface FileRoutesById {
   '/store': typeof StoreRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/balancing': typeof AdminBalancingRoute
+  '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/medals': typeof AdminMedalsRoute
@@ -516,8 +557,11 @@ export interface FileRoutesById {
   '/auth/desktop': typeof AuthDesktopRoute
   '/auth/discord': typeof AuthDiscordRoute
   '/auth/error': typeof AuthErrorRoute
+  '/bugs/$id': typeof BugsIdRoute
+  '/bugs/new': typeof BugsNewRoute
   '/c/$id': typeof CIdRoute
   '/changelog/$version': typeof ChangelogVersionRoute
+  '/docs_/addons': typeof DocsAddonsRoute
   '/groups/$group': typeof GroupsGroupRoute
   '/help/faq': typeof HelpFaqRoute
   '/legal/api': typeof LegalApiRoute
@@ -539,6 +583,7 @@ export interface FileRoutesById {
   '/rankings/score': typeof RankingsScoreRoute
   '/scores/$id': typeof ScoresIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/bugs/': typeof BugsIndexRoute
   '/changelog/': typeof ChangelogIndexRoute
   '/maps/': typeof MapsIndexRoute
   '/news/': typeof NewsIndexRoute
@@ -566,6 +611,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/admin/addons'
     | '/admin/balancing'
+    | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
     | '/admin/medals'
@@ -579,8 +625,11 @@ export interface FileRouteTypes {
     | '/auth/desktop'
     | '/auth/discord'
     | '/auth/error'
+    | '/bugs/$id'
+    | '/bugs/new'
     | '/c/$id'
     | '/changelog/$version'
+    | '/docs/addons'
     | '/groups/$group'
     | '/help/faq'
     | '/legal/api'
@@ -602,6 +651,7 @@ export interface FileRouteTypes {
     | '/rankings/score'
     | '/scores/$id'
     | '/admin/'
+    | '/bugs/'
     | '/changelog/'
     | '/maps/'
     | '/news/'
@@ -626,6 +676,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/admin/addons'
     | '/admin/balancing'
+    | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
     | '/admin/medals'
@@ -639,8 +690,11 @@ export interface FileRouteTypes {
     | '/auth/desktop'
     | '/auth/discord'
     | '/auth/error'
+    | '/bugs/$id'
+    | '/bugs/new'
     | '/c/$id'
     | '/changelog/$version'
+    | '/docs/addons'
     | '/groups/$group'
     | '/help/faq'
     | '/legal/api'
@@ -662,6 +716,7 @@ export interface FileRouteTypes {
     | '/rankings/score'
     | '/scores/$id'
     | '/admin'
+    | '/bugs'
     | '/changelog'
     | '/maps'
     | '/news'
@@ -687,6 +742,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/admin/addons'
     | '/admin/balancing'
+    | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
     | '/admin/medals'
@@ -700,8 +756,11 @@ export interface FileRouteTypes {
     | '/auth/desktop'
     | '/auth/discord'
     | '/auth/error'
+    | '/bugs/$id'
+    | '/bugs/new'
     | '/c/$id'
     | '/changelog/$version'
+    | '/docs_/addons'
     | '/groups/$group'
     | '/help/faq'
     | '/legal/api'
@@ -723,6 +782,7 @@ export interface FileRouteTypes {
     | '/rankings/score'
     | '/scores/$id'
     | '/admin/'
+    | '/bugs/'
     | '/changelog/'
     | '/maps/'
     | '/news/'
@@ -751,8 +811,11 @@ export interface RootRouteChildren {
   AuthDesktopRoute: typeof AuthDesktopRoute
   AuthDiscordRoute: typeof AuthDiscordRoute
   AuthErrorRoute: typeof AuthErrorRoute
+  BugsIdRoute: typeof BugsIdRoute
+  BugsNewRoute: typeof BugsNewRoute
   CIdRoute: typeof CIdRoute
   ChangelogVersionRoute: typeof ChangelogVersionRoute
+  DocsAddonsRoute: typeof DocsAddonsRoute
   GroupsGroupRoute: typeof GroupsGroupRoute
   HelpFaqRoute: typeof HelpFaqRoute
   LegalApiRoute: typeof LegalApiRoute
@@ -773,6 +836,7 @@ export interface RootRouteChildren {
   RankingsPlaysRoute: typeof RankingsPlaysRoute
   RankingsScoreRoute: typeof RankingsScoreRoute
   ScoresIdRoute: typeof ScoresIdRoute
+  BugsIndexRoute: typeof BugsIndexRoute
   ChangelogIndexRoute: typeof ChangelogIndexRoute
   MapsIndexRoute: typeof MapsIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
@@ -883,6 +947,13 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog/'
       preLoaderRoute: typeof ChangelogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/': {
+      id: '/bugs/'
+      path: '/bugs'
+      fullPath: '/bugs/'
+      preLoaderRoute: typeof BugsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1032,6 +1103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsGroupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs_/addons': {
+      id: '/docs_/addons'
+      path: '/docs/addons'
+      fullPath: '/docs/addons'
+      preLoaderRoute: typeof DocsAddonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/changelog/$version': {
       id: '/changelog/$version'
       path: '/changelog/$version'
@@ -1044,6 +1122,20 @@ declare module '@tanstack/react-router' {
       path: '/c/$id'
       fullPath: '/c/$id'
       preLoaderRoute: typeof CIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/new': {
+      id: '/bugs/new'
+      path: '/bugs/new'
+      fullPath: '/bugs/new'
+      preLoaderRoute: typeof BugsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/$id': {
+      id: '/bugs/$id'
+      path: '/bugs/$id'
+      fullPath: '/bugs/$id'
+      preLoaderRoute: typeof BugsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/error': {
@@ -1137,6 +1229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChatRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/bugs': {
+      id: '/admin/bugs'
+      path: '/bugs'
+      fullPath: '/admin/bugs'
+      preLoaderRoute: typeof AdminBugsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/balancing': {
       id: '/admin/balancing'
       path: '/balancing'
@@ -1206,6 +1305,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteRouteChildren {
   AdminAddonsRoute: typeof AdminAddonsRoute
   AdminBalancingRoute: typeof AdminBalancingRoute
+  AdminBugsRoute: typeof AdminBugsRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminClaimsRoute: typeof AdminClaimsRoute
   AdminMedalsRoute: typeof AdminMedalsRoute
@@ -1221,6 +1321,7 @@ interface AdminRouteRouteChildren {
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAddonsRoute: AdminAddonsRoute,
   AdminBalancingRoute: AdminBalancingRoute,
+  AdminBugsRoute: AdminBugsRoute,
   AdminChatRoute: AdminChatRoute,
   AdminClaimsRoute: AdminClaimsRoute,
   AdminMedalsRoute: AdminMedalsRoute,
@@ -1253,8 +1354,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthDesktopRoute: AuthDesktopRoute,
   AuthDiscordRoute: AuthDiscordRoute,
   AuthErrorRoute: AuthErrorRoute,
+  BugsIdRoute: BugsIdRoute,
+  BugsNewRoute: BugsNewRoute,
   CIdRoute: CIdRoute,
   ChangelogVersionRoute: ChangelogVersionRoute,
+  DocsAddonsRoute: DocsAddonsRoute,
   GroupsGroupRoute: GroupsGroupRoute,
   HelpFaqRoute: HelpFaqRoute,
   LegalApiRoute: LegalApiRoute,
@@ -1275,6 +1379,7 @@ const rootRouteChildren: RootRouteChildren = {
   RankingsPlaysRoute: RankingsPlaysRoute,
   RankingsScoreRoute: RankingsScoreRoute,
   ScoresIdRoute: ScoresIdRoute,
+  BugsIndexRoute: BugsIndexRoute,
   ChangelogIndexRoute: ChangelogIndexRoute,
   MapsIndexRoute: MapsIndexRoute,
   NewsIndexRoute: NewsIndexRoute,

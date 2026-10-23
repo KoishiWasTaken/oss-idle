@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-22 23:02\n"
+"PO-Revision-Date: 2026-10-23 19:43\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -42,9 +42,23 @@ msgstr "[pas de map]"
 msgid "[playing]"
 msgstr "[en jeu]"
 
+#. placeholder {0}: deleting.uses
+#: src/editor/EditorSoundFiles.tsx
+msgid "{0, plural, one {# note uses this file. It will play the default sound instead.} other {# notes use this file. They will play the default sounds instead.}}"
+msgstr "{0, plural, one {# note utilise ce fichier. Elle jouera le son par défaut à la place.} other {# notes utilisent ce fichier. Elles joueront les sons par défaut à la place.}}"
+
+#. placeholder {0}: uses.get(name) ?? 0
+#: src/editor/EditorSoundFiles.tsx
+msgid "{0, plural, one {# note} other {# notes}}"
+msgstr "{0, plural, one {# note} other {# notes}}"
+
 #: src/components/BeatmapCarousel.tsx
 msgid "{count, plural, one {# map} other {# maps}}"
 msgstr "{count, plural, one {# map} other {# maps}}"
+
+#: src/editor/builtinActions.ts
+msgid "{count, plural, one {Resnapped # note} other {Resnapped # notes}}"
+msgstr "{count, plural, one {# note resnappée} other {# notes resnappées}}"
 
 #: src/components/community/WorldMap.tsx
 msgid "{count} here"
@@ -68,6 +82,14 @@ msgstr "{from}+ min"
 msgid "{handover}, stays playable and ranked · The new character starts from zero and unlocks: {unlocks}"
 msgstr "{handover} restera jouable et dans les classements. Le nouveau personnage repartira de zéro et débloquera : {unlocks}"
 
+#: src/components/skills/SkillEquation.tsx
+msgid "{held, plural, one {# medal} other {# medals}}"
+msgstr "{held, plural, one {# médaille} other {# médailles}}"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "{index} · no files"
+msgstr "{index} · aucun fichier"
+
 #: src/components/direct/DirectFilters.tsx
 msgid "{matches, plural, one {# match found} other {# matches found}}"
 msgstr "{matches, plural, one {# résultat} other {# résultats}}"
@@ -75,6 +97,30 @@ msgstr "{matches, plural, one {# résultat} other {# résultats}}"
 #: src/osu/beatmap/grouping.ts
 msgid "{months, plural, one {# month ago} other {# months ago}}"
 msgstr "{months, plural, one {il y a # mois} other {il y a # mois}}"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} LN shorter than 1/8 of a beat"
+msgstr "{n} LN plus courtes qu'1/8 de battement"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} notes after the song ends"
+msgstr "{n} notes après la fin de la musique"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} notes before the song starts"
+msgstr "{n} notes avant le début de la musique"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} notes in chords across every column"
+msgstr "{n} notes dans des accords sur toutes les colonnes"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} notes off the 1/16 and 1/12 beat lines"
+msgstr "{n} notes hors des beat lines de 1/16 et 1/12"
+
+#: src/editor/EditorChecks.tsx
+msgid "{n} notes overlap another in their column"
+msgstr "{n} notes en chevauchent une autre dans leur colonne"
 
 #: src/components/multiplayer/CreateMatch.tsx
 msgid "{n} players"
@@ -120,6 +166,22 @@ msgstr "{results, plural, one {# résultat} other {# résultats}}"
 msgid "{seconds}s"
 msgstr "{seconds}s"
 
+#: src/editor/builtinActions.ts
+msgid "{seek}, selecting on the way"
+msgstr "{seek}, en sélectionnant au passage"
+
+#: src/editor/EditorSummary.tsx
+msgid "{selected} selected"
+msgstr "{selected} sélectionnées"
+
+#: src/editor/EditorTiming.tsx
+msgid "{shown} of {total} points"
+msgstr "{shown} points sur {total}"
+
+#: src/editor/EditorScroll.tsx
+msgid "{shown} of {total} points, around the current time"
+msgstr "{shown} points sur {total}, autour du temps actuel"
+
 #: src/scenes/SongSelect.tsx
 msgid "{shown} of {total} results"
 msgstr "{shown} sur {total} résultats"
@@ -140,6 +202,14 @@ msgstr "{toGo, plural, one {# niveau} other {# niveaux}}"
 msgid "{totalCount, plural, one {that's all # difficulty} other {that's all # difficulties}}"
 msgstr "{totalCount, plural, one {c'est la seule # difficulté} other {c'était l'ensemble des # difficultés}}"
 
+#: src/components/skills/SkillEquation.tsx
+msgid "{upgrades}/{max} upgrades"
+msgstr "{upgrades}/{max} améliorations"
+
+#: src/editor/EditorView.tsx
+msgid "{version} (copy)"
+msgstr "{version} (copie)"
+
 #: src/components/character/PrestigeRow.tsx
 msgid "+{bonus} Lv · +{slots} gear slot · x{multiplier} XP"
 msgstr "+{bonus} Lv · +{slots} tier · x{multiplier} XP"
@@ -154,6 +224,10 @@ msgstr "+{percent}% XP"
 msgid "+{prestige} Lv"
 msgstr "+{prestige} Lv"
 
+#: src/editor/EditorSummary.tsx
+msgid "<0>{rice}</0> rice, <1>{longNotes}</1> LN"
+msgstr "<0>{rice}</0> rice, <1>{longNotes}</1> LN"
+
 #: src/components/mods/ModSelect.tsx
 msgid "1. Reset All Mods"
 msgstr "1. Réinitialiser les mods"
@@ -162,9 +236,21 @@ msgstr "1. Réinitialiser les mods"
 msgid "2. Close"
 msgstr "2. Fermer"
 
+#: src/editor/EditorChecks.tsx
+msgid "A break longer than 30 seconds"
+msgstr "Une pause de plus de 30 secondes"
+
 #: src/scenes/Gameplay.tsx
 msgid "A game is already in progress. Play locally instead? It won't be submitted."
 msgstr "Une partie est déjà en cours. Jouer en local à la place ? Le score ne sera pas envoyé."
+
+#: src/editor/builtinActions.ts
+msgid "A millisecond back"
+msgstr "Une milliseconde en arrière"
+
+#: src/editor/builtinActions.ts
+msgid "A millisecond on"
+msgstr "Une milliseconde en avant"
 
 #: src/components/DesktopUpdate.tsx
 msgid "A new update is available. Click here to download it !"
@@ -173,6 +259,14 @@ msgstr "Une nouvelle mise à jour est disponible. Cliquez pour la télécharger 
 #: src/scenes/MainMenu.tsx
 msgid "A play is running"
 msgstr "Une partie est en cours"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "A point on every beat line of the current snap"
+msgstr "Un point sur chaque beat line du snap actuel"
+
+#: src/editor/builtinActions.ts
+msgid "A snap or a range, like 7 or 5-9"
+msgstr "Un snap ou une plage, comme 7 ou 5-9"
 
 #: src/scenes/Gameplay.tsx
 msgid "abort"
@@ -216,9 +310,35 @@ msgstr "Précision : {accuracy}"
 msgid "Achieved on {date} ({ago})"
 msgstr "Fait le {date} ({ago})"
 
+#: src/editor/builtinActions.ts
+msgid "Add a bookmark, or remove the one here"
+msgstr "Ajouter un bookmark, ou retirer celui-ci"
+
+#: src/editor/builtinActions.ts
+msgid "Add a copy of this difficulty"
+msgstr "Ajouter une copie de cette difficulté"
+
+#: src/editor/builtinActions.ts
+msgid "Add a new difficulty"
+msgstr "Ajouter une nouvelle difficulté"
+
 #: src/components/community/PlayerMenu.tsx
 msgid "Add as Friend"
 msgstr "Ajouter comme ami"
+
+#: src/editor/EditorBpmTools.tsx
+msgid "Add at {offset} ms"
+msgstr "Ajouter à {offset} ms"
+
+#: src/editor/EditorBpmTools.tsx
+#: src/editor/EditorScroll.tsx
+#: src/editor/EditorTiming.tsx
+msgid "Add at the current time"
+msgstr "Ajouter au temps actuel"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "Add sound files..."
+msgstr "Ajouter des fichiers son..."
 
 #: src/components/addons/AddonRepoPane.tsx
 msgid "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved."
@@ -236,6 +356,7 @@ msgstr "Ajouter cette difficulté bloquée en {rate}"
 msgid "Add to queue"
 msgstr "Ajouter à la liste"
 
+#: src/editor/actions.ts
 #: src/scenes/Addons.tsx
 #: src/scenes/Options.tsx
 msgid "Add-ons"
@@ -248,6 +369,18 @@ msgstr "ADD-ONS"
 #: src/components/addons/BrowseAddonsView.tsx
 msgid "Add-ons run with full access to the game. Only install add-ons you trust. Install \"{addon}\"?"
 msgstr "Les add-ons ont un accès complet au jeu. N'installez que des add-ons de confiance. Installer \"{addon}\" ?"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Add..."
+msgstr "Ajouter..."
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Additions"
+msgstr "Additions"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Additions' set"
+msgstr "Sampleset des additions"
 
 #: src/scenes/Options.tsx
 msgid "addon|addons|add-on|mod|mods|browse|catalog|install"
@@ -265,6 +398,7 @@ msgstr "Après avoir atteint le niveau global Lv{REBIRTH_MIN_OVERALL_LEVEL} vous
 msgid "after this map"
 msgstr "après cette map"
 
+#: src/components/addons/BrowseAddonsView.tsx
 #: src/components/community/CommunityHeader.tsx
 #: src/components/direct/DirectFilters.tsx
 msgid "All"
@@ -273,6 +407,10 @@ msgstr "Tout"
 #: src/components/options/DeleteAllBeatmaps.tsx
 msgid "All beatmaps deleted."
 msgstr "Toutes les maps ont été supprimées."
+
+#: src/editor/EditorMetadata.tsx
+msgid "All but the difficulty name is shared by the set: saving writes it to every difficulty."
+msgstr "Tout sauf le nom de la difficulté est commun au set : sauvegarder l'écrit dans chaque difficulté."
 
 #: src/components/options/DownloadAllWarning.tsx
 msgid "All ranked beatmaps downloaded."
@@ -290,9 +428,31 @@ msgstr "Déjà effectué avec ce personnage"
 msgid "An upgrade costs {UPGRADE_LEVELS} raw levels of the skill and boosts its XP gains by {bonus}%. Buying above the required level spends more XP and feeds Overdrive, which multiplies the gains further."
 msgstr "Une amélioration coûte {UPGRADE_LEVELS} niveaux bruts de la compétence et améliore les gains d'XP de {bonus}%. Acheter avec un niveau plus élevé consomme plus d'XP et ajoute de l'Overdrive, ce qui multiplie encore les gains."
 
+#: src/editor/EditorChecks.tsx
+msgid "Another difficulty has the same name"
+msgstr "Une autre difficulté porte le même nom"
+
+#: src/editor/EditorScrollTools.tsx
+#: src/editor/EditorScrollTools.tsx
+#: src/editor/EditorScrollTools.tsx
+msgid "Apply"
+msgstr "Appliquer"
+
 #: src/scenes/MainMenu.tsx
 msgid "Are you sure you want to quit?"
 msgstr "Êtes-vous sûr de vouloir quitter ?"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Artist"
+msgstr "Artiste"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Artist (original)"
+msgstr "Artiste (original)"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Auto"
+msgstr "Auto"
 
 #: src/components/community/CommunityControls.tsx
 msgid "Auto-hide"
@@ -331,14 +491,16 @@ msgstr "Disponible"
 msgid "Average XP boost"
 msgstr "Boost d'XP moyen"
 
-#: src/components/addons/AddonView.tsx
 #: src/components/page/Page.tsx
-#: src/components/skins/SkinView.tsx
+#: src/components/page/pageBar.tsx
 #: src/components/songselect/BeatmapInfo.tsx
 #: src/components/Tutorial.tsx
 #: src/components/WebBrowser.tsx
+#: src/editor/builtinActions.ts
+#: src/editor/EditorActions.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
+#: src/scenes/MainMenu.tsx
 #: src/scenes/MainMenu.tsx
 msgid "Back"
 msgstr "Retour"
@@ -356,6 +518,15 @@ msgstr "Retour au jeu"
 msgid "Back to Menu"
 msgstr "Retour au menu"
 
+#: src/editor/EditorMetadata.tsx
+msgid "Background"
+msgstr "Fond"
+
+#: src/editor/EditorViewOptions.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Background brightness"
+msgstr "Luminosité du fond"
+
 #: src/components/options/BackgroundDim.tsx
 msgid "Background dim"
 msgstr "Assombrissement du fond d'écran"
@@ -363,6 +534,23 @@ msgstr "Assombrissement du fond d'écran"
 #: src/scenes/Options.tsx
 msgid "background|dim|opacity"
 msgstr "fond|écran|ecran|sombre|opacité|opacit"
+
+#: src/editor/EditorTiming.tsx
+msgid "Bar"
+msgstr "Mesure"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Beat lines"
+msgstr "Beat lines"
+
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorTimingPoint.tsx
+msgid "Beat snap"
+msgstr "Snap"
+
+#: src/editor/builtinActions.ts
+msgid "Beat snap 1/{n}"
+msgstr "Snap 1/{n}"
 
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Beatmap"
@@ -385,14 +573,40 @@ msgstr "Map supprimée"
 msgid "Beatmap Options"
 msgstr "Options de la map"
 
+#: src/editor/EditorCompose.tsx
+msgid "Beats"
+msgstr "Battements"
+
+#: src/editor/EditorTimingPoint.tsx
+msgid "Beats per bar"
+msgstr "Battements par mesure"
+
+#: src/editor/EditorPlacingOptions.tsx
+msgid "Before"
+msgstr "Avant"
+
 #: src/components/character/PrestigeSummary.tsx
 #: src/components/upgrades/UpgradesSummary.tsx
 msgid "Best XP boost"
 msgstr "Meilleur boost d'XP"
 
+#: src/editor/EditorClock.tsx
+msgid "Bookmark at {time}"
+msgstr "Bookmark à {time}"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Bookmarks"
+msgstr "Bookmarks"
+
 #: src/components/direct/DirectPanel.tsx
+#: src/editor/EditorTiming.tsx
+#: src/editor/EditorTimingPoint.tsx
 msgid "BPM"
 msgstr "BPM"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Brightness"
+msgstr "Luminosité"
 
 #: src/scenes/Addons.tsx
 #: src/scenes/Skins.tsx
@@ -411,6 +625,11 @@ msgstr "Rechercher des skins"
 #: src/scenes/Skins.tsx
 msgid "Browse the community catalogue"
 msgstr "Rechercher dans le catalogue de la communauté"
+
+#: src/scenes/Options.tsx
+#: src/scenes/Options.tsx
+msgid "bug|report|issue|problem|crash|help"
+msgstr "bug|signaler|problème|plantage|crash|aide"
 
 #: src/components/addons/AddonRepoBuild.tsx
 msgid "Build"
@@ -505,17 +724,20 @@ msgstr "Par playlist"
 msgid "By Rank Achieved"
 msgstr "Par note obtenue"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "By snap"
+msgstr "Par snap"
+
 #: src/components/songselect/TopBar.tsx
 msgid "By Title"
 msgstr "Par titre"
 
-#: src/components/addons/AddonView.tsx
 #: src/components/community/chat/ReportMessageDialog.tsx
 #: src/components/community/LinkMenu.tsx
 #: src/components/ConfirmMenu.tsx
 #: src/components/multiplayer/CreateMatch.tsx
 #: src/components/multiplayer/PasswordPrompt.tsx
-#: src/components/skins/SkinView.tsx
+#: src/components/page/pageBar.tsx
 #: src/components/songselect/CardContextMenu.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
@@ -543,6 +765,7 @@ msgstr "Changez la façon dont oss!idle se comporte"
 
 #: src/components/multiplayer/MatchSettings.tsx
 #: src/components/multiplayer/MatchSettings.tsx
+#: src/editor/EditorMetadata.tsx
 msgid "Change..."
 msgstr "Modifier..."
 
@@ -567,17 +790,33 @@ msgstr "Chat"
 msgid "chat|message|private|pm|friends"
 msgstr "chat|message|privé|pm|amis"
 
-#: src/components/community/chat/ReportMessageDialog.tsx
-msgid "Cheating"
-msgstr "Triche"
-
 #: src/components/addons/AddonRepoPane.tsx
 msgid "Check now"
 msgstr "Vérifier maintenant"
 
+#: src/editor/EditorChecks.tsx
+msgid "Checks: {count} to look at"
+msgstr "Vérifications : {count} points à revoir"
+
+#: src/editor/EditorChecks.tsx
+msgid "Checks: nothing to fix"
+msgstr "Vérifications : rien à corriger"
+
 #: src/components/options/MoveInstall.tsx
 msgid "Choose where to move oss!idle (the game will restart)"
 msgstr "Choisissez le nouveau dossier de oss!idle (le jeu va redémarrer)"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "clap"
+msgstr "clap"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Clap"
+msgstr "Clap"
+
+#: src/editor/builtinActions.ts
+msgid "Clap on the selection"
+msgstr "Clap sur la sélection"
 
 #: src/components/songselect/CardContextMenu.tsx
 msgid "Clear local scores"
@@ -624,6 +863,7 @@ msgstr "Cliquez pour passer"
 #: src/components/direct/DirectLinkPanel.tsx
 #: src/components/options/DownloadAllWarning.tsx
 #: src/components/PlaylistOverlay.tsx
+#: src/editor/EditorAddonWindow.tsx
 msgid "Close"
 msgstr "Fermer"
 
@@ -639,6 +879,10 @@ msgstr "Fermer le chat"
 msgid "Close the queue"
 msgstr "Fermer la playlist"
 
+#: src/editor/builtinActions.ts
+msgid "Coarser beat snap"
+msgstr "Snap plus grossier"
+
 #: src/components/addons/AddonCodePane.tsx
 #: src/components/skins/SkinCodePane.tsx
 msgid "Code"
@@ -647,6 +891,10 @@ msgstr "Code"
 #: src/components/addons/AddonEditMeta.tsx
 msgid "Code written here"
 msgstr "Code écrit ici"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Colour"
+msgstr "Couleur"
 
 #: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
@@ -658,6 +906,10 @@ msgstr "Combo"
 msgid "comma, separated, tags"
 msgstr "tags, séparés, par, virgules"
 
+#: src/editor/EditorSummary.tsx
+msgid "Compose"
+msgstr "Composer"
+
 #: src/scenes/Options.tsx
 msgid "CONTROLS"
 msgstr "CONTRÔLES"
@@ -667,23 +919,65 @@ msgid "Copied to clipboard"
 msgstr "Copié dans le presse-papiers"
 
 #: src/components/WebBrowser.tsx
+#: src/editor/builtinActions.ts
 msgid "Copy"
 msgstr "Copier"
+
+#: src/editor/EditorDifficulty.tsx
+msgid "Copy difficulty"
+msgstr "Copier la difficulté"
 
 #: src/components/community/LinkMenu.tsx
 #: src/components/WebBrowser.tsx
 msgid "Copy link"
 msgstr "Copier le lien"
 
+#: src/editor/EditorView.tsx
+msgid "Could not add a difficulty"
+msgstr "Impossible d'ajouter une difficulté"
+
 #: src/components/direct/directState.ts
 #: src/online/mapLinks.ts
 msgid "Could not download {title}"
 msgstr "Impossible de télécharger {title}"
 
+#: src/osu/beatmap/oszImport.ts
+msgid "Could not import {name}"
+msgstr "Impossible d'importer {name}"
+
+#: src/scenes/Editor.tsx
+#: src/scenes/Editor.tsx
+msgid "Could not open this map in the editor"
+msgstr "Impossible d'ouvrir cette map dans l'éditeur"
+
+#: src/editor/EditorView.tsx
+msgid "Could not save"
+msgstr "Impossible de sauvegarder"
+
+#: src/scenes/MainMenu.tsx
+msgid "Could not start a map on {name}"
+msgstr "Impossible de commencer une map sur {name}"
+
 #: src/online/playManager.ts
 #: src/online/playManager.ts
 msgid "Could not start the next map - the queue is paused"
 msgstr "Impossible de démarrer la map suivante: l'autopilote est en pause"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Could not submit it for rank"
+msgstr "Impossible de la proposer au classement"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Could not unrank it"
+msgstr "Impossible de la déclasser"
+
+#: src/editor/EditorView.tsx
+msgid "Could not upload: {error}"
+msgstr "Envoi impossible : {error}"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Could not withdraw it"
+msgstr "Impossible de la retirer"
 
 #: src/scenes/SongSelect.tsx
 msgid "Couldn't load beatmaps: {error}"
@@ -718,15 +1012,57 @@ msgstr "Créer un nouveau skin"
 msgid "Create your first character to finish setting up your account."
 msgstr "Créez votre premier personnage pour finaliser la création de votre compte."
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Ctrl + wheel"
+msgstr "Ctrl + molette"
+
 #: src/scenes/MatchSetup.tsx
 msgid "Current Players ({players}/{size})"
 msgstr "Joueurs actuels ({players}/{size})"
 
+#: src/components/options/CursorSize.tsx
+msgid "Cursor size"
+msgstr "Taille du curseur"
+
+#: src/scenes/Options.tsx
+msgid "cursor|size|scale"
+msgstr "curseur|taille|échelle|cursor|size"
+
+#: src/editor/EditorCompose.tsx
+msgid "Custom"
+msgstr "Personnalisé"
+
+#: src/editor/builtinActions.ts
+msgid "Custom beat snap"
+msgstr "Snap personnalisé"
+
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorHitsounds.tsx
+msgid "Custom index"
+msgstr "Index personnalisé"
+
+#: src/editor/builtinActions.ts
+msgid "Cut"
+msgstr "Couper"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Default sounds"
+msgstr "Sons par défaut"
+
 #: src/components/addons/ManageAddonsView.tsx
 #: src/components/addons/MyAddonRow.tsx
 #: src/components/skins/MySkinRow.tsx
+#: src/editor/EditorSoundFiles.tsx
 msgid "Delete"
 msgstr "Supprimer"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "Delete {file}"
+msgstr "Supprimer {file}"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "Delete {file}?"
+msgstr "Supprimer {file} ?"
 
 #: src/components/addons/ManageAddonsView.tsx
 msgid "Delete add-on"
@@ -744,6 +1080,10 @@ msgstr "Supprimer les anciennes données"
 msgid "Delete the playlist"
 msgstr "Supprimer la playlist"
 
+#: src/editor/builtinActions.ts
+msgid "Delete the selection"
+msgstr "Supprimer la sélection"
+
 #: src/components/songselect/CardContextMenu.tsx
 msgid "Delete..."
 msgstr "Supprimer..."
@@ -757,6 +1097,10 @@ msgstr "supprimer|beatmap|beatmaps"
 msgid "Description"
 msgstr "Description"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Detail"
+msgstr "Détail"
+
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/addons/InstalledAddonRow.tsx
 #: src/components/skins/BrowseSkinsView.tsx
@@ -764,9 +1108,17 @@ msgstr "Description"
 msgid "Details"
 msgstr "Détails"
 
+#: src/editor/EditorBpmTools.tsx
+msgid "Detect BPM"
+msgstr "Détecter le BPM"
+
 #: src/components/mods/ModSelect.tsx
 msgid "Difficulty Increase"
 msgstr "Difficile"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Difficulty name"
+msgstr "Nom de la difficulté"
 
 #: src/components/mods/ModSelect.tsx
 msgid "Difficulty Reduction"
@@ -775,6 +1127,10 @@ msgstr "Facile"
 #: src/gameplay/playQueue.ts
 msgid "Disabled"
 msgstr "Désactivé"
+
+#: src/scenes/Editor.tsx
+msgid "Discard"
+msgstr "Abandonner"
 
 #: src/scenes/Options.tsx
 msgid "discord|link|role"
@@ -854,6 +1210,11 @@ msgstr "Téléchargement des maps: {done}/{total} (cliquez pour annuler)"
 msgid "Downloading update… {percent}%"
 msgstr "Téléchargement… {percent}%"
 
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorSoundFiles.tsx
+msgid "Drum"
+msgstr "Drum"
+
 #: src/components/Tutorial.tsx
 msgid "Each completed play earns your character <0>XP</0> and <1>levels</1> across various skillsets, making it perform better on future plays."
 msgstr "Chaque partie complétée octroie de <0>l'XP</0> et <1>des niveaux</1> à votre personnage dans diverses compétences, le rendant meilleur pour ses prochaines parties."
@@ -864,6 +1225,7 @@ msgstr "Chaque amélioration de la vitesse débloque un incrément"
 
 #: src/components/addons/MyAddonRow.tsx
 #: src/components/skins/MySkinRow.tsx
+#: src/editor/actions.ts
 msgid "Edit"
 msgstr "Modifier"
 
@@ -871,9 +1233,17 @@ msgstr "Modifier"
 msgid "Edit the queue"
 msgstr "Modifier la playlist"
 
+#: src/scenes/MainMenu.tsx
+msgid "Editor"
+msgstr "Éditeur"
+
 #: src/components/options/EffectVolume.tsx
 msgid "Effect"
 msgstr "Effet"
+
+#: src/editor/EditorChecks.tsx
+msgid "Empty metadata: {fields}"
+msgstr "Métadonnées vides : {fields}"
 
 #: src/components/dock/DockTransport.tsx
 msgid "Empty the queue"
@@ -892,6 +1262,14 @@ msgstr "Entrez un mot de passe avant de commencer la partie..."
 msgid "Every ranked beatmap is already downloaded."
 msgstr "Toutes les maps ranked ont déjà été téléchargées."
 
+#: src/editor/EditorSubmission.tsx
+msgid "Every score and all the progression players earned on it are deleted for good, and only the team can rank it again."
+msgstr "Tous les scores et toute la progression que les joueurs y ont gagnés sont supprimés pour de bon, et seule l'équipe peut la reclasser."
+
+#: src/editor/builtinActions.ts
+msgid "Every shortcut is back to its default"
+msgstr "Tous les raccourcis sont revenus par défaut"
+
 #: src/scenes/MainMenu.tsx
 #: src/scenes/MainMenu.tsx
 msgid "Exit"
@@ -905,27 +1283,100 @@ msgstr "Quitter oss!idle"
 msgid "Expected a column record like {example}"
 msgstr "Une liste indexée était attendue, comme {example}"
 
+#: src/editor/builtinActions.ts
+#: src/editor/EditorActions.tsx
+msgid "Export .osz"
+msgstr "Exporter en .osz"
+
 #: src/components/result/scoreCard.ts
 #: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "FAILED"
 msgstr "ÉCHEC"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Fast"
+msgstr "Rapide"
+
+#: src/editor/EditorCompose.tsx
+msgid "Faster"
+msgstr "Plus vite"
+
+#: src/editor/builtinActions.ts
+msgid "Faster playback"
+msgstr "Lecture plus rapide"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Field"
+msgstr "Terrain"
+
+#: src/editor/actions.ts
+msgid "File"
+msgstr "Fichier"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Filter"
+msgstr "Filtre"
+
 #: src/components/community/CommunityHeader.tsx
 msgid "Filter:"
 msgstr "Filtrer :"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Find an action or a key"
+msgstr "Chercher une action ou une touche"
 
 #: src/components/dock/DockWatchButton.tsx
 msgid "Find the next map"
 msgstr "Trouver la map suivante"
 
+#: src/editor/EditorBpmTools.tsx
+msgid "Find the tempo"
+msgstr "Trouver le tempo"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Fine"
+msgstr "Fin"
+
+#: src/editor/builtinActions.ts
+msgid "Finer beat snap"
+msgstr "Snap plus fin"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Finest"
+msgstr "Très fin"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "finish"
+msgstr "finish"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Finish"
+msgstr "Finish"
+
+#: src/editor/builtinActions.ts
+msgid "Finish on the selection"
+msgstr "Finish sur la sélection"
+
 #: src/components/direct/directState.ts
 msgid "Finished downloading {title}"
 msgstr "{title} téléchargée"
 
+#: src/editor/EditorView.tsx
+msgid "Fix the errors the map checks found first"
+msgstr "Corrigez d'abord les erreurs trouvées par les vérifications"
+
+#: src/editor/builtinActions.ts
+msgid "Flip the selection"
+msgstr "Retourner la sélection"
+
 #: src/components/WebBrowser.tsx
 msgid "Forward"
 msgstr "Suivant"
+
+#: src/editor/EditorBpmTools.tsx
+msgid "Found {bpm} BPM, {confidence}% sure"
+msgstr "{bpm} BPM trouvés (fiabilité {confidence} %)"
 
 #: src/scenes/Options.tsx
 msgid "fps|frame|rate|refresh|hz"
@@ -943,9 +1394,25 @@ msgstr "Limiteur de fps"
 msgid "Free Mods"
 msgstr "Mods libres"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Frequencies"
+msgstr "Fréquences"
+
 #: src/components/community/CommunityHeader.tsx
 msgid "Friends"
 msgstr "Amis"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "From (Hz)"
+msgstr "De (Hz)"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "From speed"
+msgstr "Vitesse de départ"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "From the line"
+msgstr "Celui de la ligne de timing"
 
 #: src/scenes/Options.tsx
 msgid "fullscreen"
@@ -997,6 +1464,11 @@ msgstr "Génération {generation}"
 msgid "Give Host"
 msgstr "Donner l'hôte"
 
+#: src/editor/EditorScrollPoint.tsx
+#: src/editor/EditorTimingPoint.tsx
+msgid "Go there"
+msgstr "Y aller"
+
 #: src/components/direct/DirectLinkPanel.tsx
 #: src/components/direct/DirectView.tsx
 msgid "Go to map"
@@ -1023,6 +1495,10 @@ msgstr "Invité"
 msgid "Half"
 msgstr "Half"
 
+#: src/editor/EditorCompose.tsx
+msgid "Half beats"
+msgstr "Demi-battements"
+
 #: src/components/character/LineageList.tsx
 msgid "Hall of fame"
 msgstr "Hall des légendes"
@@ -1030,6 +1506,10 @@ msgstr "Hall des légendes"
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Head-to-head"
 msgstr "Face-à-face"
+
+#: src/editor/builtinActions.ts
+msgid "Hear the hitsounds"
+msgstr "Entendre les hitsounds"
 
 #: src/components/options/DownloadAllWarning.tsx
 msgid "Here they are stored by your browser: the desktop app is better suited to keeping this many."
@@ -1051,30 +1531,71 @@ msgstr "Cacher le chat"
 msgid "Hide code"
 msgstr "Cacher le code"
 
+#: src/editor/EditorActions.tsx
+msgid "Hide shortcuts"
+msgstr "Masquer les raccourcis"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Highest frequency"
+msgstr "Fréquence la plus haute"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Highs"
+msgstr "Aigus"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "hit"
+msgstr "hit"
+
 #: src/scenes/Result.tsx
 msgid "Hit deviance · {ur} UR"
 msgstr "Déviation · {ur} UR"
+
+#: src/editor/actions.ts
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorSummary.tsx
+msgid "Hitsounds"
+msgstr "Hitsounds"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Hold a key for an LN"
+msgstr "Maintenir une touche pour une LN"
+
+#: src/editor/builtinActions.ts
+msgid "Hold every note until the next (full LN)"
+msgstr "Maintenir chaque note jusqu'à la suivante (full LN)"
 
 #: src/components/multiplayer/MatchBeatmap.tsx
 msgid "Host is changing map..."
 msgstr "L'hôte change de map..."
 
-#: src/components/addons/AddonIconField.tsx
-#: src/components/skins/SkinIconField.tsx
+#: src/components/listing/IconField.tsx
 msgid "Icon"
 msgstr "Icône"
+
+#: src/scenes/MainMenu.tsx
+msgid "Import"
+msgstr "Importer"
+
+#: src/osu/beatmap/oszImport.ts
+msgid "Imported {title}"
+msgstr "{title} importée"
+
+#: src/osu/beatmap/oszImport.ts
+msgid "Imported {title}, but it has no 4K mania difficulty to play"
+msgstr "{title} importée, mais elle n'a aucune difficulté mania 4K à jouer"
+
+#: src/osu/beatmap/oszImport.ts
+msgid "Importing {name}..."
+msgstr "Import de {name}..."
 
 #: src/online/presence.ts
 msgid "In the menus"
 msgstr "Dans les menus"
 
-#: src/components/community/chat/ReportMessageDialog.tsx
-msgid "Inappropriate chat behaviour"
-msgstr "Comportement inapproprié"
-
-#: src/components/community/chat/ReportMessageDialog.tsx
-msgid "Inappropriate content"
-msgstr "Contenu inapproprié"
+#: src/editor/EditorSubmission.tsx
+msgid "In the ranking queue"
+msgstr "Dans la file de classement"
 
 #: src/scenes/Lobby.tsx
 msgid "Incorrect password."
@@ -1103,6 +1624,22 @@ msgstr "Installer l'add-on"
 msgid "Installed"
 msgstr "Installé"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Intensity"
+msgstr "Intensité"
+
+#: src/editor/builtinActions.ts
+msgid "Inverse the whole map"
+msgstr "Inverser toute la map"
+
+#: src/editor/EditorView.tsx
+msgid "It is in the ranking queue: withdraw it to update it"
+msgstr "Elle est dans la file de classement : retirez-la pour la mettre à jour"
+
+#: src/editor/EditorView.tsx
+msgid "It is ranked: unrank it to change it"
+msgstr "Elle est classée : déclassez-la pour la modifier"
+
 #: src/components/community/chat/Chat.tsx
 msgid "Join a channel"
 msgstr "Rejoindre un salon"
@@ -1122,6 +1659,22 @@ msgstr "Continuer à jouer"
 #: src/components/options/KeepPlaying.tsx
 msgid "Keep playing the queue when the game is closed"
 msgstr "Continuer à jouer la playlist quand le jeu est fermé"
+
+#: src/editor/EditorCompose.tsx
+msgid "Keep the pitch"
+msgstr "Garder le pitch"
+
+#: src/editor/builtinActions.ts
+msgid "Keep the pitch at other speeds"
+msgstr "Garder le pitch aux autres vitesses"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Keys ({keys}K)"
+msgstr "Touches ({keys}K)"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "Keysound"
+msgstr "Keysound"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Kick"
@@ -1175,14 +1728,53 @@ msgstr "Durée : {totalLength} BPM : {bpmText} Objets : {objects}"
 msgid "Level up"
 msgstr "Gain de niveau"
 
+#: src/editor/EditorTiming.tsx
+msgid "Line"
+msgstr "Ligne"
+
+#: src/editor/EditorScrollTools.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Linear"
+msgstr "Linéaire"
+
 #: src/components/options/LinkDiscord.tsx
 msgid "Link Discord account"
 msgstr "Lier un compte Discord"
+
+#: src/editor/EditorBpmTools.tsx
+msgid "Listening…"
+msgstr "Écoute…"
+
+#: src/editor/actions.ts
+#: src/editor/EditorLiveMapping.tsx
+msgid "Live mapping"
+msgstr "Live mapping"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Live note offset"
+msgstr "Décalage des notes en live mapping"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Live note offset (ms)"
+msgstr "Décalage des notes en live mapping (ms)"
+
+#: src/editor/EditorCompose.tsx
+msgid "Live preview"
+msgstr "Aperçu en direct"
 
 #. placeholder {0}: addon.publishedTag
 #: src/components/addons/AddonRepoBuild.tsx
 msgid "Live: {0}"
 msgstr "En ligne : {0}"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "LN"
+msgstr "LN"
+
+#: src/editor/EditorViewOptions.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "LN opacity"
+msgstr "Opacité des LN"
 
 #: src/components/BeatmapCarousel.tsx
 msgid "loading library…"
@@ -1206,9 +1798,21 @@ msgstr "Verrouillé"
 msgid "Loop"
 msgstr "En boucle"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Lowest frequency"
+msgstr "Fréquence la plus basse"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Lows"
+msgstr "Graves"
+
 #: src/components/songselect/UserCard.tsx
 msgid "Lv{level}"
 msgstr "Lv{level}"
+
+#: src/components/skills/SkillRow.tsx
+msgid "Lv<0/>"
+msgstr "Lv<0/>"
 
 #: src/scenes/Options.tsx
 msgid "Main menu"
@@ -1217,6 +1821,10 @@ msgstr "Menu principal"
 #: src/scenes/Options.tsx
 msgid "MAINTENANCE"
 msgstr "MAINTENANCE"
+
+#: src/editor/builtinActions.ts
+msgid "Make every LN a note"
+msgstr "Changer chaque LN en note"
 
 #: src/components/multiplayer/CreateMatch.tsx
 msgid "Make match history publicly viewable"
@@ -1248,6 +1856,7 @@ msgid "Manage your installed and created skins"
 msgstr "Gérer vos skins installés et créés"
 
 #: src/components/BeatmapCard.tsx
+#: src/editor/EditorSummary.tsx
 msgid "mapped by {creator}"
 msgstr "créé par {creator}"
 
@@ -1259,6 +1868,10 @@ msgstr "Mappé par {creator}"
 #: src/components/direct/DirectRow.tsx
 msgid "mapped by {mapper}"
 msgstr "mappée par {mapper}"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Mapper"
+msgstr "Mappeur"
 
 #: src/components/options/MasterVolume.tsx
 msgid "Master"
@@ -1281,9 +1894,33 @@ msgstr "Niveau max"
 msgid "Medal unlocked"
 msgstr "Médaille débloquée"
 
+#: src/components/skills/SkillsView.tsx
+msgid "medals"
+msgstr "médailles"
+
 #: src/components/medals/MedalShowcase.tsx
 msgid "Medals unlocked"
 msgstr "Médailles débloquées"
+
+#: src/editor/EditorSummary.tsx
+msgid "Metadata"
+msgstr "Métadonnées"
+
+#: src/editor/EditorCompose.tsx
+msgid "Metronome"
+msgstr "Métronome"
+
+#: src/editor/builtinActions.ts
+msgid "Metronome: off, beats, half beats"
+msgstr "Métronome : off, battements, demi-battements"
+
+#: src/editor/builtinActions.ts
+msgid "Mirror the whole map"
+msgstr "Inverser toute la map en miroir"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Mixed"
+msgstr "Plusieurs valeurs"
 
 #: src/components/addons/AddonEditMeta.tsx
 msgid "Moderator feedback"
@@ -1302,6 +1939,10 @@ msgstr "Mods"
 msgid "Mods change how a map plays. A faster rate usually makes the map harder, and a slower one easier."
 msgstr "Les mods changent comment la map se joue. Un rate plus rapide rend généralement la map plus dure et inversement."
 
+#: src/editor/EditorActions.tsx
+msgid "More"
+msgstr "Plus"
+
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/skins/BrowseSkinsView.tsx
 msgid "Most downloaded"
@@ -1315,13 +1956,41 @@ msgstr "La plupart des médailles ne peuvent pas être obtenues avec ces mods"
 msgid "Most Played"
 msgstr "Les plus jouées"
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Mouse"
+msgstr "Souris"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Move along the beat lines"
+msgstr "Avancer le long des beat lines"
+
 #: src/components/dock/DockQueue.tsx
 msgid "Move down"
 msgstr "Descendre"
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Move four lines at a time"
+msgstr "Avancer de quatre lignes à la fois"
+
 #: src/components/options/MoveInstall.tsx
 msgid "Move installation..."
 msgstr "Déplacer l'installation..."
+
+#: src/editor/builtinActions.ts
+msgid "Move the selection a column left"
+msgstr "Déplacer la sélection d'une colonne à gauche"
+
+#: src/editor/builtinActions.ts
+msgid "Move the selection a column right"
+msgstr "Déplacer la sélection d'une colonne à droite"
+
+#: src/editor/builtinActions.ts
+msgid "Move the selection a line earlier"
+msgstr "Déplacer la sélection d'une ligne plus tôt"
+
+#: src/editor/builtinActions.ts
+msgid "Move the selection a line later"
+msgstr "Déplacer la sélection d'une ligne plus tard"
 
 #: src/components/dock/DockQueue.tsx
 msgid "Move up"
@@ -1343,6 +2012,10 @@ msgstr "Lobby multijoueur"
 msgid "Music"
 msgstr "Musique"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Musical"
+msgstr "Musicale"
+
 #: src/components/addons/AddonEditMeta.tsx
 #: src/components/community/CommunityBody.tsx
 #: src/components/skins/SkinView.tsx
@@ -1354,13 +2027,27 @@ msgstr "Nom"
 msgid "name, author or tag"
 msgstr "nom, auteur ou tag"
 
+#: src/editor/EditorPlacingOptions.tsx
+msgid "Nearest"
+msgstr "La plus proche"
+
 #: src/osu/beatmap/grouping.ts
 msgid "Never"
 msgstr "Jamais"
 
+#: src/scenes/MainMenu.tsx
+msgid "New"
+msgstr "Nouveau"
+
 #: src/components/character/RebirthView.tsx
 msgid "New character name"
 msgstr "Nouveau nom de personnage"
+
+#: src/editor/EditorDifficulty.tsx
+#: src/editor/EditorView.tsx
+#: src/scenes/MainMenu.tsx
+msgid "New difficulty"
+msgstr "Nouvelle difficulté"
 
 #: src/scenes/Lobby.tsx
 msgid "New Game"
@@ -1384,6 +2071,10 @@ msgstr "Récents"
 msgid "Next"
 msgstr "Suivant"
 
+#: src/editor/builtinActions.ts
+msgid "Next beat line"
+msgstr "Beat line suivante"
+
 #: src/components/character/RebirthView.tsx
 msgid "Next rebirth unlocks: {next}"
 msgstr "La prochaine renaissance débloquera : {next}"
@@ -1392,6 +2083,10 @@ msgstr "La prochaine renaissance débloquera : {next}"
 msgid "Next song"
 msgstr "Chanson suivante"
 
+#: src/editor/builtinActions.ts
+msgid "Next tool"
+msgstr "Outil suivant"
+
 #: src/components/addons/BrowseAddonsView.tsx
 msgid "No add-ons found."
 msgstr "Aucun add-on trouvé."
@@ -1399,6 +2094,10 @@ msgstr "Aucun add-on trouvé."
 #: src/components/addons/ManageAddonsView.tsx
 msgid "No add-ons installed. Browse the catalog to find some."
 msgstr "Aucun add-on installé. Vous en trouverez dans le catalogue."
+
+#: src/editor/EditorChecks.tsx
+msgid "No background image"
+msgstr "Pas d'image de fond"
 
 #: src/components/songselect/TopBar.tsx
 msgid "No Grouping"
@@ -1416,6 +2115,14 @@ msgstr "aucune map ne correspond à votre recherche"
 msgid "No matching settings."
 msgstr "Aucun résultat."
 
+#: src/editor/builtinActions.ts
+msgid "No notes resnapped"
+msgstr "Aucune note resnappée"
+
+#: src/editor/EditorChecks.tsx
+msgid "No notes yet"
+msgstr "Pas encore de notes"
+
 #: src/components/community/PlayerGrid.tsx
 msgid "No one online"
 msgstr "Personne n'est en ligne"
@@ -1423,6 +2130,10 @@ msgstr "Personne n'est en ligne"
 #: src/components/PlaylistOverlay.tsx
 msgid "No playlists yet. Type a name above and press Enter."
 msgstr "Aucune playlist. Saisissez un nom plus haut et appuyez sur Entrée."
+
+#: src/editor/EditorChecks.tsx
+msgid "No preview point (Metadata tab)"
+msgstr "Pas de point d'aperçu (onglet Métadonnées)"
 
 #: src/scenes/Result.tsx
 #: src/scenes/Result.tsx
@@ -1445,6 +2156,18 @@ msgstr "Aucun skin trouvé."
 msgid "No skins installed. Browse the catalog to find some."
 msgstr "Aucun skin installé. Vous en trouverez dans le catalogue."
 
+#: src/editor/EditorSoundFiles.tsx
+msgid "No sound files yet"
+msgstr "Pas encore de fichiers son"
+
+#: src/editor/EditorBpmTools.tsx
+msgid "No tempo found"
+msgstr "Aucun tempo trouvé"
+
+#: src/editor/EditorChecks.tsx
+msgid "No timing point: the beat lines need one"
+msgstr "Aucun point de timing : les beat lines en ont besoin"
+
 #: src/components/character/LineageList.tsx
 msgid "No unlocks"
 msgstr "Rien de débloqué"
@@ -1456,6 +2179,22 @@ msgstr "Rien d'encore débloqué"
 #: src/logs.ts
 msgid "No XP gained."
 msgstr "Pas d'XP gagnée."
+
+#: src/editor/EditorMetadata.tsx
+#: src/editor/EditorViewOptions.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "None"
+msgstr "Aucune"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "None (the sample set's)"
+msgstr "Aucun (le son du sampleset)"
+
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorSoundFiles.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Normal"
+msgstr "Normal"
 
 #: src/components/addons/AddonCodeCheck.tsx
 msgid "Not allowed: add-ons may not run code that was not reviewed"
@@ -1469,6 +2208,42 @@ msgstr "Tout le monde n'est pas prêt. Commencer quand même ?"
 msgid "Not Ready"
 msgstr "Pas prêt"
 
+#: src/editor/EditorModes.tsx
+msgid "Note"
+msgstr "Note"
+
+#: src/editor/EditorModes.tsx
+msgid "Note + LN"
+msgstr "Note + LN"
+
+#: src/editor/builtinActions.ts
+msgid "Note + LN tool"
+msgstr "Outil Note + LN"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Note + LN: drag up"
+msgstr "Note + LN : glisser vers le haut"
+
+#: src/editor/builtinActions.ts
+msgid "Note in column {column}"
+msgstr "Note dans la colonne {column}"
+
+#: src/editor/builtinActions.ts
+msgid "Note tool"
+msgstr "Outil Note"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Note: click"
+msgstr "Note : clic"
+
+#: src/editor/actions.ts
+msgid "Notes"
+msgstr "Notes"
+
+#: src/editor/EditorCommandList.tsx
+msgid "Nothing matches"
+msgstr "Aucun résultat"
+
 #: src/components/character/RebirthView.tsx
 msgid "nothing new"
 msgstr "rien de nouveau"
@@ -1481,9 +2256,42 @@ msgstr "Rien dans la playlist"
 msgid "Nothing queued. Click a map to add it."
 msgstr "La liste est vide. Cliquez sur une map pour l'ajouter."
 
+#: src/editor/EditorMetadata.tsx
+msgid "Now"
+msgstr "Maintenant"
+
 #: src/components/community/MusicControls.tsx
 msgid "Now playing"
 msgstr "En cours de lecture"
+
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorLiveMapping.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Off"
+msgstr "Off"
+
+#: src/editor/builtinActions.ts
+msgid "Offset in ms, like -15"
+msgstr "Décalage en ms, comme -15"
+
+#: src/editor/builtinActions.ts
+msgid "Offset the whole map"
+msgstr "Décaler toute la map"
+
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorCompose.tsx
+#: src/editor/EditorLiveMapping.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "On"
+msgstr "On"
+
+#: src/components/skills/SkillsView.tsx
+msgid "On top of these, each play's XP changes depending on mods (EZ x{ez} on every skill, HR x{hr} on Accuracy) and drops when you replay the same map many times in a day due to mindblock (except Speed, Stamina, Jack Speed and Memory)."
+msgstr "En plus de tout cela, l'XP de chaque partie dépend des mods (EZ x{ez} sur toutes les compétences, HR x{hr} sur la Précision) et baisse quand vous rejouez la même map plusieurs fois dans la journée, à cause du mindblock (sauf Vitesse, Endurance, Jackspeed et Mémoire)."
 
 #: src/components/Onboarding.tsx
 msgid "Online characters always start fresh: Guest progress stays local, so the leaderboards stay fair."
@@ -1492,6 +2300,10 @@ msgstr "Les personnages en ligne partent toujours de zéro : la progression en t
 #: src/components/community/CommunityControls.tsx
 msgid "Online users"
 msgstr "Utilisateurs en ligne"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Only 4K difficulties can be ranked: add one first"
+msgstr "Seules les difficultés 4K peuvent être classées : ajoutez-en une d'abord"
 
 #: src/components/multiplayer/SlotLabel.tsx
 msgid "Open"
@@ -1504,6 +2316,11 @@ msgstr "Ouvrir le lien"
 #: src/components/songselect/UserCard.tsx
 msgid "Open oss! web"
 msgstr "Ouvrir oss! web"
+
+#: src/editor/builtinActions.ts
+#: src/editor/EditorSoundFiles.tsx
+msgid "Open the map's folder"
+msgstr "Ouvrir le dossier de la map"
 
 #: src/components/community/LinkMenu.tsx
 msgid "Open this link?"
@@ -1546,13 +2363,13 @@ msgstr "osu!mania (tête-à-tête)"
 msgid "osu|music|theme"
 msgstr "osu|musique|theme"
 
-#: src/components/community/chat/ReportMessageDialog.tsx
-msgid "Other (type below)"
-msgstr "Autre (écrire)"
-
 #: src/osu/beatmap/grouping.ts
 msgid "Over 5 months ago"
 msgstr "Il y a plus de 5 mois"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "Over the selection, {from} to {to}"
+msgstr "Sur la sélection, de {from} à {to}"
 
 #: src/components/character/LineageList.tsx
 msgid "Overall Lv{level}"
@@ -1565,6 +2382,10 @@ msgstr "Global Lv{level} / {required}"
 #: src/components/upgrades/UpgradeTooltip.tsx
 msgid "Overdrive"
 msgstr "Overdrive"
+
+#: src/components/skills/SkillEquation.tsx
+msgid "overdrive {od}"
+msgstr "overdrive {od}"
 
 #: src/components/upgrades/UpgradeAction.tsx
 msgid "Overdrive +{ratioText}"
@@ -1590,6 +2411,14 @@ msgstr "Effet parallax"
 #: src/components/multiplayer/PasswordPrompt.tsx
 msgid "Password:"
 msgstr "Mot de passe :"
+
+#: src/editor/builtinActions.ts
+msgid "Paste as copied"
+msgstr "Coller tel que copié"
+
+#: src/editor/builtinActions.ts
+msgid "Paste, snapped to 1/16 and 1/12"
+msgstr "Coller, snappé sur 1/16 et 1/12"
 
 #: src/components/community/MusicControls.tsx
 msgid "Pause"
@@ -1641,11 +2470,27 @@ msgstr "Pitch adaptatif (mods Double et Half)"
 msgid "pitch|rate|speed|double|half|nightcore|mods"
 msgstr "pitch|rate|vitesse|double|half|nightcore|mods"
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Place a note, or remove one"
+msgstr "Placer une note, ou en retirer une"
+
+#: src/editor/EditorPlacingOptions.tsx
+msgid "Placing"
+msgstr "Placement"
+
 #: src/components/character/LineageList.tsx
 #: src/components/community/MusicControls.tsx
 #: src/scenes/MainMenu.tsx
 msgid "Play"
 msgstr "Jouer"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "Play {file}"
+msgstr "Écouter {file}"
+
+#: src/editor/builtinActions.ts
+msgid "Play / pause"
+msgstr "Lecture / pause"
 
 #: src/components/skins/GameplayPreview.tsx
 msgid "Play a beatmap to preview the skin."
@@ -1671,6 +2516,14 @@ msgstr "Jouer hors classement"
 msgid "Play unranked ?"
 msgstr "Jouer hors classement ?"
 
+#: src/editor/actions.ts
+msgid "Playback"
+msgstr "Lecture"
+
+#: src/editor/EditorCompose.tsx
+msgid "Playback speed"
+msgstr "Vitesse de lecture"
+
 #. placeholder {0}: card.playerName
 #. placeholder {1}: card.playedAt
 #: src/components/result/scoreCard.ts
@@ -1680,6 +2533,11 @@ msgstr "Jouée par {0} le {1}"
 #: src/components/result/ResultMeta.tsx
 msgid "Played by {playerName} on {playedAt}"
 msgstr "Joué par {playerName} le {playedAt}"
+
+#: src/editor/EditorViewOptions.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Playfield opacity"
+msgstr "Opacité du terrain"
 
 #: src/components/character/LineageList.tsx
 #: src/online/presence.ts
@@ -1698,6 +2556,15 @@ msgstr "Playlists"
 #: src/components/direct/DirectPanel.tsx
 msgid "Plays"
 msgstr "Parties"
+
+#: src/editor/EditorKeyRow.tsx
+#: src/editor/EditorKeyRow.tsx
+msgid "Press a key"
+msgstr "Appuyez sur une touche"
+
+#: src/components/skills/SkillsView.tsx
+msgid "prestige"
+msgstr "prestige"
 
 #: src/components/character/PrestigeRow.tsx
 #: src/components/character/PrestigeRow.tsx
@@ -1719,9 +2586,18 @@ msgstr "Prestiges effectués"
 msgid "Preview"
 msgstr "Prévisualiser"
 
+#: src/editor/EditorMetadata.tsx
+#: src/editor/EditorMetadata.tsx
+msgid "Preview time (ms)"
+msgstr "Temps d'aperçu (ms)"
+
 #: src/components/community/MusicControls.tsx
 msgid "Previous"
 msgstr "Précédent"
+
+#: src/editor/builtinActions.ts
+msgid "Previous beat line"
+msgstr "Beat line précédente"
 
 #: src/components/Onboarding.tsx
 msgid "Profile picture<0/>Defaults to your osu! avatar"
@@ -1738,6 +2614,10 @@ msgstr "Les add-ons publiés doivent l'être sous une licence AGPLv3 (ou licence
 #: src/scenes/Lobby.tsx
 msgid "Quick Join"
 msgstr "Partie rapide"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Quiet cut-off"
+msgstr "Seuil des sons faibles"
 
 #: src/scenes/Gameplay.tsx
 msgid "quit"
@@ -1760,6 +2640,7 @@ msgid "rank: {best} - {worst}"
 msgstr "rang : {best} - {worst}"
 
 #: src/components/direct/DirectFilters.tsx
+#: src/editor/EditorSubmission.tsx
 msgid "Ranked"
 msgstr "Classée"
 
@@ -1814,6 +2695,14 @@ msgstr "Recevoir les messages de tout le monde"
 msgid "Recently Played"
 msgstr "Joué récemment"
 
+#: src/editor/builtinActions.ts
+msgid "Redo"
+msgstr "Rétablir"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Reference difficulty"
+msgstr "Difficulté de référence"
+
 #: src/components/options/LinkDiscord.tsx
 msgid "Relink Discord account"
 msgstr "Relier un compte Discord"
@@ -1822,9 +2711,22 @@ msgstr "Relier un compte Discord"
 msgid "Reload"
 msgstr "Recharger"
 
+#: src/editor/EditorScrollPoint.tsx
+#: src/editor/EditorTimingPoint.tsx
+msgid "Remove"
+msgstr "Retirer"
+
 #: src/components/addons/ManageAddonsView.tsx
 msgid "Remove \"{addon}\" ?"
 msgstr "Supprimer \"{addon}\" ?"
+
+#: src/editor/EditorKeyRow.tsx
+msgid "Remove {key}"
+msgstr "Retirer {key}"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Remove a note"
+msgstr "Retirer une note"
 
 #: src/components/dock/DockQueue.tsx
 msgid "Remove from the queue"
@@ -1847,6 +2749,10 @@ msgstr "Renommer"
 msgid "Renderer"
 msgstr "Vidéo"
 
+#: src/editor/EditorSoundFiles.tsx
+msgid "Replace"
+msgstr "Remplacer"
+
 #: src/components/community/PlayerMenu.tsx
 msgid "Report"
 msgstr "Signaler"
@@ -1854,6 +2760,10 @@ msgstr "Signaler"
 #: src/components/community/chat/ReportMessageDialog.tsx
 msgid "Report {name}?"
 msgstr "Signaler {name} ?"
+
+#: src/components/options/ReportBug.tsx
+msgid "Report a bug"
+msgstr "Signaler un bug"
 
 #: src/components/community/chat/ReportMessageDialog.tsx
 msgid "Report sent."
@@ -1876,9 +2786,33 @@ msgstr "Nécessite Global Lv{REBIRTH_MIN_OVERALL_LEVEL}"
 msgid "Requires XP Lv{required}"
 msgstr "Nécessite le niveau d'XP Lv{required}"
 
+#: src/editor/EditorKeyRow.tsx
+msgid "Reset"
+msgstr "Réinitialiser"
+
 #: src/scenes/Character.tsx
 msgid "Reset a skill for a permanent level bonus"
 msgstr "Réinitialisez une compétence pour un bonus de niveau permanent"
+
+#: src/editor/builtinActions.ts
+msgid "Reset every shortcut to its default"
+msgstr "Remettre tous les raccourcis par défaut"
+
+#: src/components/character/PrestigeRow.tsx
+msgid "Resets every learned map"
+msgstr "Réinitialise toutes les maps apprises"
+
+#: src/editor/builtinActions.ts
+msgid "Resnap the selection, or everything"
+msgstr "Resnap de la sélection, ou de tout"
+
+#: src/editor/builtinActions.ts
+msgid "Resnap the selection, or everything, to 1/16 and 1/12"
+msgstr "Resnap de la sélection, ou de tout, sur 1/16 et 1/12"
+
+#: src/editor/builtinActions.ts
+msgid "Resnap the selection, or everything, to chosen snaps"
+msgstr "Resnap de la sélection, ou de tout, sur les snaps choisis"
 
 #: src/components/options/FrameLimiter.tsx
 msgid "Restart the game to apply"
@@ -1897,6 +2831,10 @@ msgstr "Reprendre la playlist"
 msgid "RETRY"
 msgstr "ENCORE"
 
+#: src/editor/builtinActions.ts
+msgid "Reverse the selection in time"
+msgstr "Inverser la sélection dans le temps"
+
 #: src/components/community/PlayerMenu.tsx
 msgid "Revoke Friendship"
 msgstr "Retirer des amis"
@@ -1905,12 +2843,26 @@ msgstr "Retirer des amis"
 msgid "Rice: {rice} LN: {ln}"
 msgstr "Rice : {rice} LN : {ln}"
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Right click"
+msgstr "Clic droit"
+
 #: src/scenes/Options.tsx
 msgid "right|click|hold|time"
 msgstr "droit|clique|appui|duree|durée"
 
-#: src/components/addons/AddonView.tsx
-#: src/components/skins/SkinView.tsx
+#: src/editor/EditorHitsounds.tsx
+msgid "Sample file"
+msgstr "Fichier sample"
+
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorHitsounds.tsx
+msgid "Sample set"
+msgstr "Sampleset"
+
+#: src/components/page/pageBar.tsx
+#: src/editor/builtinActions.ts
+#: src/editor/EditorActions.tsx
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -1918,14 +2870,25 @@ msgstr "Sauvegarder"
 msgid "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
 msgstr "Sauvegardez l'add-on pour obtenir son adresse de webhook. oss!idle compile lui-même chaque nouveau tag de version du dépôt."
 
+#: src/editor/EditorView.tsx
+msgid "Saved"
+msgstr "Sauvegardé"
+
 #: src/components/result/ShareScoreButton.tsx
 msgid "Saved as an image"
 msgstr "Enregistré en tant qu'image"
 
-#: src/components/addons/AddonView.tsx
-#: src/components/skins/SkinView.tsx
+#: src/components/page/pageBar.tsx
 msgid "Saving…"
 msgstr "Sauvegarde…"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "Scale by"
+msgstr "Multiplier par"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "Scale factor"
+msgstr "Facteur d'échelle"
 
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Score"
@@ -1943,6 +2906,11 @@ msgstr "Économiseur d'écran"
 #: src/components/community/CommunityHeader.tsx
 msgid "Search"
 msgstr "Rechercher"
+
+#: src/editor/builtinActions.ts
+#: src/editor/EditorCommandList.tsx
+msgid "Search actions and options"
+msgstr "Chercher des actions et des options"
 
 #: src/components/direct/DirectFilters.tsx
 msgid "Search by artist, title, mapper, stars>5..."
@@ -1962,13 +2930,26 @@ msgstr "Recherche :"
 msgid "search_verb"
 msgstr "Rechercher"
 
+#: src/editor/EditorModes.tsx
+#: src/scenes/MainMenu.tsx
+msgid "Select"
+msgstr "Sélection"
+
 #: src/components/leaderboard/Leaderboard.tsx
 msgid "Select a difficulty to see its scores."
 msgstr "Choisissez une map pour voir ses scores."
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Select a note and move the selection, or a box (Ctrl adds)"
+msgstr "Sélectionner une note et déplacer la sélection, ou une zone (Ctrl ajoute)"
+
 #: src/components/PlaylistOverlay.tsx
 msgid "Select a playlist or create a new one here..."
 msgstr "Sélectionnez une playlist ou créez en une nouvelle ici..."
+
+#: src/editor/builtinActions.ts
+msgid "Select all"
+msgstr "Tout sélectionner"
 
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Select any channel you wish to join!"
@@ -1978,6 +2959,26 @@ msgstr "Sélectionnez le salon que vous souhaitez rejoindre !"
 msgid "Select language"
 msgstr "Choisir une langue"
 
+#: src/editor/EditorScrollTools.tsx
+msgid "Select notes for the ramp, set and scale tools."
+msgstr "Sélectionnez des notes pour utiliser les outils Linéaire, Fixer à et Multiplier par."
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Select notes to set their hitsounds"
+msgstr "Sélectionnez des notes pour régler leurs hitsounds"
+
+#: src/editor/builtinActions.ts
+msgid "Select the notes at the current time"
+msgstr "Sélectionner les notes au temps actuel"
+
+#: src/editor/builtinActions.ts
+msgid "Select tool"
+msgstr "Outil Sélection"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Select: click, drag"
+msgstr "Sélection : clic, glisser"
+
 #: src/online/presence.ts
 msgid "Selecting a song"
 msgstr "Sélectionne une map"
@@ -1986,17 +2987,54 @@ msgstr "Sélectionne une map"
 msgid "Send Report"
 msgstr "Signaler"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Sent back: {note}"
+msgstr "Renvoyée, motif : {note}"
+
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Set Password"
 msgstr "Définir le mot de passe"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "Set to"
+msgstr "Fixer à"
 
 #: src/components/result/ShareScoreButton.tsx
 msgid "SHARE"
 msgstr "PARTAGER"
 
+#: src/editor/EditorShortcuts.tsx
+msgid "Shift + wheel"
+msgstr "Maj + molette"
+
+#: src/editor/EditorActions.tsx
+msgid "Shortcuts"
+msgstr "Raccourcis"
+
+#: src/editor/EditorChecks.tsx
+msgid "Shorter than 30 seconds"
+msgstr "Moins de 30 secondes"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Shortest LN"
+msgstr "LN la plus courte"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Shortest LN (ms)"
+msgstr "LN la plus courte (ms)"
+
+#: src/editor/EditorViewOptions.tsx
+#: src/editor/EditorViewOptions.tsx
+msgid "Show"
+msgstr "Afficher"
+
 #: src/components/direct/DirectFilters.tsx
 msgid "Show already downloaded maps"
 msgstr "Afficher les maps déjà téléchargées"
+
+#: src/editor/builtinActions.ts
+msgid "Show another difficulty beside this one"
+msgstr "Afficher une autre difficulté à côté de celle-ci"
 
 #: src/components/options/ShowUndownloaded.tsx
 msgid "Show beatmaps that aren't downloaded"
@@ -2025,6 +3063,10 @@ msgstr "Afficher les verrouillées"
 #: src/components/songselect/BeatmapInfo.tsx
 msgid "Show scores"
 msgstr "Afficher les scores"
+
+#: src/editor/EditorTimingPoint.tsx
+msgid "Show the first bar line"
+msgstr "Afficher la première ligne de mesure"
 
 #: src/components/options/ShowThumbnails.tsx
 msgid "Show thumbnails"
@@ -2056,6 +3098,10 @@ msgstr "Connectez-vous pour créer et publier des add-ons."
 msgid "Sign in to create and publish skins."
 msgstr "Connectez-vous pour créer et publier des skins."
 
+#: src/editor/EditorView.tsx
+msgid "Sign in to upload your maps"
+msgstr "Connectez-vous pour envoyer vos maps"
+
 #: src/components/options/SignIn.tsx
 msgid "Sign out"
 msgstr "Déconnexion"
@@ -2076,9 +3122,14 @@ msgstr "Une fois connecté, votre personnage <0>continue à jouer sa playlist</0
 msgid "Size"
 msgstr "Taille"
 
+#: src/dev/UpgradesPreview.tsx
+#: src/scenes/Character.tsx
+msgid "Skills"
+msgstr "Compétences"
+
 #: src/scenes/Options.tsx
-msgid "Skin"
-msgstr "Skin"
+msgid "SKIN"
+msgstr "SKIN"
 
 #: src/scenes/Options.tsx
 msgid "skin|skins|browse|catalog|install"
@@ -2104,6 +3155,35 @@ msgstr "Passer"
 msgid "Skip to the next map"
 msgstr "Passer à la map suivante"
 
+#: src/editor/EditorCompose.tsx
+msgid "Slower"
+msgstr "Plus lent"
+
+#: src/editor/builtinActions.ts
+msgid "Slower playback"
+msgstr "Lecture plus lente"
+
+#: src/editor/EditorTiming.tsx
+msgid "Snap"
+msgstr "Snap"
+
+#: src/editor/EditorLiveMapping.tsx
+msgid "Snap live notes while playing"
+msgstr "Snapper les notes du live mapping pendant la lecture"
+
+#: src/editor/EditorPlacingOptions.tsx
+msgid "Snap to"
+msgstr "Snapper sur"
+
+#: src/editor/builtinActions.ts
+msgid "Snaps, like 12 16"
+msgstr "Des snaps, comme 12 16"
+
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorSoundFiles.tsx
+msgid "Soft"
+msgstr "Soft"
+
 #: src/scenes/MainMenu.tsx
 msgid "Solo"
 msgstr "Solo"
@@ -2115,6 +3195,31 @@ msgstr "Sélection de musique"
 #: src/components/songselect/TopBar.tsx
 msgid "Sort"
 msgstr "Trier"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Source"
+msgstr "Source"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Spectrogram"
+msgstr "Spectrogramme"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Spectrogram cut-off"
+msgstr "Seuil du spectrogramme"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Spectrogram intensity"
+msgstr "Intensité du spectrogramme"
+
+#: src/editor/EditorScroll.tsx
+#: src/editor/EditorScrollPoint.tsx
+msgid "Speed"
+msgstr "Vitesse"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "Speed for the stretch"
+msgstr "Vitesse pour la sélection"
 
 #: src/components/songselect/BeatmapInfo.tsx
 msgid "Star Rating: {stars}★"
@@ -2164,6 +3269,14 @@ msgstr "Soumettre"
 msgid "Submit add-on"
 msgstr "Soumettre l'add-on"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Submit for rank"
+msgstr "Proposer au classement"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Submitted for rank"
+msgstr "Proposée au classement"
+
 #: src/scenes/Gameplay.tsx
 msgid "Submitting score…"
 msgstr "Envoi du score…"
@@ -2172,8 +3285,21 @@ msgstr "Envoi du score…"
 msgid "Support the game to access cool features!"
 msgstr "Soutenez le jeu pour accéder à des fonctionnalités sympas !"
 
+#: src/editor/EditorSummary.tsx
+msgid "SV"
+msgstr "SV"
+
+#: src/editor/builtinActions.ts
+msgid "Swap column {column} with the next one picked"
+msgstr "Échanger la colonne {column} avec la prochaine choisie"
+
+#: src/editor/builtinActions.ts
+msgid "Swap two columns of the selection"
+msgstr "Échanger deux colonnes de la sélection"
+
 #: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
+#: src/editor/EditorMetadata.tsx
 msgid "Tags"
 msgstr "Tags"
 
@@ -2181,13 +3307,26 @@ msgstr "Tags"
 msgid "Talk about multiplayer games."
 msgstr "Discutez des parties en multijoueur."
 
+#: src/editor/EditorBpmTools.tsx
+msgid "Tap"
+msgstr "Taper"
+
 #: src/scenes/IntroScreen.tsx
 msgid "tap to play..."
 msgstr "touchez pour jouer..."
 
+#: src/editor/EditorBpmTools.tsx
+msgid "Tapped {bpm} BPM over {count} taps"
+msgstr "{bpm} BPM mesurés sur {count} tapes"
+
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Team Mode:"
 msgstr "Mode d'équipe :"
+
+#: src/editor/builtinActions.ts
+#: src/editor/EditorActions.tsx
+msgid "Test play"
+msgstr "Tester"
 
 #: src/components/SupporterHeart.tsx
 msgid "Thanks for your generosity!"
@@ -2205,13 +3344,33 @@ msgstr "C'est pourquoi tout télécharger d'un coup est un avantage oss!supporte
 msgid "The Administrators' and Global Moderation Team's channel."
 msgstr "Le salon des Administrateurs et de la GMT"
 
+#: src/editor/EditorHitsounds.tsx
+msgid "The custom index picks the map's own hitsound files: 1 its unnumbered ones (soft-hitclap.wav), 2 and up those numbered so (soft-hitclap2.wav). A note without them plays the default sounds. A volume of 0 falls back to the line."
+msgstr "L'index personnalisé choisit les fichiers de hitsounds de la map : 1 ceux sans numéro (soft-hitclap.wav), 2 et plus ceux numérotés ainsi (soft-hitclap2.wav). Une note sans eux joue les sons par défaut. Un volume de 0 reprend celui de la ligne."
+
 #: src/scenes/Direct.tsx
 msgid "The latest ranked beatmaps"
 msgstr "Les dernières beatmaps classées"
 
+#: src/editor/EditorHitsounds.tsx
+msgid "The line in effect here"
+msgstr "La ligne de timing en cours ici"
+
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "The main oss!idle channel."
 msgstr "Le salon principal de oss!idle."
+
+#: src/editor/EditorView.tsx
+msgid "The map checks found errors in {version}"
+msgstr "Les vérifications ont trouvé des erreurs dans {version}"
+
+#: src/editor/EditorView.tsx
+msgid "The map's Creator must be your osu! name"
+msgstr "Le Creator de la map doit être votre pseudo osu!"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "The map's sound files"
+msgstr "Les fichiers son de la map"
 
 #: src/scenes/Direct.tsx
 msgid "The most played ranked beatmaps"
@@ -2220,6 +3379,14 @@ msgstr "Les beatmaps classées les plus jouées"
 #: src/components/community/chat/ReportMessageDialog.tsx
 msgid "The report could not be sent."
 msgstr "Le signalement n'a pas pu être envoyé."
+
+#: src/editor/EditorChecks.tsx
+msgid "The song is not an .mp3 or .ogg file"
+msgstr "La musique n'est pas un fichier .mp3 ou .ogg"
+
+#: src/online/bugReports.ts
+msgid "The team answered your bug report: {title}"
+msgstr "L'équipe a répondu à votre signalement de bug : {title}"
 
 #: src/scenes/Lobby.tsx
 msgid "There are no matches available."
@@ -2245,6 +3412,10 @@ msgstr "C'est un très gros téléchargement : {count} mapsets, pesant environ {
 msgid "This is an <0>automated, idle</0> osu!mania stable client: your character plays the maps on its own and progresses with every play."
 msgstr "Il s'agit d'une version <0>automatisée</0> du jeu osu!mania (version stable): votre personnage joue les maps seul et progresse à chaque partie."
 
+#: src/editor/EditorView.tsx
+msgid "This map belongs to another mapper"
+msgstr "Cette map appartient à un autre mappeur"
+
 #: src/scenes/Gameplay.tsx
 msgid "This play took too long to start."
 msgstr "Ce play a mis trop de temps à démarrer."
@@ -2253,14 +3424,70 @@ msgstr "Ce play a mis trop de temps à démarrer."
 msgid "thumb|thumbnail"
 msgstr "thumb|thumbnail"
 
+#: src/editor/EditorClock.tsx
+msgid "Time"
+msgstr "Temps"
+
+#: src/editor/EditorScroll.tsx
+#: src/editor/EditorScrollPoint.tsx
+#: src/editor/EditorTiming.tsx
+#: src/editor/EditorTimingPoint.tsx
+msgid "Time (ms)"
+msgstr "Temps (ms)"
+
 #: src/components/community/CommunityBody.tsx
 msgid "Time Zone"
 msgstr "Fuseau horaire"
+
+#: src/editor/actions.ts
+#: src/editor/EditorSummary.tsx
+msgid "Timing"
+msgstr "Timing"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Title"
+msgstr "Titre"
+
+#: src/editor/EditorMetadata.tsx
+msgid "Title (original)"
+msgstr "Titre (original)"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "To (Hz)"
+msgstr "À (Hz)"
 
 #: src/components/character/PrestigeRow.tsx
 #: src/components/upgrades/UpgradeTooltip.tsx
 msgid "To go"
 msgstr "Restant"
+
+#: src/editor/EditorScrollTools.tsx
+msgid "To speed"
+msgstr "Vitesse d'arrivée"
+
+#: src/editor/builtinActions.ts
+msgid "To the first note"
+msgstr "À la première note"
+
+#: src/editor/builtinActions.ts
+msgid "To the last note"
+msgstr "À la dernière note"
+
+#: src/editor/builtinActions.ts
+msgid "To the next bookmark"
+msgstr "Au bookmark suivant"
+
+#: src/editor/builtinActions.ts
+msgid "To the previous bookmark"
+msgstr "Au bookmark précédent"
+
+#: src/editor/builtinActions.ts
+msgid "To the selection's end"
+msgstr "À la fin de la sélection"
+
+#: src/editor/builtinActions.ts
+msgid "To the selection's start"
+msgstr "Au début de la sélection"
 
 #: src/osu/beatmap/grouping.ts
 msgid "Today"
@@ -2275,14 +3502,30 @@ msgstr "Total {xp}xp"
 msgid "Trade skill levels for XP boosts"
 msgstr "Échange des niveaux de compétence contre des boosts d'XP"
 
+#: src/components/songselect/BeatmapInfo.tsx
+msgid "Tries: {tries}"
+msgstr "Essais : {tries}"
+
 #: src/components/addons/AddonRepoBuild.tsx
 msgid "Trusted: new builds go live without review."
 msgstr "Vérifié : les nouvelles compilations sont publiées sans review."
+
+#: src/editor/builtinActions.ts
+msgid "Two columns, like 1 4"
+msgstr "Deux colonnes, comme 1 4"
+
+#: src/components/addons/AddonEditMeta.tsx
+msgid "Type"
+msgstr "Type"
 
 #: src/scenes/Options.tsx
 #: src/scenes/SongSelect.tsx
 msgid "Type to search!"
 msgstr "Tapez pour rechercher !"
+
+#: src/components/addons/BrowseAddonsView.tsx
+msgid "Type:"
+msgstr "Type :"
 
 #: src/components/options/UIScaling.tsx
 msgid "UI scaling"
@@ -2299,6 +3542,10 @@ msgstr "ui|scale|scaling|zoom|size"
 #: src/db/schema/skin.ts
 msgid "Unable to load \"{skin}\": Malformed definition"
 msgstr "Impossible de charger \"{skin}\" : Définition malformée"
+
+#: src/editor/builtinActions.ts
+msgid "Undo"
+msgstr "Annuler"
 
 #: src/components/addons/InstalledAddonRow.tsx
 #: src/components/addons/ManageAddonsView.tsx
@@ -2318,13 +3565,33 @@ msgstr "Débloqué: {unlocks}"
 msgid "Unplayed"
 msgstr "Non joué"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Unrank"
+msgstr "Déclasser"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Unrank it"
+msgstr "La déclasser"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Unrank your map?"
+msgstr "Déclasser votre map ?"
+
 #: src/components/direct/DirectFilters.tsx
 msgid "Unranked"
 msgstr "Non classée"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Unranked: it is yours to change or take down"
+msgstr "Non classée : à vous de la modifier ou de la retirer"
+
 #: src/components/mods/ModSelect.tsx
 msgid "Unranked: no XP, and the score is not submitted"
 msgstr "Non classée : aucune XP, et le score n'est pas envoyé"
+
+#: src/scenes/Editor.tsx
+msgid "Unsaved changes"
+msgstr "Modifications non sauvegardées"
 
 #: src/components/dock/DockQueue.tsx
 msgid "Up next"
@@ -2349,11 +3616,20 @@ msgstr "Échec ({error}). Merci de redémarrer le jeu."
 msgid "Updated"
 msgstr "Mis à jour"
 
+#: src/editor/EditorView.tsx
+msgid "Updated online"
+msgstr "Mise à jour en ligne"
+
+#: src/components/skills/SkillEquation.tsx
+msgid "upgrade boost"
+msgstr "boost d'amélioration"
+
 #: src/components/mods/ModSelect.tsx
 msgid "Upgrade Speed to unlock rates"
 msgstr "Améliore la Vitesse pour débloquer des rates"
 
 #: src/components/dock/DockUpgradesButton.tsx
+#: src/components/skills/SkillsView.tsx
 msgid "upgrades"
 msgstr "upgrades"
 
@@ -2366,22 +3642,34 @@ msgstr "Améliorations"
 msgid "Upgrades owned"
 msgstr "Améliorations achetées"
 
+#: src/editor/builtinActions.ts
+#: src/editor/EditorActions.tsx
+msgid "Upload"
+msgstr "Envoyer"
+
 #: src/components/Onboarding.tsx
 msgid "Upload a profile picture"
 msgstr "Envoyer un avatar"
 
-#: src/components/addons/AddonIconField.tsx
-#: src/components/skins/SkinIconField.tsx
+#: src/components/listing/IconField.tsx
 msgid "Upload image"
 msgstr "Envoyer une image"
+
+#: src/editor/EditorView.tsx
+msgid "Upload successful"
+msgstr "Envoi réussi"
+
+#: src/editor/EditorView.tsx
+msgid "Uploading..."
+msgstr "Envoi..."
 
 #: src/components/Onboarding.tsx
 msgid "Uploading…"
 msgstr "Envoi…"
 
-#: src/components/community/chat/ReportMessageDialog.tsx
-msgid "Using multiple accounts"
-msgstr "Utilisation de multi-comptes"
+#: src/editor/EditorBpmTools.tsx
+msgid "Use it"
+msgstr "L'utiliser"
 
 #: src/components/skins/SkinView.tsx
 msgid "Validation errors"
@@ -2399,6 +3687,11 @@ msgstr "La version {version} est disponible ! Actualisez la page pour mettre à 
 #: src/online/versionWatch.ts
 msgid "Version {version} is available ! Update in the main menu."
 msgstr "La version {version} est disponible ! Vous pouvez mettre à jour depuis le menu principal."
+
+#: src/editor/actions.ts
+#: src/editor/EditorSummary.tsx
+msgid "View"
+msgstr "Affichage"
 
 #: src/components/addons/AddonRepoBuild.tsx
 msgid "View build log"
@@ -2432,6 +3725,8 @@ msgstr "Regarde un résultat"
 msgid "volume"
 msgstr "volume|son"
 
+#: src/editor/EditorHitsounds.tsx
+#: src/editor/EditorHitsounds.tsx
 #: src/scenes/Options.tsx
 msgid "Volume"
 msgstr "Volume"
@@ -2452,13 +3747,21 @@ msgstr "En attente des autres joueurs..."
 msgid "Watch"
 msgstr "Regarder"
 
+#: src/editor/EditorViewOptions.tsx
+msgid "Waveform"
+msgstr "Waveform"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Waveform brightness"
+msgstr "Luminosité de la waveform"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "Waveform colour"
+msgstr "Couleur de la waveform"
+
 #: src/components/addons/AddonRepoPane.tsx
 msgid "Webhook"
 msgstr "Webhook"
-
-#: src/scenes/MainMenu.tsx
-msgid "Website"
-msgstr "Site web"
 
 #: src/components/Tutorial.tsx
 msgid "Welcome to oss!idle"
@@ -2472,6 +3775,30 @@ msgstr "Bienvenue, {username} !"
 msgid "What do you want to do with this beatmap?"
 msgstr "Que voulez-vous faire avec cette map ?"
 
+#: src/scenes/Character.tsx
+msgid "What each skill does and what multiplies its XP"
+msgstr "Ce que fait chaque compétence et ce qui multiplie son XP"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Wheel"
+msgstr "Molette"
+
+#: src/editor/EditorSoundFiles.tsx
+msgid "whistle"
+msgstr "whistle"
+
+#: src/editor/EditorHitsounds.tsx
+msgid "Whistle"
+msgstr "Whistle"
+
+#: src/editor/builtinActions.ts
+msgid "Whistle on the selection"
+msgstr "Whistle sur la sélection"
+
+#: src/editor/EditorViewOptions.tsx
+msgid "White"
+msgstr "Blanches"
+
 #: src/components/multiplayer/MatchSettings.tsx
 msgid "Win Condition:"
 msgstr "Condition de victoire :"
@@ -2479,6 +3806,10 @@ msgstr "Condition de victoire :"
 #: src/components/multiplayer/MatchRanking.tsx
 msgid "WINNER"
 msgstr "VAINQUEUR"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Withdraw"
+msgstr "Retirer"
 
 #: src/components/community/CommunityBody.tsx
 msgid "World Map"
@@ -2490,6 +3821,7 @@ msgid "x{factor} XP"
 msgstr "x{factor} XP"
 
 #: src/components/character/PrestigeRow.tsx
+#: src/components/skills/SkillEquation.tsx
 msgid "XP"
 msgstr "XP"
 
@@ -2564,6 +3896,10 @@ msgstr "Votre compte a été restreint, vous ne pouvez donc plus jouer. Contacte
 msgid "Your add-ons"
 msgstr "Vos add-ons"
 
+#: src/scenes/Editor.tsx
+msgid "Your changes since the last save will be lost."
+msgstr "Vos modifications depuis la dernière sauvegarde seront perdues."
+
 #: src/components/Tutorial.tsx
 msgid "Your character can play <0>on-repeat</0>, automatically, on playlists you crafted.<1> Hold down</1> a beatmap to add it and <2>group by playlist</2>, then start a beatmap to enter playlist mode."
 msgstr "Votre personnage peut jouer <0>en boucle</0>, automatiquement, sur des playlists que vous avez conçu. <1>Maintenez votre doigt</1> sur une map pour l'ajouter et <2>groupez par playlist</2>, puis lancez la map pour utiliser le mode playlist."
@@ -2595,4 +3931,16 @@ msgstr "Votre sauvegarde, vos paramètres et votre session ont été enregistré
 #: src/components/skins/ManageSkinsView.tsx
 msgid "Your skins"
 msgstr "Vos skins"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Zoom"
+msgstr "Zoom"
+
+#: src/editor/builtinActions.ts
+msgid "Zoom in"
+msgstr "Zoomer"
+
+#: src/editor/builtinActions.ts
+msgid "Zoom out"
+msgstr "Dézoomer"
 

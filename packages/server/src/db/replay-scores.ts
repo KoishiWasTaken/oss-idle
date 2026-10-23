@@ -42,7 +42,6 @@ import {
 	applySkillXp,
 	onSubmitScore,
 } from '../scores';
-import { getCharacterTotals } from './schema/character_totals';
 import { addBeatmapPlayed } from './schema/beatmaps_played';
 
 const decoder = new BeatmapDecoder();
@@ -148,7 +147,7 @@ const main = async () => {
 			await db.insert(scores).values(toDraft(row));
 			const stored = (await db.select().from(scores)
 				.where(eq(scores.id, Number(row.id))).limit(1))[0];
-			if (stored) await onSubmitScore(await getCharacterTotals(characterId), stored);
+			if (stored) await onSubmitScore(stored);
 		}
 
 		if (++done % 100 === 0) console.log(`  ${done}/${rows.length}`);

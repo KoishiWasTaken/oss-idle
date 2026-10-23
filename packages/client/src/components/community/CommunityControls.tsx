@@ -71,14 +71,9 @@ export default function CommunityControls() {
 	
 	Controls.chat.usePress(toggleChat);
 	Controls.community.usePress(toggleCommunity);
-	Controls.back.usePress(() => {
-		isCommunityOpen.set(false);
-		showChat.set(false);
-		showUsers.set(false);
-	});
 
 	return (
-		<div className={`community-controls ${idle ? 'is-idle' : ''}`} ref={ref}>
+		<div className={`community-controls ${idle && !open ? 'is-idle' : ''}`} ref={ref}>
 			{open && (<>
 				<CommunityToggle value={showTicker} label={t`Show ticker`} />
 				<CommunityToggle value={autoHide} label={t`Auto-hide`} />

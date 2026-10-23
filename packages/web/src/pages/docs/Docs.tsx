@@ -1,8 +1,5 @@
 import './Docs.css';
-import {
-	useEffect,
-	useState,
-} from 'react';
+import { useState } from 'react';
 import { API_URL } from '../../api/client';
 import {
 	ENDPOINTS,
@@ -16,6 +13,10 @@ import DocsToc, { type TocItem } from './DocsToc';
 import DocsGuide from './DocsGuide';
 import DocsEndpoint from './DocsEndpoint';
 import DocsObject from './DocsObject';
+import {
+	goToHeading,
+	useActiveHeading,
+} from './useActiveHeading';
 
 const LANGUAGE_KEY = 'oss-idle:docs-language';
 
@@ -71,37 +72,14 @@ const savedLanguage = (): Language => {
 	}
 };
 
-const HEADINGS = '.docs__content h1[id], .docs__content h2[id]';
-
-/** The heading the reader is in: the last one scrolled past the top. */
-const currentHeading = () => {
-	const headings = [...document.querySelectorAll<HTMLElement>(HEADINGS)];
-	const passed = headings.filter(h => h.getBoundingClientRect().top < 100);
-	return (passed[passed.length - 1] ?? headings[0])?.id;
-};
-
 /** The public API reference, after osu!'s (osu.ppy.sh/docs): English only, not sent to Crowdin. */
 export default function Docs() {
 	const api = API_URL || window.location.origin;
 	const site = window.location.origin;
 	const [language, setLanguage] = useState(savedLanguage);
-	const [active, setActive] = useState<string>();
-	const [menu, setMenu] = useState(false);
-
-	useEffect(() => {
-		let frame = 0;
-		const spy = () => {
-			cancelAnimationFrame(frame);
-			frame = requestAnimationFrame(() => setActive(currentHeading()));
-		};
-		spy();
-		window.addEventListener('scroll', spy, { passive: true });
-		if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
-		return () => window.removeEventListener('scroll', spy);
-	}, []);
-
 	// the code column changes height with the language
-	useEffect(() => setActive(currentHeading()), [language]);
+	const active = useActiveHeading(language);
+	const [menu, setMenu] = useState(false);
 
 	const pick = (next: Language) => {
 		setLanguage(next);
@@ -111,8 +89,7 @@ export default function Docs() {
 	};
 
 	const go = (id: string) => {
-		document.getElementById(id)?.scrollIntoView();
-		history.replaceState(history.state, '', `#${id}`);
+		goToHeading(id);
 		setMenu(false);
 	};
 

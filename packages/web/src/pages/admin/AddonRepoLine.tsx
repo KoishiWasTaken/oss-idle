@@ -10,7 +10,7 @@ export default function AddonRepoLine({ row }: { row: AdminAddon }) {
 	const live = row.publishedCommit !== row.commit && row.publishedCommit;
 
 	return (
-		<span className='addons-admin__creator'>
+		<span className='admin-list__creator'>
 			<a href={row.repoUrl} target='_blank' rel='noreferrer'>{row.repoUrl}</a>
 			{row.commit && built && <> · built {commitLink(row.commit, built)}</>}
 			{live && <> · live {commitLink(live, `${row.publishedTag ?? ''} (${live.slice(0, 7)})`)}</>}

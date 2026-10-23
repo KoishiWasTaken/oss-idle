@@ -1,4 +1,6 @@
 import './ContextMenu.css';
+import type { RefObject } from 'react';
+import useKeyboardOwner from '../input/keyboardOwner';
 
 export interface ContextMenuOption {
 	label: string;
@@ -19,6 +21,8 @@ type Props = {
 	numbered?: boolean;
 	/** between the header and the buttons, e.g. a list to pick from */
 	children?: React.ReactNode;
+	/** the box typing goes to while the menu is up */
+	focus?: RefObject<HTMLInputElement | null>;
 };
 
 /**
@@ -27,8 +31,9 @@ type Props = {
  * the caller owns what the options do (and must close the menu itself).
  */
 export default function ContextMenu({
-	title, sub, header, options, onClose, numbered, children,
+	title, sub, header, options, onClose, numbered, children, focus,
 }: Props) {
+	useKeyboardOwner(focus, { close: onClose });
 	return (
 		<div className="ctxmenu" onClick={onClose}>
 			<div className="ctxmenu__header">

@@ -19,6 +19,7 @@ const addon = table('addon', {
 	authorId:    integer(),
 	authorName:  text(),
 	tags:        text(), // comma-separated
+	types:       text(), // comma-separated: gameplay, editor
 	status:      text<AddonStatus>(),
 	enabled:     boolean(),
 	installedAt: integer(),

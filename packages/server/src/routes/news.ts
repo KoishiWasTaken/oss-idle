@@ -1,12 +1,10 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	desc,
 	eq,
 } from 'drizzle-orm';
-import { z } from 'zod';
 import {
 	newsCreateBody,
 	newsUpdateBody,
@@ -20,16 +18,11 @@ import { users } from '../db/schema/user';
 import { requireAdmin } from '../auth/admin';
 import { saveUploadedImage } from '../uploads';
 import { announceNews } from '../news/announce';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
-
-// Re-throw the ZodError so the app's onError handler returns our standard
-// `{ error: 'Validation failed', issues }` 400 - keeping one validation-error
-// shape across manually-parsed and zValidator-typed routes.
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => {
-		if (!result.success) throw result.error;
-	});
 
 /**
  * Post a freshly published article to the Discord news feed. The announce is
@@ -107,7 +100,7 @@ export const newsRoutes = new Hono()
 	})
 
 	// Admin: create.
-	.post('/', requireAdmin, jsonBody(newsCreateBody), async c => {
+	.post('/', requireAdmin, valid('json', newsCreateBody), async c => {
 		const { announce, ...body } = c.req.valid('json');
 
 		const [dupe] = await db.select({ id: news.id }).from(news).where(eq(news.slug, body.slug)).limit(1);
@@ -126,7 +119,7 @@ export const newsRoutes = new Hono()
 	})
 
 	// Admin: update. Toggling `published` on stamps `publishedAt` the first time.
-	.patch('/:id', requireAdmin, jsonBody(newsUpdateBody), async c => {
+	.patch('/:id', requireAdmin, valid('json', newsUpdateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const { announce = true, ...body } = c.req.valid('json');
 

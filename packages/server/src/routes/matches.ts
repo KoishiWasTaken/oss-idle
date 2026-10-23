@@ -1,10 +1,9 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { z } from 'zod';
 import { sessionUserId } from '../auth/middleware';
 import { matchHistory } from '../matchHistory';
+import { idParam } from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 export const matchesRoutes = new Hono()
 	// a match's history: public, or for its players only

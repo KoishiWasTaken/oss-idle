@@ -7,6 +7,7 @@ import { drawDevianceGraph } from './hitError';
 import { HitWindows } from '@oss-idle/shared/sim/scoring';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { currentSkin } from '../osu/skin/Skin';
+import { sizeCanvas } from '../sizeCanvas';
 
 interface Props {
 	hits: HitRecord[]
@@ -33,12 +34,7 @@ export default function StrainGraph({
 	useEffect(() => {
 		const canvas = ref.current!;
 		const ctx = canvas.getContext('2d')!;
-		const dpr = Math.min(window.devicePixelRatio || 1, 2);
-		canvas.width = width * dpr;
-		canvas.height = height * dpr;
-		canvas.style.width = `${width}px`;
-		canvas.style.height = `${height}px`;
-		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		sizeCanvas(canvas, ctx, width, height);
 		drawDevianceGraph(skin, ctx, {
 			hits, 
 			windows,

@@ -1,12 +1,9 @@
 import { ADDON_TAG } from '@oss-idle/shared/addon';
+import compareVersions from '@oss-idle/shared/helpers/compareVersions';
 
-const version = (tag: string) => ADDON_TAG.exec(tag)![1]!.split('.').map(Number);
+const version = (tag: string) => ADDON_TAG.exec(tag)![1]!;
 
-const compareTags = (a: string, b: string) => {
-	const [va, vb] = [version(a), version(b)];
-	const i = va.findIndex((n, i) => n !== vb[i]);
-	return i < 0 ? 0 : va[i]! - vb[i]!;
-};
+const compareTags = (a: string, b: string) => compareVersions(version(a), version(b));
 
 /** The newest version tag and the commit it points at, from `git ls-remote --tags`. */
 export const newestTag = (lsRemote: string) => {

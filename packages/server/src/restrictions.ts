@@ -40,6 +40,14 @@ import type {
 	Standing,
 } from '@oss-idle/shared/standing';
 import { alias } from 'drizzle-orm/mysql-core';
+import { isModerator } from '@oss-idle/shared/groups';
+import { groupsOf } from './groups';
+
+/** A restricted account exists only for itself and the moderators. */
+export const visibleTo = async (
+	owner: { id: number; restrictedAt: Date | null }, viewer: number | undefined,
+): Promise<boolean> =>
+	!owner.restrictedAt || viewer === owner.id || isModerator(await groupsOf(viewer));
 
 const log = (userId: number, action: Sanction, reason: string, seconds: number, actorId: number) =>
 	db.insert(accountHistory).values({
@@ -60,10 +68,27 @@ export const unsilence = async (userId: number): Promise<void> => {
 	await setBanned(userId, false);
 };
 
-const characterIds = async (userId: number) => (await db
+export const characterIds = async (userId: number) => (await db
 	.select({ id: characters.id })
 	.from(characters)
 	.where(eq(characters.userId, userId))).map(c => c.id);
+
+/** Stops what the characters have running and takes them off every board. Returns the maps
+ *  they held #1 on, for the caller to recompute. */
+export const takeOffline = async (ids: number[]): Promise<number[]> => {
+	for (const id of ids) {
+		await logOff(id);
+		const state = await playState(id);
+		if (state.phase === 'active') await abortPlay(id, state.token);
+		await leave(id);
+		await unindexCharacter(id);
+	}
+	if (!ids.length) return [];
+	return (await db
+		.select({ beatmapId: firstPlace.beatmapId })
+		.from(firstPlace)
+		.where(inArray(firstPlace.characterId, ids))).map(r => r.beatmapId);
+};
 
 /** osu!'s restricted mode: the account can't play or chat, and drops off every ranking,
  *  leaderboard, #1 and the online list until a moderator lifts it. `actorId` 0 is the server. */
@@ -76,20 +101,8 @@ export const restrict = async (userId: number, reason: string, actorId = 0): Pro
 	if (!affectedRows) return;
 	await log(userId, 'restriction', reason, 0, actorId);
 
-	const ids = await characterIds(userId);
-	for (const id of ids) {
-		await logOff(id);
-		const state = await playState(id);
-		if (state.phase === 'active') await abortPlay(id, state.token);
-		await leave(id);
-		await unindexCharacter(id);
-	}
-	if (!ids.length) return;
-	const held = await db
-		.select({ beatmapId: firstPlace.beatmapId })
-		.from(firstPlace)
-		.where(inArray(firstPlace.characterId, ids));
-	for (const { beatmapId } of held) await recomputeFirstPlace(beatmapId);
+	const held = await takeOffline(await characterIds(userId));
+	for (const beatmapId of held) await recomputeFirstPlace(beatmapId);
 };
 
 /** Puts the account back everywhere, its #1s included. */

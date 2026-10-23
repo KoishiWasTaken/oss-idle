@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import {
 	and,
 	asc,
@@ -24,13 +23,15 @@ import { requireActive } from '../auth/active';
 import { requireAdmin } from '../auth/admin';
 import { liveCondition } from '../beatmaps/catalog';
 import { pushMedals } from '../medals';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
 // ponytail: temporary, for maps proposed on Discord before the queue existed - drop with beatmap_claim once settled.
 
-const idParam = z.coerce.number().int().positive();
 
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => { if (!result.success) throw result.error; });
+const selectionBody = z.object({ setIds: z.array(idParam).max(1000) });
 
 /** Ranked osu! sets nobody proposed, so still counted for Adri. */
 const unclaimedSets = () => db
@@ -65,7 +66,7 @@ export const beatmapClaimRoutes = new Hono()
 	})
 
 	// The player's whole selection, replacing what they claimed before.
-	.put('/', requireActive, jsonBody(z.object({ setIds: z.array(idParam).max(1000) })), async c => {
+	.put('/', requireActive, valid('json', selectionBody), async c => {
 		const userId = c.get('userId');
 		const open = new Set((await unclaimedSets()).map(set => set.setId));
 		const setIds = [...new Set(c.req.valid('json').setIds)].filter(id => open.has(id));

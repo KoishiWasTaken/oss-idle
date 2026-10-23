@@ -3,7 +3,9 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useRef } from 'react';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import useKeyboardOwner from '../../input/keyboardOwner';
 import Dropdown from '../dropdown/Dropdown';
 import Checkbox from '../options/controls/Checkbox';
 import {
@@ -17,15 +19,17 @@ import {
 export default function DirectFilters({ matches }: { matches: number }) {
 	const { t } = useLingui();
 	const [search] = useSynced(directSearch);
+	const searchRef = useRef<HTMLInputElement>(null);
+	useKeyboardOwner(searchRef);
 
 	return (
 		<div className='direct-filters'>
 			<input
+				ref={searchRef}
 				className='direct-filters__search'
 				value={search}
 				placeholder={t`Search by artist, title, mapper, stars>5...`}
 				onChange={e => directSearch.set(e.target.value)}
-				autoFocus
 			/>
 			<div className='direct-filters__row'>
 				<span className='direct-filters__label'><Trans>Display</Trans></span>

@@ -3,6 +3,7 @@ import {
 	useState,
 } from 'react';
 import Entities from '../entity/entities';
+import accuracy from '@oss-idle/shared/display/accuracy';
 import { analyzeBeatmap } from '../gameplay/strainDebug';
 import { unstableRate } from '../gameplay/hitError';
 import StrainGraph from '../gameplay/StrainGraph';
@@ -82,7 +83,7 @@ export default function StrainDebug({ beatmapInfo, onClose, onPlay }: Props) {
 							<span className="strain__score">
 								{Math.round(s.score.score).toLocaleString()}
 							</span>
-							<span className="strain__acc">{(s.score.accuracy * 100).toFixed(2)}%</span>
+							<span className="strain__acc">{accuracy(s.score.accuracy)}</span>
 							{s.xp !== undefined && <span className="strain__xp">
 								+{s.xp.toLocaleString()} XP
 							</span>}

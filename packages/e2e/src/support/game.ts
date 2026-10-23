@@ -13,6 +13,10 @@ import type {
 	ScoreView,
 	XPGainView,
 } from './bridge';
+import { silence } from './files';
+
+/** Our own map ids start here (OWN_ID_FROM in shared's editor/chart): below it, osu!'s. */
+const OWN_ID_FROM = 1_000_000_000;
 
 /** A difficulty a test plays, with the set it came from. */
 export type PickedMap = { set: CatalogEntry, version: CatalogVersion };
@@ -61,17 +65,34 @@ export default class Game {
 		await this.expectScene('SELECT');
 	}
 
-	/** Load the client and click through to the main menu. */
+	/** Load the client straight into the main menu. */
 	async openMenu(): Promise<void> {
 		await this.open();
-		await this.enterMenu();
+		await this.page.evaluate(() => window.__idle!.enter('MENU'));
+		await expect(this.page.locator('.menu')).toBeVisible();
 	}
 
-	/** Intro → menu → song select in one go. */
+	/** Load the client straight into song select. The intro and the menu clicks
+	 *  are boot.spec's subject; everywhere else they are seconds per test. */
 	async start(): Promise<void> {
 		await this.open();
-		await this.enterMenu();
-		await this.enterSongSelect();
+		await this.page.evaluate(() => window.__idle!.enter('SELECT'));
+		await expect(this.page.locator('.game')).toBeVisible();
+	}
+
+	/** Main menu → Editor → New on a song (silent by default): an empty map,
+	 *  open in the editor. */
+	async newMap(name: string, song = silence(20)): Promise<void> {
+		await this.openMenu();
+		await this.page.locator('.menu__logo-enter').click();
+		await this.menuOption('Editor').click();
+		const chooser = this.page.waitForEvent('filechooser');
+		await this.menuOption('New').click();
+		await (await chooser).setFiles({
+			name, mimeType: 'audio/wav', buffer: song,
+		});
+		await this.expectScene('EDITOR');
+		await expect(this.page.locator('.editor__counts')).toHaveAttribute('data-notes', '0');
 	}
 
 	menuOption(title: string): Locator {
@@ -120,7 +141,9 @@ export default class Game {
 		order: (a: CatalogVersion, b: CatalogVersion) => number,
 		maxLengthMs: number,
 	): Promise<PickedMap> {
-		const sets = await this.catalog();
+		// osu!'s maps only: a map a test uploads and ranks is the easiest there is for a
+		// moment, and gone again before a test running beside it can download it
+		const sets = (await this.catalog()).filter(set => set.id < OWN_ID_FROM);
 		const candidates = sets.flatMap(set => set.versions
 			.filter(v => v.mode === 3 && v.keys === 4 && v.length <= maxLengthMs)
 			.map(version => ({
@@ -264,6 +287,17 @@ export default class Game {
 	}
 
 	/** Wait until a play is live (in any scene). */
+	/** Search, start a play of `diffId`, then quit to song select with the play
+	 *  running on. Returns that play. */
+	async playThenLeave(title: string, diffId: number): Promise<PlayView> {
+		await this.search(title);
+		await this.playCard(diffId);
+		const play = await this.waitForPlay();
+		await this.page.locator('.play__quit').click();
+		await this.expectScene('SELECT');
+		return play;
+	}
+
 	async waitForPlay(timeout = 90_000): Promise<PlayView> {
 		await this.page.waitForFunction(
 			() => !!window.__idle!.play(), undefined, { timeout },
@@ -304,12 +338,13 @@ export default class Game {
 	}
 
 	/** The result screen comes up off the play's outcome, which the owner
-	 *  finishes booking (pp, the score row, the xp) a moment later. */
+	 *  finishes booking a moment later: the score row, then the xp, recorded
+	 *  last as its xp row. So this waits for a guest's pass to be fully paid. */
 	async waitForScores(count = 1, timeout = 60_000): Promise<ScoreView[]> {
 		await expect.poll(
-			async () => (await this.scores()).length,
+			async () => Math.min((await this.scores()).length, (await this.xpGains()).length),
 			{
-				timeout, message: `waiting for ${count} saved score(s)`,
+				timeout, message: `waiting for ${count} saved and paid score(s)`,
 			},
 		).toBeGreaterThanOrEqual(count);
 		return this.scores();

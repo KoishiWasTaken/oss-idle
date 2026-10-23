@@ -5,7 +5,7 @@ import {
 import { db } from './db/client';
 import { beatmaps } from './db/schema/beatmap';
 import { beatmapset } from './db/schema/beatmapset';
-import { liveDiffCondition } from './beatmaps/catalog';
+import { listedCondition } from './beatmaps/catalog';
 
 /**
  * The stored `.osu` chart text for a beatmap, or null when the server hasn't
@@ -30,13 +30,13 @@ export async function getBeatmap(beatmapId: number) {
 	return row;
 }
 
-/** A diff that plays ranked: ranked itself, in a live set. */
+/** A diff that plays ranked: ranked itself, in a live set, never the intro. */
 export async function getLiveBeatmap(beatmapId: number) {
 	const [row] = await db
 		.select({ beatmap: beatmaps })
 		.from(beatmaps)
 		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
-		.where(and(eq(beatmaps.id, beatmapId), liveDiffCondition))
+		.where(and(eq(beatmaps.id, beatmapId), listedCondition))
 		.limit(1);
 	return row?.beatmap;
 }

@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import {
 	and,
@@ -63,14 +62,13 @@ import {
 	userCompact,
 	userStatistics,
 } from './objects';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 const notFound = (what: string) => new HTTPException(404, { message: `${what} not found` });
-
-const validated = <T extends z.ZodType>(schema: T) => zValidator('query', schema, r => {
-	if (!r.success) throw r.error;
-});
 
 /** A visible account with the character a lookup lands on. */
 const userWhere = async (where: SQL | undefined, on: SQL) => {
@@ -110,7 +108,7 @@ const fullUser = async ({ user, character }: Awaited<ReturnType<typeof byCharact
 	});
 };
 
-const listQuery = validated(z.object({
+const listQuery = valid('query', z.object({
 	limit: z.coerce.number().int().min(1).max(100).default(50),
 	offset: z.coerce.number().int().min(0).default(0),
 }));
@@ -159,9 +157,10 @@ const scoreType = z.enum(['best', 'firsts', 'recent']);
 
 const countryCode = z.string().length(2).toUpperCase().optional();
 
-const boardQuery = validated(z.object({ country: countryCode }));
+const boardQuery = valid('query', z.object({ country: countryCode }));
+const lookupQuery = z.object({ osu_id: idParam });
 
-const rankingQuery = validated(z.object({
+const rankingQuery = valid('query', z.object({
 	country: countryCode,
 	'cursor[page]': z.coerce.number().int().min(1).max(200).default(1),
 }));
@@ -249,7 +248,7 @@ export const apiV2Routes = new Hono()
 		return c.json(await characterScores(character.id, type, offset, limit));
 	})
 
-	.get('/beatmaps/lookup', needs('public'), validated(z.object({ osu_id: idParam })), async c => {
+	.get('/beatmaps/lookup', needs('public'), valid('query', lookupQuery), async c => {
 		return c.json(await beatmapWhere(eq(beatmaps.osuId, c.req.valid('query').osu_id)));
 	})
 

@@ -13,6 +13,9 @@ import Background from './Background';
 import { leaveScreensaver } from './screensaver';
 import './Screensaver.css';
 
+/** How long without input before the chrome over the screensaver fades out. */
+const IDLE_MS = 4000;
+
 /**
  * Gameplay without the playfield: the queue keeps playing in the background
  * and this only shows the map and how the play is going. Results land quietly,
@@ -23,6 +26,26 @@ export default function Screensaver() {
 	const [skin] = useSynced(currentSkin);
 	useTick(!!live);
 	Controls.back.usePress(leaveScreensaver);
+
+	// burn-in: the dock, cursor and other fixed chrome fade out (Screensaver.css)
+	// until the pointer or a key wakes them
+	useEffect(() => {
+		const html = document.documentElement;
+		let timer = 0;
+		const wake = () => {
+			html.classList.remove('is-saver-idle');
+			clearTimeout(timer);
+			timer = window.setTimeout(() => html.classList.add('is-saver-idle'), IDLE_MS);
+		};
+		const events = ['pointermove', 'pointerdown', 'keydown', 'wheel'] as const;
+		events.forEach(e => window.addEventListener(e, wake, { passive: true }));
+		wake();
+		return () => {
+			clearTimeout(timer);
+			events.forEach(e => window.removeEventListener(e, wake));
+			html.classList.remove('is-saver-idle');
+		};
+	}, []);
 
 	// the track follows the play, at the play's position
 	useEffect(() => {
@@ -35,7 +58,7 @@ export default function Screensaver() {
 
 	if (!live) {
 		return (<>
-			<Background />
+			<div className="screensaver__backdrop"><Background /></div>
 			<div className="screensaver">
 				<div className="screensaver__now">
 					<div className="screensaver__artist"><Trans>Waiting for the next map</Trans></div>
@@ -49,7 +72,7 @@ export default function Screensaver() {
 		(Date.now() - live.startedAt) / (live.endsAt - live.startedAt)));
 
 	return (<>
-		<Background beatmap={live.beatmap} />
+		<div className="screensaver__backdrop"><Background beatmap={live.beatmap} /></div>
 		<div className="screensaver">
 			<div className="screensaver__now">
 				<div className="screensaver__artist">{metadata.artist}</div>

@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/react/macro';
 import type { Addon as InstalledAddon } from '../../db/schema/addon';
-import AddonIcon from './AddonIcon';
+import { addonIconUrl } from '../../online/addons';
+import ListingIcon from '../listing/ListingIcon';
 
 type Props = {
 	addon: InstalledAddon,
@@ -23,16 +24,16 @@ export default function InstalledAddonRow({
 	onUninstall, 
 }: Props) {
 	return (
-		<div className={`addon ${addon.enabled ? 'is-on' : ''}`}>
-			<AddonIcon icon={addon.icon} name={addon.name} />
-			<div className='addon__main'>
-				<div className='addon__name'>
-					{addon.name}<span className='addon__ver'>v{addon.version}</span>
+		<div className={`listing ${addon.enabled ? 'is-on' : ''}`}>
+			<ListingIcon url={addonIconUrl(addon.icon)} name={addon.name} />
+			<div className='listing__main'>
+				<div className='listing__name'>
+					{addon.name}<span className='listing__ver'>v{addon.version}</span>
 				</div>
-				<div className='addon__by'><Trans>by</Trans> {addon.authorName}</div>
+				<div className='listing__by'><Trans>by</Trans> {addon.authorName}</div>
 			</div>
-			<div className='addon__actions'>
-				<label className='addon-toggle'>
+			<div className='listing__actions'>
+				<label className='listing-toggle'>
 					<input 
 						type='checkbox' 
 						checked={addon.enabled} 
@@ -44,20 +45,20 @@ export default function InstalledAddonRow({
 					</span>
 				</label>
 				<button 
-					className='addon-btn' 
+					className='listing-btn' 
 					disabled={busy} 
 					onClick={onDetails}>
 					<Trans>Details</Trans>
 				</button>
 				{hasUpdate && <button 
-					className='addon-btn addon-btn--primary'
+					className='listing-btn listing-btn--primary'
 					disabled={busy} 
 					onClick={onUpdate}
 				>
 					<Trans>Update</Trans>
 				</button>}
 				<button 
-					className='addon-btn addon-btn--danger' 
+					className='listing-btn listing-btn--danger' 
 					disabled={busy} 
 					onClick={onUninstall}
 				>

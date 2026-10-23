@@ -15,7 +15,6 @@ import {
 	presenceCount,
 } from '../ws/presence';
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
 import {
 	apiBaseUrl,
 	env,
@@ -26,7 +25,9 @@ import {
 	continentOf,
 } from '../geo';
 import { rateLimit } from '../rateLimit';
+import { clientCount } from '../queue';
 import { dashboard } from '../dashboard';
+import { valid } from '../validate';
 
 /** The API origins players can be on: the API itself and its edges. */
 const apiHosts = () => [apiBaseUrl, ...env.API_EDGES].map(url => new URL(url).host);
@@ -51,13 +52,14 @@ export const statsRoutes = new Hono()
 	.get('/admin', requireAdmin, async c => c.json({
 		serverVersion: VERSION,
 		online: await presenceCount(),
+		clients: await clientCount(),
 		playing: await getPlaying(),
 		players: (await db.select({ nb: max(characters.id) }).from(characters))[0].nb ?? 0,
 		scores: (await db.select({ nb: max(scores.id) }).from(scores))[0].nb ?? 0,
 		adoption: await adoptionBreakdown(),
 	}))
 	.get('/admin/metrics', requireAdmin, async c => c.json(await dashboard(apiHosts())))
-	.post('/rtt', rateLimit('rtt', 20), zValidator('json', rttBody), async c => {
+	.post('/rtt', rateLimit('rtt', 20), valid('json', rttBody), async c => {
 		const hosts = apiHosts();
 		const continent = await continentOf(clientIp(c)) ?? '??';
 		for (const { host, ms } of c.req.valid('json').samples) {

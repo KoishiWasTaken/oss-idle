@@ -3,6 +3,7 @@ import {
 	t,
 } from '@lingui/core/macro';
 import Synced from '@oss-idle/shared/helpers/synced';
+import accuracyText from '@oss-idle/shared/display/accuracy';
 import type { ChatLine } from '@oss-idle/shared/community/wire';
 import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
 import type { Grade } from '@oss-idle/shared/judgement';
@@ -53,7 +54,7 @@ export const logPlayFinished = (
 	const name = Entities.character.get()?.name ?? t`Guest`;
 	const meta = beatmap.set.metadata;
 	const map = `${meta.artist} - ${meta.title} [${beatmap.metadata.version}]`;
-	const accuracy = `${(score.accuracy * 100).toFixed(2)}%`;
+	const accuracy = accuracyText(score.accuracy);
 	const grade = score.grade;
 	const gains = gainsSummary(progression);
 	log(

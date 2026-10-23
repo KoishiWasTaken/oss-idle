@@ -27,10 +27,7 @@ test.describe('server queue', () => {
 		const { set, version } = await game.installEasiest();
 		const other = set.versions.find(v => v.id !== version.id);
 		test.skip(!other, 'the easiest set has a single difficulty');
-		await game.search(set.title);
-		await game.playCard(version.id);
-		const play = await game.waitForPlay();
-		await game.page.locator('.play__quit').click();
+		const play = await game.playThenLeave(set.title, version.id);
 		await game.page.getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
 		await game.page.keyboard.press('Escape');

@@ -58,6 +58,10 @@ export class Setting<T, K extends string = string> extends Synced<T> {
 
 }
 
+/** Moved off its default; a plain `Synced` has none, so never counts. */
+export const isChanged = <T>(value: Synced<T>, current: T): boolean =>
+	value instanceof Setting && JSON.stringify(current) !== JSON.stringify(value.defaultValue);
+
 export type DefaultSettings = readonly Setting<any, string>[];
 
 const option = <T>() =>
@@ -135,6 +139,9 @@ const defaults = [
 	// bundled maps not downloaded yet, listed in song select
 	option<boolean>()('showUndownloaded', true),
 	option<number>()('backgroundDim', 0.8),
+	option<number>()('cursorSize', 1),
+	/** the editor's live gameplay preview beside its playfield */
+	option<boolean>()('editorPreview', true),
 	option<number>()('autopilotDelay', 30),
 	// every setting is written on first load, so an existing player keeps Playlist
 	option<AutopilotMode>()('autopilotMode', AUTOPILOT_MODE.NEXT),

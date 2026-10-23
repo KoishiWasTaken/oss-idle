@@ -4,9 +4,10 @@ import {
 } from 'react';
 import { Trans } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import compareVersions from '@oss-idle/shared/helpers/compareVersions';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import Auth from '../../online/auth';
 import PageBarActions from '../page/PageBarActions';
+import { useHasUpdate } from '../listing/useHasUpdate';
 import { currentSkinDAO } from '../../osu/skin/Skin';
 import { installedSkins } from '../../db/schema/skin';
 import {
@@ -30,9 +31,9 @@ export default function ManageSkinsView() {
 	const [editing, setEditing] = useState<Editing | undefined>();
 	const [details, setDetails] = useState<SkinDetail | undefined>();
 	const [mine, setMine] = useState<SkinDTO[]>([]);
-	const [latest, setLatest] = useState<Record<number, string>>({});
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | undefined>();
+	const {
+		busy, error, setError, run: act,
+	} = useAction();
 
 	const refreshMine = () => {
 		if (!user) { setMine([]); return Promise.resolve(); }
@@ -40,22 +41,8 @@ export default function ManageSkinsView() {
 	};
 	useEffect(() => { void refreshMine(); }, [user]);
 
-	useEffect(() => {
-		Promise.all(installed.map(a =>
-			getSkin(a.id).then(d => [a.id, d.version] as const).catch(() => undefined),
-		)).then(pairs => {
-			const existing = pairs.filter(Boolean) as [number, string][];
-			setLatest(Object.fromEntries(existing));
-		});
-	}, [installed]);
-
-	const run = async (fn: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(undefined);
-		try { await fn(); await refreshMine(); }
-		catch (e) { setError(String((e as Error).message ?? e)); }
-		finally { setBusy(false); }
-	};
+	const hasUpdate = useHasUpdate(installed, getSkin);
+	const run = (fn: () => Promise<unknown>) => act(fn, refreshMine);
 
 	if (editing) {
 		return (
@@ -110,7 +97,7 @@ export default function ManageSkinsView() {
 						key={a.id}
 						skin={a}
 						busy={busy}
-						hasUpdate={latest[a.id] !== undefined && compareVersions(latest[a.id], a.version) > 0}
+						hasUpdate={hasUpdate(a)}
 						onToggle={enabled => run(() => a.setEnabled(enabled))}
 						onDetails={() => setDetails(a)}
 						onUpdate={() => run(async () => {

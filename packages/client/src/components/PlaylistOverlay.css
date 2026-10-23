@@ -55,9 +55,6 @@
 	font-size: 0.95rem;
 	outline: none;
 }
-.plmgr__create:focus {
-	border-color: rgba(255, 102, 171, 0.6);
-}
 
 .plmgr__list {
 	flex: 1;

@@ -1,5 +1,8 @@
 import './ChannelPicker.css';
-import { useState } from 'react';
+import {
+	useRef,
+	useState,
+} from 'react';
 import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
@@ -26,6 +29,7 @@ export default function ChannelPicker() {
 	const [tabs = []] = useSynced(chatTabs);
 	const [user] = useSynced(Auth.user);
 	const [search, setSearch] = useState('');
+	const searchRef = useRef<HTMLInputElement>(null);
 	if (!open) return null;
 
 	const topics: Record<string, string> = {
@@ -54,12 +58,13 @@ export default function ChannelPicker() {
 
 	return (
 		<ContextMenu
+			focus={searchRef}
 			header={<>
 				<div className="ctxmenu__title">{t`Select any channel you wish to join!`}</div>
 				<label className="channels__search">
 					{t`Search:`}
 					<input
-						autoFocus
+						ref={searchRef}
 						type="text"
 						value={search}
 						onChange={e => setSearch(e.target.value)}

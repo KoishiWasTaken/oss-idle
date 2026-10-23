@@ -1,4 +1,5 @@
 import ScoreMods from './ScoreMods';
+import accuracy from '@oss-idle/shared/display/accuracy';
 import './ScoreEntry.css';
 import { useState } from 'react';
 import { Score } from '../../db/schema/score';
@@ -101,7 +102,7 @@ export default function ScoreEntry({
 			<span className="score_entry__stats">
 				<ScoreMods rate={score.rate} mods={score.mods} />
 				<span className="score_entry__acc">
-					{(score.accuracy * 100).toFixed(2)}%
+					{accuracy(score.accuracy)}
 				</span>
 				<span className="score_entry__diff">
 					{previous && previous.score < score.score ? 

@@ -41,6 +41,10 @@ export const users = mysqlTable('user', {
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 
+/** Whether the account's oss!supporter tag is running now. */
+export const supporterActive = (row: Pick<UserRow, 'supporterUntil'> | undefined) =>
+	Boolean(row?.supporterUntil && row.supporterUntil > new Date());
+
 /** Map a user row to the wire contract. `avatarUrl` is the account's osu! avatar;
  *  a per-character custom upload lives on the character and overrides it there. */
 export function toUserDTO(row: UserRow, groups: Group[]): UserDTO {
@@ -50,7 +54,7 @@ export function toUserDTO(row: UserRow, groups: Group[]): UserDTO {
 		avatarUrl: row.avatarUrl,
 		country: row.country,
 		createdAt: row.createdAt.toISOString(),
-		supporter: Boolean(row.supporterUntil && row.supporterUntil > new Date()),
+		supporter: supporterActive(row),
 		restricted: Boolean(row.restrictedAt),
 		groups,
 	};

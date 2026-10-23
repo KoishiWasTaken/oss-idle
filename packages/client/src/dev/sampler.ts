@@ -32,7 +32,7 @@ declare global {
 }
 
 let running: JsProfiler | undefined;
-let unavailable = '';
+let unavailable = 'the JS sampler is off (dev tools screen)';
 
 /** Starts sampling; a full buffer (minutes of samples) starts over. */
 export function startSampler(): void {

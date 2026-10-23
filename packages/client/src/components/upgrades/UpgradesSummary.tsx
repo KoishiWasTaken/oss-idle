@@ -1,8 +1,5 @@
-import {
-	useEffect,
-	useReducer,
-} from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useSyncedAll } from '@oss-idle/shared/hooks/useSyncedAll';
 import type Skill from '@oss-idle/shared/sim/skills/skill';
 import { skillName } from '@oss-idle/shared/display/skills';
 import {
@@ -13,17 +10,13 @@ import {
 
 const tally = (skills: Skill[], locked: boolean) => {
 	const rows = skills.map(skill => {
-		const state = {
-			level: skill.level.get(),
-			upgrades: skill.upgrades.get(),
-			prestige: skill.prestige.get(),
-		};
+		const state = skill.state();
 		return {
 			skill,
 			max: maxUpgrades(state.prestige),
 			upgrades: state.upgrades,
 			ready: !locked && canUpgrade(state),
-			boost: upgradeXPMultiplier(state.upgrades, skill.overdrive.get()),
+			boost: upgradeXPMultiplier(state.upgrades, state.overdrive),
 		};
 	});
 	const sum = (pick: (r: typeof rows[number]) => number) =>
@@ -39,13 +32,7 @@ const tally = (skills: Skill[], locked: boolean) => {
 };
 
 export default function UpgradesSummary({ skills, locked }: { skills: Skill[], locked: boolean }) {
-	const [, refresh] = useReducer((n: number) => n + 1, 0);
-
-	useEffect(() => {
-		const synceds = skills.flatMap(s => [s.level, s.upgrades, s.overdrive, s.prestige]);
-		synceds.forEach(s => s.sync(refresh));
-		return () => synceds.forEach(s => s.desync(refresh));
-	}, [skills]);
+	useSyncedAll(() => skills.flatMap(s => [s.level, s.upgrades, s.overdrive, s.prestige]), [skills]);
 
 	const s = tally(skills, locked);
 	const best = skillName(s.best.skill.name);

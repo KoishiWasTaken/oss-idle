@@ -26,6 +26,7 @@ import {
 	UPLOAD_DIR,
 	UPLOAD_ROUTE,
 } from './uploads';
+import { IMMUTABLE } from './beatmaps/serve';
 import { usersRoutes } from './routes/users';
 import { authRoutes } from './routes/auth';
 import { meRoutes } from './routes/me';
@@ -47,9 +48,11 @@ import { teamRoutes } from './routes/team';
 import { groupsRoutes } from './routes/groups';
 import { restrictionsRoutes } from './routes/restrictions';
 import { accountsRoutes } from './routes/accounts';
+import { bugsRoutes } from './routes/bugs';
 import { oauthRoutes } from './routes/oauth';
 import { tokenRoutes } from './oauth';
 import { apiV2Routes } from './api/v2';
+import { UPLOAD_MAX } from './beatmaps/upload';
 
 // The desktop app loads its bundle from a registered `app://` scheme, so it
 // calls us from that origin (Bearer-authed, no cookie). In dev also accept the
@@ -62,11 +65,14 @@ const allowedOrigins = isProd
 
 const MB = 1024 * 1024;
 
+const bugPosts = rateLimit('bugs', 10);
+
 const TOKEN_QUERY = /([?&]token=)[^&\s]+/;
 
 /** How big a request body may be: an admin's .osz upload, an image, or anything else. */
 const bodyCap = (path: string): number => {
 	if (path === '/v1/beatmap/nomination') return 200 * MB;
+	if (/^\/v1\/beatmap\/upload(\/\d+)?$/.test(path)) return UPLOAD_MAX;
 	if (/\/(icon|avatar|banner|image)$/.test(path)) return 6 * MB;
 	return 2 * MB;
 };
@@ -103,6 +109,7 @@ const v1 = new Hono()
 	.route('/team', teamRoutes)
 	.route('/groups', groupsRoutes)
 	.route('/accounts', accountsRoutes)
+	.route('/bugs', bugsRoutes)
 	.route('/oauth', oauthRoutes)
 	.route('/proxy', proxyRoutes)
 ;
@@ -140,6 +147,8 @@ const app = new Hono()
 	.use('/v1/auth/discord/callback', rateLimit('auth', 60))
 	.use('/v1/auth/move', rateLimit('auth', 60))
 	.use('/v1/auth/move/redeem', rateLimit('auth', 60))
+	// each report and reply pings the team and the Discord feed
+	.use('/v1/bugs/*', (c, next) => (c.req.method === 'POST' ? bugPosts(c, next) : next()))
 	.get('/health', async c => await healthy()
 		? c.json({ status: 'ok' })
 		: c.json({ status: 'down' }, 503))
@@ -147,6 +156,10 @@ const app = new Hono()
 	.use(`${UPLOAD_ROUTE}/*`, serveStatic({
 		root: UPLOAD_DIR,
 		rewriteRequestPath: path => path.replace(new RegExp(`^${UPLOAD_ROUTE}`), ''),
+		// every upload gets a new name, never rewritten
+		onFound: (_path, c) => {
+			c.header('Cache-Control', IMMUTABLE);
+		},
 	}))
 	.route('/v1', v1);
 

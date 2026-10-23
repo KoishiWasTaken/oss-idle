@@ -6,6 +6,7 @@ import { showsDivine } from '@oss-idle/shared/rebirth';
 import {
 	difficultyColor,
 	difficultyTextColor,
+	starsText,
 } from '@oss-idle/shared/display/difficulty';
 import accuracy from '@oss-idle/shared/display/accuracy';
 import num from '@oss-idle/shared/display/num';
@@ -50,7 +51,7 @@ export default function ScorePage({ show }: { show: Awaited<ReturnType<typeof ge
 				<span className='score-beatmap__stars' style={{
 					backgroundColor: difficultyColor(stars), color: difficultyTextColor(stars), 
 				}}>
-					★ {stars.toFixed(2)}
+					★ {starsText(stars)}
 				</span>
 				<b>{beatmap.version}</b>
 				<span><Trans>mapped by <b>{ph({ creator: beatmapset.creator })}</b></Trans></span>

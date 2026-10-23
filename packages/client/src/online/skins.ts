@@ -1,9 +1,11 @@
 import type { InferResponseType } from 'hono/client';
 import {
+	apiUrl,
 	BASE_URL,
 	rpc,
 	withAuth,
 } from './client';
+import { unwrap } from '@oss-idle/shared/apiBase';
 import {
 	SkinCreateBody,
 	SkinUpdateBody,
@@ -15,22 +17,10 @@ export type Skin = InferResponseType<typeof rpc.v1.skins[':id']['$get']>;
 /** A skin for display/editing, minus the catalog-only stats a local skin lacks. */
 export type SkinDetail = Omit<Skin, 'downloads'>;
 
-type Resp = { ok: boolean; status: number; json: () => Promise<unknown> };
-
-/** Await a request and throw the server's error on a non-2xx, else return the JSON. */
-const unwrap = async <T>(p: Promise<Resp>): Promise<T> => {
-	const res = await p;
-	if (!res.ok) {
-		const body = await res.json().catch(() => ({})) as { error?: string };
-		throw new Error(body.error ?? `Request failed (${res.status})`);
-	}
-	return res.json() as Promise<T>;
-};
-
 export const skinIconUrl = (
 	icon: string | null | undefined,
 ): string | undefined =>
-	icon ? (/^https?:\/\//.test(icon) ? icon : `${BASE_URL}${icon}`) : undefined;
+	icon ? apiUrl(icon) : undefined;
 
 type BrowseQuery = {
 	q?: string,

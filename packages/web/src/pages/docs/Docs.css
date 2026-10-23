@@ -312,6 +312,7 @@
 
 .docs__content pre {
 	overflow-x: auto;
+	tab-size: 2;
 }
 
 .docs__content pre > code {

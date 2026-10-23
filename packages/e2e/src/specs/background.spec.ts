@@ -14,12 +14,7 @@ test.describe('background play', () => {
 		await game.start();
 		const { set, version } = await game.installEasiest();
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		const play = await game.waitForPlay();
-
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		const play = await game.playThenLeave(set.title, version.id);
 
 		const still = await game.play();
 		expect(still?.token).toBe(play.token);
@@ -28,16 +23,12 @@ test.describe('background play', () => {
 		await expect(page.locator('.dock__now .dock__map')).toContainText(set.title);
 	});
 
-	test('a play nobody watches still saves its score and pays its xp', async ({ game, page }) => {
+	test('a play nobody watches still saves its score and pays its xp', async ({ game }) => {
 		await game.start();
 		const { set, version } = await game.installEasiest();
 		const before = await game.character();
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		await game.playThenLeave(set.title, version.id);
 
 		// the local session owns the play; it ends on its own clock, so pull it in
 		await game.finishPlay();
@@ -73,11 +64,7 @@ test.describe('background play', () => {
 		await game.start();
 		const { set, version } = await game.installEasiest();
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		const play = await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		const play = await game.playThenLeave(set.title, version.id);
 
 		await page.getByRole('button', {
 			name: 'Watch', exact: true, 
@@ -92,11 +79,7 @@ test.describe('background play', () => {
 		await game.start();
 		const { set, version } = await game.installEasiest();
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		await game.playThenLeave(set.title, version.id);
 
 		// back out to the main menu: not the screen a result is shown on. The
 		// first Escape clears the search, the second leaves.

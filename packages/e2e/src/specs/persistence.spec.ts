@@ -59,11 +59,7 @@ test.describe('local persistence', () => {
 		const other = set.versions.find(v => v.id !== version.id);
 		test.skip(!other, 'the easiest set has a single difficulty');
 
-		await game.search(set.title);
-		await game.playCard(version.id);
-		await game.waitForPlay();
-		await page.locator('.play__quit').click();
-		await game.expectScene('SELECT');
+		await game.playThenLeave(set.title, version.id);
 		await page.getByRole('button', { name: 'Edit the queue' }).click();
 		await game.queueCard(other!.id);
 		expect((await game.queue())?.entries.length).toBeGreaterThan(0);

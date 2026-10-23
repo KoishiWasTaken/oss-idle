@@ -1,5 +1,9 @@
 import { ph } from '@lingui/core/macro';
-import { useState } from 'react';
+import {
+	useRef,
+	useState,
+} from 'react';
+import useKeyboardOwner from '../input/keyboardOwner';
 import './PlaylistOverlay.css';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import {
@@ -34,6 +38,8 @@ type Props = {
  */
 export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 	const { t } = useLingui();
+	const createRef = useRef<HTMLInputElement>(null);
+	useKeyboardOwner(createRef, { close: onClose });
 	const [version] = useSynced(playlistsVersion);
 	const index = useAsync(() => getPlaylistIndex(), [version]);
 	const [rate] = useSynced(selectedRate);
@@ -87,6 +93,7 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 			<div className="plmgr__heading"><Trans>Playlists</Trans></div>
 			<div className="plmgr__panel" onClick={(e) => e.stopPropagation()}>
 				<input
+					ref={createRef}
 					className="plmgr__create"
 					value={name}
 					onChange={(e) => setName(e.target.value)}
@@ -94,7 +101,6 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 					placeholder={t`Select a playlist or create a new one here...`}
 					spellCheck={false}
 					autoComplete="off"
-					autoFocus
 				/>
 
 				<div className="plmgr__list">

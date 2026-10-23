@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { isAdmin } from '@oss-idle/shared/groups';
 import { requireModerator } from '../auth/admin';
@@ -13,17 +12,16 @@ import {
 	unrestrict,
 	unsilence,
 } from '../restrictions';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 const reason = z.string().trim().min(1).max(255);
 const restrictBody = z.object({ reason });
 // 0: until lifted
 const silenceBody = z.object({
 	reason, seconds: z.number().int().nonnegative(),
-});
-
-const json = <T extends z.ZodType>(schema: T) => zValidator('json', schema, r => {
-	if (!r.success) throw r.error;
 });
 
 /** The account a sanction targets: it exists, and admins are out of reach. */
@@ -44,7 +42,7 @@ export const restrictionsRoutes = new Hono()
 		reason: r.reason ?? undefined,
 	}))))
 
-	.put('/:userId', requireModerator, json(restrictBody), async c => {
+	.put('/:userId', requireModerator, valid('json', restrictBody), async c => {
 		const userId = await sanctionable(c.req.param('userId'));
 		await restrict(userId, c.req.valid('json').reason, c.get('userId'));
 		return c.json({ ok: true });
@@ -55,7 +53,7 @@ export const restrictionsRoutes = new Hono()
 		return c.json({ ok: true });
 	})
 
-	.put('/:userId/silence', requireModerator, json(silenceBody), async c => {
+	.put('/:userId/silence', requireModerator, valid('json', silenceBody), async c => {
 		const { reason, seconds } = c.req.valid('json');
 		await silence(await sanctionable(c.req.param('userId')), seconds, reason, c.get('userId'));
 		return c.json({ ok: true });

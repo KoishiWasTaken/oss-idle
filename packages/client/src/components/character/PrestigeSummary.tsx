@@ -1,8 +1,5 @@
-import {
-	useEffect,
-	useReducer,
-} from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useSyncedAll } from '@oss-idle/shared/hooks/useSyncedAll';
 import type Skill from '@oss-idle/shared/sim/skills/skill';
 import { skillName } from '@oss-idle/shared/display/skills';
 import {
@@ -34,13 +31,7 @@ const tally = (skills: Skill[], locked: boolean) => {
 };
 
 export default function PrestigeSummary({ skills, locked }: { skills: Skill[], locked: boolean }) {
-	const [, refresh] = useReducer((n: number) => n + 1, 0);
-
-	useEffect(() => {
-		const synceds = skills.flatMap(s => [s.level, s.prestige]);
-		synceds.forEach(s => s.sync(refresh));
-		return () => synceds.forEach(s => s.desync(refresh));
-	}, [skills]);
+	useSyncedAll(() => skills.flatMap(s => [s.level, s.prestige]), [skills]);
 
 	const s = tally(skills, locked);
 	const best = skillName(s.best.skill.name);

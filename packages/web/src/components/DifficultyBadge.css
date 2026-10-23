@@ -1,0 +1,22 @@
+.difficulty-badge {
+	border-radius: 10000px;
+	background-color: var(--bg);
+	padding: 0 0.5em;
+	display: flex;
+	align-items: center;
+	font-weight: 700;
+	font-size: max(0.82em, 12px);
+	text-shadow: none;
+	height: 100%;
+}
+
+.difficulty-badge__icon {
+	font-size: 0.6em;
+	margin-right: 0.4em;
+}
+
+.difficulty-badge__rating {
+	/* most ratings (one digit, two decimals) get the same width */
+	min-width: 2.26em;
+	transform: translateY(-0.5px);
+}

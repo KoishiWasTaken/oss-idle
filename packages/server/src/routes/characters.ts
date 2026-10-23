@@ -11,6 +11,7 @@ import {
 import { z } from 'zod';
 import { db } from '../db/client';
 import {
+	type CharacterRow,
 	characters,
 	getCharacterById,
 	resolveAvatarUrl,
@@ -18,6 +19,7 @@ import {
 } from '../db/schema/character';
 import {
 	getUserById,
+	supporterActive,
 	users,
 } from '../db/schema/user';
 import { getCharacterTotals } from '../db/schema/character_totals';
@@ -45,41 +47,46 @@ import {
 import { supportLevel } from '@oss-idle/shared/supporter';
 import { profileOrder } from '@oss-idle/shared/profile';
 import { userPageOf } from '../userPage';
-import { isModerator } from '@oss-idle/shared/groups';
 import {
 	groupsByUser,
 	groupsOf,
 } from '../groups';
 import { createMiddleware } from 'hono/factory';
-import { zValidator } from '@hono/zod-validator';
 import { rollbackBody } from '@oss-idle/shared/upgrades';
 import { requireAdmin } from '../auth/admin';
 import { performUpgradeRevert } from '../character/actions';
 import { pushCharacter } from '../character/push';
 import { isPlaying } from '../play';
 import { sessionUserId } from '../auth/middleware';
+import { visibleTo } from '../restrictions';
+import { likeEscape } from '../db/columns';
 import {
 	countCurated,
 	getCurated,
 } from '../beatmaps/curated';
+import {
+	countMapped,
+	getMapped,
+} from '../beatmaps/mapped';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const numberParam = z.coerce.number().int().positive();
+const mappedStatus = z.enum(['ranked', 'unranked']);
 
-/** A restricted account's characters exist only for their owner and the moderators. */
-const hideRestricted = createMiddleware(async (c, next) => {
-	const id = numberParam.safeParse(c.req.param('id'));
-	if (id.success) {
-		const character = await getCharacterById(id.data);
-		const owner = character && await getUserById(character.userId);
-		const viewer = await sessionUserId(c);
-		if (owner?.restrictedAt && viewer !== owner.id && !isModerator(await groupsOf(viewer))) {
-			throw new HTTPException(404, { message: 'Character not found' });
-		}
+type CharacterEnv = { Variables: { character: CharacterRow } };
+
+/** Loads `:id`, hidden like its account when that is restricted. */
+const loadCharacter = createMiddleware<CharacterEnv>(async (c, next) => {
+	const character = await getCharacterById(idParam.parse(c.req.param('id')));
+	const owner = character && await getUserById(character.userId);
+	if (!character || (owner && !await visibleTo(owner, await sessionUserId(c)))) {
+		throw new HTTPException(404, { message: 'Character not found' });
 	}
+	c.set('character', character);
 	await next();
 });
-
-const likeEscape = (s: string) => s.replace(/[\\%_]/g, c => `\\${c}`);
 
 export const charactersRoutes = new Hono()
 	// Players by name: the accounts' current characters, exact match first.
@@ -110,18 +117,13 @@ export const charactersRoutes = new Hono()
 			groups: groups.get(p.userId)!,
 		})));
 	})
-	.use('/:id', hideRestricted)
-	.use('/:id/*', hideRestricted)
+	.use('/:id', loadCharacter)
+	.use('/:id/*', loadCharacter)
 	.get('/:id', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-
-		const [row] = await db.select().from(characters).where(eq(characters.id, id)).limit(1);
-
-		if (!row) throw new HTTPException(404, { message: 'Character not found' });
-
+		const row = c.get('character');
 		const user = await getUserById(row.userId);
 
-		const formerNames = (await getFormerNames(id)).filter(n => n !== row.name);
+		const formerNames = (await getFormerNames(row.id)).filter(n => n !== row.name);
 
 		const { userPage, ...rest } = row;
 		return c.json({
@@ -134,7 +136,7 @@ export const charactersRoutes = new Hono()
 			restricted: Boolean(user?.restrictedAt),
 			groups: await groupsOf(row.userId),
 			supportLevel: supportLevel(
-				Boolean(user?.supporterUntil && user.supporterUntil > new Date()),
+				supporterActive(user),
 				user?.supporterMonths ?? 0,
 			),
 		});
@@ -142,11 +144,9 @@ export const charactersRoutes = new Hono()
 
 	// The medals a character holds, newest first, and its progress toward the rest.
 	.get('/:id/medals', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
+		const character = c.get('character');
 		const [held, progress, holders] = await Promise.all([
-			getMedals(id),
+			getMedals(character.id),
 			medalProgress(character),
 			medalHolders(),
 		]);
@@ -161,11 +161,7 @@ export const charactersRoutes = new Hono()
 
 	// Derived profile statistics: aggregates, grade/judgement totals and ranks.
 	.get('/:id/stats', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const character = c.get('character');
 		const user = await getUserById(character.userId);
 		const totals = await getCharacterTotals(character.id);
 
@@ -193,80 +189,58 @@ export const charactersRoutes = new Hono()
 		return c.json(stats);
 	})
 	.get('/:id/mostplayed/:page', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const page = numberParam.parse(c.req.param('page'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
+		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getMostPlayed(id, page));
 	})
 	.get('/:id/countplayed', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
 		return c.json(await getTotalPlayed(id));
 	})
 	.get('/:id/bestpp/:page', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const page = numberParam.parse(c.req.param('page'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
+		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getBestPP(id, page));
 	})
 	.get('/:id/countfirstplaces', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
 		return c.json(await getNbFirstPlaces(id));
 	})
 	.get('/:id/firstplaces/:page', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const page = numberParam.parse(c.req.param('page'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
+		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getFirstPlaces(id, page));
 	})
 	.get('/:id/recent/:page', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const page = numberParam.parse(c.req.param('page'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const { id } = c.get('character');
+		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getRecentCharacterScores(id, page));
 	})
 	// Ranked maps the character's account proposed.
 	.get('/:id/countrankedmaps', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const character = c.get('character');
 		return c.json(await countCurated(character.userId));
 	})
 	.get('/:id/rankedmaps/:page', async c => {
-		const id = numberParam.parse(c.req.param('id'));
-		const page = numberParam.parse(c.req.param('page'));
-
-		const character = await getCharacterById(id);
-		if (!character) throw new HTTPException(404, { message: 'Character not found' });
-
+		const character = c.get('character');
+		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getCurated(character.userId, page));
 	})
+	// The account's own maps: ranked ones they mapped, or their unranked uploads.
+	.get('/:id/countmapped/:status', async c => {
+		const character = c.get('character');
+		const status = mappedStatus.parse(c.req.param('status'));
+		return c.json(await countMapped(character.userId, status));
+	})
+	.get('/:id/mapped/:status/:page', async c => {
+		const character = c.get('character');
+		const status = mappedStatus.parse(c.req.param('status'));
+		const page = idParam.parse(c.req.param('page'));
+		return c.json(await getMapped(character.userId, status, page));
+	})
 	// Admin: undo a skill's last upgrade - a misclick that bought one too many.
-	.post('/:id/upgrade/rollback', requireAdmin, zValidator('json', rollbackBody, r => {
-		if (!r.success) throw r.error;
-	}), async c => {
-		const id = numberParam.parse(c.req.param('id'));
+	.post('/:id/upgrade/rollback', requireAdmin, valid('json', rollbackBody), async c => {
+		const { id } = c.get('character');
 		if (await isPlaying(id)) throw new HTTPException(409, { message: 'A play is in progress' });
 		const { skill, anchor } = c.req.valid('json');
 		await performUpgradeRevert(id, skill, anchor);

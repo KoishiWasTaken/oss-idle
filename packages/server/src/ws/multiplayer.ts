@@ -42,7 +42,10 @@ import { LEAD_IN_MS } from '@oss-idle/shared/sim/maniaGame';
 import { hub } from './hub';
 import { areOnline } from './presence';
 import { isAway } from '../queue';
-import { BOT_COLOR } from './chat';
+import {
+	BOT_COLOR,
+	characterOwner,
+} from './chat';
 import { Judgements } from '@oss-idle/shared/judgement';
 import {
 	cleanMods,
@@ -329,12 +332,8 @@ type JoinAnswer = {
 
 /** Whether the character's account is restricted: it can't play, so it can't sit in a match. */
 const restrictedCharacter = async (characterId: number): Promise<boolean> => {
-	const [row] = await db
-		.select({ userId: characters.userId })
-		.from(characters)
-		.where(eq(characters.id, characterId))
-		.limit(1);
-	return Boolean(row && await isRestricted(row.userId));
+	const userId = await characterOwner(characterId);
+	return userId !== undefined && await isRestricted(userId);
 };
 
 const create = async (

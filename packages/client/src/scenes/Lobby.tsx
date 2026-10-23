@@ -2,8 +2,10 @@ import { ph } from '@lingui/core/macro';
 import '../components/multiplayer/Multiplayer.css';
 import {
 	useEffect,
+	useRef,
 	useState,
 } from 'react';
+import useKeyboardOwner from '../input/keyboardOwner';
 import {
 	Trans,
 	useLingui,
@@ -38,6 +40,8 @@ const showInProgress = new Setting('lobby.inProgress', true);
 /** osu!'s multiplayer lobby: the open matches, filtered. */
 export default function Lobby() {
 	const { t } = useLingui();
+	const searchRef = useRef<HTMLInputElement>(null);
+	useKeyboardOwner(searchRef);
 	const [matches = []] = useSynced(Multiplayer.matches);
 	const [ownedOnly] = useSynced(owned);
 	const [friendsOnly] = useSynced(withFriends);
@@ -128,7 +132,12 @@ export default function Lobby() {
 				<Checkbox value={showFull} label={<Trans>Show Full</Trans>} />
 				<label className="mp-filters__search">
 					<Trans>Search:</Trans>
-					<input className="mp-input" value={search} onChange={e => setSearch(e.target.value)} />
+					<input
+						ref={searchRef}
+						className="mp-input"
+						value={search}
+						onChange={e => setSearch(e.target.value)}
+					/>
 				</label>
 				<Checkbox value={withFriends} label={<Trans>Games with Friends</Trans>} />
 				<Checkbox value={showLocked} label={<Trans>Show Locked</Trans>} />

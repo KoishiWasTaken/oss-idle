@@ -196,6 +196,7 @@ const simulate = async (
 		character.id,
 		beatmapId,
 		character.memoryResetAt,
+		character.memoryForgets(),
 	);
 
 	const rate = rateFor(character, beatmap.lockedRate);

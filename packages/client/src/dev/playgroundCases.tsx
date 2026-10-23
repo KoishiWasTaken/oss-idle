@@ -6,6 +6,7 @@ import XpMultiplierToggle from '../components/songselect/XpMultiplierToggle';
 import UpgradeRow from '../components/upgrades/UpgradeRow';
 import UpgradesView from '../components/upgrades/UpgradesView';
 import UpgradesPreview from './UpgradesPreview';
+import SkillsView from '../components/skills/SkillsView';
 import { sampleCharacter } from './upgradeSample';
 import PrestigeView from '../components/character/PrestigeView';
 import ConfirmMenu from '../components/ConfirmMenu';
@@ -317,6 +318,13 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		id: 'upgrade-tier',
 		label: 'Upgrade row - Lv101 with overdrive, buying a gear tier',
 		render: () => <UpgradeRow skill={tieredSkill()} locked={false} />,
+	},
+	{
+		id: 'skills',
+		label: 'Skills - every skill state',
+		render: () => <UpgradesPreview tab="skills">
+			<SkillsView character={sampleCharacter()} />
+		</UpgradesPreview>,
 	},
 	{
 		id: 'upgrades',

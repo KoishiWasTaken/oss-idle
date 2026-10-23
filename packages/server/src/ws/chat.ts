@@ -265,21 +265,30 @@ export const forgetChatUser = async (userId: number, characterIds: number[]): Pr
 export const hasChatted = async (characterId: number): Promise<boolean> =>
 	await redis.sismember(CHATTED_KEY, String(characterId)) === 1;
 
+const systemLine = (channel: string, text: string, color: string): ChatLine => ({
+	id: randomUUID(),
+	kind: 'system',
+	channel,
+	text: text.slice(0, MAX_CHAT_LENGTH),
+	color,
+	at: Date.now(),
+});
+
 /** Broadcast a server announcement (no sender) - e.g. a #1-rank notice. The
  *  whole line renders in `color`. Fire-and-forget history write. */
 export const announce = (channel: string, text: string, color: string): void => {
-	const line: ChatLine = {
-		id: randomUUID(),
-		kind: 'system',
-		channel,
-		text: text.slice(0, MAX_CHAT_LENGTH),
-		color,
-		at: Date.now(),
-	};
+	const line = systemLine(channel, text, color);
 	void store(channel, line);
 	hub.broadcast({
 		type: 'chat', line,
 	});
+};
+
+/** A server line in #team, for the team only. */
+export const teamAnnounce = async (text: string): Promise<void> => {
+	const line = systemLine(TEAM_CHANNEL, text, BOT_COLOR);
+	await store(TEAM_CHANNEL, line);
+	relay(line, await teamCharacters());
 };
 
 /** An admin `/announce`: a system line in the attention colour. */

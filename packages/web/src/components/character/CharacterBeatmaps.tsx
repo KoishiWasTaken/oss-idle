@@ -1,31 +1,45 @@
 import { Trans } from '@lingui/react/macro';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import num from '@oss-idle/shared/display/num';
 import {
+	getCharacterMapped,
+	getCharacterNbMapped,
 	getCharacterNbRankedMaps,
 	getCharacterRankedMaps,
 } from '../../api/characters';
-import { useShowMore } from '../../hooks/useShowMore';
-import ShowMoreLink from '../ShowMoreLink';
-import MapsetCard from '../MapsetCard';
+import CharacterMapsSection from './CharacterMapsSection';
 
-/** osu!'s profile beatmaps: the ranked maps the player proposed, latest first. */
+/** osu!'s profile beatmaps: the maps the account made, ranked and unranked, and the
+ *  ranked maps it proposed. Left out when there are none. */
 export default function CharacterBeatmaps({ id }: { id: string }) {
-	const count = useAsync(() => getCharacterNbRankedMaps(id), [id]);
-	const ranked = useShowMore(page => getCharacterRankedMaps(id, page), [id]);
-	if (!count) return null;
+	const any = useAsync(async () => {
+		const counts = await Promise.all([
+			getCharacterNbMapped(id, 'ranked'),
+			getCharacterNbMapped(id, 'unranked'),
+			getCharacterNbRankedMaps(id),
+		]);
+		return counts.some(n => n > 0);
+	}, [id]);
+	if (!any) return null;
 
 	return <div className='character__block'>
 		<div className='character__block-title'><Trans>Beatmaps</Trans></div>
-		<div className='character__block-section'>
-			<div className='character__block-section-title'>
-				<Trans>Ranked Beatmaps</Trans>
-				<div className='character__block-section-title-count'>{num(count)}</div>
-			</div>
-			<div className='list__beatmap-container'>
-				{ranked.items?.map(mapset => <MapsetCard key={mapset.id} mapset={mapset} />)}
-			</div>
-			<ShowMoreLink {...ranked} onClick={ranked.more} />
-		</div>
+		<CharacterMapsSection
+			title={<Trans>Ranked Beatmaps</Trans>}
+			count={() => getCharacterNbMapped(id, 'ranked')}
+			page={page => getCharacterMapped(id, 'ranked', page)}
+			deps={[id]}
+		/>
+		<CharacterMapsSection
+			title={<Trans>Unranked Beatmaps</Trans>}
+			count={() => getCharacterNbMapped(id, 'unranked')}
+			page={page => getCharacterMapped(id, 'unranked', page)}
+			deps={[id]}
+		/>
+		<CharacterMapsSection
+			title={<Trans>Proposed Beatmaps</Trans>}
+			count={() => getCharacterNbRankedMaps(id)}
+			page={page => getCharacterRankedMaps(id, page)}
+			deps={[id]}
+		/>
 	</div>;
 }

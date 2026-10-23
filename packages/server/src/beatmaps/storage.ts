@@ -1,3 +1,7 @@
+import {
+	readdir,
+	rm,
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { sql } from 'drizzle-orm';
 import { db } from '../db/client';
@@ -20,6 +24,15 @@ export const PREVIEW_DIR = './previews';
 
 export const oszPath = (setId: number) => join(BEATMAP_DIR, `${setId}.osz`);
 export const previewPath = (file: string) => join(PREVIEW_DIR, file);
+
+/** Delete a set's .osz and previews. */
+export const deleteSetFiles = async (setId: number) => {
+	await rm(oszPath(setId), { force: true });
+	const previews = await readdir(PREVIEW_DIR).catch(() => [] as string[]);
+	await Promise.all(previews
+		.filter(f => f.startsWith(`${setId}.`) || f.startsWith(`${setId}-`))
+		.map(f => rm(previewPath(f), { force: true })));
+};
 
 const STAGING_FIRST_ID = 2_000_000_000;
 

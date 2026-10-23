@@ -1,4 +1,5 @@
 import Reading from '@oss-idle/shared/sim/skills/reading';
+import accuracy from '@oss-idle/shared/display/accuracy';
 import Speed from '@oss-idle/shared/sim/skills/speed';
 import num from '@oss-idle/shared/display/num';
 import {
@@ -142,7 +143,7 @@ export const makeHud = (): Layer => {
 		ctx.textAlign = 'right';
 		ctx.font = '700 30px "Exo 2", sans-serif';
 		ctx.fillText(
-			`${(game.score.accuracy * 100).toFixed(2)}%`,
+			accuracy(game.score.accuracy),
 			vp.w - 28,
 			opts.mobile ? 90 : 48,
 		);

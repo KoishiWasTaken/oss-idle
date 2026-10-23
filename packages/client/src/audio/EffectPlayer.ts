@@ -73,6 +73,12 @@ export class EffectPlayer {
 	 * Decode and cache a sample under `key`. Idempotent and de-duplicated: calling
 	 * it again with an already-loaded (or in-flight) key reuses the existing work.
 	 */
+	/** Drop `key`'s sound: the next load reads its file again. */
+	public forget(key: string): void {
+		this.buffers.delete(key);
+		this.loading.delete(key);
+	}
+
 	public load(key: string, url: string): Promise<AudioBuffer | undefined> {
 		const cached = this.buffers.get(key);
 		if (cached) return Promise.resolve(cached);
@@ -80,17 +86,19 @@ export class EffectPlayer {
 		const inFlight = this.loading.get(key);
 		if (inFlight) return inFlight;
 
-		const promise = (async () => {
+		const promise: Promise<AudioBuffer | undefined> = (async () => {
+			// forgotten while loading (its file changed): this load is the old file's
+			const current = () => this.loading.get(key) === promise;
 			try {
 				const res = await fetch(url);
 				const buffer = await this.decode(await res.arrayBuffer());
-				this.buffers.set(key, buffer);
+				if (current()) this.buffers.set(key, buffer);
 				return buffer;
 			} catch (e) {
 				Log.errorPopup(`Failed to load sample "${key}": ${String(e)}`);
 				return undefined;
 			} finally {
-				this.loading.delete(key);
+				if (current()) this.loading.delete(key);
 			}
 		})();
 
@@ -105,6 +113,11 @@ export class EffectPlayer {
 		const buffer = this.context.createBuffer(wav.channels.length, wav.channels[0].length, wav.rate);
 		wav.channels.forEach((c, i) => buffer.copyToChannel(c, i));
 		return buffer;
+	}
+
+	/** Keep a buffer made in code (a synthesised sound) under `key`. */
+	public store(key: string, buffer: AudioBuffer): void {
+		this.buffers.set(key, buffer);
 	}
 
 	/** Decode and cache a batch of samples keyed by name. */

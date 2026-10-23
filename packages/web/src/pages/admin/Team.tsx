@@ -16,12 +16,14 @@ import {
 } from '../../api/team';
 import TeamGroup from './TeamGroup';
 import TeamSearch from './TeamSearch';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 /** The team: find a player to add to a group, and each group's members. */
 export default function Team() {
 	const [team, setTeam] = useState<Awaited<ReturnType<typeof getTeam>>>();
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string>();
+	const {
+		busy, error, setError, run: runAction,
+	} = useAction();
 
 	const refresh = useCallback(() => getTeam()
 		.then(setTeam)
@@ -29,17 +31,7 @@ export default function Team() {
 
 	useEffect(() => { void refresh(); }, [refresh]);
 
-	const run = async (action: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(undefined);
-		try {
-			await action();
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		}
-		await refresh();
-		setBusy(false);
-	};
+	const run = (action: () => Promise<unknown>) => runAction(action, refresh);
 
 	return <main className='admin-medals'>
 		<p className='admin-medals__meta'>

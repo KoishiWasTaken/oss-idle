@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
 import { db } from '../db/client';
 import {
 	users,
@@ -10,10 +9,13 @@ import {
 
 import { isModerator } from '@oss-idle/shared/groups';
 import { groupsOf } from '../groups';
-import { standing } from '../restrictions';
+import {
+	standing,
+	visibleTo,
+} from '../restrictions';
 import { sessionUserId } from '../auth/middleware';
+import { idParam } from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 /**
  * Example feature route. Demonstrates the full path a request travels -
@@ -30,7 +32,7 @@ export const usersRoutes = new Hono()
 		const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
 
 		const viewer = await sessionUserId(c);
-		if (!row || (row.restrictedAt && viewer !== row.id && !isModerator(await groupsOf(viewer)))) {
+		if (!row || !await visibleTo(row, viewer)) {
 			throw new HTTPException(404, { message: 'User not found' });
 		}
 

@@ -5,6 +5,8 @@ import {
 	useState,
 	type RefObject,
 } from 'react';
+import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
+import { inTextBox } from '../../input/Controls';
 import { Trans } from '@lingui/react/macro';
 import type { MedalUnlock } from '../../achievements/medalUnlocks';
 import { closeMedals } from '../../online/medalWatch';
@@ -17,7 +19,7 @@ import MedalShowcase from './MedalShowcase';
 import './medals.css';
 
 const CLOSE_MS = 350;
-const KEYS = ['Escape', 'Enter', ' '];
+const KEYS = ['Enter', ' '];
 
 /** Feed the cursor to the medals' 3D tilt as CSS variables - no re-render. */
 const useParallax = (root: RefObject<HTMLDivElement | null>) => useEffect(() => {
@@ -84,10 +86,14 @@ export default function MedalUnlockOverlay({ waves, held }: Props) {
 		else if (finished) setClosedAt(count);
 		else setSkipTo(count);
 	}, [count, finished, focused]);
+	useKeyboardOwner(undefined, {
+		layer: LAYER.MEDALS, close: advance,
+	});
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
-			if (!KEYS.includes(e.key)) return;
+			// a box over the medals (options, chat) keeps its keys
+			if (!KEYS.includes(e.key) || inTextBox(document.activeElement)) return;
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			advance();

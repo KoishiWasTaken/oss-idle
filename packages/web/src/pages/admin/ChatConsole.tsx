@@ -7,6 +7,7 @@ import {
 	useState,
 } from 'react';
 import { DEFAULT_CHANNEL } from '@oss-idle/shared/community/wire';
+import clock from '@oss-idle/shared/display/clock';
 import {
 	type ChatHistory,
 	type ModerateBody,
@@ -19,12 +20,6 @@ import ChatReports from './ChatReports';
 import { getReports } from '../../api/social';
 
 const REFRESH_MS = 2000;
-
-const fmtTime = (at: number): string => {
-	const d = new Date(at);
-	const p = (n: number) => n.toString().padStart(2, '0');
-	return `${p(d.getHours())}:${p(d.getMinutes())}`;
-};
 
 type MenuState = { x: number; y: number; characterId: number; messageId: string };
 
@@ -102,7 +97,7 @@ export default function ChatConsole() {
 
 			<div className='chat-console__log' ref={logRef}>
 				{data.messages.map(m => {
-					const time = fmtTime(m.at);
+					const time = clock(m.at);
 					if (m.kind === 'system') return (
 						<div key={m.id} className='chat-console__line system'>
 							<span style={{ color: m.color }}>{time} {m.text}</span>

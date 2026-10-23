@@ -19,11 +19,11 @@ export default function AddonRepoBuild({ addon }: { addon: OwnAddon }) {
 
 	return (
 		<>
-			<div className='addon-field'>
+			<div className='listing-field'>
 				<span><Trans>Build</Trans></span>
 				<div className={`addon-repo__status addon-repo__status--${addon.buildStatus}`}>{status}</div>
 				{addon.tag && addon.commit && addon.repoUrl && (
-					<div className='addon__by'>
+					<div className='listing__by'>
 						<Trans>Last build:</Trans>{' '}
 						<a href={repoCommitUrl(addon.repoUrl, addon.commit)} target='_blank' rel='noreferrer'>
 							{addon.tag} ({addon.commit.slice(0, 7)})
@@ -33,14 +33,14 @@ export default function AddonRepoBuild({ addon }: { addon: OwnAddon }) {
 						</>}
 					</div>
 				)}
-				{addon.trusted && <div className='addon__by'>
+				{addon.trusted && <div className='listing__by'>
 					<Trans>Trusted: new builds go live without review.</Trans>
 				</div>}
 			</div>
 
 			{addon.buildLog && (
 				<>
-					<button className='addons__sort-btn' onClick={() => setShowLog(s => !s)}>
+					<button className='listings__sort-btn' onClick={() => setShowLog(s => !s)}>
 						{showLog ? <Trans>Hide build log</Trans> : <Trans>View build log</Trans>}
 					</button>
 					{showLog && <pre className='addon-repo__log'>{addon.buildLog}</pre>}

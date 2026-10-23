@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import {
+	useRef,
+	useState,
+} from 'react';
+import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
 import OverChat from './OverChat';
 import { Trans } from '@lingui/react/macro';
 import { MAX_MATCH_PASSWORD } from '@oss-idle/shared/multiplayer';
@@ -12,6 +16,11 @@ export default function PasswordPrompt({ title, sub, confirmLabel, onSubmit, onC
 	onClose: () => void,
 }) {
 	const [password, setPassword] = useState('');
+	const inputRef = useRef<HTMLInputElement>(null);
+	// OverChat's layer: this runs outside it
+	useKeyboardOwner(inputRef, {
+		layer: LAYER.OVER_CHAT, close: onClose, 
+	});
 	return (
 		<OverChat><div className="ctxmenu mp-create">
 			<div className="ctxmenu__header">
@@ -22,11 +31,11 @@ export default function PasswordPrompt({ title, sub, confirmLabel, onSubmit, onC
 				<label className="mp-create__label" htmlFor="mp-password-prompt"><Trans>Password:</Trans></label>
 				<input
 					id="mp-password-prompt"
+					ref={inputRef}
 					className="mp-input"
 					type="password"
 					value={password}
 					maxLength={MAX_MATCH_PASSWORD}
-					autoFocus
 					onChange={e => setPassword(e.target.value)}
 					onKeyDown={e => { if (e.key === 'Enter') onSubmit(password); }}
 				/>

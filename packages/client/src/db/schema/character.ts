@@ -66,6 +66,8 @@ const t = table('character', {
 	generation:  integer().default(1),
 	// when memory was last prestiged: plays before it no longer train it
 	memoryResetAt: integer().default(0),
+	// JSON list of when memory upgrades were bought: each forgets plays on every map
+	memoryForgetAt: text().default('[]'),
 	local:       integer().default(0),
 	current:     integer().default(0),
 });
@@ -123,6 +125,10 @@ export default class Character extends DAO(t) {
 		this.overallTotalXp = Math.max(0, this.overallTotalXp - amount);
 		this.overallLevel = xpGivesLevel(this.overallTotalXp).level;
 		await this.persistSkills();
+	}
+
+	public memoryForgets(): number[] {
+		return JSON.parse(this.memoryForgetAt) as number[];
 	}
 
 	/** Read the levels back off the XP the character has kept.

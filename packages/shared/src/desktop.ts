@@ -42,6 +42,20 @@ export interface DesktopUpdater {
 	switchStream?(name: string): Promise<void>;
 }
 
+/** A map's set as a folder on disk, opened in the file explorer. Files by their path in
+ *  the set ('/' between folders); undefined for one that went away. */
+export interface DesktopMapFolder {
+	/** Write the set's `files` to its folder (named `name`), watch it, and open it unless
+	 *  `show` is false. */
+	open(name: string, files: Record<string, Uint8Array>, show?: boolean): Promise<void>;
+	/** Files the game changed, written to the open folder (undefined deletes one). */
+	write(files: Record<string, Uint8Array | undefined>): void;
+	/** Stop watching the folder. */
+	close(): void;
+	/** What the player changed in the folder; returns an unsubscribe fn. */
+	onChanged(cb: (files: Record<string, Uint8Array | undefined>) => void): () => void;
+}
+
 /**
  * The bridge the Electron app injects on `window.ossIdleDesktop` (via its
  * preload, in every frame). Absent in a normal browser - {@link desktop} returns
@@ -93,6 +107,8 @@ export interface OssIdleDesktop {
 	/** Reinstall into `<picked folder>/oss!idle` and relaunch from there. Absent where the
 	 *  install is already portable (AppImage, macOS) and on builds older than the option. */
 	moveInstall?(dialogTitle: string): Promise<DesktopMoveResult>;
+	/** The open map's folder, for the editor. Absent on builds older than it. */
+	readonly mapFolder?: DesktopMapFolder;
 	/** Steam integration - inert until wired up, exposed so callers can feature-detect. */
 	readonly steam: { readonly available: boolean };
 }

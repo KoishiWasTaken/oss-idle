@@ -29,8 +29,11 @@ import {
 	randomSecret,
 	redirectsOf,
 } from '../oauth';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
 /** A client with who owns it, under the name players know them by. */
 const clientWithOwner = async (id: number) => {
@@ -94,11 +97,7 @@ const requestQuery = zValidator('query', z.object({
 	if (!r.success) throw new HTTPException(400, { message: 'Invalid authorization request' });
 });
 
-const json = <T extends z.ZodType>(schema: T) => zValidator('json', schema, r => {
-	if (!r.success) throw r.error;
-});
-
-const clientBody = json(oauthClientBody);
+const clientBody = valid('json', oauthClientBody);
 
 type Authorized = {
 	id: number;
@@ -122,7 +121,7 @@ export const oauthRoutes = new Hono()
 		return c.json(toClient(await ownClient(c.get('userId'), id)));
 	})
 
-	.put('/clients/:id', requireActive, json(oauthClientUpdateBody), async c => {
+	.put('/clients/:id', requireActive, valid('json', oauthClientUpdateBody), async c => {
 		const client = await ownClient(c.get('userId'), idParam.parse(c.req.param('id')));
 		const { redirect } = c.req.valid('json');
 		await db.update(oauthClients)
@@ -161,7 +160,7 @@ export const oauthRoutes = new Hono()
 		});
 	})
 
-	.post('/authorize', requireActive, json(authorizeBody), async c => {
+	.post('/authorize', requireActive, valid('json', authorizeBody), async c => {
 		const body = c.req.valid('json');
 		const { client, redirectUri, scopes } = await checkRequest(body);
 		const url = new URL(redirectUri);

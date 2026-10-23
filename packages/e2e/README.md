@@ -18,29 +18,40 @@ npm run teste2e:install    # one-off: download the browser
 
 ## What it runs against
 
-The **dev** stack: the client on `:5173` (which proxies `/web` to the web app on
-`:5174`) against the API on `:3873`. `npm run dev` is usually already running and
-is reused; when it is not, playwright starts it.
+The **dev** stack's API (`:3873`) and web app (`:5174`), with the client built in
+development mode (the test bridge kept) and served on `:5175`, so a fresh page loads
+a few bundles instead of ~700 dev modules. `npm run dev` is usually already running
+and is reused; when it is not, playwright starts it. The client is built each run.
+
+A failed test runs once more, recorded (trace and video): recording every test cost
+a third of the run. CSS and web animations play at 4x, since a click waits for its
+target to stop moving.
 
 Every test opens a fresh browser context, so the local sql.js database, the
 IndexedDB behind it and the settings all start empty - each test is a first-run
-player, signed out.
+player, signed out. Tests run fully parallel, on 4 workers (`E2E_WORKERS=n`
+to change it).
 
 The social and multiplayer specs need players who are signed in, and two of them.
 They skip osu! OAuth: `src/support/accounts.ts` writes test accounts straight into
 the dev database (`DB_NAME_DEV` from `packages/server/.env`, ids at the top of
-the int range, one pair per spec file so two workers never share one), clears
-what an earlier run left between them, and signs a session cookie with the dev
-server's own `JWT_SECRET`. The `playerAs(account)` fixture hands back a page in
-its own signed-in context. The server has no test login route.
+the int range, a pair per spec file and per worker so two tests running at once
+never share one), clears what an earlier run left between them, and signs a
+session cookie with the dev server's own `JWT_SECRET`. The `playerAs(account)`
+fixture hands back a page in its own signed-in context. The server has no test
+login route. A new account earns first-time medals, so the fixtures press their
+overlay away whenever it covers the screen.
 
 ## How a test drives the game
 
 Clicks, keys and the DOM - `src/support/game.ts` is the page object, and the
-specs read as what a player did. Two things are read through the client's
+specs read as what a player did. Three things go through the client's
 dev-only bridge (`packages/client/src/dev/testBridge.ts`, on `window.__idle`
 behind `import.meta.env.DEV`):
 
+- **skipping the intro and the menu clicks**. `game.start()` loads straight into
+  song select and `openMenu()` into the main menu; only `boot.spec.ts` clicks
+  through them, since they are seconds per test;
 - **state the screen does not spell out** - the character's xp, the local score
   rows, what is in the queue;
 - **ending a play now**. A play is a clock over an outcome decided when it

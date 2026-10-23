@@ -1,30 +1,31 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { repoCommitUrl } from '@oss-idle/shared/addon';
-import AddonIcon from './AddonIcon';
+import { addonIconUrl } from '../../online/addons';
+import ListingIcon from '../listing/ListingIcon';
 import type { AddonDetail } from './AddonView';
 
 /** Read-only left column of the add-on view (details / update / install). */
 export default function AddonReadMeta({ detail }: { detail: AddonDetail }) {
 	return (
 		<>
-			<div className='addon-view__head'>
-				<AddonIcon icon={detail.icon} name={detail.name} />
-				<div className='addon-view__headmeta'>
-					<div className='addon-view__name'>
-						{detail.name}<span className='addon__ver'>v{detail.version}</span>
+			<div className='listing-view__head'>
+				<ListingIcon url={addonIconUrl(detail.icon)} name={detail.name} />
+				<div className='listing-view__headmeta'>
+					<div className='listing-view__name'>
+						{detail.name}<span className='listing__ver'>v{detail.version}</span>
 					</div>
-					<div className='addon__by'>
+					<div className='listing__by'>
 						<Trans>by {ph({ author: detail.authorName })} for game version {ph({ version: detail.gameVersion })}</Trans>
 					</div>
 				</div>
 			</div>
-			{detail.tags.length > 0 && <div className='addon__tags'>
-				{detail.tags.map(t => <span key={t} className='addon__tag'>{t}</span>)}
+			{detail.tags.length > 0 && <div className='listing__tags'>
+				{detail.tags.map(t => <span key={t} className='listing__tag'>{t}</span>)}
 			</div>}
-			{detail.description && <p className='addon-view__desc'>{detail.description}</p>}
+			{detail.description && <p className='listing-view__desc'>{detail.description}</p>}
 			{detail.repoUrl && detail.commit && detail.tag && (
-				<div className='addon__by'>
+				<div className='listing__by'>
 					<Trans>Built from</Trans>{' '}
 					<a href={repoCommitUrl(detail.repoUrl, detail.commit)} target='_blank' rel='noreferrer'>
 						{detail.repoUrl.replace(/^https:\/\//, '')} {detail.tag}

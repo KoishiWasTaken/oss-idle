@@ -9,14 +9,11 @@ import type {
 import { getUser } from '../../api/users';
 import Flag from '../../components/Flag';
 import ProfilePicture from '../../components/ProfilePicture';
-import Grade from '../../components/score/Grade';
-import { headlineGrades } from './headlineGrades';
+import CharacterTotals from './CharacterTotals';
+import CharacterFigures from './CharacterFigures';
 import { SkillBar } from '../../components/character/SkillBar';
 import { CharacterRanks } from '../../components/character/CharacterRanks';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import num from '@oss-idle/shared/display/num';
-import accuracy from '@oss-idle/shared/display/accuracy';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
 import { extractSkills } from '@oss-idle/shared/osu/level';
 import { SkillName } from '@oss-idle/shared/skills';
 import { Trans } from '@lingui/react/macro';
@@ -63,48 +60,12 @@ export default function CharacterPreview({ character, stats }: {
 			<div className='character__stats'>
 				<div className='character__main_stats'>
 					<CharacterRanks stats={stats} />
-					<div className='character__totals'>
-						<div className='character__totals_left'>
-							<div className='character__totals-left-area'>
-								<div className='character__totals-left-label'>pp</div>
-								<div className='character__totals-left-num'>{num(Math.round(stats.pp))}</div>
-							</div>
-							<div className='character__totals-left-area'>
-								<div className='character__totals-left-label'><Trans>Play Count</Trans></div>
-								<div className='character__totals-left-num'>{num(stats.playCount)}</div>
-							</div>
-						</div>
-						<div className='character__totals_grades'>
-							{headlineGrades(stats).map(g => (
-								<div key={g} className='character__grades-area'>
-									<Grade grade={g} />
-									<div className='character__grades-num'>{num(stats[g])}</div>
-								</div>
-							))}
-						</div>
-					</div>
+					<CharacterTotals stats={stats} />
 				</div>
 
 				<div className='character__stats_sep'></div>
 
-				<div className='character__all_stats'>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Ranked Score</Trans></div>
-						<div className='character__stats-num'>{num(stats.rankedScore)}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Hit Accuracy</Trans></div>
-						<div className='character__stats-num'>{accuracy(hitAccuracy(stats))}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Total Score</Trans></div>
-						<div className='character__stats-num'>{num(stats.totalScore)}</div>
-					</div>
-					<div className='character__stats-area'>
-						<div className='character__stats-label'><Trans>Total Hits</Trans></div>
-						<div className='character__stats-num'>{num(stats.totalHits)}</div>
-					</div>
-				</div>
+				<CharacterFigures stats={stats} />
 			</div>
 
 			<div className='character__blocks'>

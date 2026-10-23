@@ -6,6 +6,7 @@ import {
 } from 'react';
 import { isWebOpen } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { SETTINGS } from '../db/settings';
 
 const TRAIL = 30;
 
@@ -18,6 +19,11 @@ export default function Cursor() {
 	const rootRef = useRef<HTMLDivElement>(null);
 	const trailRefs = useRef<(HTMLImageElement | null)[]>([]);
 	const [webOpen] = useSynced(isWebOpen);
+	const [size] = useSynced(SETTINGS.cursorSize);
+
+	useEffect(() => {
+		document.documentElement.style.setProperty('--cursor-size', String(size));
+	}, [size]);
 
 	// While the in-game browser is open, drop the custom cursor: restore the
 	// system cursor (for the chrome; the iframe uses its own) and hide our cursor

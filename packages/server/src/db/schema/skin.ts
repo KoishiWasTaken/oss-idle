@@ -7,6 +7,7 @@ import {
 	varchar,
 } from 'drizzle-orm/mysql-core';
 import { users } from './user';
+import { splitTags } from '../columns';
 import {
 	SKIN_STATUS,
 	type SkinStatus,
@@ -42,8 +43,6 @@ export const skinDownloads = mysqlTable('skin_downloads', {
 
 export type SkinRow = typeof skins.$inferSelect;
 export type NewSkinRow = typeof skins.$inferInsert;
-
-const splitTags = (csv: string): string[] => csv ? csv.split(',').filter(Boolean) : [];
 
 export const toSkinDTO = (row: SkinRow, authorName: string) => {
 	return {

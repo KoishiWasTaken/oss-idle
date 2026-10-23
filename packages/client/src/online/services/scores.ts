@@ -1,5 +1,6 @@
 import { InferResponseType } from 'hono/client';
 import { rpc } from '../client';
+import { unwrap } from '@oss-idle/shared/apiBase';
 import MemCache from '@oss-idle/shared/storage/memcache';
 import Character from '../../db/schema/character';
 import { Score } from '../../db/schema/score';
@@ -11,32 +12,23 @@ type BeatmapBoardResponse = InferResponseType<typeof endpoint['beatmap'][':beatm
 export type BoardPlayer = BeatmapBoardResponse[number]['player'];
 type MyBeatmapScoreResponse = InferResponseType<typeof endpoint['beatmap'][':beatmap']['me']['$get'], 200>;
 
-export const getScore = async (id: number): Promise<ScoreResponse> => {
-	const res = await endpoint[':id'].$get({ param: { id: String(id) } });
-	if (!res.ok) throw new Error(`getScore(${id}) failed: ${res.status}`);
-	return res.json();
-};
+export const getScore = (id: number): Promise<ScoreResponse> =>
+	unwrap<ScoreResponse>(endpoint[':id'].$get({ param: { id: String(id) } }));
 
 /** The signed-in character's own best on this beatmap + its rank, global or
  *  within a country (null when signed out or no play yet). */
-export const getMyBeatmapScore = async (
+export const getMyBeatmapScore = (
 	beatmap: number, 
 	country?: string,
-): Promise<MyBeatmapScoreResponse> => {
-	const res = country === undefined
-		? await endpoint['beatmap'][':beatmap']['me']
-			.$get({ param: { beatmap: String(beatmap) } })
-		: await endpoint['beatmap'][':beatmap']['country'][':country']['me']
-			.$get({
-				param: {
-					beatmap: String(beatmap), country, 
-				}, 
-			});
-
-	if (!res.ok)
-		throw new Error(`getMyBeatmapScore(${beatmap}) failed: ${res.status}`);
-	return res.json();
-};
+): Promise<MyBeatmapScoreResponse> => unwrap<MyBeatmapScoreResponse>(country === undefined
+	? endpoint['beatmap'][':beatmap']['me']
+		.$get({ param: { beatmap: String(beatmap) } })
+	: endpoint['beatmap'][':beatmap']['country'][':country']['me']
+		.$get({
+			param: {
+				beatmap: String(beatmap), country,
+			},
+		}));
 
 export const flushBeatmapScores = async (beatmap: number) => 
 	MemCache.get<BeatmapBoardResponse>('API.getBeatmapScores')
@@ -61,12 +53,10 @@ export const getBeatmapScores = async (
 ): Promise<BeatmapBoardResponse> => {
 	return MemCache.get<BeatmapBoardResponse>('API.getBeatmapScores')
 		.process(country ? `${beatmap}:${country}` : beatmap, async () => {
-			const res = await endpoint['beatmap'][':beatmap']['board'].$get({
+			const rows = await unwrap<BeatmapBoardResponse>(endpoint['beatmap'][':beatmap']['board'].$get({
 				param: { beatmap: String(beatmap) },
 				query: { country },
-			});
-			if (!res.ok) throw new Error(`getBeatmapScores(${beatmap}, ${country}) failed: ${res.status}`);
-			const rows: BeatmapBoardResponse = await res.json();
+			}));
 			importScores(rows.map(r => r.score));
 			return rows;
 		}, 1000 * 60);

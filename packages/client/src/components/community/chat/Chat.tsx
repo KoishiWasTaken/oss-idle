@@ -1,8 +1,5 @@
 import './Chat.css';
-import {
-	useEffect,
-	useRef,
-} from 'react';
+import { useRef } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import Tabs, { Tab } from '../../tabs/Tabs';
@@ -18,6 +15,7 @@ import ChatTabContents from './ChatTabContents';
 import { unreadTabs } from './unread';
 import { isCommunityOpen } from '../../../globals';
 import { showChat } from '../state';
+import useKeyboardOwner from '../../../input/keyboardOwner';
 
 export default function Chat() {
 	const { t } = useLingui();
@@ -32,14 +30,9 @@ export default function Chat() {
 		inputRef.current?.focus();
 	};
 
-	// showing the chat puts you in its input; the frame wait lets it become visible
 	const [open] = useSynced(isCommunityOpen);
-	const [shown] = useSynced(showChat);
-	useEffect(() => {
-		if (!open || !shown) return;
-		const frame = requestAnimationFrame(() => inputRef.current?.focus());
-		return () => cancelAnimationFrame(frame);
-	}, [open, shown]);
+	const [shown = true] = useSynced(showChat);
+	useKeyboardOwner(inputRef, { active: open && shown });
 
 	const closeChannel = (channel: string) => {
 		void chatTabs.set(channels.filter(c => c !== channel));

@@ -1,9 +1,7 @@
 import './EditableProfilePicture.css';
-import {
-	useRef,
-	useState,
-} from 'react';
+import { useRef } from 'react';
 import ProfilePicture from './ProfilePicture';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import {
 	resetAvatar,
 	uploadAvatar,
@@ -29,20 +27,10 @@ export default function EditableProfilePicture({ avatarUrl, className, onChange 
 	const { t } = useLingui();
 
 	const fileInput = useRef<HTMLInputElement>(null);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const { busy, error, run: runAction } = useAction();
 
 	const run = async (action: () => Promise<{ avatarUrl: string | null }>) => {
-		if (busy) return;
-		setBusy(true);
-		setError(null);
-		try {
-			onChange?.((await action()).avatarUrl);
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		} finally {
-			setBusy(false);
-		}
+		if (!busy) await runAction(async () => onChange?.((await action()).avatarUrl));
 	};
 
 	const pick = (file: File | undefined) => { if (file) void run(() => uploadAvatar(file)); };

@@ -1,7 +1,7 @@
 {
   "name": "@oss-idle/client",
   "private": true,
-  "version": "1.1.0.0",
+  "version": "1.2.0.0",
   "type": "module",
   "description": "A replica of the osu! startup experience built with React + TypeScript",
   "scripts": {
@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "e2e:serve": "NODE_ENV=development vite build --mode development --outDir dist.e2e --emptyOutDir && vite preview --mode development --outDir dist.e2e --strictPort",
     "extract": "lingui extract --clean",
     "compile": "lingui compile"
   },

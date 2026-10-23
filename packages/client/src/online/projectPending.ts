@@ -26,26 +26,9 @@ export const projectPending = (
 		const skill = character.skills.find(s => s.name === action.skill);
 		if (!skill) continue;
 		try {
-			const next = action.type === 'upgrade'
-				? applyUpgrade({
-					level: skill.level.get(),
-					xp: skill.xp.get(),
-					upgrades: skill.upgrades.get(),
-					overdrive: skill.overdrive.get(),
-					prestige: skill.prestige.get(),
-				})
-				: applyPrestige({
-					level: skill.level.get(),
-					xp: skill.xp.get(),
-					upgrades: skill.upgrades.get(),
-					overdrive: skill.overdrive.get(),
-					prestige: skill.prestige.get(),
-				});
-			void skill.level.set(next.level);
-			void skill.xp.set(next.xp);
-			void skill.upgrades.set(next.upgrades);
-			void skill.overdrive.set(next.overdrive);
-			if ('prestige' in next) void skill.prestige.set(next.prestige);
+			skill.apply(action.type === 'upgrade'
+				? applyUpgrade(skill.state())
+				: applyPrestige(skill.state()));
 		} catch {
 			// one the character cannot afford will be dropped server-side too
 		}

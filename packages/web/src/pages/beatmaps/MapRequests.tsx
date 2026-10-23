@@ -26,6 +26,7 @@ import {
 } from '../../api/mapRequests';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useAdmin } from '../../hooks/useAdmin';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 export type RequestFilter = 'open' | 'accepted' | 'rejected' | 'mine' | 'all';
 export type RequestSort = 'support' | 'date';
@@ -51,8 +52,9 @@ export default function MapRequests({ filter, sort, page }: {
 	const admin = useAdmin();
 
 	const [list, setList] = useState<MapRequest[]>();
-	const [error, setError] = useState<string>();
-	const [busy, setBusy] = useState(false);
+	const {
+		busy, error, setError, run: runAction,
+	} = useAction();
 	const [selected, setSelected] = useState(new Set<number>());
 	const [progress, setProgress] = useState<BulkProgress>();
 
@@ -62,26 +64,13 @@ export default function MapRequests({ filter, sort, page }: {
 
 	useEffect(() => { void refresh(); }, [refresh]);
 
-	const run = async (fn: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(undefined);
-		try {
-			await fn();
-			await refresh();
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		} finally {
-			setBusy(false);
-		}
-	};
+	const run = (action: () => Promise<unknown>) => runAction(action, refresh);
 
 	// One at a time, so the mirror is not hit with every download at once.
-	const bulk = async (fn: (setId: number) => Promise<unknown>) => {
+	const bulk = (fn: (setId: number) => Promise<unknown>) => runAction(async () => {
 		const ids = [...selected];
 		const failed: string[] = [];
 		const startedAt = Date.now();
-		setBusy(true);
-		setError(undefined);
 		for (const [i, setId] of ids.entries()) {
 			const row = list?.find(r => r.setId === setId);
 			setProgress({
@@ -98,10 +87,9 @@ export default function MapRequests({ filter, sort, page }: {
 		}
 		setProgress(undefined);
 		setSelected(new Set());
-		if (failed.length) setError(failed.join('\n'));
 		await refresh();
-		setBusy(false);
-	};
+		if (failed.length) throw new Error(failed.join('\n'));
+	});
 
 	const toggleSelect = (setId: number) => setSelected(prev => {
 		const next = new Set(prev);

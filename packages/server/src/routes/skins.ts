@@ -1,17 +1,11 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	desc,
-	asc,
 	eq,
-	isNull,
-	like,
 	or,
-	sql,
 } from 'drizzle-orm';
-import { z } from 'zod';
 import { db } from '../db/client';
 import { users } from '../db/schema/user';
 import { requireAuth } from '../auth/middleware';
@@ -30,65 +24,35 @@ import {
 	skinModerateBody,
 	skinUpdateBody,
 } from '@oss-idle/shared/skin';
-
+import {
+	idParam,
+	valid,
+} from '../validate';
+import { csv } from '../db/columns';
+import {
+	browseQuery,
+	countDownload,
+	owned,
+	withAuthor,
+} from '../authored';
 
 // skins publish without review: publishes and icon uploads are capped per account
 const SKINS_PER_DAY = 5;
-const idParam = z.coerce.number().int().positive();
-
-const jsonBody = <T extends z.ZodType>(schema: T) =>
-	zValidator('json', schema, result => {
-		if (!result.success) throw result.error;
-	});
-
-const withAuthor = async (row: typeof skins.$inferSelect) => {
-	const [author] = await db
-		.select({ username: users.username })
-		.from(users)
-		.where(eq(users.id, row.authorId))
-		.limit(1);
-	return toSkinDTO(row, author?.username ?? 'unknown');
-};
 
 const ownedBy = async (id: number, userId: number) => {
 	const [row] = await db.select().from(skins).where(eq(skins.id, id)).limit(1);
-	if (!row) throw new HTTPException(404, { message: 'Add-on not found' });
-	if (row.authorId !== userId) throw new HTTPException(403, { message: 'Not your add-on' });
-	return row;
+	return owned(row, userId, 'Skin');
 };
-
-const csv = (list: string[]) => list.join(',');
-
-// Browse sort column keyed by the `sort` query; defaults to publish date.
-const SORT_COLUMNS = {
-	updated: skins.updatedAt,
-	downloads: skins.downloads,
-	created: skins.publishedAt,
-} as const;
 
 export const skinsRoutes = new Hono()
 	.get('/', async c => {
-		const q = c.req.query('q')?.trim();
-		const tag = c.req.query('tag')?.trim().toLowerCase();
-		const sort = SORT_COLUMNS[c.req.query('sort') as keyof typeof SORT_COLUMNS]
-			?? SORT_COLUMNS.created;
-		const dir = c.req.query('dir') === 'asc' ? asc : desc;
-
-		const where = [eq(skins.status, SKIN_STATUS.PUBLISHED), isNull(users.restrictedAt)];
-		if (q) where.push(
-			or(
-				like(skins.name, `%${q}%`), 
-				like(users.username, `%${q}%`), 
-				like(skins.tags, `%${q}%`),
-			)!);
-		if (tag) where.push(like(skins.tags, `%${tag}%`));
-
+		const { where, orderBy } = browseQuery(c, skins);
 		const rows = await db
 			.select()
 			.from(skins)
 			.innerJoin(users, eq(users.id, skins.authorId))
-			.where(and(...where))
-			.orderBy(dir(sort));
+			.where(and(eq(skins.status, SKIN_STATUS.PUBLISHED), ...where))
+			.orderBy(orderBy);
 		return c.json(rows.map(r => toSkinDTO(r.skin, r.user.username)));
 	})
 
@@ -96,10 +60,10 @@ export const skinsRoutes = new Hono()
 		const rows = await db.select().from(skins)
 			.where(eq(skins.authorId, c.get('userId')))
 			.orderBy(desc(skins.updatedAt));
-		return c.json(await Promise.all(rows.map(withAuthor)));
+		return c.json(await Promise.all(rows.map(r => withAuthor(r, toSkinDTO))));
 	})
 
-	.post('/', requireActive, jsonBody(skinCreateBody), async c => {
+	.post('/', requireActive, valid('json', skinCreateBody), async c => {
 		const body = c.req.valid('json');
 		const [created] = await db.insert(skins).values({
 			name: body.name,
@@ -111,7 +75,7 @@ export const skinsRoutes = new Hono()
 			authorId: c.get('userId'),
 		});
 		const [row] = await db.select().from(skins).where(eq(skins.id, created.insertId)).limit(1);
-		return c.json(await withAuthor(row!), 201);
+		return c.json(await withAuthor(row!, toSkinDTO), 201);
 	})
 
 	.post('/icon', requireActive, dailyLimit('skin-icons', SKINS_PER_DAY), async c => {
@@ -125,10 +89,10 @@ export const skinsRoutes = new Hono()
 				eq(skins.status, SKIN_STATUS.PUBLISHED),
 			))
 			.orderBy(desc(skins.updatedAt));
-		return c.json(await Promise.all(rows.map(withAuthor)));
+		return c.json(await Promise.all(rows.map(r => withAuthor(r, toSkinDTO))));
 	})
 	
-	.patch('/admin/:id', requireAdmin, jsonBody(skinModerateBody), async c => {
+	.patch('/admin/:id', requireAdmin, valid('json', skinModerateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const { status } = c.req.valid('json');
 	
@@ -143,18 +107,18 @@ export const skinsRoutes = new Hono()
 			status, publishedAt,
 		}).where(eq(skins.id, id));
 		const [row] = await db.select().from(skins).where(eq(skins.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		return c.json(await withAuthor(row!, toSkinDTO));
 	})
 
 	.post('/:id/submit', requireActive, dailyLimit('skins', SKINS_PER_DAY), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const existing = await ownedBy(id, c.get('userId'));
 		if (existing.status === SKIN_STATUS.PUBLISHED) {
-			throw new HTTPException(409, { message: 'Add-on already submitted' });
+			throw new HTTPException(409, { message: 'Skin already published' });
 		}
 		await db.update(skins).set({ status: SKIN_STATUS.PUBLISHED }).where(eq(skins.id, id));
 		const [row] = await db.select().from(skins).where(eq(skins.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		return c.json(await withAuthor(row!, toSkinDTO));
 	})
 
 	// Auth: record that the caller installed this skin. Deduped per player by the
@@ -166,21 +130,13 @@ export const skinsRoutes = new Hono()
 			.limit(1);
 		if (!pub) throw new HTTPException(404, { message: 'Skin not found' });
 
-		const [res] = await db.insert(skinDownloads).ignore()
-			.values({
-				skinId: id, userId: c.get('userId'), 
-			});
-		if (res.affectedRows > 0) {
-			await db.update(skins)
-				.set({ downloads: sql`${skins.downloads} + 1` })
-				.where(eq(skins.id, id));
-		}
-		const [row] = await db.select({ downloads: skins.downloads })
-			.from(skins).where(eq(skins.id, id)).limit(1);
-		return c.json({ downloads: row?.downloads ?? 0 });
+		const inserted = await db.insert(skinDownloads).ignore().values({
+			skinId: id, userId: c.get('userId'),
+		});
+		return c.json(await countDownload(skins, id, inserted));
 	})
 
-	.patch('/:id', requireActive, jsonBody(skinUpdateBody), async c => {
+	.patch('/:id', requireActive, valid('json', skinUpdateBody), async c => {
 		const id = idParam.parse(c.req.param('id'));
 		const body = c.req.valid('json');
 		const existing = await ownedBy(id, c.get('userId'));
@@ -191,7 +147,7 @@ export const skinsRoutes = new Hono()
 			status: existing.status,
 		}).where(eq(skins.id, id));
 		const [row] = await db.select().from(skins).where(eq(skins.id, id)).limit(1);
-		return c.json(await withAuthor(row!));
+		return c.json(await withAuthor(row!, toSkinDTO));
 	})
 
 	.delete('/:id', requireAuth, async c => {
@@ -215,5 +171,5 @@ export const skinsRoutes = new Hono()
 			)
 			.limit(1);
 		if (!row) throw new HTTPException(404, { message: 'Skin not found' });
-		return c.json(await withAuthor(row));
+		return c.json(await withAuthor(row, toSkinDTO));
 	});

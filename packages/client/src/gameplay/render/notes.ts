@@ -14,6 +14,12 @@ import {
 
 type RenderNote = Field['notes'][number];
 
+/** A hold note's head or tail cap, its bottom edge at `y`. */
+const cap = (f: Frame<Field>, cx: number, y: number) => {
+	const { columnWidth, noteHeight } = f.skin.data.playfield;
+	f.ctx.fillRect(cx + 4, y - noteHeight, columnWidth - 8, noteHeight);
+};
+
 const drawHoldNote = (f: Frame<Field>, note: RenderNote, cx: number, color: Color) => {
 	const { ctx, skin, now, vp, g } = f;
 	if (note.tailJudged) {
@@ -32,12 +38,7 @@ const drawHoldNote = (f: Frame<Field>, note: RenderNote, cx: number, color: Colo
 			ctx.fillStyle = colorAFixed(color, 0.5);
 			ctx.fillRect(cx + 6, top, skin.data.playfield.columnWidth - 12, bottom - top);
 			ctx.fillStyle = color;
-			ctx.fillRect(
-				cx + 4,
-				yTail - skin.data.playfield.noteHeight,
-				skin.data.playfield.columnWidth - 8,
-				skin.data.playfield.noteHeight,
-			);
+			cap(f, cx, yTail);
 			ctx.globalAlpha = 1;
 			return;
 		}
@@ -54,18 +55,8 @@ const drawHoldNote = (f: Frame<Field>, note: RenderNote, cx: number, color: Colo
 			Math.abs(g.lineY - yTail),
 		);
 		ctx.fillStyle = color;
-		ctx.fillRect(
-			cx + 4,
-			yTail - skin.data.playfield.noteHeight,
-			skin.data.playfield.columnWidth - 8,
-			skin.data.playfield.noteHeight,
-		);
-		ctx.fillRect(
-			cx + 4,
-			g.lineY - skin.data.playfield.noteHeight,
-			skin.data.playfield.columnWidth - 8,
-			skin.data.playfield.noteHeight,
-		);
+		cap(f, cx, yTail);
+		cap(f, cx, g.lineY);
 		return;
 	}
 	const yHead = note.holding ? g.lineY : posY(f, note.headPos);
@@ -78,21 +69,11 @@ const drawHoldNote = (f: Frame<Field>, note: RenderNote, cx: number, color: Colo
 	ctx.fillRect(cx + 6, top, skin.data.playfield.columnWidth - 12, bottom - top);
 	// tail cap
 	ctx.fillStyle = color;
-	ctx.fillRect(
-		cx + 4,
-		yTail - skin.data.playfield.noteHeight,
-		skin.data.playfield.columnWidth - 8,
-		skin.data.playfield.noteHeight,
-	);
+	cap(f, cx, yTail);
 	// head cap - pinned to the receptor while held (the base stays visible),
 	// otherwise tracking the head itself: approaching before the hit, and scrolling
 	// on past the receptors once it's been missed (an unpressed note)
-	ctx.fillRect(
-		cx + 4,
-		yHead - skin.data.playfield.noteHeight,
-		skin.data.playfield.columnWidth - 8,
-		skin.data.playfield.noteHeight,
-	);
+	cap(f, cx, yHead);
 };
 
 const drawTapNote = (f: Frame<Field>, note: RenderNote, cx: number, color: string) => {

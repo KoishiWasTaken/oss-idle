@@ -1,4 +1,5 @@
 import '../../components/leaderboard/PlayerLeaderboard.css';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
 import { Trans } from '@lingui/react/macro';
 import { countryName } from '@oss-idle/shared/display/country';
 import rank from '@oss-idle/shared/display/rank';
@@ -38,7 +39,7 @@ export default function CountryRankings({ page, countries }: {
 						</thead>
 						<tbody>
 							{countries.map((country, r) => <tr key={country.country}>
-								<td>{rank(r + 1 + ((page - 1) * 50))}</td>
+								<td>{rank(r + 1 + ((page - 1) * PAGE_SIZE))}</td>
 								<td className='main'><div className='player__lb_listing_main'>
 									<Flag country={country.country} />
 									<Link to='/rankings/global' search={{
@@ -55,7 +56,7 @@ export default function CountryRankings({ page, countries }: {
 						</tbody>
 					</table>
 				</div>
-				<Pager page={page} hasNext={countries.length === 50} />
+				<Pager page={page} hasNext={countries.length === PAGE_SIZE} />
 			</div>
 		</main>
 	);

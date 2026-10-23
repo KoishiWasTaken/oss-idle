@@ -9,6 +9,7 @@ import type {
 import { MAX_HP } from '@oss-idle/shared/sim/scoring';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { currentSkin } from '../osu/skin/Skin';
+import { sizeCanvas } from '../sizeCanvas';
 
 const GREEN = '126, 231, 135';
 const RED = '255, 90, 114';
@@ -65,11 +66,8 @@ export default function HpGraph({
 		const { lowThreshold } = skin.data.hpBar;
 		const draw = () => {
 			const width = canvas.clientWidth || canvas.parentElement?.clientWidth || 300;
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
-			canvas.width = width * dpr;
-			canvas.height = height * dpr;
+			sizeCanvas(canvas, ctx, width, height, false);
 			canvas.style.height = `${height}px`;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
 			const pad = 10;
 			const top = pad;

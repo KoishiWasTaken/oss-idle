@@ -16,7 +16,10 @@ import {
 	type CharacterRow,
 } from '../db/schema/character';
 import type { CharacterTotalsRow } from '../db/schema/character_totals';
-import type { UserRow } from '../db/schema/user';
+import {
+	supporterActive,
+	type UserRow,
+} from '../db/schema/user';
 import type { NewsRow } from '../db/schema/news';
 import {
 	apiBaseUrl,
@@ -83,7 +86,7 @@ export const apiUser = (
 	totals: CharacterTotalsRow,
 	ranks: { global?: number; country?: number },
 ) => {
-	const supporter = Boolean(user.supporterUntil && user.supporterUntil > new Date());
+	const supporter = supporterActive(user);
 	return {
 		...userCompact({
 			userId: user.id,

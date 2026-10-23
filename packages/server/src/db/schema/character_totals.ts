@@ -12,14 +12,13 @@ import {
 	type Judgement,
 } from '@oss-idle/shared/judgement';
 import { db } from '../client';
-import { eq } from 'drizzle-orm';
-import type { BestScoreRow } from './best';
-import { getBeatmapById } from './beatmap';
-import { getAllCharacterScores } from './score';
 import {
-	onSubmitScore,
-	recomputePP,
-} from '../../scores';
+	eq,
+	sql,
+} from 'drizzle-orm';
+import { best } from './best';
+import { beatmaps } from './beatmap';
+import { scores } from './score';
 
 const totalColumn = () => bigint({ mode: 'number' }).notNull().default(0);
 
@@ -50,85 +49,55 @@ export type CharacterTotalsRow = typeof character_totals.$inferSelect;
 export type NewCharacterTotalsRow = typeof character_totals.$inferInsert;
 
 
+/**
+ * Recompute a character's totals from its scores and its bests, in one statement.
+ * Kept as plain sums rather than updated by each play: a submit that stopped
+ * halfway (a best saved, the totals not) would leave them wrong for good.
+ */
+export const refreshCharacterTotals = async (
+	characterId: number,
+	on: Pick<typeof db, 'execute'> = db,
+) => {
+	const hits = sql.join(
+		Judgements.filter(j => j !== JUDGEMENT.MISS).map(j => sql`${scores[j]}`), sql` + `,
+	);
+	const all = Judgements.map(j => sql`, ${character_totals[j]} = p.${sql.raw(j)}`);
+	const grades = Grades.map(g => sql`, ${character_totals[g]} = p.${sql.raw(`grade_${g}`)}`);
+	await on.execute(sql`
+		UPDATE ${character_totals},
+			(
+				SELECT COUNT(*) plays, COALESCE(SUM(${scores.score}), 0) total,
+					COALESCE(SUM(${hits}), 0) hits,
+					COALESCE(SUM(ROUND(${beatmaps.total_length} / 1000 / ${scores.rate})), 0) time
+				FROM ${scores} LEFT JOIN ${beatmaps} ON ${beatmaps.id} = ${scores.beatmapId}
+				WHERE ${scores.characterId} = ${characterId}
+			) a,
+			(
+				SELECT COALESCE(SUM(${best.score}), 0) ranked
+					${sql.join(Judgements.map(j => sql`, COALESCE(SUM(${best[j]}), 0) ${sql.raw(j)}`))}
+					${sql.join(Grades.map(g => sql`, COALESCE(SUM(${best.grade} = ${g}), 0) ${sql.raw(`grade_${g}`)}`))}
+				FROM ${best} WHERE ${best.characterId} = ${characterId}
+			) p
+		SET ${character_totals.playCount} = a.plays, ${character_totals.totalScore} = a.total,
+			${character_totals.hits} = a.hits, ${character_totals.playTime} = a.time,
+			${character_totals.rankedScore} = p.ranked
+			${sql.join(all)} ${sql.join(grades)}
+		WHERE ${character_totals.id} = ${characterId}
+	`);
+};
+
 export const getCharacterTotals = async (characterId: number) => {
-	let [row] = await db
+	const read = () => db
 		.select()
 		.from(character_totals)
 		.where(eq(character_totals.id, characterId))
 		.limit(1);
-
+	let [row] = await read();
 	if (!row) {
-		const newTotals : NewCharacterTotalsRow = { id: characterId };
-
-		await db.insert(character_totals).values(newTotals);
-		
-		[row] = await db
-			.select()
-			.from(character_totals)
-			.where(eq(character_totals.id, characterId))
-			.limit(1);
-
+		await db.insert(character_totals).values({ id: characterId });
+		await refreshCharacterTotals(characterId);
+		[row] = await read();
 		if (!row) throw new Error('Could not insert character totals ! ' + characterId);
-
-		// Migration: recompute existing scores=
-		for (const score of await getAllCharacterScores(characterId)) {
-			await onSubmitScore(row, score, false);
-		}
-		recomputePP(characterId);
 	}
-
 	return row;
-};
-
-export const updateCharacterTotals = async (totals: CharacterTotalsRow) => db
-	.update(character_totals)
-	.set(totals)
-	.where(eq(character_totals.id, totals.id));
-
-/**
- * Removes the stats that only count the best scores
- * Does not remove the stats that accumulate over ALL scores
- */
-export const removeBestScoreFromTotals = (totals: CharacterTotalsRow, score: BestScoreRow) => {
-	totals[score.grade] -= 1;
-	totals.rankedScore -= score.score;
-
-	for (const judgement of Judgements) {
-		totals[judgement] -= score[judgement]; 
-	}
-};
-
-/**
- * Only adds stats that are counted from best scores
- */
-export const addBestScoreToTotals = (totals: CharacterTotalsRow, score: BestScoreRow) => {
-	totals[score.grade] += 1;
-	totals.rankedScore += score.score;
-
-	for (const judgement of Judgements) {
-		totals[judgement] += score[judgement]; 
-	}
-};
-
-/**
- * Only adds stats that are counted from ALL scores (not necessarily PBs)
- */
-export const addScoreToTotals = async (totals: CharacterTotalsRow, score: BestScoreRow) => {
-	totals.playCount += 1;
-	totals.totalScore += score.score;
-
-	for (const judgement of Judgements) {
-		if (judgement === JUDGEMENT.MISS) continue;
-		totals.hits += score[judgement]; 
-	}
-
-	const beatmap = await getBeatmapById(score.beatmapId);
-	if (!beatmap) {
-		console.warn('Could not get beatmap id ' + score.beatmapId + ' to count total play time');
-		return;
-	}
-
-	// total_length is milliseconds; playTime is accumulated in seconds, of real
-	// time: a rate shortens or stretches the play.
-	totals.playTime += Math.round(beatmap.total_length / 1000 / Number(score.rate));
 };

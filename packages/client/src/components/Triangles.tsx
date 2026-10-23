@@ -3,6 +3,7 @@ import {
 	useRef,
 } from 'react';
 import type { Parallax } from '@oss-idle/shared/hooks/useParallax';
+import { sizeCanvas } from '../sizeCanvas';
 
 interface Triangle {
 	x: number // 0..1 horizontal position
@@ -51,16 +52,10 @@ export default function Triangles({
 		let raf = 0;
 		let w = 0;
 		let h = 0;
-		const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
 		const resize = () => {
 			w = window.innerWidth;
 			h = window.innerHeight;
-			canvas.width = w * dpr;
-			canvas.height = h * dpr;
-			canvas.style.width = `${w}px`;
-			canvas.style.height = `${h}px`;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			sizeCanvas(canvas, ctx, w, h);
 		};
 		resize();
 		window.addEventListener('resize', resize);

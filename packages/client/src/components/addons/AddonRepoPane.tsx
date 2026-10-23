@@ -1,9 +1,7 @@
-import {
-	useEffect,
-	useState,
-} from 'react';
+import { useEffect } from 'react';
 import { Trans } from '@lingui/react/macro';
 import { ADDON_BUILD_STATUS } from '@oss-idle/shared/addon';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import {
 	checkAddonRepo,
 	myAddons,
@@ -23,8 +21,9 @@ const POLL_MS = 5000;
 export default function AddonRepoPane({
 	addon, onChange,
 }: Props) {
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | undefined>();
+	const {
+		busy, error, run: act,
+	} = useAction();
 
 	const building = addon?.buildStatus === ADDON_BUILD_STATUS.queued
 		|| addon?.buildStatus === ADDON_BUILD_STATUS.building;
@@ -50,29 +49,23 @@ export default function AddonRepoPane({
 		);
 	}
 
-	const run = async (fn: () => Promise<OwnAddon>) => {
-		setBusy(true);
-		setError(undefined);
-		try { onChange(await fn()); }
-		catch (e) { setError(String((e as Error).message ?? e)); }
-		finally { setBusy(false); }
-	};
+	const run = (fn: () => Promise<OwnAddon>) => act(async () => onChange(await fn()));
 
 	return (
 		<div className='addon-repo'>
-			<label className='addon-field'>
+			<label className='listing-field'>
 				<span><Trans>Webhook</Trans></span>
 				<input readOnly value={addon.hookUrl ?? ''} onFocus={e => e.target.select()} />
 			</label>
-			<p className='addon-view__notice'>
+			<p className='listing-view__notice'>
 				<Trans>Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved.</Trans>
 			</p>
 			<div className='addon-repo__row'>
-				<button className='addon-btn' disabled={busy} onClick={() => run(() => renewAddonHook(addon.id))}>
+				<button className='listing-btn' disabled={busy} onClick={() => run(() => renewAddonHook(addon.id))}>
 					<Trans>New webhook address</Trans>
 				</button>
 				<button
-					className='addon-btn addon-btn--primary'
+					className='listing-btn listing-btn--primary'
 					disabled={busy || building}
 					onClick={() => run(() => checkAddonRepo(addon.id))}
 				>

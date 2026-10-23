@@ -6,6 +6,7 @@ import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
 import { drawDevianceGraph } from './hitError';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { currentSkin } from '../osu/skin/Skin';
+import { sizeCanvas } from '../sizeCanvas';
 
 /**
  * Result-screen canvas plotting hit deviation over the course of the song.
@@ -25,11 +26,8 @@ export default function DevianceGraph({
 		const ctx = canvas.getContext('2d')!;
 		const draw = () => {
 			const width = canvas.clientWidth || canvas.parentElement?.clientWidth || 300;
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
-			canvas.width = width * dpr;
-			canvas.height = height * dpr;
+			sizeCanvas(canvas, ctx, width, height, false);
 			canvas.style.height = `${height}px`;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			drawDevianceGraph(skin, ctx, {
 				hits: game.hits,
 				windows: game.windows,

@@ -1,4 +1,5 @@
 import { rankValue } from '@oss-idle/shared/scoreOrder';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
 import { effectiveLevelOf } from '@oss-idle/shared/sim/skills/levelCurve';
 import {
 	and,
@@ -103,7 +104,7 @@ const memberCharacterId = (member: string) => Number(member.slice(member.indexOf
 // the member without a DB hit. Wiped/rebuilt with the sets (shares PREFIX).
 const beatmapIds = (beatmapId: number) => `${PREFIX}bm:${beatmapId}:ids`;
 
-export const PAGE_SIZE = 50;
+export { PAGE_SIZE };
 
 /** What `index` writes through: a pipeline, or one that removes instead (`unindexCharacter`). */
 type Indexer = { zadd: (key: string, score: number, member: string) => unknown };

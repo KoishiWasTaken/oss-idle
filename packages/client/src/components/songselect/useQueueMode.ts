@@ -1,6 +1,7 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { openPage } from '../../globals';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import type { SongSelectMode } from '../../scenes/SongSelect';
 
 export type QueueMode = {
 	/** mounted above another scene, so it draws no scenery of its own */
@@ -18,7 +19,7 @@ export type QueueMode = {
  * the character page - there is no carousel yet, so one is mounted over the
  * scene, and that one draws none of its own scenery.
  */
-export default function useQueueMode(mode: 'launch' | 'queue'): QueueMode {
+export default function useQueueMode(mode: SongSelectMode): QueueMode {
 	const [page] = useSynced(openPage);
 	const [scene] = useSynced(SceneManager.current);
 	const overlay = mode === 'queue';

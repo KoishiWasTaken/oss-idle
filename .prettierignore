@@ -1,6 +1,7 @@
 .claude/**
 **/dist/**
 **/dist.next/**
+**/dist.e2e/**
 packages/client/public/**
 packages/client/osu!design/**
 packages/desktop/release/**

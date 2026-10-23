@@ -1,4 +1,5 @@
 import '../../components/leaderboard/PlayerLeaderboard.css';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
 import '../../components/leaderboard/MedalProgress.css';
 import { useNavigate } from '@tanstack/react-router';
 import { ph } from '@lingui/core/macro';
@@ -63,7 +64,7 @@ export default function MedalProgressLine({ line, page, country, board }: {
 								{board.rows.map((row, r) => {
 									const { reached, next } = lineStanding(board.goals, row.value);
 									return <tr key={row.id}>
-										<td>{rank(r + 1 + ((page - 1) * 50))}</td>
+										<td>{rank(r + 1 + ((page - 1) * PAGE_SIZE))}</td>
 										<td className='main'><div className='player__lb_listing_main'>
 											<Flag country={row.country} />
 											<Link to='/c/$id' params={{ id: String(row.id) }}>{row.name}</Link>
@@ -90,7 +91,7 @@ export default function MedalProgressLine({ line, page, country, board }: {
 							</tbody>
 						</table>
 					</div>
-					<Pager page={page} hasNext={board.rows.length === 50} />
+					<Pager page={page} hasNext={board.rows.length === PAGE_SIZE} />
 				</div>
 			</div>
 		</main>

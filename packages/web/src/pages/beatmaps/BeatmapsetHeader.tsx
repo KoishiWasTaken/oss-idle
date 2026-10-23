@@ -10,6 +10,7 @@ import { dateAgo } from '@oss-idle/shared/display/ago';
 import {
 	difficultyColor,
 	difficultyTextColor,
+	starsText,
 } from '@oss-idle/shared/display/difficulty';
 import { osuSetUrl } from '@oss-idle/shared/beatmap';
 import OutLink from '../../components/OutLink';
@@ -39,7 +40,7 @@ export default function BeatmapsetHeader({ mapset, diff }: { mapset: Mapset; dif
 				<span className='mapset__stars' style={{
 					backgroundColor: difficultyColor(diff.sr), color: difficultyTextColor(diff.sr), 
 				}}>
-					★ {diff.sr.toFixed(2)}
+					★ {starsText(diff.sr)}
 				</span>
 			</div>
 			<div className='mapset__plays' title={t`plays`}>
@@ -59,8 +60,13 @@ export default function BeatmapsetHeader({ mapset, diff }: { mapset: Mapset; dif
 		</div>
 		<div className='mapset__side'>
 			<div className='mapset__status'>
-				<span className='mapset__status-badge'><Trans>ranked</Trans></span>
-				{set.rankedAt && <span>{dateAgo(set.rankedAt)}</span>}
+				{set.status === 'unranked'
+					? <span className='mapset__status-badge'><Trans>unranked</Trans></span>
+					: set.status === 'pending'
+						? <span className='mapset__status-badge'><Trans>pending</Trans></span>
+						: <span className='mapset__status-badge'><Trans>ranked</Trans></span>}
+				<span>{dateAgo(set.status === 'unranked' ? set.createdAt
+					: set.status === 'pending' ? set.submittedAt : set.rankedAt)}</span>
 			</div>
 			<BeatmapsetStats setId={set.id} diff={diff} />
 		</div>

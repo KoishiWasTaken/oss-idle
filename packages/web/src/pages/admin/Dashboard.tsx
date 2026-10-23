@@ -47,7 +47,8 @@ const tiles = (stats: AdminStats, metrics: AdminMetrics | undefined) => {
 			label: 'Server version', value: stats.serverVersion,
 		},
 		{
-			label: 'Online now', value: stats.online.toLocaleString(),
+			label: 'Online / game open now',
+			value: `${stats.online.toLocaleString()} / ${stats.clients.toLocaleString()}`,
 		},
 		{
 			label: 'Playing now', value: stats.playing.toLocaleString(),

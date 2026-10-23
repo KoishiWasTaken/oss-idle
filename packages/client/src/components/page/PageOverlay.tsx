@@ -11,6 +11,10 @@ import Character from '../../scenes/Character';
 import SongSelect from '../../scenes/SongSelect';
 import Direct from '../../scenes/Direct';
 import './pageOverlay.css';
+import useKeyboardOwner, {
+	KeyboardLayer,
+	LAYER,
+} from '../../input/keyboardOwner';
 
 /**
  * Hosts the full-screen pages (skins / add-ons / character / the play queue)
@@ -35,6 +39,11 @@ export default function PageOverlay() {
 		if (inPlace && !state) setShown(undefined);
 	}, [inPlace, state]);
 
+	const covers = !!state && !(state.page === 'queue' && scene === SCENE.SELECT);
+	useKeyboardOwner(undefined, {
+		active: covers, layer: LAYER.PAGE, close: () => openPage.set(undefined),
+	});
+
 	if (!shown || inPlace) return null;
 	const closing = !state;
 
@@ -53,15 +62,19 @@ export default function PageOverlay() {
 				if (e.target === e.currentTarget && !openPage.get()) setShown(undefined);
 			}}
 		>
-			{shown.page === 'character'
-				? <Character />
-				: shown.page === 'direct'
-					? <Direct />
-					: shown.page === 'queue'
-						? <SongSelect mode="queue" />
-						: shown.page === 'skins'
-							? <Skins key={shown.view} view={shown.view} />
-							: <Addons key={shown.view} view={shown.view} />}
+			<KeyboardLayer.Provider value={{
+				layer: LAYER.PAGE, open: !closing, 
+			}}>
+				{shown.page === 'character'
+					? <Character />
+					: shown.page === 'direct'
+						? <Direct />
+						: shown.page === 'queue'
+							? <SongSelect mode="queue" />
+							: shown.page === 'skins'
+								? <Skins key={shown.view} view={shown.view} />
+								: <Addons key={shown.view} view={shown.view} />}
+			</KeyboardLayer.Provider>
 		</div>
 	);
 }

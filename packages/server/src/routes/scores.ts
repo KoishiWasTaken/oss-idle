@@ -8,8 +8,11 @@ import {
 	isNull,
 } from 'drizzle-orm';
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
 import { betterScore } from '@oss-idle/shared/scoreOrder';
+import {
+	hasUnrankedBoard,
+	unrankedBoard,
+} from '../beatmaps/unrankedBoard';
 import { db } from '../db/client';
 import {
 	scores,
@@ -23,6 +26,7 @@ import { beatmapset } from '../db/schema/beatmapset';
 import { best } from '../db/schema/best';
 import {
 	characters,
+	currentCharacterOf,
 	resolveAvatarUrl,
 } from '../db/schema/character';
 import { users } from '../db/schema/user';
@@ -36,22 +40,18 @@ import {
 	PAGE_SIZE,
 } from '../rankings';
 import { friendCharacterIds } from '../social';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
-const idParam = z.coerce.number().int().positive();
 
-/** The signed-in user's active character row, or undefined if not onboarded. */
-async function currentCharacter(userId: number) {
-	const [row] = await db
-		.select()
-		.from(characters)
-		.innerJoin(users, eq(users.currentCharacter, characters.id))
-		.where(eq(users.id, userId))
-		.limit(1);
-	return row?.character;
-}
-
-/** Hydrate ranked character ids into their `best` rows on a beatmap, in rank order. */
+/** Hydrate ranked character ids into their `best` rows on a beatmap, in rank order.
+ *  A player's unranked map has its own board instead: global only, no countries. */
 async function beatmapLeaderboard(beatmapId: number, page: number, country?: string) {
+	if (await hasUnrankedBoard(beatmapId)) {
+		return country ? [] : unrankedBoard(beatmapId, undefined, page);
+	}
 	const ids = await beatmapPageIds(beatmapId, page, country);
 	if (ids.length === 0) return [];
 	const rows = await db
@@ -65,8 +65,11 @@ async function beatmapLeaderboard(beatmapId: number, page: number, country?: str
 /** The signed-in character's own best on this beatmap, with its rank (global or
  *  within a country) - shown below the leaderboard even when outside the top 50. */
 async function myBeatmapScore(userId: number, beatmapId: number, country?: string) {
-	const character = await currentCharacter(userId);
+	const character = (await currentCharacterOf(userId))?.character;
 	if (!character) return null;
+	if (await hasUnrankedBoard(beatmapId)) {
+		return country ? null : myUnrankedScore(character.id, beatmapId);
+	}
 
 	const [row] = await db
 		.select()
@@ -81,15 +84,23 @@ async function myBeatmapScore(userId: number, beatmapId: number, country?: strin
 	};
 }
 
-const boardQuery = zValidator('query', z.object({
+const boardQuery = valid('query', z.object({
 	country: z.string().length(2).optional(),
 	friends: z.literal('1').optional(),
-}), r => {
-	if (!r.success) throw r.error;
-});
+}));
+
+/** The character's own score on an unranked map's board, with its place there. */
+async function myUnrankedScore(characterId: number, beatmapId: number) {
+	const board = await unrankedBoard(beatmapId, Infinity);
+	const at = board.findIndex(row => row.characterId === characterId);
+	return at < 0 ? null : {
+		score: toScoreDTO(board[at]), rank: at + 1, 
+	};
+}
 
 /** The bests of the viewer and their friends on a map, in rank order. */
 async function friendsBests(beatmapId: number, among: number[]) {
+	if (await hasUnrankedBoard(beatmapId)) return [];
 	const rows = await db
 		.select()
 		.from(best)

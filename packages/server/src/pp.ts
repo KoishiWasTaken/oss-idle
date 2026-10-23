@@ -4,15 +4,13 @@ import {
 	rateKey,
 } from '@oss-idle/shared/rate';
 import type { ScoreState } from '@oss-idle/shared/sim/scoring';
-import {
-	modsLabel,
-	type Mod,
-} from '@oss-idle/shared/mods';
+import type { Mod } from '@oss-idle/shared/mods';
+import { performanceArgs } from '@oss-idle/shared/osu/performanceArgs';
 
 /**
  * Performance points for a finished play, computed from the raw `.osu` chart and
- * the simulated `ScoreState`. Mirrors the client's `osu/pp.ts` but uses the node
- * `rosu-pp-js` build (synchronous, no wasm init) and the stored chart text.
+ * the simulated `ScoreState`, with the node `rosu-pp-js` build (synchronous, no wasm
+ * init) and the stored chart text.
  */
 export function calculatePP(
 	score: ScoreState,
@@ -21,23 +19,7 @@ export function calculatePP(
 	mods: readonly Mod[] = [],
 ): number {
 	const map = new ppjs.Beatmap(chart);
-	return new ppjs.Performance({
-		lazer: false,
-		clockRate: rate,
-		mods: modsLabel(mods),
-
-		legacyTotalScore: Math.floor(score.score),
-		// a pure divine play reads above 1, which is outside rosu-pp's domain
-		accuracy: Math.min(1, score.accuracy),
-		combo: score.maxCombo,
-
-		nGeki: score.counts.MARVELOUS + score.counts.DIVINE,
-		n300: score.counts.PERFECT,
-		nKatu: score.counts.GREAT,
-		n100: score.counts.GOOD,
-		n50: score.counts.BAD,
-		misses: score.counts.MISS,
-	}).calculate(map).pp;
+	return new ppjs.Performance(performanceArgs(score, rate, mods)).calculate(map).pp;
 }
 
 /** The chart's star rating at a playback rate. */

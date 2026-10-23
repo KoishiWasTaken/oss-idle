@@ -3,6 +3,7 @@ import './Nomination.css';
 import {
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react';
 import type { MapTag } from '@oss-idle/shared/beatmap';
@@ -16,6 +17,7 @@ import {
 	updateNomination,
 	uploadBeatmap,
 } from '../../api/maps';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import Link from '../../components/Link';
 import NominationRow from './NominationRow';
 import {
@@ -34,8 +36,9 @@ export default function NominationPage() {
 	const [list, setList] = useState<Nomination[] | null>(null);
 	// null = still checking, false = denied, true = authorized.
 	const [authorized, setAuthorized] = useState<boolean | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [busy, setBusy] = useState(false);
+	const {
+		busy, error, setError, run: runAction,
+	} = useAction();
 	const [progress, setProgress] = useState<string | null>(null);
 	const [sort, setSort] = useState<SortKey>('submitted');
 	const [asc, setAsc] = useState(false);
@@ -51,18 +54,7 @@ export default function NominationPage() {
 
 	useEffect(() => { void refresh(); }, []);
 
-	const run = async (fn: () => Promise<unknown>) => {
-		setBusy(true);
-		setError(null);
-		try {
-			await fn();
-			await refresh();
-		} catch (e) {
-			setError(String((e as Error).message ?? e));
-		} finally {
-			setBusy(false);
-		}
-	};
+	const run = (action: () => Promise<unknown>) => runAction(action, refresh);
 
 	const onUpload = (files: FileList | null) => {
 		const list = files ? [...files] : [];
@@ -84,15 +76,39 @@ export default function NominationPage() {
 			if (failed.length) throw new Error(failed.join('\n'));
 		});
 	};
+	// Metadata shows at once and saves in the background, one request after another.
+	const saving = useRef(Promise.resolve());
+	const quick = (
+		setId: number,
+		change: (r: Nomination) => Nomination,
+		save: () => Promise<unknown>,
+	) => {
+		setList(l => l && l.map(r => r.id === setId ? change(r) : r));
+		saving.current = saving.current.then(save).then(() => {}, e => {
+			setError(String((e as Error).message ?? e));
+			void refresh();
+		});
+	};
+
 	const patch = (
 		setId: number,
 		body: NominationPatch,
-	) =>
-		run(() => updateNomination(setId, body));
+	) => 'status' in body || 'rankedAt' in body
+		? run(() => updateNomination(setId, body))
+		: quick(setId, r => ({
+			...r, ...body, 
+		}), () => updateNomination(setId, body));
 	const toggleDiff = (setId: number, beatmapId: number, ranked: boolean) =>
 		run(() => setDiffRanked(setId, beatmapId, ranked));
-	const tagDiff = (setId: number, beatmapId: number, tags: MapTag[]) =>
-		run(() => setDiffTags(setId, beatmapId, tags));
+	const tagDiff = (setId: number, beatmapId: number, tags: MapTag[]) => quick(
+		setId,
+		r => ({
+			...r, diffs: r.diffs.map(d => d.id === beatmapId ? {
+				...d, tags, 
+			} : d), 
+		}),
+		() => setDiffTags(setId, beatmapId, tags),
+	);
 	const remove = (setId: number) => confirm('Delete this set and its files?') 
 		&& run(() => deleteNomination(setId));
 

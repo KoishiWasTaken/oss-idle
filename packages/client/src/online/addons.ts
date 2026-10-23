@@ -1,13 +1,16 @@
+import type { AddonType } from '@oss-idle/shared/addon';
 import type { InferResponseType } from 'hono/client';
 import type {
 	AddonCreateBody,
 	AddonUpdateBody,
 } from '@oss-idle/shared/addon';
 import {
+	apiUrl,
 	BASE_URL,
 	rpc,
 	withAuth,
 } from './client';
+import { unwrap } from '@oss-idle/shared/apiBase';
 
 /** One catalog/own add-on as it crosses the wire, inferred from the route. */
 export type Addon = InferResponseType<typeof rpc.v1.addons[':id']['$get']>;
@@ -15,26 +18,15 @@ export type Addon = InferResponseType<typeof rpc.v1.addons[':id']['$get']>;
 /** One of the caller's own add-ons, with its repository webhook. */
 export type OwnAddon = InferResponseType<typeof rpc.v1.addons.me.$get>[number];
 
-type Resp = { ok: boolean; status: number; json: () => Promise<unknown> };
-
-/** Await a request and throw the server's error on a non-2xx, else return the JSON. */
-const unwrap = async <T>(p: Promise<Resp>): Promise<T> => {
-	const res = await p;
-	if (!res.ok) {
-		const body = await res.json().catch(() => ({})) as { error?: string };
-		throw new Error(body.error ?? `Request failed (${res.status})`);
-	}
-	return res.json() as Promise<T>;
-};
-
 export const addonIconUrl = (
 	icon: string | null | undefined,
 ): string | undefined =>
-	icon ? (/^https?:\/\//.test(icon) ? icon : `${BASE_URL}${icon}`) : undefined;
+	icon ? apiUrl(icon) : undefined;
 
 type BrowseQuery = {
 	q?: string,
 	tag?: string,
+	type?: AddonType,
 	sort?: 'created' | 'updated' | 'downloads',
 	dir?: 'asc' | 'desc',
 };

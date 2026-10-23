@@ -40,9 +40,6 @@
 	font-size: 1.1rem;
 	outline: none;
 }
-.direct-filters__search:focus {
-	border-color: var(--osu-pink-darkest);
-}
 .direct-filters__row {
 	display: flex;
 	align-items: center;
@@ -79,6 +76,9 @@
 	text-align: left;
 	cursor: pointer;
 	transition: background 0.12s ease;
+	/* hundreds of rows: only the visible ones are laid out and painted */
+	content-visibility: auto;
+	contain-intrinsic-size: auto 62px;
 }
 .direct-row:hover {
 	background: rgba(255, 255, 255, 0.1);
@@ -271,14 +271,12 @@
 	color: #fff;
 	font: inherit;
 	cursor: pointer;
-	transform: translateY(-50%);
-	animation: direct-tab-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	translate: 0 -50%;
 	transition:
 		width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
 		border-color 0.2s ease,
 		background 0.2s ease,
-		box-shadow 0.2s ease,
-		opacity 0.3s ease;
+		box-shadow 0.2s ease;
 }
 .direct-tab:hover {
 	width: 80px;
@@ -334,14 +332,6 @@
 	color: var(--text);
 }
 
-@keyframes direct-tab-in {
-	from {
-		transform: translate(100%, -50%);
-	}
-	to {
-		transform: translate(0, -50%);
-	}
-}
 @keyframes direct-tab-nudge {
 	0%,
 	100% {

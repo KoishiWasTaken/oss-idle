@@ -84,6 +84,14 @@ export const resetMemory = async (characterId: number) => {
 		.where(eq(beatmaps_played.characterId, characterId));
 };
 
+/** A memory upgrade forgets some plays on every map, never below zero. */
+export const forgetMemory = async (characterId: number, plays: number) => {
+	return db
+		.update(beatmaps_played)
+		.set({ memory: sql`GREATEST(${beatmaps_played.memory} - ${plays}, 0)` })
+		.where(eq(beatmaps_played.characterId, characterId));
+};
+
 export const addBeatmapPlayed = async (characterId: number, beatmapId: number) => {
 	await db.update(beatmaps)
 		.set({ plays: sql`${beatmaps.plays} + 1` })

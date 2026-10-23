@@ -9,9 +9,9 @@ import {
 	removeFromGroup,
 	teamMembers,
 } from '../groups';
+import { idParam } from '../validate';
 
 const group = z.enum(GROUPS);
-const userIdParam = z.coerce.number().int().positive();
 
 /** Admin: the team's groups and their members. The owner is always an admin. */
 export const teamRoutes = new Hono()
@@ -26,13 +26,13 @@ export const teamRoutes = new Hono()
 	})
 
 	.put('/:group/:userId', requireAdmin, async c => {
-		const userId = userIdParam.parse(c.req.param('userId'));
+		const userId = idParam.parse(c.req.param('userId'));
 		if (!await getUserById(userId)) throw new HTTPException(404, { message: 'User not found' });
 		await addToGroup(userId, group.parse(c.req.param('group')));
 		return c.json({ ok: true });
 	})
 
 	.delete('/:group/:userId', requireAdmin, async c => {
-		await removeFromGroup(userIdParam.parse(c.req.param('userId')), group.parse(c.req.param('group')));
+		await removeFromGroup(idParam.parse(c.req.param('userId')), group.parse(c.req.param('group')));
 		return c.json({ ok: true });
 	});

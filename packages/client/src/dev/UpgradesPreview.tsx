@@ -8,7 +8,7 @@ export default function UpgradesPreview({
 	tab = 'upgrades',
 }: {
 	children: ReactNode,
-	tab?: 'upgrades' | 'prestige',
+	tab?: 'skills' | 'upgrades' | 'prestige',
 }) {
 	return (
 		<div style={{
@@ -19,6 +19,9 @@ export default function UpgradesPreview({
 				onBack={() => undefined}
 				initialTab={tab}
 				tabs={[
+					{
+						id: 'skills', label: <Trans>Skills</Trans>, render: () => tab === 'skills' && children,
+					},
 					{
 						id: 'upgrades',
 						label: <Trans>Upgrades</Trans>,

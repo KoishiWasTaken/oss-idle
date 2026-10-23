@@ -4,15 +4,24 @@ import {
 } from '@lingui/react/macro';
 import {
 	ADDON_KIND,
+	AddonTypes,
 	type AddonKind,
+	type AddonType,
 } from '@oss-idle/shared/addon';
-import AddonIconField from './AddonIconField';
+import { addonTypeLabel } from '@oss-idle/shared/display/addon';
+import IconField from '../listing/IconField';
+import {
+	addonIconUrl,
+	uploadAddonIcon,
+} from '../../online/addons';
 
 /** The editor's metadata, as typed. */
 export type AddonForm = {
 	name: string,
 	description: string,
 	tags: string,
+	/** what it is for: one or both, gameplay by default */
+	types: AddonType[],
 	version: string,
 	gameVersion: string,
 	icon: string | null,
@@ -34,7 +43,7 @@ export default function AddonEditMeta({
 	const repo = form.kind === ADDON_KIND.repo;
 	const kindButton = (kind: AddonKind, label: React.ReactNode) => (
 		<button
-			className={`addons__sort-btn ${form.kind === kind ? 'is-active' : ''}`}
+			className={`listings__sort-btn ${form.kind === kind ? 'is-active' : ''}`}
 			onClick={() => set('kind', kind)}
 		>
 			{label}
@@ -44,23 +53,23 @@ export default function AddonEditMeta({
 	return (
 		<>
 			{feedback && (
-				<div className='addon-view__feedback'>
-					<span className='addon-view__feedback-label'>
+				<div className='listing-view__feedback'>
+					<span className='listing-view__feedback-label'>
 						<Trans>Moderator feedback</Trans>
 					</span>
 					{feedback}
 				</div>
 			)}
-			<div className='addon-view__codehead'>
+			<div className='listing-view__codehead'>
 				{kindButton(ADDON_KIND.inline, <Trans>Code written here</Trans>)}
 				{kindButton(ADDON_KIND.repo, <Trans>Built from a git repository</Trans>)}
 			</div>
-			<label className='addon-field'>
+			<label className='listing-field'>
 				<span><Trans>Name</Trans></span>
 				<input value={form.name} onChange={e => set('name', e.target.value)} maxLength={80} />
 			</label>
 			{repo && (
-				<label className='addon-field'>
+				<label className='listing-field'>
 					<span><Trans>Repository</Trans></span>
 					<input
 						value={form.repoUrl}
@@ -70,16 +79,16 @@ export default function AddonEditMeta({
 					/>
 				</label>
 			)}
-			<label className='addon-field'>
+			<label className='listing-field'>
 				<span><Trans>Description</Trans></span>
 				<textarea
-					className='addon-desc'
+					className='listing-desc'
 					value={form.description}
 					onChange={e => set('description', e.target.value)} maxLength={500}
 				/>
 			</label>
-			{!repo && <div className='addon-field-row'>
-				<label className='addon-field'>
+			{!repo && <div className='listing-field-row'>
+				<label className='listing-field'>
 					<span><Trans>Version</Trans></span>
 					<input
 						value={form.version}
@@ -87,12 +96,33 @@ export default function AddonEditMeta({
 						placeholder='1.0.0'
 					/>
 				</label>
-				<label className='addon-field'>
+				<label className='listing-field'>
 					<span><Trans>Game version</Trans></span>
 					<input value={form.gameVersion} onChange={e => set('gameVersion', e.target.value)} />
 				</label>
 			</div>}
-			<label className='addon-field'>
+			<div className='listing-field'>
+				<span><Trans>Type</Trans></span>
+				<span className='addon-types'>
+					{AddonTypes.map(type => {
+						const on = form.types.includes(type);
+						return (
+							<button
+								key={type}
+								className={`addon-type ${on ? 'is-active' : ''}`}
+								aria-pressed={on}
+								onClick={() => {
+									const next = on ? form.types.filter(other => other !== type) : [...form.types, type];
+									if (next.length) set('types', next);
+								}}
+							>
+								{addonTypeLabel(type)}
+							</button>
+						);
+					})}
+				</span>
+			</div>
+			<label className='listing-field'>
 				<span><Trans>Tags</Trans></span>
 				<input
 					value={form.tags}
@@ -100,7 +130,12 @@ export default function AddonEditMeta({
 					placeholder={t`comma, separated, tags`}
 				/>
 			</label>
-			<AddonIconField value={form.icon} onChange={icon => set('icon', icon)} />
+			<IconField
+				value={form.icon}
+				onChange={icon => set('icon', icon)}
+				iconUrl={addonIconUrl}
+				upload={uploadAddonIcon}
+			/>
 		</>
 	);
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { VERSION } from './version.js';
+import { ADDON_DOCS_URL } from './links.js';
 import {
 	mapped,
 	type ValueIn,
@@ -31,13 +32,26 @@ export const AddonKinds = ['inline', 'repo'] as const;
 export const ADDON_KIND = mapped(AddonKinds);
 export type AddonKind = ValueIn<typeof ADDON_KIND>;
 
+/** What an add-on is for: in play (the default), or in the editor (it gets the editor's
+ *  API). An add-on has one or both. */
+export const AddonTypes = ['gameplay', 'editor'] as const;
+export const ADDON_TYPE = mapped(AddonTypes);
+export type AddonType = ValueIn<typeof ADDON_TYPE>;
+
+/** The types an add-on's csv column holds, unknown ones dropped. */
+export const parseAddonTypes = (csv: string): AddonType[] => {
+	const known = csv.split(',').filter((type): type is AddonType =>
+		(AddonTypes as readonly string[]).includes(type));
+	return known.length ? known : [ADDON_TYPE.gameplay];
+};
+
 /** A repo add-on's build: `queued` by its webhook, `building` once the builder claims it. */
 export const AddonBuildStatuses = ['idle', 'queued', 'building', 'failed'] as const;
 export const ADDON_BUILD_STATUS = mapped(AddonBuildStatuses);
 export type AddonBuildStatus = ValueIn<typeof ADDON_BUILD_STATUS>;
 
-/** Semantic version `MAJOR.MINOR.PATCH`, the author-managed add-on version. */
-const semver = z.string().trim().regex(/^\d+\.\d+\.\d+$/, 'Version must look like 1.2.3');
+/** Semantic version `MAJOR.MINOR.PATCH`, the author-managed add-on or skin version. */
+export const semver = z.string().trim().regex(/^\d+\.\d+\.\d+$/, 'Version must look like 1.2.3');
 
 /** A version tag: `1.2.3` or `v1.2.3`. */
 export const ADDON_TAG = /^v?(\d+\.\d+\.\d+)$/;
@@ -63,7 +77,7 @@ const repoUrl = z.url({
 }, 'Leave credentials out of the address');
 
 /** Free-form tags: lowercase, hyphen/alnum, deduped, capped. */
-const tags = z.array(
+export const tags = z.array(
 	z.string()
 		.trim()
 		.toLowerCase()
@@ -73,14 +87,15 @@ const tags = z.array(
 
 /**
  * The starter source seeded into the editor when creating a new add-on. The
- * runtime imports an add-on as an ES module and drives it purely through these
- * two exports - no other API is exposed (add-ons run unsandboxed against the
- * page). `mount` runs when the add-on is enabled and receives its metadata,
- * `unmount` when it is disabled, updated, or removed.
+ * runtime imports an add-on as an ES module and drives it through these two
+ * exports (add-ons run unsandboxed against the page). `mount` runs when the
+ * add-on is enabled and receives its metadata and the game's host (its React,
+ * the editor), `unmount` when it is disabled, updated, or removed.
  */
-export const ADDON_TEMPLATE = `// oss!idle add-on
-export const mount = ({ id, name, version, gameVersion, authorId, authorName }) => {
+export const ADDON_TEMPLATE = `// oss!idle add-on: how they work, ${ADDON_DOCS_URL}
+export const mount = ({ id, name, version, gameVersion, authorId, authorName }, host) => {
 	// runs when the add-on is enabled
+	// host.react is the game's React; host.editor.watch(editor => ...) reaches the editor
 };
 
 export const unmount = () => {
@@ -88,10 +103,14 @@ export const unmount = () => {
 };
 `;
 
+const types = z.array(z.enum(AddonTypes)).min(1, 'Pick at least one type')
+	.transform(list => [...new Set(list)]);
+
 const addonFields = z.object({
 	name: z.string().trim().min(1).max(80),
 	description: z.string().trim().max(500).default(''),
 	tags: tags.default([]),
+	types: types.default([ADDON_TYPE.gameplay]),
 	version: semver.default('0.1.0'),
 	gameVersion: z.string().trim().max(20).default(VERSION),
 	icon: z.string().max(512).nullable().default(null),
