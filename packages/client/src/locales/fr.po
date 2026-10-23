@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-23 19:43\n"
+"PO-Revision-Date: 2026-10-23 21:52\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -735,6 +735,7 @@ msgstr "Par titre"
 #: src/components/community/chat/ReportMessageDialog.tsx
 #: src/components/community/LinkMenu.tsx
 #: src/components/ConfirmMenu.tsx
+#: src/components/dock/SaveQueuePrompt.tsx
 #: src/components/multiplayer/CreateMatch.tsx
 #: src/components/multiplayer/PasswordPrompt.tsx
 #: src/components/page/pageBar.tsx
@@ -1305,6 +1306,10 @@ msgstr "Plus vite"
 #: src/editor/builtinActions.ts
 msgid "Faster playback"
 msgstr "Lecture plus rapide"
+
+#: src/scenes/Gameplay.tsx
+msgid "Fatigue"
+msgstr ""
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Field"
@@ -2548,6 +2553,10 @@ msgstr "En jeu"
 msgid "Playlist"
 msgstr "Playlist"
 
+#: src/components/dock/SaveQueuePrompt.tsx
+msgid "Playlist name"
+msgstr ""
+
 #: src/components/PlaylistOverlay.tsx
 #: src/components/Tutorial.tsx
 msgid "Playlists"
@@ -2860,6 +2869,7 @@ msgstr "Fichier sample"
 msgid "Sample set"
 msgstr "Sampleset"
 
+#: src/components/dock/SaveQueuePrompt.tsx
 #: src/components/page/pageBar.tsx
 #: src/editor/builtinActions.ts
 #: src/editor/EditorActions.tsx
@@ -2869,6 +2879,11 @@ msgstr "Sauvegarder"
 #: src/components/addons/AddonRepoPane.tsx
 msgid "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
 msgstr "Sauvegardez l'add-on pour obtenir son adresse de webhook. oss!idle compile lui-même chaque nouveau tag de version du dépôt."
+
+#: src/components/dock/DockTransport.tsx
+#: src/components/dock/SaveQueuePrompt.tsx
+msgid "Save the queue as a playlist"
+msgstr ""
 
 #: src/editor/EditorView.tsx
 msgid "Saved"

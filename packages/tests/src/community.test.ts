@@ -215,6 +215,7 @@ describe('play wire contract', () => {
 				startedAt: 1_700_000_000_000,
 				endsAt: 1_700_000_120_000,
 				serverNow: 1_700_000_000_050,
+				fatigue: 0.4,
 				offsets: [
 					{ id: 'n1' },
 					{

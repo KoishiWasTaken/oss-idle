@@ -120,7 +120,7 @@ export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Accou
 			await db.query(
 				`UPDATE \`character\`
 				SET speed_upgrades = 0, autopilot_mode = 'PLAYLIST', autopilot_delay = 3, play_rate = 1,
-					play_mods = NULL
+					play_mods = NULL, fatigue = NULL
 				WHERE id = ?`,
 				[row.id],
 			);

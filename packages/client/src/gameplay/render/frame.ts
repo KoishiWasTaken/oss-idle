@@ -33,6 +33,9 @@ export type StrainHud = {
 	labels: Record<SkillName, string>,
 	/** where the gauges start, past anything drawn at the left edge */
 	left?: number,
+	/** how tired the character plays it, 0 rested to 1 exhausted */
+	fatigue?: number,
+	fatigueLabel?: string,
 };
 
 export type DrawOptions = {

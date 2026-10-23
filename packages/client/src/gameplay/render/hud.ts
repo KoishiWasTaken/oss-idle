@@ -18,6 +18,39 @@ import {
 	type StrainHud,
 } from './frame';
 
+const FATIGUE_COLOR = '#b48cff';
+const GAUGE_W = 150;
+
+// one gauge row: label, % and a bar - just the label and a tinted % when compact
+const drawGauge = (
+	f: Frame,
+	label: string,
+	v: number,
+	color: string,
+	bx: number,
+	by: number,
+) => {
+	const { ctx, vp } = f;
+	ctx.textAlign = 'left';
+	ctx.fillStyle = 'rgba(255,255,255,0.75)';
+	ctx.fillText(label, bx, by);
+	if (vp.w < 700) {
+		ctx.fillStyle = color;
+		ctx.fillText(`${Math.round(v * 100)}%`, bx, by + 13);
+		return;
+	}
+	ctx.textAlign = 'right';
+	ctx.fillText(`${Math.round(v * 100)}%`, bx + GAUGE_W, by);
+	ctx.fillStyle = 'rgba(255,255,255,0.12)';
+	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
+	ctx.fill();
+	if (v > 0.005) {
+		ctx.fillStyle = color;
+		roundRect(ctx, bx, by + 5, Math.max(8, GAUGE_W * v), 8, 4);
+		ctx.fill();
+	}
+};
+
 // strain meters (left side): one stress gauge per skill, 0-100%. Narrow screens
 // drop the bars and show just the %, tinted the gauge's colour. `display` carries
 // the eased value between frames so per-note jumps read as motion.
@@ -27,38 +60,20 @@ const drawStrainMeters = (
 	display: Record<SkillName, number>,
 ) => {
 	const { ctx, now, vp } = f;
-	const compact = vp.w < 700;
 	const strains = strain.bot.strainsAt(now);
 	const bx = strain.left ?? 16;
-	const bw = 150;
-	const step = compact ? 30 : 26;
+	const step = vp.w < 700 ? 30 : 26;
 	const by0 = Math.max(150, vp.h * 0.24);
 	ctx.font = '600 11px "Exo 2", sans-serif';
 	STRAIN_HUD_SKILLS.forEach((skill, i) => {
-		const added = (strains[skill] - display[skill]) * 0.2;
-		const v = display[skill] += added;
-		const by = by0 + i * step;
+		const v = display[skill] += (strains[skill] - display[skill]) * 0.2;
 		// calm green → stressed red
-		const color = `hsl(${120 - v * 120}, 85%, 55%)`;
-		ctx.textAlign = 'left';
-		ctx.fillStyle = 'rgba(255,255,255,0.75)';
-		ctx.fillText(strain.labels[skill], bx, by);
-		if (compact) {
-			ctx.fillStyle = color;
-			ctx.fillText(`${Math.round(v * 100)}%`, bx, by + 13);
-			return;
-		}
-		ctx.textAlign = 'right';
-		ctx.fillText(`${Math.round(v * 100)}%`, bx + bw, by);
-		ctx.fillStyle = 'rgba(255,255,255,0.12)';
-		roundRect(ctx, bx, by + 5, bw, 8, 4);
-		ctx.fill();
-		if (v > 0.005) {
-			ctx.fillStyle = color;
-			roundRect(ctx, bx, by + 5, Math.max(8, bw * v), 8, 4);
-			ctx.fill();
-		}
+		drawGauge(f, strain.labels[skill], v, `hsl(${120 - v * 120}, 85%, 55%)`, bx, by0 + i * step);
 	});
+	if (strain.fatigue === undefined) return;
+	// how tired the character plays this map, fixed for the whole play
+	const fy = by0 + STRAIN_HUD_SKILLS.length * step + 12;
+	drawGauge(f, strain.fatigueLabel ?? '', strain.fatigue, FATIGUE_COLOR, bx, fy);
 };
 
 // debug-only telemetry over the playfield (nps, visible notes, transitions, ...)

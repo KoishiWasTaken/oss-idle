@@ -49,6 +49,8 @@ export const playStartResultDTO = z.discriminatedUnion('status', [
 		startedAt: z.number(),
 		endsAt: z.number(),
 		serverNow: z.number(),
+		/** how tired the character plays it, 0 rested to 1 exhausted */
+		fatigue: z.number().min(0).max(1).default(0),
 		...offsetChunk,
 	}),
 	z.object({ status: z.literal('unranked') }),

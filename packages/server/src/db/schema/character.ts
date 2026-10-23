@@ -16,6 +16,7 @@ import type { CharacterDTO } from '@oss-idle/shared/character';
 import type { PendingAction } from '@oss-idle/shared/pendingAction';
 import type { AutopilotMode } from '@oss-idle/shared/queue';
 import type { Mod } from '@oss-idle/shared/mods';
+import type { Fatigue } from '@oss-idle/shared/fatigue';
 import { users } from './user';
 import { apiBaseUrl } from '../../env';
 import { db } from '../client';
@@ -102,6 +103,7 @@ export const characters = mysqlTable('character', {
 	autopilotDelay: int().notNull().default(30),
 	playRate: double().notNull().default(1),
 	playMods: jsonColumn<Mod[]>(),
+	fatigue: jsonColumn<Fatigue>(),
 });
 
 export type CharacterRow = typeof characters.$inferSelect;

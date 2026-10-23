@@ -596,6 +596,13 @@
       "when": 1795478400000,
       "tag": "0093_addon_types",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "5",
+      "when": 1795564800000,
+      "tag": "0094_physical_fatigue",
+      "breakpoints": true
     }
   ]
 }

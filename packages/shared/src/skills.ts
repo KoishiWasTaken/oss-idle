@@ -178,10 +178,15 @@ export const PRESSURE_SKILLS: Set<SkillName> = new Set([
 	SKILL.speedjam,
 ]);
 
-const MINDBLOCK_EXEMPT = new Set<SkillName>([
-	SKILL.stamina, 
-	SKILL.memory,
+/** Trained by repetition, so no mindblock: they tire instead (server fatigue.ts). */
+export const PHYSICAL_SKILLS: SkillName[] = [
 	SKILL.speed,
+	SKILL.stamina,
 	SKILL.jackspeed,
+];
+
+const MINDBLOCK_EXEMPT = new Set<SkillName>([
+	...PHYSICAL_SKILLS,
+	SKILL.memory,
 ]);
 export const MINDBLOCK_SKILLS: SkillName[] = Skills.filter(s => !MINDBLOCK_EXEMPT.has(s));

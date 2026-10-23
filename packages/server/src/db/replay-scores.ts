@@ -13,7 +13,8 @@
  * factors read for grade and misses.
  *
  * Sequential on purpose. Every play moves the levels the next one earns at, and
- * mindblock reads the plays already inserted, so the order is the point.
+ * mindblock reads the plays already inserted and fatigue the ones applied, so
+ * the order is the point.
  *
  *   npm -w @oss-idle/server run replay:scores -- --file backups/scores.json --dry-run
  */
@@ -43,6 +44,14 @@ import {
 	onSubmitScore,
 } from '../scores';
 import { addBeatmapPlayed } from './schema/beatmaps_played';
+import {
+	addFatigue,
+	playStrain,
+} from '../fatigue';
+import {
+	fatigueLevel,
+	restedFatigue,
+} from '@oss-idle/shared/fatigue';
 
 const decoder = new BeatmapDecoder();
 
@@ -97,7 +106,9 @@ const xpFor = async (row: DumpedScore) => {
 	const beatmap = await getBeatmap(beatmapId);
 	if (!beatmap?.chart) return undefined;
 
-	const skills = await loadCharacterSkills(character, beatmapId);
+	const at = new Date(row.played_at!).getTime();
+	const fatigue = fatigueLevel(restedFatigue(character.fatigue ?? undefined, at));
+	const skills = await loadCharacterSkills(character, beatmapId, fatigue);
 	const chart = decoder.decodeFromString(beatmap.chart);
 	const bot = new CharacterBot(skills);
 	const rate = Number(row.rate ?? 1);
@@ -106,10 +117,16 @@ const xpFor = async (row: DumpedScore) => {
 	});
 	game.update(game.songEndMs + 1000); // straight to the end: only the blame matters
 
-	return getServerXP(
+	const xp = await getServerXP(
 		character, bot, beatmap, chart, asScoreLike(row) as never, rate, Number(row.sr ?? beatmap.sr),
-		parseMods(row.mods ?? ''),
+		parseMods(row.mods ?? ''), fatigue,
 	);
+	return {
+		xp,
+		minutes: chart.totalLength / rate / 60_000,
+		strain: playStrain(bot, chart.totalLength / rate),
+		at,
+	};
 };
 
 const main = async () => {
@@ -126,13 +143,16 @@ const main = async () => {
 	let done = 0, skipped = 0;
 
 	for (const row of rows) {
-		const xp = await xpFor(row);
-		if (!xp) {
+		const replayed = await xpFor(row);
+		if (!replayed) {
 			skipped++;
 			console.warn(`  skipped score ${row.id}: no character or no chart`);
 			continue;
 		}
 
+		const {
+			xp, minutes, strain, at,
+		} = replayed;
 		const characterId = Number(row.character_id);
 		const seen = totals.get(characterId)
 			?? Object.fromEntries(Skills.map(s => [s, 0])) as Record<SkillName, number>;
@@ -142,6 +162,7 @@ const main = async () => {
 		if (!dryRun) {
 			// milestones were announced the first time round: silent here
 			await applySkillXp(characterId, xp, false);
+			await addFatigue(characterId, minutes, strain, at);
 			// the original row, not the simulated one
 			await addBeatmapPlayed(characterId, Number(row.beatmap_id));
 			await db.insert(scores).values(toDraft(row));

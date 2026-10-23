@@ -730,6 +730,7 @@ msgstr "By Title"
 #: src/components/community/chat/ReportMessageDialog.tsx
 #: src/components/community/LinkMenu.tsx
 #: src/components/ConfirmMenu.tsx
+#: src/components/dock/SaveQueuePrompt.tsx
 #: src/components/multiplayer/CreateMatch.tsx
 #: src/components/multiplayer/PasswordPrompt.tsx
 #: src/components/page/pageBar.tsx
@@ -1300,6 +1301,10 @@ msgstr "Faster"
 #: src/editor/builtinActions.ts
 msgid "Faster playback"
 msgstr "Faster playback"
+
+#: src/scenes/Gameplay.tsx
+msgid "Fatigue"
+msgstr "Fatigue"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Field"
@@ -2543,6 +2548,10 @@ msgstr "Playing"
 msgid "Playlist"
 msgstr "Playlist"
 
+#: src/components/dock/SaveQueuePrompt.tsx
+msgid "Playlist name"
+msgstr "Playlist name"
+
 #: src/components/PlaylistOverlay.tsx
 #: src/components/Tutorial.tsx
 msgid "Playlists"
@@ -2855,6 +2864,7 @@ msgstr "Sample file"
 msgid "Sample set"
 msgstr "Sample set"
 
+#: src/components/dock/SaveQueuePrompt.tsx
 #: src/components/page/pageBar.tsx
 #: src/editor/builtinActions.ts
 #: src/editor/EditorActions.tsx
@@ -2864,6 +2874,11 @@ msgstr "Save"
 #: src/components/addons/AddonRepoPane.tsx
 msgid "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
 msgstr "Save the add-on to get its webhook address. oss!idle builds every new version tag of the repository itself."
+
+#: src/components/dock/DockTransport.tsx
+#: src/components/dock/SaveQueuePrompt.tsx
+msgid "Save the queue as a playlist"
+msgstr "Save the queue as a playlist"
 
 #: src/editor/EditorView.tsx
 msgid "Saved"

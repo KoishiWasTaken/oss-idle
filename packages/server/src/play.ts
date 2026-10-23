@@ -13,6 +13,7 @@ import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
 import { hasUnlock } from '@oss-idle/shared/rebirth';
 import {
 	MINDBLOCK_SKILLS,
+	PHYSICAL_SKILLS,
 	Skills,
 	type SkillName,
 } from '@oss-idle/shared/skills';
@@ -80,6 +81,16 @@ import {
 	recentMapPlays,
 } from './mindblock';
 import {
+	addFatigue,
+	playStrain,
+} from './fatigue';
+import {
+	fatigueLevel,
+	fatigueXp,
+	restedFatigue,
+	tireSkill,
+} from '@oss-idle/shared/fatigue';
+import {
 	applySkillXp,
 	submitScore,
 } from './scores';
@@ -138,6 +149,10 @@ type Pending = {
 	songEndMs?: number,
 	draft: NewScoreRow,
 	skillXp: Record<SkillName, number>,
+	/** the play's minutes and those its physical skills were strained, for fatigue once it pays */
+	strain?: { minutes: number, strained: number },
+	/** how tired the character played it, 0 rested to 1 exhausted */
+	fatigue?: number,
 	samples?: PlaySample[],
 	skipped?: true,
 	failedAt?: number,
@@ -307,6 +322,7 @@ type RankedStartPlayResult = {
 	startedAt: number,
 	endsAt: number,
 	serverNow: number,
+	fatigue: number,
 } & OffsetChunk;
 
 /** The offsets revealed so far: every one whose note is within the buffer window
@@ -326,8 +342,13 @@ type StartPlayResult = RankedStartPlayResult
 	| { status: 'restricted' };
 
 /** Build the character's skills, loaded with their level/XP (and play count for
- *  Memory) so the simulation runs at the character's current state. */
-export async function loadCharacterSkills(character: CharacterRow, beatmapId: number) {
+ *  Memory) so the simulation runs at the character's current state, tired. */
+export async function loadCharacterSkills(
+	character: CharacterRow,
+	beatmapId: number,
+	/** how tired the character is, 0 rested to 1 exhausted */
+	fatigue = 0,
+) {
 	const skills = makeOrderedSkills();
 	for (const skill of skills) {
 		skill.level.set(character[`${skill.name}Level`]);
@@ -335,6 +356,7 @@ export async function loadCharacterSkills(character: CharacterRow, beatmapId: nu
 		skill.upgrades.set(character[`${skill.name}Upgrades`]);
 		skill.overdrive.set(character[`${skill.name}Overdrive`]);
 		skill.prestige.set(character[`${skill.name}Prestige`]);
+		tireSkill(skill, fatigue);
 
 		if (skill instanceof Memory) {
 			skill.timesPlayed.set(await getPlays(character.id, beatmapId));
@@ -400,6 +422,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	startedAt: p.startedAt,
 	endsAt: shownEnd(p),
 	serverNow: Date.now(),
+	fatigue: p.fatigue ?? 0,
 	...chunkFrom(p, 0),
 });
 
@@ -505,6 +528,7 @@ export const getServerXP = async (
 	/** the map's stars at that rate */
 	stars = Number(beatmap.sr),
 	mods: readonly Mod[] = [],
+	fatigue = 0,
 ) => {
 	const topGrade = await bestGradeOn(character.id, beatmap.id);
 
@@ -517,6 +541,11 @@ export const getServerXP = async (
 	const block = mindblockFactor(recentPlays);
 	if (block < 1) {
 		for (const name of MINDBLOCK_SKILLS) skillXp[name] = Math.floor(skillXp[name] * block);
+	}
+
+	// Fatigue: physical skills strained for hours on any maps tire.
+	for (const name of PHYSICAL_SKILLS) {
+		skillXp[name] = Math.floor(skillXp[name] * fatigueXp(fatigue));
 	}
 
 	const medals = await medalMultiplier(character.id);
@@ -557,7 +586,8 @@ async function simulateAndStore(
 		xpMultiplier = 1, rate = 1, mods = [], round = false, board = false,
 	}: PlayOptions,
 ): Promise<StartPlayResult> {
-	const skills = await loadCharacterSkills(character, beatmapId);
+	const fatigue = fatigueLevel(restedFatigue(character.fatigue ?? undefined, Date.now()));
+	const skills = await loadCharacterSkills(character, beatmapId, fatigue);
 
 	const chart = decoder.decodeFromString(beatmap.chart);
 	const bot = new CharacterBot(skills);
@@ -647,9 +677,16 @@ async function simulateAndStore(
 			rate,
 			stars,
 			mods,
+			fatigue,
 		), xpMultiplier),
+		fatigue,
 		...fail,
-		...board ? { board: 'unranked' as const } : {},
+		...board ? { board: 'unranked' as const } : {
+			strain: {
+				minutes: chart.totalLength / rate / 60_000,
+				strained: playStrain(bot, chart.totalLength / rate),
+			},
+		},
 	};
 	if (!isRankedMods(mods)) entry.unranked = true;
 	await redis.set(playKey(character.id), JSON.stringify(entry));
@@ -679,6 +716,7 @@ async function simulateAndStore(
 		startedAt,
 		endsAt: shownEnd(entry),
 		serverNow: Date.now(),
+		fatigue,
 		...chunkFrom(entry, 0),
 	};
 }
@@ -765,6 +803,9 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 	play.draft.playedAt = new Date();
 	const row = await submitScore(play.draft);
 	const gains = await applySkillXp(characterId, play.skillXp);
+	if (play.strain) {
+		await addFatigue(characterId, play.strain.minutes, play.strain.strained, Date.now());
+	}
 	await reindexCharacter(characterId);
 	await reindexBeatmap(characterId, play.draft.beatmapId);
 

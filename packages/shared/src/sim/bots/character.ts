@@ -612,6 +612,16 @@ export default class CharacterBot extends Bot {
 		return this.xp;
 	}
 
+	/** The share of the play's notes and releases each skill was blamed for. */
+	strainShares(): Partial<Record<SkillName, number>> {
+		const shares: Partial<Record<SkillName, number>> = {};
+		const strained = [...this.noteStrained.values(), ...this.releaseStrained.values()];
+		for (const strain of strained) {
+			if (strain) shares[strain.skill] = (shares[strain.skill] ?? 0) + 1 / strained.length;
+		}
+		return shares;
+	}
+
 	private progression?: SkillProgress[];
 	applyProgression(
 		length: number,

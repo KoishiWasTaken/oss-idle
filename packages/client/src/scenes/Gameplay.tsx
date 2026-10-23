@@ -19,6 +19,7 @@ import {
 	LEAD_IN_MS,
 	ManiaGame,
 } from '@oss-idle/shared/sim/maniaGame';
+import { tiredSkills } from '@oss-idle/shared/fatigue';
 import CharacterBot, { type SkillProgress } from '@oss-idle/shared/sim/bots/character';
 import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
 import type { Bot } from '@oss-idle/shared/sim/bot';
@@ -204,6 +205,7 @@ function GameplayInner({
 		)) as Record<SkillName, string>,
 		[i18n],
 	);
+	const fatigueLabel = useMemo(() => t`Fatigue`, [t]);
 	// clock state lives in a ref so it survives HMR effect re-runs: the lead-in
 	// isn't restarted and the audio isn't re-triggered, keeping the gameplay
 	// clock continuous with the (single, still-playing) audio.
@@ -296,7 +298,9 @@ function GameplayInner({
 			// the play being watched *is* this analysis - no approximation needed
 			strainBotRef.current = local.bot;
 		} else {
-			strainBotRef.current = new CharacterBot(character.skills);
+			strainBotRef.current = new CharacterBot(play.mode === 'ranked'
+				? tiredSkills(character.skills, play.fatigue)
+				: character.skills);
 			new ManiaGame(beatmap, strainBotRef.current, {
 				divine, rate, mods, playOn,
 			});
@@ -975,6 +979,9 @@ function GameplayInner({
 				? {
 					bot: strainBotRef.current,
 					labels: skillLabels,
+					...play.mode === 'ranked' ? {
+						fatigue: play.fatigue, fatigueLabel,
+					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}
 				: undefined;

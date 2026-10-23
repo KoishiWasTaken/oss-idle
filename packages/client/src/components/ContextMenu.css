@@ -75,6 +75,21 @@
 	filter: brightness(1.1);
 }
 
+.ctxmenu__input {
+	align-self: center;
+	width: max(60vw, 500px);
+	max-width: 100%;
+	margin-bottom: 25px;
+	padding: 8px 12px;
+	border: 2px solid #fff;
+	background: #222;
+	color: #fff;
+	font: inherit;
+	font-size: 28px;
+	outline: none;
+	pointer-events: auto;
+}
+
 @media (max-width: 900px) {
 	.ctxmenu__title,
 	.ctxmenu__sub {
