@@ -23,6 +23,8 @@
 	border: 1px solid var(--dock-line);
 	backdrop-filter: blur(4px);
 	animation: dock-in 0.16s ease both;
+	/* rides up over the open chat (below) */
+	transition: bottom 0.3s ease;
 }
 @keyframes dock-in {
 	from {
@@ -36,6 +38,10 @@
 /* song select keeps a 110px bottom bar, which paints over the dock (z 100) */
 .dock--above-bar {
 	bottom: 120px;
+}
+/* the open chat (z 9500) covers it; the docked column keeps its own place */
+html.is-chat-open .dock:not(.dock--left) {
+	bottom: calc(var(--community-chat-height) + 10px);
 }
 
 /* --- the pill: over gameplay ------------------------------------------- */
