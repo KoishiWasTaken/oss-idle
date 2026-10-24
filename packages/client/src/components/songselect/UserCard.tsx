@@ -17,6 +17,7 @@ import accuracyText from '@oss-idle/shared/display/accuracy';
 import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
 import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+import GlobalRank from './GlobalRank';
 
 /** Profile card: avatar + online stats, clicking through to oss! web
  *  (or the login flow for a guest). Online stats only show once loaded. */
@@ -63,6 +64,7 @@ export default function UserCard({
 				{!online_character && (
 					<span className="game__user-pp"><Trans>Click here to login!</Trans></span>
 				)}
+				<GlobalRank globalRank={online_stats?.globalRank} percent={online_stats?.globalRankPercent} />
 				<div className="game__user-level-bar">
 					<div
 						className="game__user-level-bar-fill"
