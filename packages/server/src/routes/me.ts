@@ -64,6 +64,7 @@ import {
 	userPageOf,
 } from '../userPage';
 import { valid } from '../validate';
+import { editsCharacter } from '@oss-idle/shared/groups';
 
 const characterId = z.number().int().positive();
 const characterRenameBody = characterNameBody.extend({ characterId: characterId.optional() });
@@ -73,17 +74,24 @@ const characterSelectBody = z.object({ characterId });
 const titleBody = z.object({ medalId: z.string().max(32).optional() });
 
 const previewBody = z.object({ raw: z.string().max(USER_PAGE_MAX) });
+/** Which character an image goes on: the current one unless named. */
+const imageQuery = z.object({ characterId: z.coerce.number().int().positive().optional() });
 
 /** Profile customisation is a supporter perk; what was set stays up after the tag ends. */
 const requireSupporter = async (userId: number) => {
 	if (!await isSupporter(userId)) throw new HTTPException(403, { message: 'This needs an oss!supporter tag' });
 };
 
-const assertOwnCharacter = async (userId: number, characterId: number) => {
-	const [row] = await db.select({ id: characters.id }).from(characters)
-		.where(and(eq(characters.id, characterId), eq(characters.userId, userId)))
+/** A character whose profile the account edits, with its owner's row. */
+const editableCharacter = async (userId: number, characterId: number) => {
+	const [row] = await db.select().from(characters)
+		.innerJoin(users, eq(users.id, characters.userId))
+		.where(eq(characters.id, characterId))
 		.limit(1);
-	if (!row) throw new HTTPException(404, { message: 'Character not found' });
+	if (!row || !editsCharacter(userId, row.character)) {
+		throw new HTTPException(404, { message: 'Character not found' });
+	}
+	return row;
 };
 
 /** The signed-in account's own character (created during first-login onboarding). */
@@ -166,12 +174,7 @@ export const meRoutes = new Hono()
 		const target = characterId ?? user?.currentCharacter;
 		if (!user || !target) throw new HTTPException(409, { message: 'No character' });
 
-		const [row] = await db
-			.select()
-			.from(characters)
-			.where(and(eq(characters.id, target), eq(characters.userId, userId)))
-			.limit(1);
-		if (!row) throw new HTTPException(409, { message: 'No character' });
+		const { character: row, user: owner } = await editableCharacter(userId, target);
 
 		if (name !== row.name) {
 			await assertNameAvailable(userId, name, user.username, row.id);
@@ -182,34 +185,42 @@ export const meRoutes = new Hono()
 			row.name = name;
 		}
 
-		const dto = characterToDTO(row, user.avatarUrl, user.country);
+		const dto = characterToDTO(row, owner.avatarUrl, owner.country);
 		announceCharacter(dto);
 		return c.json(dto);
 	})
 
 	// Upload a custom profile picture for the account's current character,
 	// overriding its osu! avatar. Returns the updated character.
-	.post('/avatar', requireActive, async c => {
+	.post('/avatar', requireActive, valid('query', imageQuery), async c => {
 		const body = await c.req.parseBody();
 		const url = await saveUploadedImage(body['file']);
-		return c.json(await setCurrentCharacterImages(c.get('userId'), { avatarUrl: url }));
+		return c.json(await setCharacterImages(
+			c.get('userId'), c.req.valid('query').characterId, { avatarUrl: url },
+		));
 	})
 
 	// Remove the custom profile picture, reverting to the osu! avatar.
-	.delete('/avatar', requireAuth, async c => {
-		return c.json(await setCurrentCharacterImages(c.get('userId'), { avatarUrl: null }));
+	.delete('/avatar', requireAuth, valid('query', imageQuery), async c => {
+		return c.json(await setCharacterImages(
+			c.get('userId'), c.req.valid('query').characterId, { avatarUrl: null },
+		));
 	})
 
 	// Upload a profile banner for the account's current character.
-	.post('/banner', requireActive, async c => {
+	.post('/banner', requireActive, valid('query', imageQuery), async c => {
 		const body = await c.req.parseBody();
 		const url = await saveUploadedImage(body['file']);
-		return c.json(await setCurrentCharacterImages(c.get('userId'), { bannerUrl: url }));
+		return c.json(await setCharacterImages(
+			c.get('userId'), c.req.valid('query').characterId, { bannerUrl: url },
+		));
 	})
 
 	// Remove the profile banner.
-	.delete('/banner', requireAuth, async c => {
-		return c.json(await setCurrentCharacterImages(c.get('userId'), { bannerUrl: null }));
+	.delete('/banner', requireAuth, valid('query', imageQuery), async c => {
+		return c.json(await setCharacterImages(
+			c.get('userId'), c.req.valid('query').characterId, { bannerUrl: null },
+		));
 	})
 
 	// Show a held medal's name as the current character's title, or none.
@@ -233,7 +244,7 @@ export const meRoutes = new Hono()
 		const userId = c.get('userId');
 		const { characterId, raw } = c.req.valid('json');
 		await requireSupporter(userId);
-		await assertOwnCharacter(userId, characterId);
+		await editableCharacter(userId, characterId);
 		await db.update(characters).set({ userPage: raw }).where(eq(characters.id, characterId));
 		return c.json({ userPage: await userPageOf(raw) });
 	})
@@ -249,7 +260,7 @@ export const meRoutes = new Hono()
 		const userId = c.get('userId');
 		const { characterId, order } = c.req.valid('json');
 		await requireSupporter(userId);
-		await assertOwnCharacter(userId, characterId);
+		await editableCharacter(userId, characterId);
 		await db.update(characters).set({ profileOrder: order }).where(eq(characters.id, characterId));
 		return c.json({ order });
 	})
@@ -436,20 +447,23 @@ const assertNotPlaying = async (characterId: number) => {
 };
 
 /** Set the account's current character avatar or banner and return the resolved character DTO. */
-const setCurrentCharacterImages = async (
+const setCharacterImages = async (
 	userId: number,
+	requested: number | undefined,
 	images: Partial<Pick<CharacterRow, 'avatarUrl' | 'bannerUrl'>>,
 ) => {
 	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-	if (!user?.currentCharacter) throw new HTTPException(409, { message: 'No character' });
+	const id = requested ?? user?.currentCharacter;
+	if (!id) throw new HTTPException(409, { message: 'No character' });
+	const { user: owner } = await editableCharacter(userId, id);
 
-	await db.update(characters).set(images).where(eq(characters.id, user.currentCharacter));
+	await db.update(characters).set(images).where(eq(characters.id, id));
 	const [row] = await db
 		.select()
 		.from(characters)
-		.where(eq(characters.id, user.currentCharacter))
+		.where(eq(characters.id, id))
 		.limit(1);
-	const dto = characterToDTO(row!, user.avatarUrl, user.country);
+	const dto = characterToDTO(row!, owner.avatarUrl, owner.country);
 	announceCharacter(dto);
 	return dto;
 };

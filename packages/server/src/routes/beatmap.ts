@@ -216,6 +216,7 @@ export const beatmapsRoutes = new Hono()
 				...getTableColumns(beatmapset),
 				plays: sum(beatmaps.plays),
 				background: max(beatmaps.background),
+				audio: max(beatmaps.audio),
 				// who submitted a player's own map
 				submittedBy: max(users.username),
 			})
@@ -223,7 +224,9 @@ export const beatmapsRoutes = new Hono()
 			.leftJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
 			.leftJoin(users, and(eq(users.id, beatmapset.ownerUserId), isNotNull(beatmapset.uploadedAt)))
 			// players' own uploads only reach the queue once submitted for rank
-			.where(and(isNull(beatmapset.deletedAt), ne(beatmapset.status, 'unranked')))
+			.where(and(
+				isNull(beatmapset.deletedAt), ne(beatmapset.status, 'unranked'), ne(beatmapset.id, INTRO_SET_ID),
+			))
 			.groupBy(beatmapset.id)
 			.orderBy(desc(beatmapset.id));
 
@@ -279,6 +282,20 @@ export const beatmapsRoutes = new Hono()
 			throw new HTTPException(400, { message: e instanceof Error ? e.message : 'Could not ingest beatmap' });
 		}
 	})
+	// The intro is ranked at ingest so it's served; unranking or deleting it breaks startup.
+	.use('/nomination/:setId/*', async (c, next) => {
+		if (Number(c.req.param('setId')) === INTRO_SET_ID) {
+			throw new HTTPException(400, { message: 'The intro set can\'t be edited' });
+		}
+		await next();
+	})
+	// The preview route only serves public sets; the queue hears them before they are.
+	.get('/nomination/:setId/preview/:file', requireAdmin, async c => {
+		const id = idParam.parse(c.req.param('setId'));
+		const file = c.req.param('file');
+		checkPreviewName(id, file);
+		return previewResponse(file);
+	})
 	.patch('/nomination/:setId', requireAdmin, valid('json', nominationPatch), async c => {
 		const id = idParam.parse(c.req.param('setId'));
 		const body = c.req.valid('json');
@@ -301,8 +318,8 @@ export const beatmapsRoutes = new Hono()
 			const beatmapId = idParam.parse(c.req.param('beatmapId'));
 			const { ranked } = c.req.valid('json');
 
-			// Only 4K is playable; non-4K diffs can never be ranked (intro exempt).
-			if (ranked && setId !== INTRO_SET_ID) {
+			// Only 4K is playable; non-4K diffs can never be ranked.
+			if (ranked) {
 				const [diff] = await db
 					.select({ keys: beatmaps.keys })
 					.from(beatmaps)

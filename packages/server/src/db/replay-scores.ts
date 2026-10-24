@@ -51,6 +51,7 @@ import {
 import {
 	fatigueLevel,
 	restedFatigue,
+	warmup,
 } from '@oss-idle/shared/fatigue';
 
 const decoder = new BeatmapDecoder();
@@ -107,8 +108,10 @@ const xpFor = async (row: DumpedScore) => {
 	if (!beatmap?.chart) return undefined;
 
 	const at = new Date(row.played_at!).getTime();
-	const fatigue = fatigueLevel(restedFatigue(character.fatigue ?? undefined, at));
-	const skills = await loadCharacterSkills(character, beatmapId, fatigue);
+	const tired = restedFatigue(character.fatigue ?? undefined, at);
+	const fatigue = fatigueLevel(tired);
+	const warm = warmup(tired, character.staminaUpgrades);
+	const skills = await loadCharacterSkills(character, beatmapId, fatigue, warm);
 	const chart = decoder.decodeFromString(beatmap.chart);
 	const bot = new CharacterBot(skills);
 	const rate = Number(row.rate ?? 1);

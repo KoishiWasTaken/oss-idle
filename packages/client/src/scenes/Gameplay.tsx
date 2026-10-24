@@ -206,6 +206,7 @@ function GameplayInner({
 		[i18n],
 	);
 	const fatigueLabel = useMemo(() => t`Fatigue`, [t]);
+	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
 	// clock state lives in a ref so it survives HMR effect re-runs: the lead-in
 	// isn't restarted and the audio isn't re-triggered, keeping the gameplay
 	// clock continuous with the (single, still-playing) audio.
@@ -299,7 +300,7 @@ function GameplayInner({
 			strainBotRef.current = local.bot;
 		} else {
 			strainBotRef.current = new CharacterBot(play.mode === 'ranked'
-				? tiredSkills(character.skills, play.fatigue)
+				? tiredSkills(character.skills, play.fatigue, play.warmup)
 				: character.skills);
 			new ManiaGame(beatmap, strainBotRef.current, {
 				divine, rate, mods, playOn,
@@ -980,7 +981,7 @@ function GameplayInner({
 					bot: strainBotRef.current,
 					labels: skillLabels,
 					...play.mode === 'ranked' ? {
-						fatigue: play.fatigue, fatigueLabel,
+						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, warmupLabel,
 					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}

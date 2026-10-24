@@ -19,6 +19,7 @@ import {
 } from './frame';
 
 const FATIGUE_COLOR = '#b48cff';
+const WARMUP_COLOR = '#ffa64d';
 const GAUGE_W = 150;
 
 // one gauge row: label, % and a bar - just the label and a tinted % when compact
@@ -74,6 +75,8 @@ const drawStrainMeters = (
 	// how tired the character plays this map, fixed for the whole play
 	const fy = by0 + STRAIN_HUD_SKILLS.length * step + 12;
 	drawGauge(f, strain.fatigueLabel ?? '', strain.fatigue, FATIGUE_COLOR, bx, fy);
+	if (strain.warmup === undefined) return;
+	drawGauge(f, strain.warmupLabel ?? '', strain.warmup, WARMUP_COLOR, bx, fy + step);
 };
 
 // debug-only telemetry over the playfield (nps, visible notes, transitions, ...)

@@ -8,11 +8,13 @@ import {
 	eq,
 	isNull,
 	inArray,
+	ne,
 } from 'drizzle-orm';
 import {
 	Skills,
 	type SkillName,
 } from '@oss-idle/shared/skills';
+import { MAKISEBOT_ID } from '@oss-idle/shared/groups';
 import { redis } from './redis';
 import { db } from './db/client';
 import {
@@ -184,14 +186,14 @@ const getCharacterFields = async (id: number) => {
 	return row;
 };
 
-/** A restricted account is in no ranking and no leaderboard. */
-const visible = isNull(users.restrictedAt);
+/** A restricted account is in no ranking and no leaderboard, nor is MakiseBot, like osu!'s BanchoBot. */
+const visible = and(isNull(users.restrictedAt), ne(characters.id, MAKISEBOT_ID));
 
 /** Re-index one character after its metrics change. Called once per finalized
  *  play and on character creation. */
 export const reindexCharacter = async (id: number) => {
 	const character = await getCharacterFields(id);
-	if (!character || character.user.restrictedAt) return;
+	if (!character || character.user.restrictedAt || id === MAKISEBOT_ID) return;
 	await recordProgress(id);
 	const pipeline = redis.pipeline();
 	index(pipeline, character, (await getMedals(id)).map(m => m.medalId));

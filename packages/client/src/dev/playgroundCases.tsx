@@ -117,10 +117,11 @@ const fakeQueue = () => {
 	} as unknown as LightBeatmap);
 
 	const entries = [
-		entry('Camellia', 'Ghost', 'Rewind', 1),
+		entry('Juggernaut.', 'Godslain', 'sacrilegious conviction', 1),
 		entry('Nekomata Master', 'Far east nightbird', 'Lunatic', 2),
 		entry('xi', 'Blue Zenith', 'FOUR DIMENSIONS', 3),
 		entry('Yooh', 'Fly Away', 'Insane', 4),
+		entry('Various Artists', 'Jack Dumps', 'dj TAKA feat. NORIA - quaver', 5),
 	];
 	PlayQueue.start({
 		label: 'Favourites', mode: 'PLAYLIST', 

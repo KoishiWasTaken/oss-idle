@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import {
-	coverBackground,
-	type Nomination,
-	type NominationPatch,
+import type {
+	Nomination,
+	NominationPatch,
 } from '../../api/maps';
+import NominationCover from './NominationCover';
 import NominationDiffs from './NominationDiffs';
 import { phaseOf } from './nominationStatus';
 import type { MapTag } from '@oss-idle/shared/beatmap';
@@ -74,10 +74,7 @@ export default function NominationRow({
 	return (
 		<div className='nomination__entry'>
 			<div className='nomination__info'>
-				<div
-					className='nomination__cover'
-					style={{ backgroundImage: coverBackground(row, 'list') }}
-				/>
+				<NominationCover row={row} />
 				<NominationMeta row={row} player={player} />
 
 				<span className={`nomination__badge nomination__badge--${phase}`}>{phase}</span>
@@ -109,7 +106,6 @@ export default function NominationRow({
 			</div>
 
 			<NominationDiffs
-				setId={row.id}
 				diffs={row.diffs}
 				busy={busy}
 				live={live}

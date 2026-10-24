@@ -14,13 +14,14 @@ import {
 } from '@lingui/react/macro';
 
 type Props = {
+	characterId: number;
 	bannerUrl?: string;
-	/** The viewer owns this character: show upload / remove. */
+	/** The viewer edits this character: show upload / remove. */
 	editable?: boolean;
 };
 
 /** The profile's cover image, black without one. */
-export default function ProfileBanner({ bannerUrl, editable }: Props) {
+export default function ProfileBanner({ characterId, bannerUrl, editable }: Props) {
 	const { t } = useLingui();
 
 	const fileInput = useRef<HTMLInputElement>(null);
@@ -31,7 +32,9 @@ export default function ProfileBanner({ bannerUrl, editable }: Props) {
 		if (!busy) await runAction(async () => setUrl((await action()).bannerUrl));
 	};
 
-	const pick = (file: File | undefined) => { if (file) void run(() => uploadBanner(file)); };
+	const pick = (file: File | undefined) => {
+		if (file) void run(() => uploadBanner(characterId, file));
+	};
 
 	return (
 		<div className='character__banner' style={url ? { backgroundImage: `url("${url}")` } : undefined}>
@@ -50,7 +53,7 @@ export default function ProfileBanner({ bannerUrl, editable }: Props) {
 						<button
 							type='button'
 							className='profile-banner__btn'
-							onClick={() => void run(removeBanner)}
+							onClick={() => void run(() => removeBanner(characterId))}
 							disabled={busy}
 						>
 							<Trans>Remove</Trans>

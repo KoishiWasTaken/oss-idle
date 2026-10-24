@@ -1,3 +1,4 @@
+import Marquee from '../Marquee';
 import RatedVersion from '../RatedVersion';
 import { Trans } from '@lingui/react/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -17,14 +18,14 @@ export default function DockUpNext() {
 		<div className="dock__upnext">
 			<div className="dock__upnext-row">
 				<FontAwesomeIcon icon={faForwardStep} className="dock__next-icon" />
-				<span className="dock__upnext-title">
+				<Marquee className="dock__upnext-title">
 					{next
 						? <>
 							{next.set.metadata.artist} - {next.set.metadata.title}
 							<RatedVersion version={next.metadata.version} rate={next.lockedRate} />
 						</>
 						: <span className="dock__upnext-none"><Trans>Nothing queued</Trans></span>}
-				</span>
+				</Marquee>
 				{next && <DockCountdown />}
 			</div>
 			<DockCountdownBar />

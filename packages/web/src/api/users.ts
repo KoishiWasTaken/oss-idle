@@ -19,23 +19,31 @@ const uploadImage = async (path: string, file: File) => {
 	})));
 };
 
-/** Upload a custom profile picture for the signed-in character; returns the
+/** Upload a custom profile picture for a character the viewer edits; returns the
  *  updated character (with its avatarUrl now pointing at the upload). */
-export const uploadAvatar = (file: File) => uploadImage('/v1/me/avatar', file);
+export const uploadAvatar = (characterId: number, file: File) =>
+	uploadImage(`/v1/me/avatar?characterId=${characterId}`, file);
 
 /** Remove the custom profile picture, reverting to the osu! avatar. */
-export const resetAvatar = () => unwrap(rpc.v1.me.avatar.$delete());
+export const resetAvatar = (characterId: number) =>
+	unwrap(rpc.v1.me.avatar.$delete({ query: { characterId: String(characterId) } }));
 
-/** Upload a profile banner for the signed-in character; returns the updated character. */
-export const uploadBanner = (file: File) => uploadImage('/v1/me/banner', file);
+/** Upload a profile banner for a character the viewer edits; returns the updated character. */
+export const uploadBanner = (characterId: number, file: File) =>
+	uploadImage(`/v1/me/banner?characterId=${characterId}`, file);
 
 /** Remove the profile banner. */
-export const removeBanner = () => unwrap(rpc.v1.me.banner.$delete());
+export const removeBanner = (characterId: number) =>
+	unwrap(rpc.v1.me.banner.$delete({ query: { characterId: String(characterId) } }));
 
-/** Rename the signed-in character (same rules as creation); returns the
+/** Rename a character the viewer edits (same rules as creation); returns the
  *  updated character. The old name joins its permanent name history. */
-export const renameCharacter = (name: string) =>
-	unwrap(rpc.v1.me.username.$post({ json: { name } }));
+export const renameCharacter = (characterId: number, name: string) =>
+	unwrap(rpc.v1.me.username.$post({
+		json: {
+			characterId, name,
+		},
+	}));
 
 /** Show a held medal's name as the signed-in character's title, or clear it. */
 export const setTitle = (medalId?: string) =>

@@ -3761,6 +3761,10 @@ msgstr "Waiting for the next map"
 msgid "Waiting for the other players to finish..."
 msgstr "Waiting for the other players to finish..."
 
+#: src/scenes/Gameplay.tsx
+msgid "Warm-up"
+msgstr "Warm-up"
+
 #: src/components/dock/DockWatchButton.tsx
 msgid "Watch"
 msgstr "Watch"

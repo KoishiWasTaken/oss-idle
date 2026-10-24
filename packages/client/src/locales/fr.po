@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-23 21:52\n"
+"PO-Revision-Date: 2026-10-24 10:41\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -772,7 +772,7 @@ msgstr "Modifier..."
 
 #: src/components/Changelog.tsx
 msgid "Changelog"
-msgstr "Journal des modifications"
+msgstr ""
 
 #: src/components/multiplayer/MatchRow.tsx
 msgid "Changing beatmap..."
@@ -2362,7 +2362,7 @@ msgstr "{OLD_HOST} a déménagé vers oss!idle"
 
 #: src/components/Changelog.tsx
 msgid "oss!idle updated to v{VERSION}, see what's new"
-msgstr "oss!idle mis à jour en v{VERSION}, découvrez les nouveautés"
+msgstr ""
 
 #: src/components/options/OsuMusicTheme.tsx
 msgid "osu! music at startup"
@@ -3766,6 +3766,10 @@ msgstr "En attente de la prochaine map"
 msgid "Waiting for the other players to finish..."
 msgstr "En attente des autres joueurs..."
 
+#: src/scenes/Gameplay.tsx
+msgid "Warm-up"
+msgstr ""
+
 #: src/components/dock/DockWatchButton.tsx
 msgid "Watch"
 msgstr "Regarder"
@@ -3804,7 +3808,7 @@ msgstr "Ce que fait chaque compétence et ce qui multiplie son XP"
 
 #: src/components/Changelog.tsx
 msgid "What's new"
-msgstr "Nouveautés"
+msgstr ""
 
 #: src/editor/EditorShortcuts.tsx
 msgid "Wheel"
@@ -3970,3 +3974,4 @@ msgstr "Zoomer"
 #: src/editor/builtinActions.ts
 msgid "Zoom out"
 msgstr "Dézoomer"
+

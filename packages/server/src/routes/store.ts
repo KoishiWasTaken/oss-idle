@@ -5,6 +5,21 @@ import { checkoutBody } from '@oss-idle/shared/supporter';
 import { requireAuth } from '../auth/middleware';
 import { requireAdmin } from '../auth/admin';
 import {
+	signLinkState,
+	verifyLinkState,
+} from '../auth/jwt';
+import { claimStateNonce } from '../auth/handoff';
+import {
+	clientUrl,
+	env,
+} from '../env';
+import {
+	claimItch,
+	fetchItchUserId,
+	itchAuthorizeUrl,
+} from '../itch';
+import { warn } from '../discord/error';
+import {
 	adminOrders,
 	checkout,
 	findRecipient,
@@ -20,6 +35,8 @@ import {
 } from '../validate';
 
 const recipientQuery = z.object({ name: z.string().trim().min(1) });
+
+const settingsUrl = `${clientUrl}/web/settings`;
 
 export const storeRoutes = new Hono()
 
@@ -39,6 +56,36 @@ export const storeRoutes = new Hono()
 	})
 
 	.post('/portal', requireAuth, async c => c.json({ url: await portal(c.get('userId')) }))
+
+	// itch.io: where to sign in to claim this account's donations as supporter
+	.get('/itch', requireAuth, async c => {
+		if (!env.ITCH_API_KEY) throw new HTTPException(503, { message: 'itch.io claims are not configured' });
+		return c.json({ url: itchAuthorizeUrl(await signLinkState(c.get('userId'), 'itch')) });
+	})
+
+	// back from itch.io: the settings page says what the claim gave
+	.get('/itch/callback', async c => {
+		const code = c.req.query('code');
+		const state = c.req.query('state');
+		if (!code || !state) return c.redirect(settingsUrl);
+
+		let uid: number;
+		let nonce: string;
+		try {
+			({ uid, nonce } = await verifyLinkState(state, 'itch'));
+		} catch {
+			throw new HTTPException(400, { message: 'Invalid or expired state' });
+		}
+		if (!await claimStateNonce(nonce)) return c.redirect(settingsUrl);
+
+		try {
+			const seconds = await claimItch(uid, await fetchItchUserId(code, state));
+			return c.redirect(`${settingsUrl}?itch=${seconds}`);
+		} catch (e) {
+			warn(`itch.io claim failed: ${(e as Error).message}`);
+			return c.redirect(`${settingsUrl}?itch=error`);
+		}
+	})
 
 	.get('/admin/orders', requireAdmin, async c => c.json(await adminOrders()))
 

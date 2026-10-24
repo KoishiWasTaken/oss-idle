@@ -121,6 +121,26 @@ test.describe('social', () => {
 		expect(rows.map(r => r.reason)).toEqual(['chat']);
 	});
 
+	test('MakiseBot answers !ping in the channel and in private, always online', async ({
+		playerAs,
+	}) => {
+		const a = await playerAs(alice);
+		const game = await inGame(a);
+		await a.keyboard.press('F8');
+		await game.say('!ping');
+		// the channel's history may hold an earlier run's answer
+		const answer = a.locator('.chat__line', { hasText: 'MakiseBot' }).last();
+		await expect(answer).toContainText('pong');
+
+		// her name opens her menu, with her roster card: she is online
+		await answer.locator('.chat__name').click();
+		await expect(a.locator('.player-menu__card')).toContainText('MakiseBot');
+		await a.locator('.ctxmenu__option', { hasText: 'Start Chat' }).click();
+		await expect(a.locator('.chat__tabs .tab', { hasText: 'MakiseBot' })).toBeVisible();
+		await game.say('!ping');
+		await expect(a.locator('.chat__line', { hasText: 'MakiseBot' }).last()).toContainText('pong');
+	});
+
 	test('/np links the map: song select moves to it, the menu plays it', async ({ playerAs }) => {
 		const b = await playerAs(bob);
 		const bobGame = await inGame(b);

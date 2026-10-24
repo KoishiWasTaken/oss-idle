@@ -75,6 +75,11 @@ export const chatLineDTO = z.discriminatedUnion('kind', [
 		color: z.string(),
 		/** a bot speaking (MakiseBot), coloured like a player's name */
 		name: z.string().optional(),
+		/** the bot's character, so its name opens its menu */
+		from: z.object({
+			characterId: z.number().int().positive(),
+			userId: z.number().int().positive(),
+		}).optional(),
 		/** the part of `text` that opens a web platform page */
 		link: z.object({
 			label: z.string(),

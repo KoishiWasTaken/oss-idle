@@ -73,7 +73,7 @@ type Payment = {
 	paymentIntent: string | undefined;
 };
 
-const tagStart = sql`GREATEST(COALESCE(${users.supporterUntil}, NOW()), NOW())`;
+export const tagStart = sql`GREATEST(COALESCE(${users.supporterUntil}, NOW()), NOW())`;
 const asDate = (date: SQL) => sql<Date>`${date}`.mapWith(users.supporterUntil);
 
 /** A payment for an account deleted since (a renewing gift, a late bank transfer) goes back,

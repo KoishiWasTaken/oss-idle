@@ -9,17 +9,18 @@ import {
 } from '@lingui/react/macro';
 
 type Props = {
+	characterId: number;
 	name: string;
 	/** Called with the new name after a successful rename. */
 	onChange?: (name: string) => void;
 };
 
 /**
- * The signed-in player's own character name: click the pencil to rename it in
+ * A character name the viewer edits: click the pencil to rename it in
  * place (same rules as character creation). Shown instead of the plain name
- * when the viewer is looking at their own character.
+ * when the viewer edits that character.
  */
-export default function EditableCharacterName({ name, onChange }: Props) {
+export default function EditableCharacterName({ characterId, name, onChange }: Props) {
 	const { t } = useLingui();
 
 	const [editing, setEditing] = useState(false);
@@ -43,7 +44,7 @@ export default function EditableCharacterName({ name, onChange }: Props) {
 		setBusy(true);
 		setError(undefined);
 		try {
-			onChange?.((await renameCharacter(next)).name);
+			onChange?.((await renameCharacter(characterId, next)).name);
 			setEditing(false);
 		} catch (e) {
 			setError(String((e as Error).message ?? e));

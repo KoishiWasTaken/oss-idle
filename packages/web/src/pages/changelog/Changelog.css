@@ -146,6 +146,15 @@
 	opacity: 0.5;
 }
 
+.changelog-entry__user {
+	font-size: 14px;
+	padding-left: 10px;
+}
+
+.changelog-entry__user-link {
+	font-weight: bold;
+}
+
 .changelog-entry code {
 	padding: 1px 4px;
 	border-radius: 4px;

@@ -14,6 +14,9 @@ import {
 	rateLimited,
 } from './chat';
 import { hub } from './hub';
+import { MAKISEBOT_USER_ID } from '@oss-idle/shared/groups';
+import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
+import { botPm } from './makiseBot';
 
 /** Whether `to` takes this message: online, no block either way, and - if they
  *  only take messages from the people they added - `from` is one of them. */
@@ -36,6 +39,15 @@ const recipientOf = async (
 ): Promise<number | undefined> => {
 	if (await isMuted(from.userId) || await rateLimited(from.characterId, 'pm')) return undefined;
 	return deliverable(from.userId, to);
+};
+
+/** MakiseBot answers her commands in private, past the same mute and rate limit. */
+const answerPm = async (from: PrivateMessage['from'], text: string): Promise<void> => {
+	if (await isMuted(from.userId) || await rateLimited(from.characterId, 'pm')) return;
+	const reply = makiseBotReply(text, from.name);
+	if (reply !== undefined) hub.sendTo(from.characterId, {
+		type: 'pm', message: botPm(from.userId, reply),
+	});
 };
 
 /**
@@ -61,6 +73,7 @@ export const handlePm = async (
 	hub.sendTo(from.characterId, {
 		type: 'pm', message,
 	});
+	if (to === MAKISEBOT_USER_ID) return answerPm(from, message.text);
 	const recipient = await recipientOf(from, to);
 	if (recipient !== undefined) hub.sendTo(recipient, {
 		type: 'pm', message,

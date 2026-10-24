@@ -61,6 +61,7 @@ import { isPlaying } from '../play';
 import { sessionUserId } from '../auth/middleware';
 import { visibleTo } from '../restrictions';
 import { likeEscape } from '../db/columns';
+import { renderProfileCard } from '../profileCard';
 import {
 	countCurated,
 	getCurated,
@@ -191,6 +192,32 @@ export const charactersRoutes = new Hono()
 		};
 
 		return c.json(stats);
+	})
+	// The image a shared profile link unfurls into (nginx points og:image here).
+	.get('/:id/card.png', async c => {
+		const character = c.get('character');
+		const user = await getUserById(character.userId);
+		const [totals, globalRk, countryRk, groups] = await Promise.all([
+			getCharacterTotals(character.id),
+			globalRank('pp', character.id),
+			countryRank('pp', user.country, character.id),
+			groupsOf(character.userId),
+		]);
+		const png = await renderProfileCard({
+			name: character.name,
+			title: character.title ?? undefined,
+			avatarUrl: resolveAvatarUrl(character.avatarUrl, user.avatarUrl),
+			bannerUrl: resolveBannerUrl(character.bannerUrl),
+			country: user.country,
+			groups,
+			globalRank: globalRk,
+			countryRank: countryRk,
+			pp: Number(character.pp),
+			playCount: totals.playCount,
+		});
+		c.header('Content-Type', 'image/png');
+		c.header('Cache-Control', 'public, max-age=3600');
+		return c.body(new Uint8Array(png));
 	})
 	.get('/:id/mostplayed/:page', async c => {
 		const { id } = c.get('character');

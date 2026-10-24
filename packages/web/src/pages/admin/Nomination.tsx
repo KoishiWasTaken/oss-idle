@@ -31,6 +31,7 @@ const PAGE_SIZE = 20;
 const time = (iso: string | null): number => iso ? new Date(iso).getTime() : 0;
 
 const toCategorize = (r: Nomination) => !r.categorized && r.status !== 'rejected';
+const isPending = (r: Nomination) => r.status === 'pending';
 
 export default function NominationPage() {
 	const [list, setList] = useState<Nomination[] | null>(null);
@@ -45,6 +46,7 @@ export default function NominationPage() {
 	const [page, setPage] = useState(0);
 	// only the sets whose tags haven't been reviewed
 	const [queue, setQueue] = useState(false);
+	const [pendingOnly, setPendingOnly] = useState(false);
 
 	// The server is the real gate: if listing the queue succeeds we're an admin.
 	const refresh = () =>
@@ -117,9 +119,9 @@ export default function NominationPage() {
 		const key = (r: Nomination) => sort === 'status' ? PHASE_ORDER[phaseOf(r)]
 			: sort === 'ranked' ? time(r.rankedAt) : time(r.submittedAt);
 		return (list ?? [])
-			.filter(r => !queue || toCategorize(r))
+			.filter(r => (!queue || toCategorize(r)) && (!pendingOnly || isPending(r)))
 			.sort((a, b) => (key(a) - key(b)) * dir);
-	}, [list, sort, asc, queue]);
+	}, [list, sort, asc, queue, pendingOnly]);
 
 	const toggleSort = (key: SortKey) => {
 		if (sort === key) setAsc(a => !a);
@@ -170,6 +172,12 @@ export default function NominationPage() {
 					onClick={() => { setQueue(q => !q); setPage(0); }}
 				>
 					To categorize ({list.filter(toCategorize).length})
+				</button>
+				<button
+					className={`nomination__btn ${pendingOnly ? 'nomination__btn--primary' : ''}`}
+					onClick={() => { setPendingOnly(p => !p); setPage(0); }}
+				>
+					Pending ({list.filter(isPending).length})
 				</button>
 				<Link to='/maps/requests' search={{
 					filter: 'open', sort: 'support', page: 1,

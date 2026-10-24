@@ -1,8 +1,8 @@
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
 
 // changelog/<major>/<minor>/<patch>/<version>.md, written at each version bump:
-// the date, a blank line, then one `add|fix[!] [Category] title` line per entry
-// (`!` = major).
+// the date, a blank line, then one `add|fix[!] [Category] title[ (#PR)][ by @github]`
+// line per entry (`!` = major; PR and author credit a contributor, as on osu!).
 const files = import.meta.glob<string>([
 	'../../../../../changelog/**/*.md',
 	'!../../../../../changelog/pending/**',
@@ -10,9 +10,11 @@ const files = import.meta.glob<string>([
 	query: '?raw', import: 'default', eager: true,
 });
 
-export const ENTRY = /^(add|fix)(!?) \[([^\]]+)\] (.+)$/;
+export const ENTRY = /^(add|fix)(!?) \[([^\]]+)\] (.+?)(?: \(#(\d+)\))?(?: by @([\w-]+))?$/;
 
-export type Entry = { type: 'add' | 'fix'; major: boolean; category: string; title: string };
+export type Entry = {
+	type: 'add' | 'fix'; major: boolean; category: string; title: string; pr?: number; author?: string;
+};
 export type Build = { version: string; date: string; entries: Entry[] };
 
 export const BUILDS: Build[] = Object.entries(files)
@@ -25,6 +27,7 @@ export const BUILDS: Build[] = Object.entries(files)
 				const m = ENTRY.exec(line.trim());
 				return m ? [{
 					type: m[1] as Entry['type'], major: m[2] === '!', category: m[3], title: m[4],
+					pr: m[5] ? Number(m[5]) : undefined, author: m[6],
 				}] : [];
 			}),
 		};

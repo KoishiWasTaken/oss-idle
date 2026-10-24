@@ -28,7 +28,11 @@ import { hub } from './hub';
 import { LOBBY_CHANNEL } from '@oss-idle/shared/multiplayer';
 import { channelMembers } from './multiplayer';
 import { pushMedals } from '../medals';
-import { rollMax } from '@oss-idle/shared/community/roll';
+import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
+import {
+	BOT_COLOR,
+	botLine,
+} from './makiseBot';
 
 /**
  * The chat relay + its moderation surface. Messages fan out over the socket and
@@ -70,8 +74,6 @@ export const SUPPORTER_NAME_COLOR = '#fddf43';
 const GROUP_NAME_COLOR: Record<Group, string> = {
 	admin: GROUP_BADGE.admin.colour, gmt: '#ff4040',
 };
-/** MakiseBot, our BanchoBot, speaks in pink. */
-export const BOT_COLOR = '#ff66aa';
 /** `/announce` renders the whole line in this attention-grabbing red. */
 const ANNOUNCE_COLOR = '#ff6b6b';
 /** A deleted line's text is replaced with this, in history and live. */
@@ -224,19 +226,11 @@ export const handleChat = async (
 		.catch(e => console.error('[chat] medals failed for', from.characterId, e));
 	relay(line, members);
 
-	const max = rollMax(trimmed);
-	if (max === undefined) return;
-	const roll: ChatLine = {
-		id: randomUUID(),
-		kind: 'system',
-		channel,
-		name: 'MakiseBot',
-		color: BOT_COLOR,
-		text: `${from.name} rolls ${Math.floor(Math.random() * max) + 1} point(s)`,
-		at: Date.now(),
-	};
-	await store(channel, roll);
-	relay(roll, members);
+	const reply = makiseBotReply(trimmed, from.name);
+	if (reply === undefined) return;
+	const answer = botLine(channel, reply);
+	await store(channel, answer);
+	relay(answer, members);
 };
 
 /** Send a line to a match's players, or everyone. */

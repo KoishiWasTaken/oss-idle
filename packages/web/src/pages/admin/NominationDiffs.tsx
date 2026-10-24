@@ -1,5 +1,4 @@
 import {
-	INTRO_SET_ID,
 	MAP_TAGS,
 	type MapTag,
 } from '@oss-idle/shared/beatmap';
@@ -9,11 +8,10 @@ type Diff = Nomination['diffs'][number];
 
 /** Per-difficulty ranked toggles: the set is scheduled as a whole, but only the
  *  ticked diffs go (or stay) ranked - the rest are invisible to the client.
- *  Non-4K diffs can never be ranked (the intro set is exempt). */
+ *  Non-4K diffs can never be ranked. */
 export default function NominationDiffs({
-	setId, diffs, busy, live, onToggle, onTags,
+	diffs, busy, live, onToggle, onTags,
 }: {
-	setId: number;
 	diffs: Diff[];
 	busy: boolean;
 	live: boolean;
@@ -48,7 +46,7 @@ export default function NominationDiffs({
 	return (
 		<div className='nomination__diffs'>
 			{diffs.map(diff => {
-				const locked = diff.keys !== 4 && setId !== INTRO_SET_ID;
+				const locked = diff.keys !== 4;
 				return (
 					<span key={diff.id} className={`nomination__diff-group ${diff.ranked ? 'is-ranked' : ''}`}>
 						<button

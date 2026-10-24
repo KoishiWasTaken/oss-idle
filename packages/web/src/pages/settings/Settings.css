@@ -78,3 +78,29 @@
 		padding: 15px;
 	}
 }
+
+.settings__hint--error {
+	color: hsl(0, 70%, 65%);
+}
+
+.settings__hint--done {
+	color: hsl(var(--hsl-h1));
+	font-weight: 700;
+}
+
+.settings__button {
+	padding: 6px 15px;
+	border: none;
+	border-radius: 999px;
+	background: hsl(var(--hsl-h1));
+	color: hsl(var(--hsl-b6));
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.settings__button:disabled {
+	opacity: 0.45;
+	cursor: default;
+}

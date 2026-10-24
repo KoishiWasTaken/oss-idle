@@ -116,9 +116,6 @@ html.is-chat-open .dock:not(.dock--left) {
 	min-width: 0;
 	font-size: 1.05rem;
 	font-weight: 600;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 .dock__upnext-title span {
 	color: var(--osu-pink-light);
@@ -164,10 +161,20 @@ html.is-chat-open .dock:not(.dock--left) {
 	font-size: 0.8em;
 }
 .dock__source-label {
-	overflow: hidden;
-	text-overflow: ellipsis;
+	min-width: 0;
 	color: var(--dock-dim);
 	font-weight: 600;
+}
+/* one pass through the queue: a long playlist name gives way before it */
+.dock__length {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin-left: auto;
+	color: var(--dock-dim);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
 }
 
 /* what is playing: the grade beside the map, how it goes, how far */
@@ -197,9 +204,6 @@ html.is-chat-open .dock:not(.dock--left) {
 .dock__map {
 	font-size: 1.1rem;
 	font-weight: 600;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 .dock__map span {
 	color: var(--osu-pink-light);
@@ -362,6 +366,8 @@ html.is-chat-open .dock:not(.dock--left) {
 	border-left: 3px solid transparent;
 	color: rgba(255, 255, 255, 0.82);
 	font-size: 0.98rem;
+	touch-action: none;
+	cursor: grab;
 }
 .dock__entry + .dock__entry {
 	border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -395,9 +401,6 @@ html.is-chat-open .dock:not(.dock--left) {
 .dock__entry-name {
 	flex: 1;
 	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 .dock__entry-name span {
 	color: var(--osu-pink-light);
@@ -532,4 +535,13 @@ html.is-chat-open .dock:not(.dock--left) {
 /* it is app-level, above every scene: it would cover the menu's buttons */
 body:has(.ctxmenu, .plmgr) .dock {
 	display: none;
+}
+
+.dock__entry.is-dragging {
+	background: rgba(255, 255, 255, 0.1);
+	cursor: grabbing;
+}
+.dock__entry.is-dragging .dock__entry-actions {
+	opacity: 0;
+	pointer-events: none;
 }

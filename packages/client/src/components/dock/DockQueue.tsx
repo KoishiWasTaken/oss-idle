@@ -1,3 +1,4 @@
+import Marquee from '../Marquee';
 import RatedVersion from '../RatedVersion';
 import {
 	Trans,
@@ -7,10 +8,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons/faArrowUp';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
+import { useRef } from 'react';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import PlayQueue from '../../gameplay/playQueue';
 import DockCountdown from './DockCountdown';
 import DockCountdownBar from './DockCountdownBar';
+import useQueueDrag from './useQueueDrag';
 
 type Props = {
 	/** the carousel is open beside it, so an empty queue is worth explaining */
@@ -18,11 +21,13 @@ type Props = {
 };
 
 /** What is lined up behind the running play, in the order it plays: the first
- *  row says when it starts, and every row can be moved or dropped. */
+ *  row says when it starts, and every row can be dragged, moved or dropped. */
 export default function DockQueue({ hint = false }: Props) {
 	const { t } = useLingui();
 	const [queue] = useSynced(PlayQueue.state);
 	const entries = queue?.entries ?? [];
+	const list = useRef<HTMLOListElement>(null);
+	const { rows, dragging, start } = useQueueDrag(list, entries);
 	if (!entries.length) {
 		if (!hint) return null;
 		return (
@@ -40,17 +45,18 @@ export default function DockQueue({ hint = false }: Props) {
 				<span><Trans>Up next</Trans></span>
 				<span className="dock__count">{entries.length}</span>
 			</div>
-			<ol className="dock__list">
-				{entries.map((beatmap, index) => (
+			<ol ref={list} className="dock__list">
+				{rows.map(({ item: beatmap, from }, index) => (
 					<li
-						key={`${beatmap.metadata.id}-${beatmap.lockedRate}-${index}`}
-						className={`dock__entry ${index === 0 ? 'is-next' : ''}`}
+						key={`${beatmap.metadata.id}-${beatmap.lockedRate}-${from}`}
+						className={`dock__entry ${index === 0 ? 'is-next' : ''} ${from === dragging ? 'is-dragging' : ''}`}
+						onPointerDown={start(index)}
 					>
 						<span className="dock__num">{index + 1}</span>
-						<span className="dock__entry-name">
+						<Marquee className="dock__entry-name">
 							{beatmap.set.metadata.artist} - {beatmap.set.metadata.title}
 							<RatedVersion version={beatmap.metadata.version} rate={beatmap.lockedRate} />
-						</span>
+						</Marquee>
 						{index === 0 && <DockCountdown />}
 						{index === 0 && <DockCountdownBar />}
 						<span className="dock__entry-actions">

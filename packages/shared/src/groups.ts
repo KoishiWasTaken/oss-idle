@@ -16,6 +16,17 @@ export const GROUP_BADGE: Record<Group, { short: string; name: string; colour: s
 /** Adri: always an admin, and the curator of the ranked maps nobody proposed. */
 export const OWNER_ID = 4579132;
 
+/** MakiseBot's character (server migration 0095), our BanchoBot. */
+export const MAKISEBOT_ID = 1;
+/** MakiseBot's account: osu!'s BanchoBot id, which no one can sign in as. */
+export const MAKISEBOT_USER_ID = 3;
+
+/** Whether an account edits a character's profile: its own, and Adri MakiseBot's. */
+export const editsCharacter = (
+	userId: number, character: { id: number; userId: number },
+): boolean =>
+	character.userId === userId || (character.id === MAKISEBOT_ID && userId === OWNER_ID);
+
 export const isAdmin = (groups?: readonly Group[]): boolean => !!groups?.includes('admin');
 
 /** May apply sanctions and handle reports. */

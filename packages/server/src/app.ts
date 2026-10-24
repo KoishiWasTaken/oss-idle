@@ -145,6 +145,7 @@ const app = new Hono()
 	.use('/v1/auth/osu/desktop/exchange', rateLimit('auth', 60))
 	.use('/v1/auth/osu/callback', rateLimit('auth', 60))
 	.use('/v1/auth/discord/callback', rateLimit('auth', 60))
+	.use('/v1/store/itch/callback', rateLimit('auth', 60))
 	.use('/v1/auth/move', rateLimit('auth', 60))
 	.use('/v1/auth/move/redeem', rateLimit('auth', 60))
 	// each report and reply pings the team and the Discord feed

@@ -15,7 +15,10 @@ import CharacterName from '../../components/character/CharacterName';
 import CharacterTitle from '../../components/character/CharacterTitle';
 import SupporterBadge from '../../components/character/SupporterBadge';
 import GroupBadge from '../../components/character/GroupBadge';
-import { GROUP_BADGE } from '@oss-idle/shared/groups';
+import {
+	editsCharacter,
+	GROUP_BADGE,
+} from '@oss-idle/shared/groups';
 import AccountStanding from '../../components/character/AccountStanding';
 import ProfileBanner from '../../components/character/ProfileBanner';
 import {
@@ -79,6 +82,7 @@ export default function CharacterPage({ id, character, stats }: {
 
 	const me = useCurrentUser();
 	const isSelf = !!me && me.id === character.userId;
+	const editable = !!me && editsCharacter(me.id, character);
 	// Once the player changes their own avatar, show the new one without a refetch.
 	const [avatarOverride, setAvatarOverride] = useState<string | null>();
 	const blocks = useRef<HTMLDivElement>(null);
@@ -87,7 +91,7 @@ export default function CharacterPage({ id, character, stats }: {
 
 	const [order, setOrder] = useState(character.profileOrder);
 	const supporter = Boolean(me?.supporter);
-	const movable = isSelf && supporter;
+	const movable = editable && supporter;
 	const move = (from: Section, to: Section) => {
 		const next = order.filter(s => s !== from);
 		next.splice(next.indexOf(to) + (order.indexOf(from) < order.indexOf(to) ? 1 : 0), 0, from);
@@ -101,7 +105,7 @@ export default function CharacterPage({ id, character, stats }: {
 		me: <UserPage
 			characterId={character.id}
 			page={character.userPage}
-			isSelf={isSelf}
+			isSelf={editable}
 			supporter={supporter}
 		/>,
 		skills: <CharacterSkills character={character} />,
@@ -114,10 +118,16 @@ export default function CharacterPage({ id, character, stats }: {
 	return (
 		<main>
 			<RestrictedProfileNotice restricted={character.restricted} isSelf={isSelf} />
-			<ProfileBanner key={id} bannerUrl={character.bannerUrl} editable={isSelf} />
+			<ProfileBanner
+				key={id}
+				characterId={character.id}
+				bannerUrl={character.bannerUrl}
+				editable={editable}
+			/>
 			<div className='character__info'>
-				{isSelf
+				{editable
 					? <EditableProfilePicture
+						characterId={character.id}
 						avatarUrl={avatarOverride !== undefined ? avatarOverride : character.avatarUrl}
 						className='character__avatar'
 						onChange={url => { setAvatarOverride(url); void refreshCurrentUser(); }}
@@ -128,9 +138,10 @@ export default function CharacterPage({ id, character, stats }: {
 						<div className='character__meta-name-row'>
 							<CharacterName
 								key={id}
+								characterId={character.id}
 								name={character.name}
 								formerNames={character.formerNames}
-								editable={isSelf}
+								editable={editable}
 							/>
 							<SupporterBadge level={character.supportLevel} />
 							{character.groups.map(g => <GroupBadge key={g} group={g} />)}

@@ -12,6 +12,7 @@ import {
 } from '@lingui/react/macro';
 
 type Props = {
+	characterId: number;
 	avatarUrl?: string | null;
 	className?: string;
 	/** Called with the account's new avatar URL after an upload or reset. */
@@ -19,11 +20,13 @@ type Props = {
 };
 
 /**
- * The signed-in player's own avatar: click to upload a custom profile picture,
+ * A character's avatar the viewer edits: click to upload a custom profile picture,
  * or reset it back to the osu! default. Shown in place of a plain
- * {@link ProfilePicture} when the viewer is looking at their own character.
+ * {@link ProfilePicture} when the viewer edits that character.
  */
-export default function EditableProfilePicture({ avatarUrl, className, onChange }: Props) {
+export default function EditableProfilePicture({
+	characterId, avatarUrl, className, onChange,
+}: Props) {
 	const { t } = useLingui();
 
 	const fileInput = useRef<HTMLInputElement>(null);
@@ -33,7 +36,9 @@ export default function EditableProfilePicture({ avatarUrl, className, onChange 
 		if (!busy) await runAction(async () => onChange?.((await action()).avatarUrl));
 	};
 
-	const pick = (file: File | undefined) => { if (file) void run(() => uploadAvatar(file)); };
+	const pick = (file: File | undefined) => {
+		if (file) void run(() => uploadAvatar(characterId, file));
+	};
 
 	return (
 		<div className={`editable-avatar ${className ?? ''}`}>
@@ -50,7 +55,7 @@ export default function EditableProfilePicture({ avatarUrl, className, onChange 
 			<button
 				type="button"
 				className="editable-avatar__reset"
-				onClick={() => void run(resetAvatar)}
+				onClick={() => void run(() => resetAvatar(characterId))}
 				disabled={busy}
 			>
 				<Trans>Reset to osu! avatar</Trans>

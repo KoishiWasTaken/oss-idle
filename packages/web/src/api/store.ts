@@ -19,6 +19,10 @@ export const findRecipient = (name: string) =>
 export const startCheckout = (body: CheckoutBody) =>
 	unwrap(rpc.v1.store.checkout.$post({ json: body }));
 
+/** itch.io's sign-in page for claiming this account's donations. */
+export const getItchClaimUrl = () =>
+	unwrap(rpc.v1.store.itch.$get());
+
 /** Stripe's page to manage a subscription. */
 export const openPortal = () =>
 	unwrap(rpc.v1.store.portal.$post());

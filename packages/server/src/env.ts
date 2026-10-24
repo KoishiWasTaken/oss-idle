@@ -104,6 +104,12 @@ const schema = z.object({
 	ABBY_API_KEY: z.string().optional(),
 	// Supporter thank-you emails go out through this mailbox, e.g. smtps://user:pass@mail.boitech.dev:465.
 	SMTP_URL: z.string().optional(),
+	// itch.io: the OAuth app players sign in with to claim a donation as supporter (prod
+	// callback only), the oss!idle page's id, and an API key of its owner's to read the
+	// purchases. No key, no claims.
+	ITCH_CLIENT_ID: z.string().min(1).default('45634dc44fbd5fa3a0874a8958f562b2'),
+	ITCH_GAME_ID: z.coerce.number().int().default(5220711),
+	ITCH_API_KEY: z.string().optional(),
 	// What the server costs a month in euros
 	SERVER_MONTHLY_COST: z.coerce.number().positive().optional(),
 	SUPPORTER_TAXES: z.string().default('')
@@ -169,6 +175,9 @@ export const OSU_REDIRECT_URI = `${apiBaseUrl}/v1/auth/osu/callback`;
 
 /** Discord OAuth callback (both dev + prod variants are registered on the app). */
 export const DISCORD_REDIRECT_URI = `${apiBaseUrl}/v1/auth/discord/callback`;
+
+/** itch.io OAuth callback, registered on the itch.io app. */
+export const ITCH_REDIRECT_URI = `${apiBaseUrl}/v1/store/itch/callback`;
 
 /** The prod site before the rename to oss!idle. Old links and desktop builds still
  *  reach it, and its pages hand their data over from there (shared/src/hostMove.ts). */

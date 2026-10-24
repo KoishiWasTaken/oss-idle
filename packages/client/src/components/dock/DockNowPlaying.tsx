@@ -1,3 +1,4 @@
+import Marquee from '../Marquee';
 import RatedVersion from '../RatedVersion';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import accuracy from '@oss-idle/shared/display/accuracy';
@@ -24,10 +25,10 @@ export default function DockNowPlaying() {
 				{live.grade && skin.grade(live.grade, 'dock__grade-img')}
 			</div>
 			<div className="dock__now-text">
-				<div className="dock__map">
+				<Marquee className="dock__map">
 					{live.beatmap.set.metadata.artist} - {live.beatmap.set.metadata.title}
 					<RatedVersion version={live.beatmap.metadata.version} rate={live.rate} />
-				</div>
+				</Marquee>
 				<div className="dock__meta">
 					{live.accuracy !== undefined && <span>{accuracy(live.accuracy)}</span>}
 					{mods && <span className="dock__mods">{mods}</span>}

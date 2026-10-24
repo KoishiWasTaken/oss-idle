@@ -8,6 +8,7 @@ import {
 	fatigueLevel,
 	restedFatigue,
 	tireSkill,
+	warmup,
 	type Fatigue,
 } from '@oss-idle/shared/fatigue';
 import Reading from '@oss-idle/shared/sim/skills/reading';
@@ -38,11 +39,13 @@ describe('fatigue', () => {
 		expect(session([0, 0, 0], strained).minutes).toBeLessThan(strained.minutes - MAP);
 	});
 
-	it('takes a 6 hour full strain session to floor, easing in', () => {
-		expect(level(session(loop(1, 1)))).toBeLessThan(0.1);
-		expect(level(session(loop(1, 3)))).toBeLessThan(0.6);
-		expect(level(session(loop(1, 5)))).toBeLessThan(1);
-		expect(level(session(loop(1, 8)))).toBeCloseTo(1);
+	it('kicks in after 5 hours of full strain and floors at 7', () => {
+		expect(fatigueLevel(5 * 60)).toBe(0);
+		expect(fatigueLevel(5.5 * 60)).toBeGreaterThan(0);
+		expect(fatigueLevel(6 * 60)).toBeCloseTo(0.5);
+		expect(fatigueLevel(7 * 60)).toBe(1);
+		expect(level(session(loop(1, 5)))).toBe(0);
+		expect(level(session(loop(1, 10)))).toBe(1);
 	});
 
 	it('tires a loop of normal maps much slower', () => {
@@ -60,5 +63,52 @@ describe('fatigue', () => {
 		const reading = new Reading(80);
 		tireSkill(reading, 1);
 		expect(reading.level.get()).toBe(80);
+	});
+
+	it('warms up over 1h30 of strain, then cools to half at 5 hours and cold at 6', () => {
+		expect(warmup(0)).toBe(0);
+		expect(warmup(90)).toBe(1);
+		expect(warmup(300)).toBe(0.5);
+		expect(warmup(360)).toBe(0);
+		expect(warmup(420)).toBe(0);
+	});
+
+	it('warms twice as fast and holds the peak 30 minutes longer with 10 stamina gear', () => {
+		expect(warmup(45, 10)).toBe(1);
+		expect(warmup(120, 10)).toBe(1);
+		expect(warmup(121, 10)).toBeLessThan(1);
+		expect(warmup(330, 10)).toBe(0.5);
+		expect(warmup(390, 10)).toBe(0);
+	});
+
+	it('adds less with each gear tier past the ladder, cold by the strain cap', () => {
+		const peak = (gear: number) => [...Array(421).keys()].filter(m => warmup(m, gear) === 1).length;
+		const gains = [10, 11, 12, 13].map(g => peak(g + 1) - peak(g));
+		expect(gains[0]).toBeGreaterThan(gains[1]);
+		expect(gains[1]).toBeGreaterThan(gains[2]);
+		for (const gear of [0, 10, 20, 1000]) {
+			expect(warmup(7 * 60, gear)).toBe(0);
+			expect([...Array(421).keys()].every(m => Number.isFinite(warmup(m, gear)))).toBe(true);
+		}
+	});
+
+	it('stops counting strain at 7 hours', () => {
+		expect(session(loop(1, 24)).minutes).toBe(7 * 60);
+	});
+
+	it('plays a cold physical skill at half its xp from level 100, less below', () => {
+		const cold = (level: number) => {
+			const speed = new Speed(level);
+			tireSkill(speed, 0, 0);
+			return xpToLevel(speed.level.get()) + speed.xp.get();
+		};
+		expect(cold(0)).toBe(0);
+		expect(cold(50)).toBeCloseTo(xpToLevel(50) * 0.75);
+		expect(cold(100)).toBeCloseTo(xpToLevel(100) / 2);
+		expect(cold(120)).toBeCloseTo(xpToLevel(120) / 2);
+
+		const warm = new Speed(80);
+		tireSkill(warm, 0, 1);
+		expect(warm.level.get()).toBe(80);
 	});
 });

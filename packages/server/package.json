@@ -1,6 +1,6 @@
 {
   "name": "@oss-idle/server",
-  "version": "1.2.1.0",
+  "version": "1.2.2.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -54,6 +54,7 @@
     "@hono/zod-validator": "^0.8.0",
     "@lingui/core": "^5.9.5",
     "@oss-idle/shared": "*",
+    "@resvg/resvg-js": "^2.6.2",
     "adm-zip": "^0.5.16",
     "discord-api-types": "^0.38.49",
     "dotenv": "^16.4.7",

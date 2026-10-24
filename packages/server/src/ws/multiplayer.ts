@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import type { WSContext } from 'hono/ws';
 import {
 	and,
@@ -42,10 +41,8 @@ import { LEAD_IN_MS } from '@oss-idle/shared/sim/maniaGame';
 import { hub } from './hub';
 import { areOnline } from './presence';
 import { isAway } from '../queue';
-import {
-	BOT_COLOR,
-	characterOwner,
-} from './chat';
+import { characterOwner } from './chat';
+import { botLine } from './makiseBot';
 import { Judgements } from '@oss-idle/shared/judgement';
 import {
 	cleanMods,
@@ -310,18 +307,9 @@ export const leaveMatch = async (
 /** MakiseBot's line on entering a match (osu!'s BanchoBot one), linking its history. */
 const historyLine = (characterId: number, matchId: number): void => hub.sendTo(characterId, {
 	type: 'chat',
-	line: {
-		id: randomUUID(),
-		kind: 'system',
-		channel: matchChannel(matchId),
-		name: 'MakiseBot',
-		color: BOT_COLOR,
-		text: 'Match history available here.',
-		link: {
-			label: 'here', path: `matches/${matchId}`,
-		},
-		at: Date.now(),
-	},
+	line: botLine(matchChannel(matchId), 'Match history available here.', {
+		label: 'here', path: `matches/${matchId}`,
+	}),
 });
 
 type JoinAnswer = {

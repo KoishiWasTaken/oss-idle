@@ -132,6 +132,10 @@ export const getMapBoard = (beatmapId: number, filter: { country?: string; frien
 
 export type BoardRow = Awaited<ReturnType<typeof getMapBoard>>[number];
 
+/** A queued set's audio preview, public or not (admin). */
+export const nominationPreviewUrl = (setId: number, file: string) =>
+	apiUrl(`/v1/beatmap/nomination/${setId}/preview/${encodeURIComponent(file)}`);
+
 /** A set's audio preview. */
 export const previewUrl = (setId: number, file: string) =>
 	apiUrl(`/v1/beatmap/preview/${setId}/${encodeURIComponent(file)}`);

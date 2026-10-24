@@ -9,6 +9,8 @@ import {
 	supporterMonths,
 	supporterPrice,
 	supporterSaving,
+	supporterSeconds,
+	wholeMonths,
 	refundCut,
 	unusedRefund,
 } from '@oss-idle/shared/supporter';
@@ -30,6 +32,15 @@ describe('supporter tag', () => {
 	it('shows the saving the screenshots show', () => {
 		expect([4, 12, 15, 16, 26, 32, 52].map(e => Math.round(supporterSaving(e) * 100)))
 			.toEqual([0, 25, 6, 33, 46, 46, 46]);
+	});
+
+	it('prorates itch.io donations on the same curve', () => {
+		for (const e of [4, 8, 12, 16, 20, 22, 24, 26, 39, 52]) {
+			expect(wholeMonths(supporterSeconds(e) + 1)).toBe(supporterMonths(e));
+		}
+		expect(supporterSeconds(2) * 2).toBe(supporterSeconds(4));
+		expect(supporterSeconds(10)).toBe(Math.floor((supporterSeconds(8) + supporterSeconds(12)) / 2));
+		expect([0, -1].map(supporterSeconds)).toEqual([0, 0]);
 	});
 
 	it('gives hearts by months ever received, only while active', () => {

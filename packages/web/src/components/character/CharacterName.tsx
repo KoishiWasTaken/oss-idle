@@ -3,16 +3,19 @@ import EditableCharacterName from '../EditableCharacterName';
 import FormerNames from '../FormerNames';
 
 type Props = {
+	characterId: number;
 	name: string;
 	formerNames: string[];
-	/** Whether the viewer owns this character and may rename it. */
+	/** Whether the viewer edits this character and may rename it. */
 	editable: boolean;
 };
 
 /** A character's name plus its former-names tooltip; editable in place when
  *  the viewer is looking at their own character. Renames update locally
  *  without a refetch. */
-export default function CharacterName({ name, formerNames, editable }: Props) {
+export default function CharacterName({
+	characterId, name, formerNames, editable,
+}: Props) {
 	const [override, setOverride] = useState<{ name: string; formerNames: string[] }>();
 	const current = override?.name ?? name;
 	const former = override?.formerNames ?? formerNames;
@@ -24,7 +27,7 @@ export default function CharacterName({ name, formerNames, editable }: Props) {
 	return (
 		<div className='character__meta-name'>
 			{editable
-				? <EditableCharacterName name={current} onChange={renamed} />
+				? <EditableCharacterName characterId={characterId} name={current} onChange={renamed} />
 				: current}
 			<FormerNames names={former} />
 		</div>

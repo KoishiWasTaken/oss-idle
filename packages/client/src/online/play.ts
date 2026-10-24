@@ -35,6 +35,8 @@ export type RankedPlayContext = {
 	endsAt: number;
 	/** how tired the character plays it, 0 rested to 1 exhausted */
 	fatigue: number;
+	/** how warmed up, 0 cold to 1 warm */
+	warmup: number;
 };
 
 /** A play this client resolved and is running itself (guest, or a map the
@@ -155,6 +157,7 @@ export async function startPlaySession(
 				startedAt: play.startedAt + skew,
 				endsAt: play.endsAt + skew,
 				fatigue: play.fatigue,
+				warmup: play.warmup,
 			};
 		}
 		if (play.status === 'restricted') return { mode: 'restricted' };

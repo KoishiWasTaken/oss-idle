@@ -7,9 +7,17 @@ import { redis } from '../redis';
 import { redisKeyPrefix } from '../env';
 import {
 	type CharacterRow,
+	getCharacterById,
 	resolveAvatarUrl,
 } from '../db/schema/character';
-import type { UserRow } from '../db/schema/user';
+import {
+	getUserById,
+	type UserRow,
+} from '../db/schema/user';
+import {
+	MAKISEBOT_ID,
+	MAKISEBOT_USER_ID,
+} from '@oss-idle/shared/groups';
 import { getCharacterTotals } from '../db/schema/character_totals';
 import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
@@ -67,6 +75,23 @@ const buildEntry = async (params: {
 	};
 };
 
+/** MakiseBot's card, always online though no socket holds it: kept out of the
+ *  hash, so the sweep never drops it and the online count stays players. Built
+ *  once per worker; a failed read is tried again next time. */
+let makiseBot: Promise<PresenceEntry | undefined> | undefined;
+const makiseBotEntry = (): Promise<PresenceEntry | undefined> => makiseBot ??= (async () => {
+	const [character, user] = await Promise.all([
+		getCharacterById(MAKISEBOT_ID), getUserById(MAKISEBOT_USER_ID),
+	]);
+	return character && user && buildEntry({
+		character, user, geo: {}, status: STATUS.idle,
+	});
+})().catch((e: unknown) => {
+	console.error('[presence] MakiseBot card failed', e);
+	makiseBot = undefined;
+	return undefined;
+});
+
 const store = (entry: PresenceEntry): Promise<unknown> =>
 	redis.multi()
 		.hset(PRESENCE_KEY, String(entry.characterId), JSON.stringify(entry))
@@ -86,16 +111,17 @@ export const presenceTimezone = async (characterId: number): Promise<string | un
 export const areOnline = async (characterIds: number[]): Promise<boolean[]> => {
 	if (!characterIds.length) return [];
 	const found = await redis.hmget(PRESENCE_KEY, ...characterIds.map(String));
-	return found.map(v => v !== null);
+	return found.map((v, i) => v !== null || characterIds[i] === MAKISEBOT_ID);
 };
 
 /** Live count of connected players. */
 export const presenceCount = (): Promise<number> => redis.hlen(PRESENCE_KEY);
 
-/** Every connected player (the snapshot a freshly connected client receives). */
+/** Every connected player and MakiseBot (the snapshot a freshly connected client receives). */
 export const presenceSnapshot = async (): Promise<PresenceEntry[]> => {
-	const all = await redis.hvals(PRESENCE_KEY);
-	return all.map(v => JSON.parse(v) as PresenceEntry);
+	const [all, bot] = await Promise.all([redis.hvals(PRESENCE_KEY), makiseBotEntry()]);
+	const entries = all.map(v => JSON.parse(v) as PresenceEntry);
+	return bot ? [...entries, bot] : entries;
 };
 
 const broadcastOnline = async (): Promise<void> =>

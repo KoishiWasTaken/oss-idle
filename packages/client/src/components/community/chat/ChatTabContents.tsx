@@ -64,6 +64,9 @@ export default function ChatTabContents({ channel, inputRef } : {
 		? lines.filter(l => l.channel === channel).map(l => {
 			if (l.kind === 'system') return {
 				id: l.id, at: l.at, text: l.text, color: l.color, name: l.name, link: l.link,
+				sender: l.from && l.name !== undefined ? {
+					...l.from, name: l.name,
+				} : undefined,
 			};
 			// a blocked player's line, with not even their name
 			if (blockedIds.has(l.from.userId)) return {

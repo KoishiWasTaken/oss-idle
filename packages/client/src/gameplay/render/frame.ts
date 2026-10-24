@@ -36,6 +36,9 @@ export type StrainHud = {
 	/** how tired the character plays it, 0 rested to 1 exhausted */
 	fatigue?: number,
 	fatigueLabel?: string,
+	/** how warmed up, 0 cold to 1 warm */
+	warmup?: number,
+	warmupLabel?: string,
 };
 
 export type DrawOptions = {

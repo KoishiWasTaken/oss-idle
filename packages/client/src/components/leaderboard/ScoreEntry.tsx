@@ -46,7 +46,7 @@ export default function ScoreEntry({
 
 	const fetched = useAsync(async () => {
 		if (player) return undefined;
-		return score.characterId <= 1
+		return Character.isLocalId(score.characterId)
 			? await Character.get({ id: score.characterId })
 			: await getCharacter(score.characterId);
 	}, [score, player]);

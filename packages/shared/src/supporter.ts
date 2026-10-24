@@ -29,6 +29,27 @@ export const supporterPrice = (months: number): number => {
 	return steps[months] ?? MIN_SUPPORT;
 };
 
+const MONTH_SECONDS = 365.25 / 12 * 86400;
+
+/** supporterMonths' steps as [euros, months], joined by straight lines. */
+const CURVE = [
+	[0, 0], [4, 1], [8, 2], [12, 4], [16, 6], [20, 8], [22, 9], [24, 10], [26, 12],
+] as const;
+
+/** Euros → seconds of supporter on supporterMonths' curve, prorated between its steps
+ *  (an itch.io donation can be any amount). */
+export const supporterSeconds = (euros: number): number => {
+	if (euros >= 26) return Math.floor(euros / 26 * 12 * MONTH_SECONDS);
+	const i = CURVE.findIndex(([e]) => e > euros);
+	if (i < 1) return 0;
+	const [e0, m0] = CURVE[i - 1];
+	const [e1, m1] = CURVE[i];
+	return Math.floor((m0 + (euros - e0) / (e1 - e0) * (m1 - m0)) * MONTH_SECONDS);
+};
+
+/** Whole months in `seconds` of supporter, for the profile's hearts. */
+export const wholeMonths = (seconds: number): number => Math.floor(seconds / MONTH_SECONDS);
+
 /** The "save x%" against €4 a month; past a year it counts unrounded months, so it stays at 46%. */
 export const supporterSaving = (euros: number): number =>
 	euros >= 26 ? 1 - 26 / 48 : Math.max(0, 1 - euros / (supporterMonths(euros) * 4));

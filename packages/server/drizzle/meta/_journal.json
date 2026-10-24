@@ -603,6 +603,20 @@
       "when": 1795564800000,
       "tag": "0094_physical_fatigue",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "5",
+      "when": 1795651200000,
+      "tag": "0095_makisebot",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "5",
+      "when": 1795737600000,
+      "tag": "0096_itch_donations",
+      "breakpoints": true
     }
   ]
 }

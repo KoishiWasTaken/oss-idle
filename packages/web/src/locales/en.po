@@ -419,6 +419,11 @@ msgstr "by {artist}"
 msgid "by {creator}"
 msgstr "by {creator}"
 
+#. placeholder {0}: entry.author
+#: src/pages/changelog/ChangelogEntry.tsx
+msgid "by <0>{0}</0>"
+msgstr "by <0>{0}</0>"
+
 #: src/pages/help/FAQ.tsx
 msgid "By playing. Ranked and guest plays give experience; unranked plays don't. Pick maps that push the skills you want to train: the song select shows what each map gave you last time."
 msgstr "By playing. Ranked and guest plays give experience; unranked plays don't. Pick maps that push the skills you want to train: the song select shows what each map gave you last time."
@@ -479,6 +484,10 @@ msgstr "chat console"
 #: src/pages/store/SupporterTag.tsx
 msgid "Checkout"
 msgstr "Checkout"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "Claim itch.io donation"
+msgstr "Claim itch.io donation"
 
 #: src/routes/maps/claim.tsx
 msgid "claim your proposals"
@@ -608,6 +617,10 @@ msgstr "Do I have to watch my plays?"
 #: src/pages/help/FAQ.tsx
 msgid "Do I need an osu! account?"
 msgstr "Do I need an osu! account?"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "Donated to <0>oss!idle on itch.io</0>? Sign in with your itch.io account to turn your donations into oss!supporter, prorated on the store's prices."
+msgstr "Donated to <0>oss!idle on itch.io</0>? Sign in with your itch.io account to turn your donations into oss!supporter, prorated on the store's prices."
 
 #: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/DownloadButton.tsx
@@ -1113,6 +1126,10 @@ msgstr "No authorized clients."
 #: src/pages/changelog/Changelog.tsx
 msgid "No builds yet. Check back soon!"
 msgstr "No builds yet. Check back soon!"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "No new donation on this itch.io account."
+msgstr "No new donation on this itch.io account."
 
 #: src/pages/news/News.tsx
 #: src/pages/PublicLanding.tsx
@@ -1935,6 +1952,10 @@ msgstr "terms"
 msgid "Terms"
 msgstr "Terms"
 
+#: src/pages/settings/ItchSettings.tsx
+msgid "Thank you! Your donations gave you {days} days of oss!supporter."
+msgstr "Thank you! Your donations gave you {days} days of oss!supporter."
+
 #: src/pages/groups/GroupPage.tsx
 msgid "The <0>Administrators</0> run oss!idle: they develop the game, rank the maps and manage the team."
 msgstr "The <0>Administrators</0> run oss!idle: they develop the game, rank the maps and manage the team."
@@ -1942,6 +1963,10 @@ msgstr "The <0>Administrators</0> run oss!idle: they develop the game, rank the 
 #: src/pages/groups/GroupPage.tsx
 msgid "The <0>Global Moderation Team</0> keeps the community a fun and welcoming place: they handle reports and moderate the chat, silencing or restricting players who break the rules."
 msgstr "The <0>Global Moderation Team</0> keeps the community a fun and welcoming place: they handle reports and moderate the chat, silencing or restricting players who break the rules."
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "The claim didn't go through. Try again in a moment."
+msgstr "The claim didn't go through. Try again in a moment."
 
 #: src/pages/help/FAQ.tsx
 msgid "The game"

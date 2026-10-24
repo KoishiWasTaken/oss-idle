@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-23 19:43\n"
+"PO-Revision-Date: 2026-10-24 10:41\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -424,6 +424,11 @@ msgstr "par {artist}"
 msgid "by {creator}"
 msgstr "par {creator}"
 
+#. placeholder {0}: entry.author
+#: src/pages/changelog/ChangelogEntry.tsx
+msgid "by <0>{0}</0>"
+msgstr ""
+
 #: src/pages/help/FAQ.tsx
 msgid "By playing. Ranked and guest plays give experience; unranked plays don't. Pick maps that push the skills you want to train: the song select shows what each map gave you last time."
 msgstr "En jouant. Les parties classées et en invité rapportent de l'expérience ; les parties non classées, non. Choisissez des maps qui sollicitent les compétences que vous voulez entraîner : la sélection de musique montre ce que chaque map vous a rapporté la dernière fois."
@@ -484,6 +489,10 @@ msgstr "console de chat"
 #: src/pages/store/SupporterTag.tsx
 msgid "Checkout"
 msgstr "Acheter"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "Claim itch.io donation"
+msgstr ""
 
 #: src/routes/maps/claim.tsx
 msgid "claim your proposals"
@@ -613,6 +622,10 @@ msgstr "Dois-je regarder mes parties ?"
 #: src/pages/help/FAQ.tsx
 msgid "Do I need an osu! account?"
 msgstr "Ai-je besoin d'un compte osu! ?"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "Donated to <0>oss!idle on itch.io</0>? Sign in with your itch.io account to turn your donations into oss!supporter, prorated on the store's prices."
+msgstr ""
 
 #: src/components/MapsetCard.tsx
 #: src/pages/beatmaps/DownloadButton.tsx
@@ -1118,6 +1131,10 @@ msgstr "Aucun client autorisé."
 #: src/pages/changelog/Changelog.tsx
 msgid "No builds yet. Check back soon!"
 msgstr "Pas encore de mise à jour. Revenez bientôt !"
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "No new donation on this itch.io account."
+msgstr ""
 
 #: src/pages/news/News.tsx
 #: src/pages/PublicLanding.tsx
@@ -1940,6 +1957,10 @@ msgstr "conditions"
 msgid "Terms"
 msgstr "Conditions"
 
+#: src/pages/settings/ItchSettings.tsx
+msgid "Thank you! Your donations gave you {days} days of oss!supporter."
+msgstr ""
+
 #: src/pages/groups/GroupPage.tsx
 msgid "The <0>Administrators</0> run oss!idle: they develop the game, rank the maps and manage the team."
 msgstr "Les <0>Administrateurs</0> gèrent oss!idle: ils développent le jeu, rank les maps et gèrent l'équipe."
@@ -1947,6 +1968,10 @@ msgstr "Les <0>Administrateurs</0> gèrent oss!idle: ils développent le jeu, ra
 #: src/pages/groups/GroupPage.tsx
 msgid "The <0>Global Moderation Team</0> keeps the community a fun and welcoming place: they handle reports and moderate the chat, silencing or restricting players who break the rules."
 msgstr "L'<0>Équipe Globale de Modération</0> permet à la communauté de rester bienveillante : elle gère les signalements et modère le chat, elle applique des sanctions aux joueurs qui enfreignent les règles."
+
+#: src/pages/settings/ItchSettings.tsx
+msgid "The claim didn't go through. Try again in a moment."
+msgstr ""
 
 #: src/pages/help/FAQ.tsx
 msgid "The game"

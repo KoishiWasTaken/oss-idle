@@ -89,6 +89,7 @@ import {
 	fatigueXp,
 	restedFatigue,
 	tireSkill,
+	warmup,
 } from '@oss-idle/shared/fatigue';
 import {
 	applySkillXp,
@@ -153,6 +154,8 @@ type Pending = {
 	strain?: { minutes: number, strained: number },
 	/** how tired the character played it, 0 rested to 1 exhausted */
 	fatigue?: number,
+	/** how warmed up, 0 cold to 1 warm */
+	warmup?: number,
 	samples?: PlaySample[],
 	skipped?: true,
 	failedAt?: number,
@@ -323,6 +326,7 @@ type RankedStartPlayResult = {
 	endsAt: number,
 	serverNow: number,
 	fatigue: number,
+	warmup: number,
 } & OffsetChunk;
 
 /** The offsets revealed so far: every one whose note is within the buffer window
@@ -348,6 +352,8 @@ export async function loadCharacterSkills(
 	beatmapId: number,
 	/** how tired the character is, 0 rested to 1 exhausted */
 	fatigue = 0,
+	/** how warmed up, 0 cold to 1 warm */
+	warm = 1,
 ) {
 	const skills = makeOrderedSkills();
 	for (const skill of skills) {
@@ -356,7 +362,7 @@ export async function loadCharacterSkills(
 		skill.upgrades.set(character[`${skill.name}Upgrades`]);
 		skill.overdrive.set(character[`${skill.name}Overdrive`]);
 		skill.prestige.set(character[`${skill.name}Prestige`]);
-		tireSkill(skill, fatigue);
+		tireSkill(skill, fatigue, warm);
 
 		if (skill instanceof Memory) {
 			skill.timesPlayed.set(await getPlays(character.id, beatmapId));
@@ -423,6 +429,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	endsAt: shownEnd(p),
 	serverNow: Date.now(),
 	fatigue: p.fatigue ?? 0,
+	warmup: p.warmup ?? 1,
 	...chunkFrom(p, 0),
 });
 
@@ -586,8 +593,10 @@ async function simulateAndStore(
 		xpMultiplier = 1, rate = 1, mods = [], round = false, board = false,
 	}: PlayOptions,
 ): Promise<StartPlayResult> {
-	const fatigue = fatigueLevel(restedFatigue(character.fatigue ?? undefined, Date.now()));
-	const skills = await loadCharacterSkills(character, beatmapId, fatigue);
+	const tired = restedFatigue(character.fatigue ?? undefined, Date.now());
+	const fatigue = fatigueLevel(tired);
+	const warm = warmup(tired, character.staminaUpgrades);
+	const skills = await loadCharacterSkills(character, beatmapId, fatigue, warm);
 
 	const chart = decoder.decodeFromString(beatmap.chart);
 	const bot = new CharacterBot(skills);
@@ -680,6 +689,7 @@ async function simulateAndStore(
 			fatigue,
 		), xpMultiplier),
 		fatigue,
+		warmup: warm,
 		...fail,
 		...board ? { board: 'unranked' as const } : {
 			strain: {
@@ -717,6 +727,7 @@ async function simulateAndStore(
 		endsAt: shownEnd(entry),
 		serverNow: Date.now(),
 		fatigue,
+		warmup: warm,
 		...chunkFrom(entry, 0),
 	};
 }
