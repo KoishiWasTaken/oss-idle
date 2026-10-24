@@ -631,6 +631,13 @@
       "when": 1795910400000,
       "tag": "0098_unbundled_by_default",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "5",
+      "when": 1795996800000,
+      "tag": "0099_osu_skins",
+      "breakpoints": true
     }
   ]
 }

@@ -180,8 +180,8 @@ export default function FAQ() {
 		<details>
 			<summary><Trans>Can I change how the game looks?</Trans></summary>
 			<p><Trans>
-				Yes. Skins change the playfield, notes and gameplay interface, and you can make your own in
-				the skin editor with a live preview. Players can share their skins with everyone.
+				Yes, with osu! skins: any skin that works in osu!stable works here. Import its .osk or its
+				folder from the skins page, and publish it to share it with everyone.
 			</Trans></p>
 		</details>
 		<details>

@@ -30,9 +30,10 @@ export default function WarmupGaugePreview() {
 		const draw = () => {
 			ctx.setTransform(2, 0, 0, 2, 0, 0);
 			ctx.fillStyle = '#111';
-			ctx.fillRect(0, 0, 220, 30 + STATES.length * 40);
+			ctx.fillRect(0, 0, 300, 30 + STATES.length * 40);
 			ctx.font = '600 11px "Exo 2", sans-serif';
-			STATES.forEach(([label, v, cooling], i) => drawWarmupGauge(f, label, v, cooling, 30, 30 + i * 40));
+			STATES.forEach(([state, v, cooling], i) =>
+				drawWarmupGauge(f, 'Warm-up', state, v, cooling, 30, 30 + i * 40));
 			raf = requestAnimationFrame(draw);
 		};
 		draw();
@@ -40,7 +41,7 @@ export default function WarmupGaugePreview() {
 	}, []);
 
 	return (
-		<canvas ref={ref} width={440} height={60 + STATES.length * 80}>
+		<canvas ref={ref} width={600} height={60 + STATES.length * 80}>
 			{STATES.map(([label]) => label).join(', ')}
 		</canvas>
 	);

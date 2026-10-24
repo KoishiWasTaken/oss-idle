@@ -1,5 +1,4 @@
 import Reading from '@oss-idle/shared/sim/skills/reading';
-import accuracy from '@oss-idle/shared/display/accuracy';
 import Speed from '@oss-idle/shared/sim/skills/speed';
 import num from '@oss-idle/shared/display/num';
 import {
@@ -8,20 +7,24 @@ import {
 } from '@oss-idle/shared/skills';
 import { type Grade } from '@oss-idle/shared/judgement';
 import { MAX_HP } from '@oss-idle/shared/sim/scoring';
-import { drawHpBar } from '../hpBar';
 import { drawHitErrorBar } from '../hitError';
 import {
 	roundRect,
 	STRAIN_HUD_SKILLS,
 	type Frame,
-	type Layer,
 	type StrainHud,
+	type Viewport,
 } from './frame';
+import { makeStageHud } from './stageHud';
+import type { StageFrame } from './stage';
+
+const HP_EASE_MS = 200;
 
 const FATIGUE_COLOR = '#b48cff';
 const GOLD = '#ffd34d';
 const COOL_GLOW = '#2b4fd8';
 const COOL_TRACK = 'rgba(25,45,140,0.7)';
+const COOL_TEXT = '#7f9dff';
 const TRACK = 'rgba(255,255,255,0.12)';
 const GAUGE_W = 150;
 const SHINE_W = 40;
@@ -125,9 +128,27 @@ const drawCooling = (ctx: CanvasRenderingContext2D, bx: number, by: number) => {
 	ctx.restore();
 };
 
+// the warm-up state, right of the bar (after the % on narrow screens)
+const drawWarmupState = (
+	f: Frame,
+	state: string,
+	color: string,
+	v: number,
+	bx: number,
+	by: number,
+) => {
+	const { ctx, vp } = f;
+	ctx.textAlign = 'left';
+	ctx.fillStyle = color;
+	const pct = `${Math.round(v * 100)}% `;
+	if (vp.w < 700) ctx.fillText(state, bx + ctx.measureText(pct).width, by + 13);
+	else ctx.fillText(state, bx + GAUGE_W + 8, by + 12);
+};
+
 export const drawWarmupGauge = (
 	f: Frame,
 	label: string,
+	state: string,
 	v: number,
 	cooling: boolean,
 	bx: number,
@@ -138,10 +159,23 @@ export const drawWarmupGauge = (
 	const { fill, shine } = gradients(f.ctx);
 	const color = full ? GOLD : `hsl(${warmupHue(v)}, 85%, 55%)`;
 	drawGauge(f, label, v, color, bx, by, fill, cool ? COOL_TRACK : TRACK);
+	drawWarmupState(f, state, cool ? COOL_TEXT : color, v, bx, by);
 	if (f.vp.w < 700) return;
 	if (full) drawWarmedUp(f.ctx, shine, bx, by);
 	else if (cool) drawCooling(f.ctx, bx, by);
 };
+
+type Size = Pick<Viewport, 'w' | 'h'>;
+const strainStep = (vp: Size) => vp.w < 700 ? 30 : 26;
+const strainTop = (vp: Size) => Math.max(150, vp.h * 0.24);
+
+/** the warm-up gauge with its label and state, for a hover area over the canvas */
+export const warmupGaugeBox = (vp: Size, left = 16) => ({
+	left,
+	top: strainTop(vp) + (STRAIN_HUD_SKILLS.length + 1) * strainStep(vp),
+	width: GAUGE_W + (vp.w < 700 ? 0 : 100),
+	height: 28,
+});
 
 // strain meters (left side): one stress gauge per skill, 0-100%. Narrow screens
 // drop the bars and show just the %, tinted the gauge's colour. `display` carries
@@ -154,8 +188,8 @@ const drawStrainMeters = (
 	const { ctx, now, vp } = f;
 	const strains = strain.bot.strainsAt(now);
 	const bx = strain.left ?? 16;
-	const step = vp.w < 700 ? 30 : 26;
-	const by0 = Math.max(150, vp.h * 0.24);
+	const step = strainStep(vp);
+	const by0 = strainTop(vp);
 	ctx.font = '600 11px "Exo 2", sans-serif';
 	STRAIN_HUD_SKILLS.forEach((skill, i) => {
 		const v = display[skill] += (strains[skill] - display[skill]) * 0.2;
@@ -167,7 +201,15 @@ const drawStrainMeters = (
 	const fy = by0 + STRAIN_HUD_SKILLS.length * step + 12;
 	drawGauge(f, strain.fatigueLabel ?? '', strain.fatigue, FATIGUE_COLOR, bx, fy);
 	if (strain.warmup === undefined) return;
-	drawWarmupGauge(f, strain.warmupLabel ?? '', strain.warmup, strain.cooling ?? false, bx, fy + step);
+	drawWarmupGauge(
+		f,
+		strain.warmupLabel ?? '',
+		strain.warmupState ?? '',
+		strain.warmup,
+		strain.cooling ?? false,
+		bx,
+		fy + step,
+	);
 };
 
 // debug-only telemetry over the playfield (nps, visible notes, transitions, ...)
@@ -201,42 +243,30 @@ const drawDebugStats = (f: Frame, cxField: number) => {
 };
 
 /**
- * The HUD layer: judgement popup, combo, strain gauges, accuracy/score, progress
- * bar, HP bar and hit-error bar. A factory because the HP and strain gauges carry
- * eased state between frames; the grade badge is a DOM element in the caller, fed
- * via `opts.onGrade` only when the grade changes.
+ * The HUD layer: the skin's hit burst, combo, score, accuracy and HP bar (render/stageHud),
+ * then ours - strain gauges, progress bar, hit-error bar. A factory because the HP and
+ * strain gauges carry eased state between frames; the grade badge is a DOM element in the
+ * caller, fed via `opts.onGrade` only when the grade changes.
  */
-export const makeHud = (): Layer => {
+export const makeHud = () => {
 	const strainDisplay =
 		Object.fromEntries(Skills.map(s => [s, 0])) as Record<SkillName, number>;
+	const stageHud = makeStageHud();
+	// filled in every frame rather than made anew
+	let errorBar: Parameters<typeof drawHitErrorBar>[2] | undefined;
 	let hpEased = 1;
 	let hpLast = performance.now();
 	let lastGrade: Grade | undefined;
 
-	return (f) => {
-		const { ctx, game, skin, now, vp, g, opts } = f;
+	return (f: Frame, stage?: StageFrame) => {
+		const { ctx, game, now, vp, g, opts } = f;
 		const cxField = g.x0 + g.fieldWidth / 2;
 
-		// judgement popup
-		const flash = game.lastFlash;
-		if (flash) {
-			const age = now - flash.time;
-			if (age >= 0 && age < 400) {
-				ctx.globalAlpha = 1 - age / 400;
-				ctx.fillStyle = skin.data.judgements[flash.judgement].judge;
-				ctx.font = '700 26px "Exo 2", sans-serif';
-				ctx.textAlign = 'center';
-				ctx.fillText(skin.data.judgements[flash.judgement].text, cxField, g.lineY - 90);
-				ctx.globalAlpha = 1;
-			}
-		}
-		// combo
-		if (game.score.combo > 1) {
-			ctx.fillStyle = '#fff';
-			ctx.font = '800 44px "Exo 2", sans-serif';
-			ctx.textAlign = 'center';
-			ctx.fillText(`${game.score.combo}x`, cxField, vp.h * 0.42);
-		}
+		// eased toward the live value, like stable's bar
+		const tNow = performance.now();
+		hpEased += (game.score.hp / MAX_HP - hpEased) * (1 - Math.exp(-(tNow - hpLast) / HP_EASE_MS));
+		hpLast = tNow;
+		if (stage) stageHud(stage, hpEased, opts.mobile ? 60 : 0);
 
 		if (opts.debug) drawDebugStats(f, cxField);
 		if (opts.strain) drawStrainMeters(f, opts.strain, strainDisplay);
@@ -247,23 +277,6 @@ export const makeHud = (): Layer => {
 			opts.onGrade?.(game.score.grade);
 		}
 
-		// accuracy + score (top right)
-		ctx.fillStyle = '#fff';
-		ctx.textAlign = 'right';
-		ctx.font = '700 30px "Exo 2", sans-serif';
-		ctx.fillText(
-			accuracy(game.score.accuracy),
-			vp.w - 28,
-			opts.mobile ? 90 : 48,
-		);
-		ctx.font = '500 18px "Exo 2", sans-serif';
-		ctx.fillStyle = 'rgba(255,255,255,0.75)';
-		ctx.fillText(
-			Math.round(game.score.score).toLocaleString(),
-			vp.w - 28,
-			opts.mobile ? 120 : 76,
-		);
-
 		// progress bar
 		const prog = Math.max(0, Math.min(1, now / game.songEndMs));
 		ctx.fillStyle = 'rgba(255,255,255,0.12)';
@@ -271,26 +284,15 @@ export const makeHud = (): Layer => {
 		ctx.fillStyle = '#ff66ab';
 		ctx.fillRect(0, 0, vp.w * prog, 4);
 
-		// HP bar (right of the playfield) - eased toward the live value, drawn before
-		// the hit-error bar so that bar stays on top of it
-		const tNow = performance.now();
-		const transition = (1 - Math.exp(-(tNow - hpLast) / skin.data.hpBar.transitionMs));
-		hpEased += (game.score.hp / MAX_HP - hpEased) * transition;
-		hpLast = tNow;
-		drawHpBar(skin, ctx, {
-			hp: hpEased,
-			x: g.x0 + g.fieldWidth + skin.data.hpBar.gap,
-			bottom: vp.h - skin.data.hpBar.fromBottom,
-		});
-
-		// hit-error bar (below the receptors)
-		drawHitErrorBar(skin, ctx, {
-			windows: game.windows,
-			hits: game.hits,
-			now,
-			cx: cxField,
-			y: g.lineY + 78,
-			halfWidth: Math.min(170, g.fieldWidth / 2),
-		});
+		// hit-error bar: bottom centre of the screen, whatever the stage
+		errorBar ??= {
+			windows: game.windows, hits: game.hits, now, cx: 0, y: 0, halfWidth: 170,
+		};
+		errorBar.windows = game.windows;
+		errorBar.hits = game.hits;
+		errorBar.now = now;
+		errorBar.cx = vp.w / 2;
+		errorBar.y = vp.h - 14;
+		drawHitErrorBar(f.skin, ctx, errorBar);
 	};
 };

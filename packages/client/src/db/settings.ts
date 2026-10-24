@@ -113,6 +113,11 @@ const defaults = [
 	option<number>()('longpress', 400),
 	option<number>()('scrollspeed', 16),
 	/**
+	 * The installed skin the editor draws its notes with (0: the default skin); the
+	 * gameplay skin is the enabled one.
+	 */
+	option<number>()('editorSkin', 0),
+	/**
 	 * Playback rate picked in song select (held to what Speed upgrades unlock), and
 	 * whether the music's pitch follows it.
 	 */

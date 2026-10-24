@@ -71,6 +71,7 @@ import {
 	PLAYER_MODE,
 } from '../audio/MusicPlayer';
 import {
+	makeComboBreakSound,
 	preloadSamples,
 	prepareNoteSounds,
 	scheduleHitsound,
@@ -95,6 +96,11 @@ import Controls from '../input/Controls';
 import { debugMode } from '../globals';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import SkipToEndButton from '../components/gameplay/SkipToEndButton';
+import WarmupHint from '../components/gameplay/WarmupHint';
+import {
+	warmupStage,
+	type WarmupStage,
+} from '../gameplay/warmupStage';
 import {
 	Skills,
 	type SkillName,
@@ -111,6 +117,7 @@ import GameplayRenderer, {
 	type StrainHud,
 } from '../gameplay/gameplayRenderer';
 import { sizeCanvas } from '../sizeCanvas';
+import { makeGradePlacer } from '../gameplay/gradeBadge';
 
 /** A play of a chart open in the editor: the character plays it from `start`,
  *  like a debug play (no-fail, never saved), then the editor takes over again. */
@@ -180,6 +187,7 @@ function GameplayInner({
 	const [debug] = useSynced(debugMode);
 	const { i18n, t } = useLingui();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const gradeRef = useRef<HTMLDivElement>(null);
 	// background, storyboard video and the dim overlay are stacked DOM layers
 	// behind the (transparent) playfield canvas: bg → video → dim → canvas. This
 	// lets a native <video> play between the background and the playfield without
@@ -213,12 +221,17 @@ function GameplayInner({
 		[i18n],
 	);
 	const fatigueLabel = useMemo(() => t`Fatigue`, [t]);
-	const warmupLabel = useMemo(() => {
-		const warm = play.mode === 'debug' ? 1 : play.warmup ?? 1;
-		if (play.mode !== 'debug' && play.cooling) return warm < 0.5 ? t`Getting tired` : t`Pushing`;
-		if (warm < 0.25) return t`Cold`;
-		if (warm < 0.75) return t`Warming up`;
-		return warm < 0.995 ? t`Warmed up` : t`Peak`;
+	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
+	const warmupState = useMemo(() => {
+		const labels: Record<WarmupStage, string> = {
+			cold: t`Cold`,
+			warming: t`Warming up`,
+			warm: t`Warmed up`,
+			peak: t`Peak`,
+			pushing: t`Pushing`,
+			tired: t`Getting tired`,
+		};
+		return play.mode === 'debug' ? labels.peak : labels[warmupStage(play.warmup ?? 1, play.cooling)];
 	}, [t, play]);
 	// clock state lives in a ref so it survives HMR effect re-runs: the lead-in
 	// isn't restarted and the audio isn't re-triggered, keeping the gameplay
@@ -749,8 +762,6 @@ function GameplayInner({
 		if (!game) return;
 		const canvas = canvasRef.current!;
 		const ctx = canvas.getContext('2d')!;
-		const keys = game.keyCount;
-		const fieldWidth = keys * skin.data.playfield.columnWidth;
 		const mobile = window.innerWidth < 850;
 
 		let w = 0;
@@ -807,7 +818,9 @@ function GameplayInner({
 			}
 		};
 
-		const fieldX = () => (w - fieldWidth) / 2;
+		const placeGrade = makeGradePlacer();
+		// the playfield as last drawn, for the SKIP prompt's tap target
+		let field: PlayfieldGeometry | undefined;
 
 		// ---- clock: the whole play on a perf timer, the track started in step with it ----
 		// persisted in a ref so an HMR effect re-run resumes the same clock
@@ -926,6 +939,7 @@ function GameplayInner({
 
 		let raf = 0;
 		let finished = false;
+		const comboBreak = makeComboBreakSound();
 		let firstFrame = true;
 		// once the play ends we keep the playfield scrolling under the result-loading
 		// spinner instead of freezing. The song clock can stop advancing when the
@@ -992,7 +1006,7 @@ function GameplayInner({
 					bot: strainBotRef.current,
 					labels: skillLabels,
 					...play.mode !== 'debug' ? {
-						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, cooling: play.cooling, warmupLabel,
+						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, cooling: play.cooling, warmupLabel, warmupState,
 					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}
@@ -1002,12 +1016,14 @@ function GameplayInner({
 			const now = finished ? outroFrom + (performance.now() - outroAt) : songTime();
 			nowRef.current = now;
 			game.update(Math.max(0, now));
+			comboBreak(game.score.combo);
 			queueHitsounds();
 
 			drawBackground();
 			syncVideo(now);
 			// the renderer derives its own geometry (picks up a live scroll-speed
 			// change) and hands it back for the play-only chrome to align to
+			renderer.setSkin(currentSkin.get());
 			const g = renderer.draw(now, {
 				w,
 				h,
@@ -1018,6 +1034,8 @@ function GameplayInner({
 				strain: strain(),
 				onGrade: setGrade,
 			});
+			field = g;
+			placeGrade(gradeRef.current, g);
 			drawChrome(g, now);
 			publishPlayfieldEdge(g);
 
@@ -1073,7 +1091,8 @@ function GameplayInner({
 			const rect = canvas.getBoundingClientRect();
 			const px = e.clientX - rect.left;
 			const py = e.clientY - rect.top;
-			const cxField = fieldX() + fieldWidth / 2;
+			if (!field) return;
+			const cxField = field.x0 + field.fieldWidth / 2;
 			// bounding box around the SKIP / >>>> text (drawn at h*0.62–0.64)
 			if (Math.abs(px - cxField) < 90 && py > h * 0.56 && py < h * 0.68) 
 				skipToStart();
@@ -1101,7 +1120,8 @@ function GameplayInner({
 			<video ref={videoRef} className="play__video" muted playsInline />
 			<div ref={dimRef} className="play__dim" />
 			<canvas ref={canvasRef} className="play__canvas" />
-			{!done && skin.grade(grade, 'play__grade')}
+			{owned && play.warmup !== undefined && <WarmupHint warmup={play.warmup} cooling={play.cooling} />}
+			{!done && <div ref={gradeRef} className='play__grade'>{skin.grade(grade)}</div>}
 			{done && play.mode === 'ranked' && (
 				<div className="play__loading">
 					<div className="play__loading-spinner" />

@@ -384,6 +384,13 @@ const playlistEntryOrder: Migration = db => {
 	db.run('DROP TABLE playlist_entry_old;');
 };
 
+/** Skins are osu! skins now, their files kept in IndexedDB: the old JSON ones go. */
+const osuSkins: Migration = db => {
+	if (!hasColumn(db, 'skin', 'definition')) return;
+	db.run('DELETE FROM skin;');
+	db.run('ALTER TABLE skin DROP COLUMN definition;');
+};
+
 const migrations: Migration[] = [
 	recomputeBests,
 	addOnlineId,
@@ -405,6 +412,7 @@ const migrations: Migration[] = [
 	addMemoryForget,
 	addAddonTypes,
 	playlistEntryOrder,
+	osuSkins,
 ];
 
 /**

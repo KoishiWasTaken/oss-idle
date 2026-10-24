@@ -376,7 +376,7 @@ export default function BeatmapCarousel({
 		lastCenteredRef.current = current!.metadata.id;
 		const cardCentre = padTop() + i * STRIDE + CARD_HEIGHT / 2;
 		animateTo(cardCentre - scroller.clientHeight / 2);
-	}, [animateTo, padTop]);
+	}, [animateTo, padTop, selection]);
 
 	// Take over the mouse wheel so scrolling is always smooth, never harsh.
 	useEffect(() => {

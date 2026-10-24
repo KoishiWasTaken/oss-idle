@@ -153,6 +153,7 @@ const catalog = async () => {
 			id: m.id,
 			title: m.title,
 			artist: m.artist,
+			bundled: m.bundled,
 			versions: m.versions.map(v => ({
 				id: v.id,
 				version: v.version,
