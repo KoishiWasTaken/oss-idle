@@ -1,11 +1,17 @@
-import { app } from 'electron';
+import {
+	app,
+	autoUpdater as nativeUpdater,
+} from 'electron';
 // electron-updater is CommonJS and exposes `autoUpdater` as a *named* export (no
 // default), so import it by name - a default import resolves to `undefined`.
 import { autoUpdater } from 'electron-updater';
 // eslint-disable-next-line @stylistic/max-len
 import type { DesktopUpdateStatus } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 import { broadcast } from './frames';
-import { STAGING } from './config';
+import {
+	DESKTOP_SCHEME,
+	STAGING,
+} from './config';
 
 /**
  * In-app self-update. The feed (provider/url) is read from the `app-update.yml`
@@ -86,6 +92,24 @@ export async function downloadUpdate(): Promise<void> {
 
 export function installUpdate(): void {
 	if (unavailable()) return;
+	const appImage = process.env.APPIMAGE;
+	if (process.platform === 'linux' && appImage) {
+		// electron-updater restarts an AppImage with no arguments at all, so the flags it was
+		// started with (--no-sandbox, Wayland switches, a debugging port) were gone after every
+		// update. Install without its restart and relaunch with this run's own arguments; it
+		// renames the file when the name carries a version, so follow that.
+		let target = appImage;
+		autoUpdater.once('appimage-filename-updated', (path: string) => {
+			target = path;
+		});
+		// sent only after a successful install
+		nativeUpdater.once('before-quit-for-update', () => app.relaunch({
+			execPath: target,
+			args: process.argv.slice(1).filter(arg => !arg.startsWith(`${DESKTOP_SCHEME}://`)),
+		}));
+		autoUpdater.quitAndInstall(true, false);
+		return;
+	}
 	autoUpdater.quitAndInstall();
 }
 
