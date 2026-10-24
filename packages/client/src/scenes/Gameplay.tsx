@@ -43,6 +43,7 @@ import {
 	finishLocalPlay,
 	localPlayResult,
 	startLocalPlay,
+	type LocalStart,
 } from '../online/localPlay';
 import Socket from '../online/socket';
 import PlayManager from '../online/playManager';
@@ -138,6 +139,12 @@ type InnerProps = {
 /** how far ahead hitsounds are queued onto the audio clock. Must exceed the
  *  background timer-throttle floor (~1s) so a blurred tab still queues the next
  *  chunk before the previous one runs out - that's what keeps sound going. */
+/** The character's skills as tired as the play has them. */
+const playedSkills = (character: Character, play: PlayContext) =>
+	play.mode !== 'debug' && play.fatigue !== undefined
+		? tiredSkills(character.skills, play.fatigue, play.warmup ?? 1)
+		: character.skills;
+
 const HITSOUND_LOOKAHEAD_MS = 1500;
 /** keep the scheduler ticking off the rAF loop so it runs while the tab is
  *  hidden (rAF is paused then; timers are merely throttled). */
@@ -206,7 +213,13 @@ function GameplayInner({
 		[i18n],
 	);
 	const fatigueLabel = useMemo(() => t`Fatigue`, [t]);
-	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
+	const warmupLabel = useMemo(() => {
+		const warm = play.mode === 'debug' ? 1 : play.warmup ?? 1;
+		if (play.mode !== 'debug' && play.cooling) return warm < 0.5 ? t`Getting tired` : t`Pushing`;
+		if (warm < 0.25) return t`Cold`;
+		if (warm < 0.75) return t`Warming up`;
+		return warm < 0.995 ? t`Warmed up` : t`Peak`;
+	}, [t, play]);
 	// clock state lives in a ref so it survives HMR effect re-runs: the lead-in
 	// isn't restarted and the audio isn't re-triggered, keeping the gameplay
 	// clock continuous with the (single, still-playing) audio.
@@ -299,9 +312,7 @@ function GameplayInner({
 			// the play being watched *is* this analysis - no approximation needed
 			strainBotRef.current = local.bot;
 		} else {
-			strainBotRef.current = new CharacterBot(play.mode === 'ranked'
-				? tiredSkills(character.skills, play.fatigue, play.warmup)
-				: character.skills);
+			strainBotRef.current = new CharacterBot(playedSkills(character, play));
 			new ManiaGame(beatmap, strainBotRef.current, {
 				divine, rate, mods, playOn,
 			});
@@ -980,8 +991,8 @@ function GameplayInner({
 				? {
 					bot: strainBotRef.current,
 					labels: skillLabels,
-					...play.mode === 'ranked' ? {
-						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, warmupLabel,
+					...play.mode !== 'debug' ? {
+						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, cooling: play.cooling, warmupLabel,
 					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}
@@ -1162,11 +1173,12 @@ const localContext = async (
 	character: Character,
 	beatmapInfo: LightBeatmap,
 	chart: Beatmap,
-	mode: 'guest' | 'unranked',
+	start: LocalStart,
 ): Promise<PlayContext> => {
-	const run = await startLocalPlay(character, beatmapInfo, chart, mode);
+	const run = await startLocalPlay(character, beatmapInfo, chart, start);
 	return {
-		mode,
+		...run.tired,
+		mode: run.mode,
 		token: run.token,
 		beatmapId: run.beatmapId,
 		rate: run.rate,
@@ -1383,13 +1395,13 @@ export default function Gameplay({
 					await backToSelect();
 					return;
 				}
-				play = await localContext(character, beatmapInfo, live, 'unranked');
+				play = await localContext(character, beatmapInfo, live, { mode: 'unranked' });
 			} else if (session.mode === 'ranked') {
 				play = session;
 			} else {
 				// start (or join) the local play, then watch it - the same shape the
 				// server hands back for a ranked one
-				play = await localContext(character, beatmapInfo, live, session.mode);
+				play = await localContext(character, beatmapInfo, live, session);
 			}
 
 			const timesPlayed = await Score.countPlays(

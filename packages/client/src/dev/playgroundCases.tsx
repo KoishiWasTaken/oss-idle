@@ -6,6 +6,7 @@ import XpMultiplierToggle from '../components/songselect/XpMultiplierToggle';
 import UpgradeRow from '../components/upgrades/UpgradeRow';
 import UpgradesView from '../components/upgrades/UpgradesView';
 import UpgradesPreview from './UpgradesPreview';
+import WarmupGaugePreview from './WarmupGaugePreview';
 import SkillsView from '../components/skills/SkillsView';
 import { sampleCharacter } from './upgradeSample';
 import PrestigeView from '../components/character/PrestigeView';
@@ -114,6 +115,7 @@ const fakeQueue = () => {
 			}, 
 		},
 		getBackgroundUri: async () => undefined,
+		is: (other?: LightBeatmap) => other?.metadata.id === id,
 	} as unknown as LightBeatmap);
 
 	const entries = [
@@ -125,7 +127,9 @@ const fakeQueue = () => {
 	];
 	PlayQueue.start({
 		label: 'Favourites', mode: 'PLAYLIST', 
-	}, entries, 0);
+	}, entries.map((beatmap, i) => ({
+		beatmap, repeat: i === 2 ? 10 : undefined,
+	})), 0);
 	void PlayManager.live.set({
 		token: 'playground',
 		beatmap: entries[0],
@@ -416,6 +420,11 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 			<SongSelect mode="queue" />
 			<PlayDock />
 		</>),
+	},
+	{
+		id: 'warmup-gauge',
+		label: 'Gameplay HUD - warm-up gauge: cold, warming up, warmed up, peak, pushing, getting tired',
+		render: () => <WarmupGaugePreview />,
 	},
 	{
 		id: 'xp-toggle',

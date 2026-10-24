@@ -38,6 +38,8 @@ export type StrainHud = {
 	fatigueLabel?: string,
 	/** how warmed up, 0 cold to 1 warm */
 	warmup?: number,
+	/** past warm-up's peak */
+	cooling?: boolean,
 	warmupLabel?: string,
 };
 

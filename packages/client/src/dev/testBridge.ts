@@ -118,10 +118,11 @@ const queue = () => {
 	return {
 		label: state.label,
 		mode: state.mode,
-		entries: state.entries.map(e => ({
+		entries: state.entries.map(({ beatmap: e, repeat }) => ({
 			id: e.metadata.id,
 			version: e.metadata.version,
 			title: e.set.metadata.title,
+			repeat,
 		})),
 	};
 };

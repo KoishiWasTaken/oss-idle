@@ -1858,8 +1858,8 @@ msgid "Small"
 msgstr "Small"
 
 #: src/pages/help/FAQ.tsx
-msgid "Small scripts made by players that add features to the game. Shared add-ons are reviewed by the team before they are published, but they run inside your game: only install the ones you trust."
-msgstr "Small scripts made by players that add features to the game. Shared add-ons are reviewed by the team before they are published, but they run inside your game: only install the ones you trust."
+msgid "Small scripts made by players that add features to the game. Shared add-ons are not reviewed by the team and they run inside your game: only install the ones you trust."
+msgstr "Small scripts made by players that add features to the game. Shared add-ons are not reviewed by the team and they run inside your game: only install the ones you trust."
 
 #: src/pages/store/SupporterStatus.tsx
 msgid "So far you gave <0>{amount}</0>, and held a supporter tag for <1><2/></1>."

@@ -19,7 +19,7 @@ export type ScoreTab = ValueIn<typeof SCORE_TAB>;
 
 export const GroupOptions = [
 	'No Grouping', 'By Artist', 'By BPM', 'By Creator', 'By Difficulty',
-	'By Download Status', 'By Length', 'By Playlist', 'By Rank Achieved', 'By Title', 'Recently Played',
+	'By Download Status', 'By Length', 'By Playlist', 'By Rank Achieved', 'By Status', 'By Title', 'Recently Played',
 ] as const;
 export const GROUP_OPTION = mapped(GroupOptions);
 export type GroupOption = ValueIn<typeof GROUP_OPTION>;

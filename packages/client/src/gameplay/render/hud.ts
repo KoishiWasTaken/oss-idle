@@ -19,8 +19,39 @@ import {
 } from './frame';
 
 const FATIGUE_COLOR = '#b48cff';
-const WARMUP_COLOR = '#ffa64d';
+const GOLD = '#ffd34d';
+const COOL_GLOW = '#2b4fd8';
+const COOL_TRACK = 'rgba(25,45,140,0.7)';
+const TRACK = 'rgba(255,255,255,0.12)';
 const GAUGE_W = 150;
+const SHINE_W = 40;
+const SHINE_MS = 1600;
+
+// spans the whole gauge, so a cold warm-up only shows the red end
+let warmupFill: CanvasGradient | undefined;
+let goldShine: CanvasGradient | undefined;
+const gradients = (ctx: CanvasRenderingContext2D) => {
+	if (!warmupFill) {
+		warmupFill = ctx.createLinearGradient(0, 0, GAUGE_W, 0);
+		warmupFill.addColorStop(0, '#ff4d4d');
+		warmupFill.addColorStop(0.5, '#ffa64d');
+		warmupFill.addColorStop(0.75, '#c6e04d');
+		warmupFill.addColorStop(1, '#4de06a');
+	}
+	if (!goldShine) {
+		goldShine = ctx.createLinearGradient(-SHINE_W, 0, 0, 0);
+		goldShine.addColorStop(0, 'rgba(255,225,120,0)');
+		goldShine.addColorStop(0.5, 'rgba(255,245,200,0.95)');
+		goldShine.addColorStop(1, 'rgba(255,225,120,0)');
+	}
+	return {
+		fill: warmupFill,
+		shine: goldShine,
+	};
+};
+
+// red → orange → green, the tint of the warm-up gauge's % on narrow screens
+const warmupHue = (v: number) => v < 0.5 ? v * 60 : 30 + (v - 0.5) * 230;
 
 // one gauge row: label, % and a bar - just the label and a tinted % when compact
 const drawGauge = (
@@ -30,6 +61,8 @@ const drawGauge = (
 	color: string,
 	bx: number,
 	by: number,
+	fill: string | CanvasGradient = color,
+	track = TRACK,
 ) => {
 	const { ctx, vp } = f;
 	ctx.textAlign = 'left';
@@ -42,14 +75,72 @@ const drawGauge = (
 	}
 	ctx.textAlign = 'right';
 	ctx.fillText(`${Math.round(v * 100)}%`, bx + GAUGE_W, by);
-	ctx.fillStyle = 'rgba(255,255,255,0.12)';
+	ctx.fillStyle = track;
 	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
 	ctx.fill();
 	if (v > 0.005) {
-		ctx.fillStyle = color;
-		roundRect(ctx, bx, by + 5, Math.max(8, GAUGE_W * v), 8, 4);
+		// drawn from the origin so a gradient fill lines up wherever the gauge sits
+		ctx.save();
+		ctx.translate(bx, by + 5);
+		ctx.fillStyle = fill;
+		roundRect(ctx, 0, 0, Math.max(8, GAUGE_W * v), 8, 4);
 		ctx.fill();
+		ctx.restore();
 	}
+};
+
+// full warm-up: a pulsing gold glow and rim, and a gold shine sweeping across
+const drawWarmedUp = (
+	ctx: CanvasRenderingContext2D,
+	shine: CanvasGradient,
+	bx: number,
+	by: number,
+) => {
+	const t = performance.now();
+	ctx.save();
+	ctx.translate(bx, by + 5);
+	roundRect(ctx, 0, 0, GAUGE_W, 8, 4);
+	ctx.shadowColor = GOLD;
+	ctx.shadowBlur = 8 + 4 * Math.sin(t / 250);
+	ctx.strokeStyle = GOLD;
+	ctx.lineWidth = 1.5;
+	ctx.stroke();
+	ctx.shadowBlur = 0;
+	ctx.clip();
+	ctx.translate((t % SHINE_MS) / SHINE_MS * (GAUGE_W + SHINE_W * 2), 0);
+	ctx.fillStyle = shine;
+	ctx.fillRect(-SHINE_W, 0, SHINE_W, 8);
+	ctx.restore();
+};
+
+// past the peak: the dark blue track the warm-up drains into, under a pulsing dark blue glow
+const drawCooling = (ctx: CanvasRenderingContext2D, bx: number, by: number) => {
+	ctx.save();
+	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
+	ctx.shadowColor = COOL_GLOW;
+	ctx.shadowBlur = 8 + 4 * Math.sin(performance.now() / 400);
+	ctx.strokeStyle = COOL_GLOW;
+	ctx.lineWidth = 1.5;
+	ctx.stroke();
+	ctx.restore();
+};
+
+export const drawWarmupGauge = (
+	f: Frame,
+	label: string,
+	v: number,
+	cooling: boolean,
+	bx: number,
+	by: number,
+) => {
+	const full = v >= 0.995;
+	const cool = cooling && !full;
+	const { fill, shine } = gradients(f.ctx);
+	const color = full ? GOLD : `hsl(${warmupHue(v)}, 85%, 55%)`;
+	drawGauge(f, label, v, color, bx, by, fill, cool ? COOL_TRACK : TRACK);
+	if (f.vp.w < 700) return;
+	if (full) drawWarmedUp(f.ctx, shine, bx, by);
+	else if (cool) drawCooling(f.ctx, bx, by);
 };
 
 // strain meters (left side): one stress gauge per skill, 0-100%. Narrow screens
@@ -76,7 +167,7 @@ const drawStrainMeters = (
 	const fy = by0 + STRAIN_HUD_SKILLS.length * step + 12;
 	drawGauge(f, strain.fatigueLabel ?? '', strain.fatigue, FATIGUE_COLOR, bx, fy);
 	if (strain.warmup === undefined) return;
-	drawGauge(f, strain.warmupLabel ?? '', strain.warmup, WARMUP_COLOR, bx, fy + step);
+	drawWarmupGauge(f, strain.warmupLabel ?? '', strain.warmup, strain.cooling ?? false, bx, fy + step);
 };
 
 // debug-only telemetry over the playfield (nps, visible notes, transitions, ...)

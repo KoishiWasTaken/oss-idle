@@ -187,9 +187,8 @@ export default function FAQ() {
 		<details>
 			<summary><Trans>What are add-ons?</Trans></summary>
 			<p><Trans>
-				Small scripts made by players that add features to the game. Shared add-ons are reviewed by
-				the team before they are published, but they run inside your game: only install the ones you
-				trust.
+				Small scripts made by players that add features to the game. Shared add-ons are not reviewed
+				by the team and they run inside your game: only install the ones you trust.
 			</Trans></p>
 			<p><Trans>
 				To make one, see <Link to='/docs/addons'>the add-on documentation</Link>.

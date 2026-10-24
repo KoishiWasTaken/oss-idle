@@ -336,8 +336,8 @@ msgid "Add sound files..."
 msgstr "Add sound files..."
 
 #: src/components/addons/AddonRepoPane.tsx
-msgid "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved."
-msgstr "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. The build goes to review, and players get it once approved."
+msgid "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. Once the add-on is published, players get each new build."
+msgstr "Add this address as a push webhook of your repository, on any git host. Each new version tag (v1.2.3) is built by oss!idle from the repository, with npm ci and npm run build; addon.config.json names the built file. Once the add-on is published, players get each new build."
 
 #: src/components/PlaylistOverlay.tsx
 msgid "Add this difficulty"
@@ -360,6 +360,10 @@ msgstr "Add-ons"
 #: src/scenes/Options.tsx
 msgid "ADD-ONS"
 msgstr "ADD-ONS"
+
+#: src/components/addons/ManageAddonsView.tsx
+msgid "Add-ons are not reviewed: you are responsible for what yours does on players' games. Your published code must be licensed under the AGPLv3 (or a compatible licence). This does not necessarily affect its source's license. Publish \"{addon}\"?"
+msgstr "Add-ons are not reviewed: you are responsible for what yours does on players' games. Your published code must be licensed under the AGPLv3 (or a compatible licence). This does not necessarily affect its source's license. Publish \"{addon}\"?"
 
 #: src/components/addons/BrowseAddonsView.tsx
 msgid "Add-ons run with full access to the game. Only install add-ons you trust. Install \"{addon}\"?"
@@ -402,6 +406,10 @@ msgstr "All"
 #: src/components/options/DeleteAllBeatmaps.tsx
 msgid "All beatmaps deleted."
 msgstr "All beatmaps deleted."
+
+#: src/components/options/DownloadAllWarning.tsx
+msgid "All bundled beatmaps downloaded."
+msgstr "All bundled beatmaps downloaded."
 
 #: src/editor/EditorMetadata.tsx
 msgid "All but the difficulty name is shared by the set: saving writes it to every difficulty."
@@ -724,6 +732,10 @@ msgid "By snap"
 msgstr "By snap"
 
 #: src/components/songselect/TopBar.tsx
+msgid "By Status"
+msgstr "By Status"
+
+#: src/components/songselect/TopBar.tsx
 msgid "By Title"
 msgstr "By Title"
 
@@ -891,6 +903,10 @@ msgstr "Code"
 #: src/components/addons/AddonEditMeta.tsx
 msgid "Code written here"
 msgstr "Code written here"
+
+#: src/scenes/Gameplay.tsx
+msgid "Cold"
+msgstr "Cold"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Colour"
@@ -1162,8 +1178,16 @@ msgid "Download all"
 msgstr "Download all"
 
 #: src/components/options/DownloadAllBeatmaps.tsx
+msgid "Download all bundled beatmaps"
+msgstr "Download all bundled beatmaps"
+
+#: src/components/options/DownloadAllBeatmaps.tsx
 msgid "Download all ranked beatmaps"
 msgstr "Download all ranked beatmaps"
+
+#: src/components/options/DownloadAllWarning.tsx
+msgid "Download every bundled beatmap?"
+msgstr "Download every bundled beatmap?"
 
 #: src/components/options/DownloadAllWarning.tsx
 msgid "Download every ranked beatmap?"
@@ -1176,6 +1200,10 @@ msgstr "Download stopped."
 #: src/scenes/SongSelect.tsx
 msgid "Download the beatmap first"
 msgstr "Download the beatmap first"
+
+#: src/scenes/Options.tsx
+msgid "download|beatmap|beatmaps|bundled|supporter"
+msgstr "download|beatmap|beatmaps|bundled|supporter"
 
 #: src/scenes/Options.tsx
 msgid "download|beatmap|beatmaps|ranked|supporter"
@@ -1214,6 +1242,10 @@ msgstr "Downloading update… {percent}%"
 #: src/editor/EditorSoundFiles.tsx
 msgid "Drum"
 msgstr "Drum"
+
+#: src/components/dock/DockQueue.tsx
+msgid "Duplicate"
+msgstr "Duplicate"
 
 #: src/components/Tutorial.tsx
 msgid "Each completed play earns your character <0>XP</0> and <1>levels</1> across various skillsets, making it perform better on future plays."
@@ -1257,6 +1289,10 @@ msgstr "Enabled"
 #: src/components/multiplayer/CreateMatch.tsx
 msgid "Enter a password before attempting to start the game..."
 msgstr "Enter a password before attempting to start the game..."
+
+#: src/components/options/DownloadAllBeatmaps.tsx
+msgid "Every bundled beatmap is already downloaded."
+msgstr "Every bundled beatmap is already downloaded."
 
 #: src/components/options/DownloadAllBeatmaps.tsx
 msgid "Every ranked beatmap is already downloaded."
@@ -1463,6 +1499,10 @@ msgstr "GENERAL"
 #: src/components/character/RebirthView.tsx
 msgid "Generation {generation}"
 msgstr "Generation {generation}"
+
+#: src/scenes/Gameplay.tsx
+msgid "Getting tired"
+msgstr "Getting tired"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Give Host"
@@ -1766,11 +1806,6 @@ msgstr "Live note offset (ms)"
 msgid "Live preview"
 msgstr "Live preview"
 
-#. placeholder {0}: addon.publishedTag
-#: src/components/addons/AddonRepoBuild.tsx
-msgid "Live: {0}"
-msgstr "Live: {0}"
-
 #: src/editor/EditorShortcuts.tsx
 msgid "LN"
 msgstr "LN"
@@ -1789,6 +1824,10 @@ msgstr "loading library…"
 #: src/components/skins/BrowseSkinsView.tsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/osu/beatmap/grouping.ts
+msgid "Local"
+msgstr "Local"
 
 #: src/components/community/CommunityBody.tsx
 msgid "Location"
@@ -1925,10 +1964,6 @@ msgstr "Mirror the whole map"
 #: src/editor/EditorHitsounds.tsx
 msgid "Mixed"
 msgstr "Mixed"
-
-#: src/components/addons/AddonEditMeta.tsx
-msgid "Moderator feedback"
-msgstr "Moderator feedback"
 
 #: src/components/dock/DockModsButton.tsx
 msgid "mods"
@@ -2201,8 +2236,8 @@ msgid "Normal"
 msgstr "Normal"
 
 #: src/components/addons/AddonCodeCheck.tsx
-msgid "Not allowed: add-ons may not run code that was not reviewed"
-msgstr "Not allowed: add-ons may not run code that was not reviewed"
+msgid "Not allowed: add-ons may not run code players cannot read in them"
+msgstr "Not allowed: add-ons may not run code players cannot read in them"
 
 #: src/components/multiplayer/ReadyButton.tsx
 msgid "Not everyone is ready. Start anyway?"
@@ -2440,6 +2475,14 @@ msgstr "Pause after this map"
 msgid "paused"
 msgstr "paused"
 
+#: src/scenes/Gameplay.tsx
+msgid "Peak"
+msgstr "Peak"
+
+#: src/components/upgrades/SkillPerk.tsx
+msgid "Peak until"
+msgstr "Peak until"
+
 #: src/components/result/scoreCard.ts
 #: src/scenes/Result.tsx
 msgid "Performance"
@@ -2507,6 +2550,14 @@ msgstr "Play a beatmap to preview the skin."
 #: src/components/community/PlayerCard.tsx
 msgid "Play Count: {playCount} (Lv{level})"
 msgstr "Play Count: {playCount} (Lv{level})"
+
+#: src/components/dock/DockQueue.tsx
+msgid "Play it one more time"
+msgstr "Play it one more time"
+
+#: src/components/dock/DockQueue.tsx
+msgid "Play it one time fewer"
+msgstr "Play it one time fewer"
 
 #: src/components/songselect/CardContextMenu.tsx
 msgid "Play next"
@@ -2619,9 +2670,22 @@ msgstr "Profile picture<0/>Defaults to your osu! avatar"
 msgid "Progress made as a Guest <0>stays on this device</0> and can never be moved to an online character, so the leaderboards stay fair."
 msgstr "Progress made as a Guest <0>stays on this device</0> and can never be moved to an online character, so the leaderboards stay fair."
 
+#: src/components/addons/ManageAddonsView.tsx
+#: src/components/addons/MyAddonRow.tsx
+msgid "Publish"
+msgstr "Publish"
+
+#: src/components/addons/ManageAddonsView.tsx
+msgid "Publish add-on"
+msgstr "Publish add-on"
+
 #: src/components/addons/AddonView.tsx
 msgid "Published add-on code must be licensed under the AGPLv3 (or a compatible licence), regardless of its source code's license."
 msgstr "Published add-on code must be licensed under the AGPLv3 (or a compatible licence), regardless of its source code's license."
+
+#: src/scenes/Gameplay.tsx
+msgid "Pushing"
+msgstr "Pushing"
 
 #: src/scenes/Lobby.tsx
 msgid "Quick Join"
@@ -2653,6 +2717,7 @@ msgstr "rank: {best} - {worst}"
 
 #: src/components/direct/DirectFilters.tsx
 #: src/editor/EditorSubmission.tsx
+#: src/osu/beatmap/grouping.ts
 msgid "Ranked"
 msgstr "Ranked"
 
@@ -3277,15 +3342,9 @@ msgstr "Stop the play (Esc)"
 msgid "Strain debug"
 msgstr "Strain debug"
 
-#: src/components/addons/ManageAddonsView.tsx
-#: src/components/addons/MyAddonRow.tsx
 #: src/components/skins/MySkinRow.tsx
 msgid "Submit"
 msgstr "Submit"
-
-#: src/components/addons/ManageAddonsView.tsx
-msgid "Submit add-on"
-msgstr "Submit add-on"
 
 #: src/editor/EditorSubmission.tsx
 msgid "Submit for rank"
@@ -3524,10 +3583,6 @@ msgstr "Trade skill levels for XP boosts"
 msgid "Tries: {tries}"
 msgstr "Tries: {tries}"
 
-#: src/components/addons/AddonRepoBuild.tsx
-msgid "Trusted: new builds go live without review."
-msgstr "Trusted: new builds go live without review."
-
 #: src/editor/builtinActions.ts
 msgid "Two columns, like 1 4"
 msgstr "Two columns, like 1 4"
@@ -3596,6 +3651,7 @@ msgid "Unrank your map?"
 msgstr "Unrank your map?"
 
 #: src/components/direct/DirectFilters.tsx
+#: src/osu/beatmap/grouping.ts
 msgid "Unranked"
 msgstr "Unranked"
 
@@ -3761,9 +3817,17 @@ msgstr "Waiting for the next map"
 msgid "Waiting for the other players to finish..."
 msgstr "Waiting for the other players to finish..."
 
-#: src/scenes/Gameplay.tsx
+#: src/components/upgrades/SkillPerk.tsx
 msgid "Warm-up"
 msgstr "Warm-up"
+
+#: src/scenes/Gameplay.tsx
+msgid "Warmed up"
+msgstr "Warmed up"
+
+#: src/scenes/Gameplay.tsx
+msgid "Warming up"
+msgstr "Warming up"
 
 #: src/components/dock/DockWatchButton.tsx
 msgid "Watch"
@@ -3945,10 +4009,6 @@ msgstr "Your character keeps playing its queue for {hours} hours after you quit.
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Your own plays and level-ups, seen only by you."
 msgstr "Your own plays and level-ups, seen only by you."
-
-#: src/components/addons/ManageAddonsView.tsx
-msgid "Your published code must be licensed under the AGPLv3 (or a compatible licence). This does not necessarily affect its source's license. Submit \"{addon}\" for review?"
-msgstr "Your published code must be licensed under the AGPLv3 (or a compatible licence). This does not necessarily affect its source's license. Submit \"{addon}\" for review?"
 
 #: src/components/OldHostPrompt.tsx
 msgid "Your save, settings and session came along. Delete everything the old address still keeps in this browser, downloaded beatmaps included?"

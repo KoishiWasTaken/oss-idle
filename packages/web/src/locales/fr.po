@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-24 10:41\n"
+"PO-Revision-Date: 2026-10-24 11:36\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -1863,8 +1863,8 @@ msgid "Small"
 msgstr "Petit"
 
 #: src/pages/help/FAQ.tsx
-msgid "Small scripts made by players that add features to the game. Shared add-ons are reviewed by the team before they are published, but they run inside your game: only install the ones you trust."
-msgstr "De petits scripts créés par les joueurs qui ajoutent des fonctionnalités au jeu. Les add-ons partagés sont vérifiés par l'équipe avant d'être publiés, mais ils s'exécutent dans votre jeu : n'installez que ceux en qui vous avez confiance."
+msgid "Small scripts made by players that add features to the game. Shared add-ons are not reviewed by the team and they run inside your game: only install the ones you trust."
+msgstr ""
 
 #: src/pages/store/SupporterStatus.tsx
 msgid "So far you gave <0>{amount}</0>, and held a supporter tag for <1><2/></1>."
