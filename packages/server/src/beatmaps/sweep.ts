@@ -1,9 +1,11 @@
 import {
 	and,
 	eq,
+	inArray,
 	lte,
 	sql,
 } from 'drizzle-orm';
+import { APPROVED_STATUSES } from '@oss-idle/shared/beatmap';
 import { db } from '../db/client';
 import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
@@ -25,7 +27,7 @@ export const sweepRankedMaps = async (): Promise<void> => {
 		.select()
 		.from(beatmapset)
 		.where(and(
-			eq(beatmapset.status, 'ranked'),
+			inArray(beatmapset.status, [...APPROVED_STATUSES]),
 			eq(beatmapset.announced, false),
 			lte(beatmapset.rankedAt, sql`now()`),
 		));
@@ -48,6 +50,7 @@ export const sweepRankedMaps = async (): Promise<void> => {
 			.where(and(eq(beatmaps.setId, set.id), eq(beatmaps.ranked, true)));
 
 		await announceRanked({
+			loved: set.status === 'loved',
 			id: set.id,
 			osuId: set.osuId,
 			background: diffs.find(d => d.background)?.background,

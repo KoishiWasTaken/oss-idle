@@ -41,6 +41,9 @@ export default function DirectFilters({ matches }: { matches: number }) {
 							value: 'ranked', label: t`Ranked`,
 						},
 						{
+							value: 'loved', label: t`Loved`,
+						},
+						{
 							value: 'unranked', label: t`Unranked`,
 						},
 						{

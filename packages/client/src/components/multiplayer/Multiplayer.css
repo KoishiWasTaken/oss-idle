@@ -240,7 +240,6 @@
 	color: #fff;
 }
 .mp-create {
-	pointer-events: auto;
 	gap: calc(var(--mp-u) * 3.7);
 }
 .mp-create .ctxmenu__header {

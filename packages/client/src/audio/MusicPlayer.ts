@@ -2,7 +2,7 @@ import { stretchBuffer } from './stretchBuffer';
 import liveStretchUrl from './liveStretch.worklet?worker&url';
 import type { LiveStretchMessage } from './liveStretch.worklet';
 import { Beatmap } from 'osu-classes';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
+import BeatmapStore, { revokeBlob } from '../osu/beatmap/beatmap_store';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import { audioContext } from './audioContext';
 import { effects } from './EffectPlayer';
@@ -57,11 +57,15 @@ export class MusicPlayer {
 		this.context = this.getAudioContext();
 
 		this.beatmap.sync(async beatmap => {
-			await this.audioSource.set(await this.getAudioSource(beatmap));
+			const src = await this.getAudioSource(beatmap);
+			// reads finish out of order when the selection moves on quickly
+			if (beatmap !== this.beatmap.get()) return revokeBlob(src);
+			await this.audioSource.set(src);
 			void this.loadTimeline(beatmap);
 		});
 
-		this.audioSource.sync(async src => {
+		this.audioSource.sync(async (src, previous) => {
+			revokeBlob(previous);
 			delete this.lastBeat;
 
 			if (!src) {
@@ -471,7 +475,7 @@ export class MusicPlayer {
 				try {
 					return await this.context.decodeAudioData(await (await fetch(url)).arrayBuffer());
 				} finally {
-					if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+					revokeBlob(url);
 				}
 			});
 			this.decoded = {

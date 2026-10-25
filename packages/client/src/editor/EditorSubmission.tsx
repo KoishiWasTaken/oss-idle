@@ -56,10 +56,12 @@ export default function EditorSubmission({ session, upload }: Props) {
 			</div>
 		);
 	}
-	if (submission.status === 'ranked') {
+	if (submission.status === 'ranked' || submission.status === 'loved') {
 		return (
 			<div className='editor__submission'>
-				<span className='editor__hint'><Trans>Ranked</Trans></span>
+				<span className='editor__hint'>
+					{submission.status === 'loved' ? <Trans>Loved</Trans> : <Trans>Ranked</Trans>}
+				</span>
 				<button className='editor__small' onClick={() => setConfirming(true)}><Trans>Unrank</Trans></button>
 				{confirming && (
 					<ConfirmMenu

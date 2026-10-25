@@ -18,6 +18,9 @@ import { isChart } from './setFiles';
 import LightBeatmapSet from './LightBeatmapSet';
 import { pickFile } from '../../pickFile';
 import { unwrapArchive } from '@oss-idle/shared/osuSkin/files';
+import { music } from '../../audio/MusicPlayer';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import { SETTINGS } from '../../db/settings';
 
 /** FNV-1a, 31 bits: stable across sessions, unlike any random id. */
 const hash = (text: string): number => {
@@ -95,6 +98,21 @@ const importFile = async (file: File): Promise<SetRecord | undefined> => {
 	}
 };
 
+/** A set's easiest 4K mania difficulty. */
+export const easiestPlayable = (set: SetRecord) =>
+	LightBeatmapSet.fromMetadata(set.metadata).getPlayableBeatmaps()
+		.sort((a, b) => a.metadata.difficulty - b.metadata.difficulty)[0];
+
+/** Play a freshly imported set: song select moves to it, the main menu plays it. */
+const playImported = async (set: SetRecord) => {
+	const scene = SceneManager.current.get();
+	const beatmap = easiestPlayable(set);
+	if (!beatmap || (scene !== SCENE.SELECT && scene !== SCENE.MENU)) return;
+	await music.beatmap.set(beatmap);
+	if (scene === SCENE.SELECT) await SETTINGS.search.set('');
+	else await music.play(0);
+};
+
 /** Ask the player for an .osz and import it; undefined when they cancel or it fails. */
 export const pickOsz = async (): Promise<SetRecord | undefined> => {
 	const file = await pickFile('.osz');
@@ -110,7 +128,10 @@ window.addEventListener('drop', e => {
 	const files = [...e.dataTransfer?.files ?? []];
 	if (!files.length) return;
 	e.preventDefault();
+	const osz = files.filter(isOsz);
 	void (async () => {
-		for (const file of files.filter(isOsz)) await importFile(file);
+		const sets = [];
+		for (const file of osz) sets.push(await importFile(file));
+		if (sets.length === 1 && sets[0]) await playImported(sets[0]);
 	})();
 });

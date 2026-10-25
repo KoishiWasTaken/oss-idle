@@ -15,7 +15,7 @@ const requestIp = (c: Context): string | undefined => {
 // dev reaches the API through the Vite proxy: every player would share one count
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
-const ipKey = (c: Context) => {
+export const ipKey = (c: Context) => {
 	const ip = requestIp(c);
 	return ip && !LOOPBACK.has(ip) ? ip : undefined;
 };

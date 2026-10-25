@@ -61,8 +61,8 @@ export const getCharacterRankedMaps = (id: number | string, page: number | strin
 		}, 
 	}));
 
-/** The account's own maps: the ranked ones they mapped, or their unranked uploads. */
-export type MappedStatus = 'ranked' | 'unranked';
+/** The account's own maps: the ranked or loved ones they mapped, or their unranked uploads. */
+export type MappedStatus = 'ranked' | 'loved' | 'unranked';
 export const getCharacterNbMapped = (id: number | string, status: MappedStatus) =>
 	unwrap(rpc.v1.characters[':id'].countmapped[':status'].$get({
 		param: {

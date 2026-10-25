@@ -30,6 +30,7 @@ import FloatingDeltas from './components/FloatingDeltas';
 import ShownMedals from './components/medals/ShownMedals';
 import DirectLinkPanel from './components/direct/DirectLinkPanel';
 import './online/versionWatch';
+import './online/libraryUpdates';
 import './online/characterWatch';
 import './online/mapLinks';
 import './osu/beatmap/oszImport';

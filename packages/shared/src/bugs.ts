@@ -5,6 +5,10 @@ export type BugStatus = typeof BUG_STATUS[number];
 
 export const BUG_TEXT_MAX = 5000;
 export const BUG_IMAGES_MAX = 3;
+export const BUG_SETUP_MAX = 2000;
+
+/** Same-origin BroadcastChannel a game tab or frame answers on with its {@link BugReportBody.setup}. */
+export const BUG_SETUP_CHANNEL = 'oss-idle:bug-setup';
 
 /** Images uploaded with `POST /v1/bugs/image`. */
 const images = z.array(z.string().regex(/^\/uploads\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/))
@@ -18,6 +22,8 @@ export const bugReportBody = z.object({
 	/** the game's version and the browser or app it runs in */
 	version: z.string().max(32),
 	client: z.string().max(500),
+	/** the game's add-ons and skins, when the form found a game to ask */
+	setup: z.string().max(BUG_SETUP_MAX).optional(),
 });
 export type BugReportBody = z.infer<typeof bugReportBody>;
 

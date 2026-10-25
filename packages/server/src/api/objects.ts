@@ -133,14 +133,17 @@ export const apiScore = (score: ScoreDTO) => ({
 
 type BeatmapInput = Omit<BeatmapRow, 'chart'>;
 
-export const apiBeatmap = (b: BeatmapInput) => ({
+/** osu!'s status for an approved set: ranked or loved. */
+const apiStatus = (s: Pick<BeatmapsetRow, 'status'>) => s.status === 'loved' ? 'loved' : 'ranked';
+
+export const apiBeatmap = (b: BeatmapInput, set: Pick<BeatmapsetRow, 'status'>) => ({
 	id: b.id,
 	osu_id: b.osuId ?? undefined,
 	beatmapset_id: b.setId,
 	version: b.version,
 	difficulty_rating: Number(b.sr),
 	mode: 'mania',
-	status: 'ranked',
+	status: apiStatus(set),
 	cs: b.keys,
 	bpm: b.bpm,
 	total_length: Math.round(b.total_length / 1000),
@@ -156,7 +159,7 @@ export const apiBeatmapset = (s: BeatmapsetRow, beatmaps: BeatmapInput[] = []) =
 	artist: s.artist,
 	title: s.title,
 	creator: s.creator,
-	status: 'ranked',
+	status: apiStatus(s),
 	ranked_date: iso(s.rankedAt),
 	submitted_date: iso(s.submittedAt),
 	covers: {
@@ -165,7 +168,7 @@ export const apiBeatmapset = (s: BeatmapsetRow, beatmaps: BeatmapInput[] = []) =
 		}, 'cover', apiBaseUrl), 
 	},
 	url: `${clientUrl}/web/maps/${s.id}`,
-	...beatmaps.length && { beatmaps: beatmaps.map(apiBeatmap) },
+	...beatmaps.length && { beatmaps: beatmaps.map(b => apiBeatmap(b, s)) },
 });
 
 const absolute = (url: string) => /^https?:/.test(url) ? url : `${apiBaseUrl}${url}`;

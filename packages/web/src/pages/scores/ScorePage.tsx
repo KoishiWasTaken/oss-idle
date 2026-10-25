@@ -114,7 +114,9 @@ export default function ScorePage({ show }: { show: Awaited<ReturnType<typeof ge
 					</div>
 					<div className='score-stats__stat'>
 						<div className='score-stats__label'>pp</div>
-						<div className='score-stats__value'>{num(Math.round(score.pp))}</div>
+						<div className='score-stats__value'>
+							{beatmapset.status === 'loved' ? '—' : num(Math.round(score.pp))}
+						</div>
 					</div>
 				</div>
 				<div className='score-stats__row'>

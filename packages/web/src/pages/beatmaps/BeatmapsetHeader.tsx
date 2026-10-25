@@ -65,7 +65,9 @@ export default function BeatmapsetHeader({ mapset, diff }: { mapset: Mapset; dif
 					? <span className='mapset__status-badge'><Trans>unranked</Trans></span>
 					: set.status === 'pending'
 						? <span className='mapset__status-badge'><Trans>pending</Trans></span>
-						: <span className='mapset__status-badge'><Trans>ranked</Trans></span>}
+						: set.status === 'loved'
+							? <span className='mapset__status-badge is-loved'><Trans>loved</Trans></span>
+							: <span className='mapset__status-badge'><Trans>ranked</Trans></span>}
 				<span>{dateAgo(set.status === 'unranked' ? set.createdAt
 					: set.status === 'pending' ? set.submittedAt : set.rankedAt)}</span>
 			</div>

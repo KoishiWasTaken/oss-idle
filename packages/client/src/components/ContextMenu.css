@@ -9,7 +9,6 @@
 	backdrop-filter: blur(3px);
 	animation: ctxmenu-in 0.16s ease both;
 	padding: 20px;
-	pointer-events: none;
 }
 /* portaled out of the dock, which also shows over the page overlay */
 body > .ctxmenu {
@@ -73,7 +72,6 @@ body > .ctxmenu {
 	background: var(--accent);
 	cursor: pointer;
 	transition: all 0.12s ease;
-	pointer-events: auto;
 }
 .ctxmenu__option:hover {
 	filter: brightness(1.1);
@@ -91,7 +89,6 @@ body > .ctxmenu {
 	font: inherit;
 	font-size: 28px;
 	outline: none;
-	pointer-events: auto;
 }
 
 @media (max-width: 900px) {

@@ -10,6 +10,7 @@ import {
 	tireSkill,
 	warmup,
 	warmupBar,
+	warmupTrend,
 	type Fatigue,
 } from '@oss-idle/shared/fatigue';
 import Reading from '@oss-idle/shared/sim/skills/reading';
@@ -140,5 +141,15 @@ describe('fatigue', () => {
 		const warm = new Speed(80);
 		tireSkill(warm, 0, 1);
 		expect(warm.level.get()).toBe(80);
+	});
+});
+
+describe('warmupTrend', () => {
+	it('points right for strained maps, left for easy ones, harder for more', () => {
+		expect(warmupTrend(MAP, MAP)).toBe(3);
+		expect(warmupTrend(MAP, 0)).toBe(-3);
+		expect(warmupTrend(MAP, MAP * 0.5)).toBe(1);
+		expect(warmupTrend(MAP, MAP * 0.2)).toBe(-1);
+		expect(warmupTrend(0, 0)).toBe(0);
 	});
 });

@@ -132,7 +132,7 @@ const characterScores = async (
 			: await recentScoreRows(characterId, offset, limit);
 	return rows.map(r => ({
 		...apiScore(toScoreDTO(r.score)),
-		beatmap: apiBeatmap(r.beatmap),
+		beatmap: apiBeatmap(r.beatmap, r.beatmapset),
 		beatmapset: apiBeatmapset(r.beatmapset),
 	}));
 };
@@ -149,7 +149,7 @@ const beatmapWhere = async (where: SQL) => {
 		.limit(1);
 	if (!row) throw notFound('Beatmap');
 	return {
-		...apiBeatmap(row.beatmap), beatmapset: apiBeatmapset(row.set),
+		...apiBeatmap(row.beatmap, row.set), beatmapset: apiBeatmapset(row.set),
 	};
 };
 

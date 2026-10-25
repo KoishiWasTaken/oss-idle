@@ -28,7 +28,8 @@ export type ScoreCard = {
 	accuracy: number,
 	maxCombo: number,
 	pfc: boolean,
-	pp: number,
+	/** none on a loved map */
+	pp?: number,
 	ur: number,
 	rate: number,
 	mods: Mod[],
@@ -222,7 +223,7 @@ const drawScore = (ctx: CanvasRenderingContext2D, card: ScoreCard): number => {
 	ctx.textAlign = 'left';
 
 	const stats: [string, string][] = [
-		[t`Performance`, `${num(card.pp)}pp`],
+		[t`Performance`, card.pp === undefined ? '—' : `${num(card.pp)}pp`],
 		[t`Combo`, `${card.maxCombo}x${card.pfc ? ' PFC' : ''}`],
 		[t`Accuracy`, accuracy(card.accuracy)],
 		['UR', card.ur.toFixed(2)],

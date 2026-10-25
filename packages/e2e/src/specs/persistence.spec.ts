@@ -41,6 +41,31 @@ test.describe('local persistence', () => {
 		expect(gains[0].beatmapId).toBe(version.id);
 	});
 
+	test('clearing a map\'s local scores sticks after a reload', async ({ game, page }) => {
+		await game.start();
+		const { set, version } = await game.installEasiest();
+
+		await game.search(set.title);
+		await game.playCard(version.id);
+		await game.waitForPlay();
+		await game.skipToEnd();
+		await game.waitForScores();
+
+		await game.start();
+		await game.search(set.title);
+		await game.selectCard(version.id);
+		await page.locator('.lb__select .dropdown__current').click();
+		await page.locator('.lb__select .dropdown__option', { hasText: 'Local' }).click();
+		await expect(page.locator('.lb__list')).toBeVisible();
+		await game.card(version.id).click({ button: 'right' });
+		await page.locator('.ctxmenu__option', { hasText: 'Clear local scores' }).click();
+		await expect(page.locator('.lb__empty', { hasText: 'No scores yet' })).toBeVisible();
+
+		await game.open();
+		expect(await game.scores()).toHaveLength(0);
+		expect(await game.xpGains()).toHaveLength(0);
+	});
+
 	test('settings survive a reload', async ({ game, page }) => {
 		await game.start();
 		expect(await game.setting('backgroundDim')).toBe(0.8);

@@ -6,9 +6,18 @@
  * - `ranked`   scheduled/live - live once rankedAt has passed
  * - `rejected` pulled from the queue
  * - `unranked` a player's own upload: public, and theirs to replace
+ * - `loved`    like ranked (live once rankedAt has passed), but gives no pp
  */
-export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected', 'unranked'] as const;
+export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected', 'unranked', 'loved'] as const;
 export type BeatmapStatus = (typeof BEATMAP_STATUS)[number];
+
+/** Approved: ranked or loved. Their sets go live: played server-side, with leaderboards
+ *  and ranked score. */
+export const APPROVED_STATUSES = ['ranked', 'loved'] as const;
+export type ApprovedStatus = (typeof APPROVED_STATUSES)[number];
+
+export const isApproved = (status: BeatmapStatus): status is ApprovedStatus =>
+	(APPROVED_STATUSES as readonly string[]).includes(status);
 
 /** New maps a month, like osu!: a base, one more per set of theirs that is ranked
  *  now, and more for supporters. */

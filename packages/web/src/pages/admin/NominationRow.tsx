@@ -7,8 +7,14 @@ import {
 import NominationCover from './NominationCover';
 import NominationDiffs from './NominationDiffs';
 import { phaseOf } from './nominationStatus';
-import type { MapTag } from '@oss-idle/shared/beatmap';
+import {
+	isApproved,
+	type BeatmapStatus,
+	type ApprovedStatus,
+	type MapTag,
+} from '@oss-idle/shared/beatmap';
 import NominationMeta from './NominationMeta';
+import NominationCategory from './NominationCategory';
 import { formatDate } from './formatDate';
 
 /** ISO timestamp -> value for an <input type="datetime-local"> (local time). */
@@ -28,6 +34,14 @@ const WINDOWS: [label: string, ms: number][] = [
 	['month', 30 * 24 * HOUR],
 ];
 
+const RANK_NOW: Record<ApprovedStatus, string> = {
+	ranked: 'Rank now', loved: 'Love now',
+};
+
+/** What scheduling ranks a set as: ranked, or loved (no pp). */
+const categoryOf = (status: BeatmapStatus): ApprovedStatus =>
+	isApproved(status) ? status : 'ranked';
+
 export default function NominationRow({
 	row, busy, onPatch, onToggleDiff, onTagDiff, onDelete,
 }: {
@@ -42,19 +56,21 @@ export default function NominationRow({
 	onDelete: (setId: number) => void;
 }) {
 	const [date, setDate] = useState(toLocalInput(row.rankedAt));
+	const scheduled = isApproved(row.status);
+	const [category, setCategory] = useState(categoryOf(row.status));
 
 	const phase = phaseOf(row);
 	const live = phase === 'live';
 
 	const schedule = () => date && onPatch(row.id, {
-		rankedAt: new Date(date).toISOString(), status: 'ranked', 
+		rankedAt: new Date(date).toISOString(), status: category, 
 	});
 	const rankNow = () => onPatch(row.id, {
-		rankedAt: new Date().toISOString(), status: 'ranked', 
+		rankedAt: new Date().toISOString(), status: category, 
 	});
 	const scheduleIn = (ms: number) =>
 		onPatch(row.id, {
-			rankedAt: new Date(Date.now() + Math.random() * ms).toISOString(), status: 'ranked', 
+			rankedAt: new Date(Date.now() + Math.random() * ms).toISOString(), status: category, 
 		});
 	const unrank = () =>
 		confirm('Unrank this set? All scores and progression earned on its '
@@ -92,8 +108,18 @@ export default function NominationRow({
 					<span className='nomination__label'>Submitted</span>
 					<span>{formatDate(row.submittedAt)}</span>
 				</div>
+				<NominationCategory
+					category={category}
+					busy={busy}
+					onChange={next => {
+						setCategory(next);
+						// a scheduled or live set moves at once
+						if (scheduled) onPatch(row.id, { status: next });
+					}}
+					scheduled={scheduled}
+				/>
 				<div className='nomination__stat'>
-					<span className='nomination__label'>Ranked</span>
+					<span className='nomination__label'>Date</span>
 					{live
 						? <span>{formatDate(row.rankedAt)}</span>
 						: <input 
@@ -115,13 +141,13 @@ export default function NominationRow({
 			/>
 
 			<div className='nomination__actions'>
-				<button
+				{category === 'ranked' && <button
 					className={`nomination__tag ${row.bundled ? 'is-on' : ''}`}
 					disabled={busy}
 					onClick={() => onPatch(row.id, { bundled: !row.bundled })}
 				>
 					Bundled
-				</button>
+				</button>}
 				<button
 					className={`nomination__tag ${row.categorized ? 'is-on' : ''}`}
 					disabled={busy}
@@ -147,8 +173,10 @@ export default function NominationRow({
 				>
 					Schedule
 				</button>}
-				{!live && <button className='nomination__btn' disabled={busy} onClick={rankNow}>Rank now</button>}
-				{row.status === 'ranked' && <button 
+				{!live && <button className='nomination__btn' disabled={busy} onClick={rankNow}>
+					{RANK_NOW[category]}
+				</button>}
+				{scheduled && <button 
 					className='nomination__btn' 
 					disabled={busy} 
 					onClick={unrank}

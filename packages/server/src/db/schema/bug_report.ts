@@ -19,6 +19,7 @@ export const bugReports = mysqlTable('bug_report', {
 	status: mysqlEnum(BUG_STATUS).notNull().default('open'),
 	version: varchar({ length: 32 }).notNull(),
 	client: varchar({ length: 500 }).notNull(),
+	setup: varchar({ length: 2000 }).notNull().default(''),
 	createdAt: timestamp().notNull().defaultNow(),
 	/** the last message */
 	updatedAt: timestamp().notNull().defaultNow(),

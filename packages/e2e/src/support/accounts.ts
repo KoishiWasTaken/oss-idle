@@ -51,20 +51,24 @@ const TEST_USERS = {
 	leaderboard: [user(2_147_480_009, 'e2e Ivan'), user(2_147_480_010, 'e2e Judy')],
 	skins: [user(2_147_480_015, 'e2e Olga'), user(2_147_480_016, 'e2e Paul')],
 	carousel: [user(2_147_480_017, 'e2e Quinn')],
+	bugs: [user(2_147_480_018, 'e2e Rita')],
+	downloads: [user(2_147_480_019, 'e2e Sam')],
 };
 
 // the dev server's Redis keys (redisKeyPrefix in packages/server/src/env.ts)
-const REDIS_PREFIX = 'oss-idle:dev:';
+export const REDIS_PREFIX = 'oss-idle:dev:';
+
+export const redisClient = () => new Redis({
+	host: env.REDIS_HOST ?? '127.0.0.1',
+	port: Number(env.REDIS_PORT ?? 6379),
+	password: env.REDIS_PASSWORD || undefined,
+	db: Number(env.REDIS_DB ?? 0),
+});
 
 /** Drop the plays and match seats an earlier test left behind: a client would
  *  load straight into spectating the play, or back into the match. */
 const clearPlays = async (characterIds: number[]) => {
-	const redis = new Redis({
-		host: env.REDIS_HOST ?? '127.0.0.1',
-		port: Number(env.REDIS_PORT ?? 6379),
-		password: env.REDIS_PASSWORD || undefined,
-		db: Number(env.REDIS_DB ?? 0),
-	});
+	const redis = redisClient();
 	try {
 		for (const id of characterIds) {
 			await redis.del(

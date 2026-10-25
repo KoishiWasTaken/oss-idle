@@ -42,6 +42,8 @@ export type StrainHud = {
 	warmupLabel?: string,
 	/** Cold, Warming up, Peak, Pushing, Fatigued */
 	warmupState?: string,
+	/** which way the map moves the bar, -3 cooling to 3 warming */
+	warmupTrend?: number,
 };
 
 export type DrawOptions = {

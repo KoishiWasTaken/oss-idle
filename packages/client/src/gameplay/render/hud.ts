@@ -86,15 +86,26 @@ export const drawWarmupGauge = (
 	v: number,
 	bx: number,
 	by: number,
+	/** which way the map moves the needle, -3 cooling to 3 warming */
+	trend = 0,
 ) => {
 	const { ctx, vp } = f;
 	const zone = zoneOf(v);
+	const arrows = (trend > 0 ? '›' : '‹').repeat(Math.abs(trend));
+	const arrowColor = ZONE_COLORS[trend > 0 ? 2 : 0];
+	const font = ctx.font;
 	ctx.textAlign = 'left';
 	ctx.fillStyle = 'rgba(255,255,255,0.75)';
 	ctx.fillText(label, bx, by);
 	ctx.fillStyle = ZONE_COLORS[zone];
 	if (vp.w < 700) {
+		// no needle: the way the map moves it follows the state
 		ctx.fillText(state, bx, by + 13);
+		const sx = bx + ctx.measureText(state).width + 4;
+		ctx.font = '800 14px "Exo 2", sans-serif';
+		ctx.fillStyle = arrowColor;
+		ctx.fillText(arrows, sx, by + 13);
+		ctx.font = font;
 		return;
 	}
 	ctx.textAlign = 'right';
@@ -120,6 +131,16 @@ export const drawWarmupGauge = (
 	ctx.closePath();
 	ctx.fill();
 	ctx.restore();
+	if (!trend) return;
+	// the way the map moves the needle, beside its tip on the side it heads to -
+	// the other side when the bar ends first
+	ctx.font = '800 14px "Exo 2", sans-serif';
+	const w = ctx.measureText(arrows).width;
+	const right = trend > 0 ? x + 7 + w <= bx + GAUGE_W : x - 7 - w < bx;
+	ctx.fillStyle = arrowColor;
+	ctx.textAlign = right ? 'left' : 'right';
+	ctx.fillText(arrows, right ? x + 7 : x - 7, y + BAR_H + 12);
+	ctx.font = font;
 };
 
 type Size = Pick<Viewport, 'w' | 'h'>;
@@ -161,6 +182,7 @@ const drawStrainMeters = (
 		strain.warmupBar,
 		bx,
 		by0 + STRAIN_HUD_SKILLS.length * step + 12,
+		strain.warmupTrend,
 	);
 };
 

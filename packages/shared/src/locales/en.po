@@ -562,20 +562,20 @@ msgid "Get an S on The Parallax II: Future Sequence [Marathon]"
 msgstr "Get an S on The Parallax II: Future Sequence [Marathon]"
 
 #: src/display/medals.ts
-msgid "Get an SS on a ranked map"
-msgstr "Get an SS on a ranked map"
-
-#: src/display/medals.ts
 msgid "Get an SS on AiAe [Wafles' SHD]"
 msgstr "Get an SS on AiAe [Wafles' SHD]"
 
 #: src/display/medals.ts
-msgid "Get an X on a ranked map"
-msgstr "Get an X on a ranked map"
+msgid "Get an SS on an approved map"
+msgstr "Get an SS on an approved map"
 
 #: src/display/medals.ts
-msgid "Get an XX on a ranked map"
-msgstr "Get an XX on a ranked map"
+msgid "Get an X on an approved map"
+msgstr "Get an X on an approved map"
+
+#: src/display/medals.ts
+msgid "Get an XX on an approved map"
+msgstr "Get an XX on an approved map"
 
 #: src/display/medals.ts
 msgid "Glass Cannon"
@@ -606,12 +606,12 @@ msgid "Hard Rock"
 msgstr "Hard Rock"
 
 #: src/display/medals.ts
-msgid "Have {count} of your own mapsets ranked"
-msgstr "Have {count} of your own mapsets ranked"
+msgid "Have {count} of your own mapsets approved"
+msgstr "Have {count} of your own mapsets approved"
 
 #: src/display/medals.ts
-msgid "Have {count} of your proposed maps ranked"
-msgstr "Have {count} of your proposed maps ranked"
+msgid "Have {count} of your proposed maps approved"
+msgstr "Have {count} of your proposed maps approved"
 
 #: src/skills.ts
 msgid "Hbada E3 Pro"
@@ -779,8 +779,8 @@ msgid "Low latency Corsair iCUE"
 msgstr "Low latency Corsair iCUE"
 
 #: src/display/medals.ts
-msgid "Map a set that gets ranked"
-msgstr "Map a set that gets ranked"
+msgid "Map a set that gets approved"
+msgstr "Map a set that gets approved"
 
 #: src/skills.ts
 msgid "Map editor studying"
@@ -944,8 +944,8 @@ msgid "Platinum medal"
 msgstr "Platinum medal"
 
 #: src/display/medals.ts
-msgid "Play {count} ranked maps"
-msgstr "Play {count} ranked maps"
+msgid "Play {count} approved maps"
+msgstr "Play {count} approved maps"
 
 #: src/display/medals.ts
 msgid "Play between 3 and 5 am"
@@ -992,8 +992,8 @@ msgid "Prestigious"
 msgstr "Prestigious"
 
 #: src/display/medals.ts
-msgid "Propose a map that gets ranked"
-msgstr "Propose a map that gets ranked"
+msgid "Propose a map that gets approved"
+msgstr "Propose a map that gets approved"
 
 #: src/display/addon.ts
 #: src/display/skin.ts

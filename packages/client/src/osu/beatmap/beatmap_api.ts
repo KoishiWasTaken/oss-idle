@@ -8,6 +8,7 @@ import API from '../../online/api';
 import {
 	BASE_URL,
 	rpc,
+	withAuth,
 } from '../../online/client';
 import Socket from '../../online/socket';
 import { SETTINGS } from '../../db/settings';
@@ -71,6 +72,12 @@ export default class BeatmapAPI {
 		});
 	}
 
+	/** Whether a difficulty is in the catalog as loved: it gives no pp. */
+	public static async isLoved(beatmapId: number): Promise<boolean> {
+		const manifest = await this.getManifest().catch(() => undefined);
+		return !!manifest?.beatmaps.some(s => s.loved && s.versions.some(v => v.id === beatmapId));
+	}
+
 	/** `bulk`: one of many in a row, which the server sends rate-capped. */
 	public static async downloadOsz(
 		metadata: Metadata,
@@ -84,11 +91,12 @@ export default class BeatmapAPI {
 		let buf: Uint8Array;
 		try {
 			const url = `${BASE_URL}/v1/beatmap/osz/${metadata.id}${bulk ? '?bulk' : ''}`;
-			let res = await API.fetch(url);
+			// signed in: the day's full-speed downloads are counted on the account
+			let res = await API.fetch(url, withAuth());
 			// over the server's 10 downloads per address (another device or tab)
 			while (res.status === 429) {
 				await sleep(2_000);
-				res = await API.fetch(url);
+				res = await API.fetch(url, withAuth());
 			}
 			if (!res.ok) throw new Error(`Download of set ${metadata.id} failed: ${res.status}`);
 			buf = await this.readWithProgress(res, onProgress);

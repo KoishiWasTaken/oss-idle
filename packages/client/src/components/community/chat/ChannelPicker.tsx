@@ -61,14 +61,13 @@ export default function ChannelPicker() {
 			focus={searchRef}
 			header={<>
 				<div className="ctxmenu__title">{t`Select any channel you wish to join!`}</div>
-				<label className="channels__search">
+				<label className="channels__search" onClick={e => e.stopPropagation()}>
 					{t`Search:`}
 					<input
 						ref={searchRef}
 						type="text"
 						value={search}
 						onChange={e => setSearch(e.target.value)}
-						onClick={e => e.stopPropagation()}
 					/>
 				</label>
 			</>}

@@ -49,11 +49,13 @@ import { desktop } from '@oss-idle/shared/desktop';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
 import { DISCORD_URL } from '@oss-idle/shared/links';
-import { pickOsz } from '../osu/beatmap/oszImport';
+import {
+	easiestPlayable,
+	pickOsz,
+} from '../osu/beatmap/oszImport';
 import { pickFile } from '../pickFile';
 import { createSet } from '../editor/save';
 import { message } from '../globals';
-import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
 
 interface Props {
 	/** play the white-flash "drop" entrance (true when arriving from the intro) */
@@ -165,8 +167,7 @@ export default function MainMenu({ flash = false }: Props) {
 	const importToEdit = async () => {
 		const set = await pickOsz();
 		if (!set) return;
-		const [easiest] = LightBeatmapSet.fromMetadata(set.metadata).getPlayableBeatmaps()
-			.sort((a, b) => a.metadata.difficulty - b.metadata.difficulty);
+		const easiest = easiestPlayable(set);
 		if (easiest) await music.beatmap.set(easiest);
 		await SETTINGS.search.set('');
 		toEditSelect();

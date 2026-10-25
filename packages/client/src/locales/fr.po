@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-25 11:34\n"
+"PO-Revision-Date: 2026-10-25 15:13\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -834,10 +834,6 @@ msgstr "Clap sur la sélection"
 msgid "Clear local scores"
 msgstr "Vider les scores local"
 
-#: src/scenes/SongSelect.tsx
-msgid "Clearing local scores is not available yet"
-msgstr "La suppression des scores locaux n'est pas encore disponible"
-
 #: src/scenes/Lobby.tsx
 msgid "Click 'New Game' to start a new game!"
 msgstr "Cliquez sur 'Nouvelle partie' pour commencer une nouvelle partie !"
@@ -1171,8 +1167,8 @@ msgid "Display"
 msgstr "Affichage"
 
 #: src/components/options/ShowUnbundled.tsx
-msgid "Display non-bundled ranked beatmaps as downloadable in song select"
-msgstr "Afficher les maps classées hors maps de base comme téléchargeables dans la sélection des musiques"
+msgid "Display non-bundled approved beatmaps as downloadable in song select"
+msgstr "Afficher les maps approuvées hors maps de base comme téléchargeables dans la sélection des musiques"
 
 #: src/components/mods/ModSelect.tsx
 #: src/components/result/ResultMods.tsx
@@ -1224,8 +1220,8 @@ msgid "download|beatmap|beatmaps|ranked|supporter"
 msgstr "download|télécharger|beatmap|beatmaps|map|classé|ranked|supporter"
 
 #: src/scenes/Options.tsx
-msgid "download|downloaded|beatmap|beatmaps|bundled|ranked"
-msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked|télécharger|téléchargée|map|maps|base|classée"
+msgid "download|downloaded|beatmap|beatmaps|bundled|ranked|loved"
+msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked|loved|télécharger|téléchargée|map|maps|base|classée"
 
 #: src/scenes/Options.tsx
 msgid "download|downloaded|beatmap|beatmaps|hide"
@@ -1741,6 +1737,10 @@ msgid "It is in the ranking queue: withdraw it to update it"
 msgstr "Elle est dans la file de classement : retirez-la pour la mettre à jour"
 
 #: src/editor/EditorView.tsx
+msgid "It is loved: unrank it to change it"
+msgstr "Elle est loved : déclassez-la pour la modifier"
+
+#: src/editor/EditorView.tsx
 msgid "It is ranked: unrank it to change it"
 msgstr "Elle est classée : déclassez-la pour la modifier"
 
@@ -1890,6 +1890,10 @@ msgstr "Chargement…"
 msgid "Local"
 msgstr "Locale"
 
+#: src/scenes/SongSelect.tsx
+msgid "Local scores cleared"
+msgstr "Scores locaux vidés"
+
 #: src/components/community/CommunityBody.tsx
 msgid "Location"
 msgstr "Localisation"
@@ -1901,6 +1905,16 @@ msgstr "Verrouillé"
 #: src/gameplay/playQueue.ts
 msgid "Loop"
 msgstr "En boucle"
+
+#: src/components/direct/DirectFilters.tsx
+#: src/editor/EditorSubmission.tsx
+#: src/osu/beatmap/grouping.ts
+msgid "Loved"
+msgstr "Loved"
+
+#: src/components/direct/DirectRow.tsx
+msgid "Loved {ranked}"
+msgstr "Loved le {ranked}"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Lowest frequency"
@@ -3398,6 +3412,14 @@ msgstr "Soft"
 msgid "Solo"
 msgstr "Solo"
 
+#: src/online/libraryUpdates.ts
+msgid "Some of your add-ons have updates"
+msgstr "Des mises à jour sont disponibles pour certains de vos add-ons"
+
+#: src/online/libraryUpdates.ts
+msgid "Some of your skins have updates"
+msgstr "Des mises à jour sont disponibles pour certains de vos skins"
+
 #: src/scenes/Options.tsx
 msgid "Song select"
 msgstr "Sélection de musique"
@@ -3573,6 +3595,10 @@ msgid "The latest beatmaps"
 msgstr "Les dernières maps"
 
 #: src/scenes/Direct.tsx
+msgid "The latest loved beatmaps"
+msgstr "Les dernières maps loved"
+
+#: src/scenes/Direct.tsx
 msgid "The latest ranked beatmaps"
 msgstr "Les dernières maps classées"
 
@@ -3603,6 +3629,10 @@ msgstr "Les fichiers son de la map"
 #: src/scenes/Direct.tsx
 msgid "The most played beatmaps"
 msgstr "Les maps les plus jouées"
+
+#: src/scenes/Direct.tsx
+msgid "The most played loved beatmaps"
+msgstr "Les maps loved les plus jouées"
 
 #: src/scenes/Direct.tsx
 msgid "The most played ranked beatmaps"

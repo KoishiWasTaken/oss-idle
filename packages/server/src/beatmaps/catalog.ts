@@ -2,6 +2,7 @@ import { statSync } from 'node:fs';
 import {
 	and,
 	eq,
+	inArray,
 	isNotNull,
 	isNull,
 	like,
@@ -15,6 +16,8 @@ import {
 } from 'drizzle-orm';
 import {
 	INTRO_SET_ID,
+	isApproved,
+	APPROVED_STATUSES,
 	type MapTag,
 	parseMapTags,
 	type PanelDiff,
@@ -39,12 +42,12 @@ export const panelColumns = () => ({
 		.mapWith(value => (typeof value === 'string' ? JSON.parse(value) : value) as PanelDiff[]),
 });
 
-/** A set is live - listed, downloadable, previewable - only once it's ranked and
- *  its scheduled rank time has passed. Pending (null rankedAt) and future-dated
+/** A set is live - listed, downloadable, previewable - only once it's ranked (or
+ *  loved) and its scheduled rank time has passed. Pending (null rankedAt) and future-dated
  *  sets are excluded (null <= now() is null, so they drop out). Reused by the
  *  public listing routes so the whole site shares one definition of "live". */
 export const liveCondition = and(
-	eq(beatmapset.status, 'ranked'),
+	inArray(beatmapset.status, [...APPROVED_STATUSES]),
 	lte(beatmapset.rankedAt, sql`now()`),
 );
 
@@ -128,7 +131,9 @@ type CatalogSet = {
 	bundled: boolean;
 	/** false for a player's own map not ranked yet */
 	ranked: boolean;
-	/** when it was ranked, or submitted for one not ranked */
+	/** live, but gives no pp */
+	loved: boolean;
+	/** when it was approved, or submitted for one not ranked */
 	rankedAt: string;
 	/** every difficulty's plays */
 	plays: number;
@@ -169,7 +174,8 @@ const catalogSets = async (where: SQL | undefined): Promise<CatalogSet[]> => {
 				artist: row.artist,
 				creator: row.creator,
 				bundled: row.bundled,
-				ranked: row.status === 'ranked',
+				ranked: isApproved(row.status),
+				loved: row.status === 'loved',
 				rankedAt: (row.rankedAt ?? row.submittedAt).toISOString(),
 				plays: 0,
 				size: statSync(oszPath(row.setId), { throwIfNoEntry: false })?.size ?? 0,
@@ -260,17 +266,20 @@ export const setLiveChanged = async (wasLive: boolean, isLive: boolean): Promise
 };
 
 /** What the public listing filters on. */
-export const LIST_STATUSES = ['ranked', 'unranked', 'any'] as const;
+export const LIST_STATUSES = ['ranked', 'loved', 'unranked', 'any'] as const;
 export type ListStatus = (typeof LIST_STATUSES)[number];
 
-/** The listed difficulties of a status: ranked ones, players' unranked uploads, or both. */
+/** The listed difficulties of a status: ranked ones, loved ones, players' unranked
+ *  uploads, or all of them. */
 export const listCondition = (status: ListStatus) => {
 	const unranked = and(playerMapCondition, ne(beatmapset.id, INTRO_SET_ID));
-	if (status === 'ranked') return listedCondition;
+	if (status === 'ranked' || status === 'loved') {
+		return and(listedCondition, eq(beatmapset.status, status));
+	}
 	return status === 'unranked' ? unranked : or(listedCondition, unranked);
 };
 
-/** When a listed set got there: ranked, or uploaded for an unranked one. */
+/** When a listed set got there: approved, or uploaded for an unranked one. */
 export const listedAt = sql`coalesce(${beatmapset.rankedAt}, ${beatmapset.submittedAt})`;
 
 /** Sets whose title, artist or mapper contains `search`; everything without one. */

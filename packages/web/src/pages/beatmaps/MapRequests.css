@@ -270,6 +270,9 @@
 .request--scheduled {
 	border-left-color: hsl(var(--hsl-lime-1));
 }
+.request--loved {
+	border-left-color: hsl(var(--hsl-pink-1));
+}
 .request--accepted,
 .request--queued {
 	border-left-color: hsl(var(--hsl-blue-1));
@@ -299,6 +302,9 @@
 .request__capsule--ranked,
 .request__capsule--scheduled {
 	background-color: hsl(var(--hsl-lime-1));
+}
+.request__capsule--loved {
+	background-color: hsl(var(--hsl-pink-1));
 }
 .request__capsule--accepted,
 .request__capsule--queued {

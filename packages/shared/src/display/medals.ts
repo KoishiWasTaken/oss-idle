@@ -141,9 +141,9 @@ const NAMES = defineMessages({
 });
 
 const DESCRIPTIONS = defineMessages({
-	'grade-ss': 'Get an SS on a ranked map',
-	'grade-x': 'Get an X on a ranked map',
-	'grade-xx': 'Get an XX on a ranked map',
+	'grade-ss': 'Get an SS on an approved map',
+	'grade-x': 'Get an X on an approved map',
+	'grade-xx': 'Get an XX on an approved map',
 	rice: 'Pass a 4★ or harder map made of over 90% single notes',
 	ln: 'Pass a 4★ or harder map made of over 50% long notes',
 	'upgrades-1': 'Buy your first upgrade',
@@ -151,8 +151,8 @@ const DESCRIPTIONS = defineMessages({
 	'prestige-1': 'Prestige a skill',
 	rebirth: 'Rebirth your character',
 	'first-1': 'Take #1 on a ranked map',
-	'curator-1': 'Propose a map that gets ranked',
-	'mapper-1': 'Map a set that gets ranked',
+	'curator-1': 'Propose a map that gets approved',
+	'mapper-1': 'Map a set that gets approved',
 	'friends-1': 'Get added as a friend',
 	'combo-727': 'Finish a play at exactly 727 combo',
 	'same-map-100': 'Play the same map 100 times',
@@ -170,7 +170,7 @@ const DESCRIPTIONS = defineMessages({
 const SERIES_DESCRIPTIONS = defineMessages({
 	pass: 'Pass a ranked map of {stars}★ or more',
 	fc: 'Full combo a ranked map of {stars}★ or more',
-	plays: 'Play {count} ranked maps',
+	plays: 'Play {count} approved maps',
 	hits: 'Hit {count} notes',
 	time: 'Play for {hours} hours',
 	overall: 'Reach overall level {level}',
@@ -182,8 +182,8 @@ const SERIES_DESCRIPTIONS = defineMessages({
 	pp: 'Reach {pp} pp',
 	'play-pp': 'Set a {pp} pp play',
 	top: 'Be in the top {percent}% of players by pp',
-	curator: 'Have {count} of your proposed maps ranked',
-	mapper: 'Have {count} of your own mapsets ranked',
+	curator: 'Have {count} of your proposed maps approved',
+	mapper: 'Have {count} of your own mapsets approved',
 	friends: 'Get added as a friend by {count} players',
 });
 

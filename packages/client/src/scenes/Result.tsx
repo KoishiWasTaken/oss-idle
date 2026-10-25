@@ -4,6 +4,7 @@ import DevianceGraph from '../gameplay/DevianceGraph';
 import HpGraph from '../gameplay/HpGraph';
 import { Score } from '../db/schema/score';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
 import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
 import Background from './Background';
 import './Result.css';
@@ -132,6 +133,7 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 	const player = useAsync(async () => Character.isLocalId(score.characterId)
 		? Character.get({ id: score.characterId })
 		: await getCharacter(score.characterId), [score.characterId]);
+	const loved = useAsync(() => BeatmapAPI.isLoved(score.beatmapId), [score.beatmapId]);
 
 	const displayScore = Math.round(score.score);
 	const shownScore = useSmoothNumber(displayScore, { 
@@ -174,6 +176,7 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 				</button>}
 				<ShareScoreButton
 					score={score}
+					loved={loved}
 					beatmap={beatmap}
 					game={game}
 					gradeImage={gradeImage ?? ''}
@@ -216,7 +219,7 @@ export default function Result({ score, game, progression, failed, beatmap, meda
 								<div className="result__total">
 									<span className="result__total-label"><Trans>Performance</Trans></span>
 									<span className="result__total-value">
-										{num(score.pp)}pp
+										{loved ? '—' : `${num(score.pp)}pp`}
 									</span>
 								</div>
 								<div className="result__total">

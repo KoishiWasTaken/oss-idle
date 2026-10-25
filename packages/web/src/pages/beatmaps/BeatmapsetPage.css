@@ -150,6 +150,10 @@
 	text-transform: uppercase;
 }
 
+.mapset__status-badge.is-loved {
+	background-color: hsl(var(--beatmapset-loved-bg-hsl));
+}
+
 .mapset__stats {
 	display: flex;
 	flex-direction: column;

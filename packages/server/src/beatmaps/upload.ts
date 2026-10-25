@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm';
 import {
 	INTRO_SET_ID,
+	isApproved,
 	monthlyQuota,
 	type BeatmapStatus,
 } from '@oss-idle/shared/beatmap';
@@ -30,7 +31,10 @@ import {
 } from '../db/schema/beatmapset';
 import { users } from '../db/schema/user';
 import { fetchBeatmapset } from '../osu/api';
-import { purgeBeatmapScores } from '../scores';
+import {
+	purgeBeatmapScores,
+	repriceBeatmapScores,
+} from '../scores';
 import { isSupporter } from '../supporter';
 import { liveCondition } from './catalog';
 import { creditMapper } from './credit';
@@ -54,7 +58,7 @@ export type UploadProblem = { file: string, version: string, checks: CheckId[] }
 
 /** Why an upload was turned down, for the editor to act on. */
 export type RefusalCode =
-	| 'invalid' | 'checks' | 'quota' | 'notYours' | 'notCreator' | 'ranked' | 'locked' | 'no4k'
+	| 'invalid' | 'checks' | 'quota' | 'notYours' | 'notCreator' | 'ranked' | 'loved' | 'locked' | 'no4k'
 	| 'notQueued' | 'notRanked' | 'busy';
 
 export class UploadRefused extends Error {
@@ -145,7 +149,7 @@ export const checkQuota = async (userId: number): Promise<void> => {
 	const [uploaded, ranked, supporter] = await Promise.all([
 		// what they put up, not the osu! maps credited to them
 		countSets(and(mine, isNotNull(beatmapset.uploadedAt), gte(beatmapset.createdAt, monthStart))),
-		countSets(and(mine, liveCondition, isNull(beatmapset.deletedAt))),
+		countSets(and(mine, liveCondition, eq(beatmapset.status, 'ranked'), isNull(beatmapset.deletedAt))),
 		isSupporter(userId),
 	]);
 	const quota = monthlyQuota(ranked, supporter);
@@ -216,8 +220,8 @@ export const uploadTarget = async (
 			throw new UploadRefused('Not one of your maps', 'notYours');
 		}
 		if (known.deletedAt) return { setId: known.id };
-		if (known.status === 'ranked') {
-			throw new UploadRefused('This map is ranked: unrank it to change it', 'ranked');
+		if (isApproved(known.status)) {
+			throw new UploadRefused(`This map is ${known.status}: unrank it to change it`, known.status);
 		}
 		if (known.status === 'pending') throw new UploadRefused('This map is in the ranking queue', 'locked');
 		return { setId: known.id };
@@ -238,21 +242,25 @@ export const uploadTarget = async (
 };
 
 /** What a status change clears: leaving unranked deletes the unranked leaderboard's
- *  scores, and unranking wipes all progression earned on its difficulties. */
+ *  scores, moving between ranked and loved reprices their pp, and unranking wipes
+ *  all progression earned on its difficulties. */
 export const clearForStatus = async (existing: BeatmapsetRow, status: BeatmapStatus) => {
 	if (existing.status === 'unranked' && status !== 'unranked') await wipeUnrankedScores(existing.id);
-	if (existing.status !== 'ranked' || status === 'ranked') return;
+	if (!isApproved(existing.status) || status === existing.status) return;
 	const diffs = await db.select({ id: beatmaps.id })
 		.from(beatmaps)
 		.where(eq(beatmaps.setId, existing.id));
-	for (const diff of diffs) await purgeBeatmapScores(diff.id);
+	for (const diff of diffs) {
+		if (isApproved(status)) await repriceBeatmapScores(diff.id, status === 'loved');
+		else await purgeBeatmapScores(diff.id);
+	}
 };
 
-/** The mapper unranks their own ranked map: it is theirs to change or take down again,
- *  every score and progression earned on it goes, and only the team ranks it back. */
+/** The mapper unranks their own approved map: it is theirs to change or take down
+ *  again, every score and progression earned on it goes, and only the team ranks it back. */
 export const unrankOwn = async (setId: number, userId: number) => {
 	const set = await ownSet(setId, userId);
-	if (set.status !== 'ranked') throw new UploadRefused('This map is not ranked', 'notRanked');
+	if (!isApproved(set.status)) throw new UploadRefused('This map is not ranked', 'notRanked');
 	await db.update(beatmapset)
 		.set({
 			status: 'unranked', rankedAt: null, reviewNote: null, uploadedAt: new Date(),

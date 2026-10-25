@@ -26,6 +26,7 @@ import BeatmapCarousel, {
 } from '../components/BeatmapCarousel';
 import {
 	groupsOf,
+	itemStatus,
 	EMPTY_HISTORY,
 	EMPTY_PLAYLISTS,
 	type Group,
@@ -70,7 +71,10 @@ import {
 	getCharacterStats,
 } from '../online/services/characters';
 import { Grades } from '@oss-idle/shared/judgement';
-import { Score } from '../db/schema/score';
+import {
+	Score,
+	scoresVersion,
+} from '../db/schema/score';
 import {
 	SETTINGS,
 	type GroupOption,
@@ -322,12 +326,16 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 			const tags = new Map(manifest.beatmaps
 				.flatMap(m => m.versions)
 				.map(v => [v.id, v.tags]));
+			const loved = new Set(manifest.beatmaps
+				.filter(m => m.loved)
+				.flatMap(m => m.versions.map(v => v.id)));
 			const all = Array.from(sets
 				.values())
 				.map(item => ({
 					...item,
 					tags: tags.get(item.beatmap.metadata.id),
 					ranked: tags.has(item.beatmap.metadata.id),
+					loved: loved.has(item.beatmap.metadata.id),
 				}))
 				.sort((a, b) =>
 					a.beatmap.metadata.difficulty - b.beatmap.metadata.difficulty,
@@ -372,7 +380,8 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	// per-beatmap play history for the active character, backing the two
 	// history-based sorts. A score's `beatmapId` matches `beatmap.metadata.id`
 	// (the same key the leaderboard queries by).
-	const history = useAsync(() => getHistory(character), [character]);
+	const [scoresV] = useSynced(scoresVersion);
+	const history = useAsync(() => getHistory(character), [character, scoresV]);
 
 	// per-beatmap XP gain indicators, bulk-loaded so future group/sort modes can
 	// read the same map. Gated by the feature's unlock tier.
@@ -392,7 +401,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	const filteredItems = useMemo(() => {
 		if (!history) return [];
 		const filtered = search.trim() ? 
-			items.filter(({ beatmap, set, tags }) => matchesSearch(beatmap, set, search, tags)) 
+			items.filter(item => matchesSearch(item.beatmap, item.set, search, item.tags, itemStatus(item))) 
 			: items;
 		return comparator ? 
 			[...filtered].sort((a, b) => comparator(a, b, history)) 
@@ -666,6 +675,13 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 			.catch((e) => Log.errorPopup(String(e)));
 	}, [t]);
 
+	const clearScores = useCallback((item: CarouselItem) => {
+		setMenuItem(null);
+		Score.clearBeatmap(item.beatmap.metadata.id)
+			.then(() => Log.popup(t`Local scores cleared`))
+			.catch((e) => Log.errorPopup(String(e)));
+	}, [t]);
+
 	const openDebug = useCallback((beatmap: LightBeatmap) => {
 		sessionStorage.setItem(STRAIN_DEBUG_KEY, String(beatmap.metadata.id));
 		setDebugBeatmap(beatmap);
@@ -801,10 +817,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 					onManagePlaylists={() => { setPlaylistItem(menuItem); setMenuItem(null); }}
 					onClosePlaylists={() => setPlaylistItem(null)}
 					onDelete={() => menuItem && deleteSet(menuItem)}
-					onClearScores={() => {
-						setMenuItem(null);
-						Log.popup(t`Clearing local scores is not available yet`);
-					}}
+					onClearScores={() => menuItem && clearScores(menuItem)}
 				/>
 			</div>
 		</SelectionContext.Provider>

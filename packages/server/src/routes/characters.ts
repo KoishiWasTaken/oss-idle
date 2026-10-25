@@ -75,7 +75,7 @@ import {
 	valid,
 } from '../validate';
 
-const mappedStatus = z.enum(['ranked', 'unranked']);
+const mappedStatus = z.enum(['ranked', 'loved', 'unranked']);
 
 type CharacterEnv = { Variables: { character: CharacterRow } };
 
@@ -257,7 +257,7 @@ export const charactersRoutes = new Hono()
 		const page = idParam.parse(c.req.param('page'));
 		return c.json(await getCurated(character.userId, page));
 	})
-	// The account's own maps: ranked ones they mapped, or their unranked uploads.
+	// The account's own maps: ranked or loved ones they mapped, or their unranked uploads.
 	.get('/:id/countmapped/:status', async c => {
 		const character = c.get('character');
 		const status = mappedStatus.parse(c.req.param('status'));

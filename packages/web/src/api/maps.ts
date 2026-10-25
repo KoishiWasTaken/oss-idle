@@ -44,7 +44,7 @@ export const getRecentMaps = () =>
 	unwrap(rpc.v1.beatmap.recent.$get());
 
 /** Which maps the listing shows, and a name to look for in their title, artist or mapper. */
-export type MapFilter = { status?: 'ranked' | 'unranked' | 'any', q?: string };
+export type MapFilter = { status?: 'ranked' | 'loved' | 'unranked' | 'any', q?: string };
 
 export const getAllMaps = (dir?: 'asc' | 'desc', filter: MapFilter = {}, page?: number) =>
 	unwrap(rpc.v1.beatmap.all[':dir'].$get({

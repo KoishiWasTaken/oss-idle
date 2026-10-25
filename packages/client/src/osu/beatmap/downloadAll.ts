@@ -6,10 +6,10 @@ import BeatmapStore from './beatmap_store';
 export const bulkDownload = new Synced<{ done: number; total: number } | undefined>(undefined);
 let stopping = false;
 
-/** The ranked (or only bundled) sets not downloaded yet. */
+/** The ranked (or only bundled) sets not downloaded yet. Loved ones are never in it. */
 export const missingSets = async (bundled: boolean): Promise<Metadata[]> => {
 	const manifest = await BeatmapAPI.getManifest();
-	const sets = manifest.beatmaps.filter(m => !bundled || m.bundled);
+	const sets = manifest.beatmaps.filter(m => !m.loved && (!bundled || m.bundled));
 	const stored = await Promise.all(sets.map(m => BeatmapStore.has(m.id)));
 	return sets.filter((_, i) => !stored[i]);
 };

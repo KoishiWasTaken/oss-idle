@@ -460,6 +460,11 @@ export const onDisk = async (): Promise<boolean> => {
 	return true;
 };
 
+/** Free a URL `getFileUrl` made; others are left alone. */
+export const revokeBlob = (url?: string) => {
+	if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+};
+
 export default class BeatmapStore {
 
 	/** Store a set's files; with `replace`, what it held before goes in the same

@@ -14,10 +14,12 @@ type Score = InferResponseType<(typeof rpc.v1.scores[':id'])['$get'], 200>;
 type Beatmap = Pick<InferResponseType<(typeof rpc.v1.beatmap[':id'])['$get'], 200>, 'title' | 'artist' | 'version'>;
 
 export default function ScoreRow({
-	score, beatmap, player,
+	score, beatmap, player, loved,
 }: {
 	score: Score,
 	beatmap: Beatmap,
+	/** a loved map's score: no pp */
+	loved?: boolean,
 	player?: {
 		id: number,
 		name: string,
@@ -46,7 +48,7 @@ export default function ScoreRow({
 			<div className='score__pp-flow'>
 				<div className='score__pp-container'>
 					<div className='score__pp'>
-						{num(score.pp)}<span className="score__pp_unit">pp</span>
+						{loved ? '—' : <>{num(score.pp)}<span className="score__pp_unit">pp</span></>}
 					</div>
 				</div>
 			</div>

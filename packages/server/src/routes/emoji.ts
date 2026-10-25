@@ -22,6 +22,7 @@ import {
 	valid,
 } from '../validate';
 import { IMMUTABLE } from '../beatmaps/serve';
+import { hub } from '../ws/hub';
 
 // Discord's; svg only comes seeded
 const TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
@@ -57,6 +58,11 @@ const requireSupporter = async (userId: number) => {
 /** The chat's emoji. Everyone reads them; admins and the GMT add, rename and delete any,
  *  a supporter keeps one of their own. */
 export const emojiRoutes = new Hono()
+	.use(async (c, next) => {
+		await next();
+		if (c.req.method !== 'GET' && c.res.ok) hub.broadcast({ type: 'emoji:invalidate' });
+	})
+
 	.get('/', async c => {
 		const rows = await db.select({
 			id: emojis.id,

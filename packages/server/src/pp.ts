@@ -3,22 +3,24 @@ import {
 	RATES,
 	rateKey,
 } from '@oss-idle/shared/rate';
-import type { ScoreState } from '@oss-idle/shared/sim/scoring';
 import type { Mod } from '@oss-idle/shared/mods';
-import { performanceArgs } from '@oss-idle/shared/osu/performanceArgs';
+import {
+	performanceArgs,
+	type PerformanceScore,
+} from '@oss-idle/shared/osu/performanceArgs';
 
 /**
- * Performance points for a finished play, computed from the raw `.osu` chart and
- * the simulated `ScoreState`, with the node `rosu-pp-js` build (synchronous, no wasm
- * init) and the stored chart text.
+ * Performance points for a finished play, computed from the raw `.osu` chart (or
+ * one parsed already, to price many plays of a map) and the simulated `ScoreState`,
+ * with the node `rosu-pp-js` build (synchronous, no wasm init).
  */
 export function calculatePP(
-	score: ScoreState,
-	chart: string,
+	score: PerformanceScore,
+	chart: string | ppjs.Beatmap,
 	rate = 1,
 	mods: readonly Mod[] = [],
 ): number {
-	const map = new ppjs.Beatmap(chart);
+	const map = typeof chart === 'string' ? new ppjs.Beatmap(chart) : chart;
 	return new ppjs.Performance(performanceArgs(score, rate, mods)).calculate(map).pp;
 }
 

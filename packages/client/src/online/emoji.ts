@@ -4,9 +4,10 @@ import {
 	apiUrl,
 	rpc,
 } from './client';
+import Socket from './socket';
 import { isCommunityOpen } from '../globals';
 
-/** The chat's emoji. The team adds them on the web: re-read whenever the overlay opens. */
+/** The chat's emoji. Changed on the web: re-read when the server says so, and whenever the overlay opens. */
 export const emoji = new Synced(emojiMatcher([]));
 
 export const emojiSrc = (id: number) => apiUrl(`/v1/emoji/${id}`);
@@ -23,3 +24,4 @@ const load = async (): Promise<void> => {
 // the ticker shows chat with the overlay closed
 void load();
 void isCommunityOpen.sync(open => { if (open) void load(); });
+Socket.on('emoji:invalidate', () => void load());

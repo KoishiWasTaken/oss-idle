@@ -1,6 +1,7 @@
 import './Bugs.css';
 import {
 	type FormEvent,
+	useEffect,
 	useState,
 } from 'react';
 import {
@@ -11,7 +12,10 @@ import { ph } from '@lingui/core/macro';
 import { useNavigate } from '@tanstack/react-router';
 import { VERSION } from '@oss-idle/shared/version';
 import { desktop } from '@oss-idle/shared/desktop';
-import { BUG_TEXT_MAX } from '@oss-idle/shared/bugs';
+import {
+	BUG_SETUP_CHANNEL,
+	BUG_TEXT_MAX,
+} from '@oss-idle/shared/bugs';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { reportBug } from '../../api/bugs';
 import { useBugImages } from './useBugImages';
@@ -23,6 +27,20 @@ const client = () => [
 	navigator.userAgent,
 ].join(' · ').slice(0, 500);
 
+/** The add-ons and skins of the game this form is in, or of a game open in another tab. */
+const useGameSetup = () => {
+	const [setup, setSetup] = useState<string>();
+	useEffect(() => {
+		const channel = new BroadcastChannel(BUG_SETUP_CHANNEL);
+		channel.onmessage = (e: MessageEvent) => {
+			if (typeof e.data === 'string') setSetup(e.data);
+		};
+		channel.postMessage('setup');
+		return () => channel.close();
+	}, []);
+	return setup;
+};
+
 /** The form the game's options open. */
 export default function NewBug() {
 	const { t } = useLingui();
@@ -33,6 +51,7 @@ export default function NewBug() {
 	const [sending, setSending] = useState(false);
 	const [error, setError] = useState<string>();
 	const pics = useBugImages();
+	const setup = useGameSetup();
 
 	if (!user) return <div className='page-contents'><Trans>Sign in to report a bug.</Trans></div>;
 
@@ -41,7 +60,7 @@ export default function NewBug() {
 		setError(undefined);
 		try {
 			const { id } = await reportBug({
-				title, body, images: pics.images, version: VERSION, client: client(),
+				title, body, images: pics.images, version: VERSION, client: client(), setup,
 			});
 			await navigate({
 				to: '/bugs/$id', params: { id: String(id) },
@@ -88,6 +107,7 @@ export default function NewBug() {
 			{desktop()
 				? <Trans>Sent with it: version {ph({ version: VERSION })} and your desktop app.</Trans>
 				: <Trans>Sent with it: version {ph({ version: VERSION })} and your browser.</Trans>}
+			{setup && <> <Trans>Also your add-ons and skins.</Trans></>}
 		</p>
 		{error && <p className='bugs__error'>{error}</p>}
 		<div>

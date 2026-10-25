@@ -17,7 +17,10 @@ import type {
 } from 'osu-classes';
 import { ManiaRuleset } from 'osu-mania-stable';
 import * as rosu from 'rosu-pp-js';
-import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
+import {
+	INTRO_SET_ID,
+	isApproved,
+} from '@oss-idle/shared/beatmap';
 import { timingColumns } from './timingPoints';
 import {
 	OWN_ID_FROM,
@@ -114,7 +117,7 @@ const upsertSet = async (metas: BeatmapMetadataSection[], allowRanked: boolean) 
 	const osuSetId = metas.map(m => osuId(m.beatmapSetId)).find(id => id !== undefined);
 	const meta = metas[0];
 	const existing = await findSet(osuSetId, meta);
-	const ranked = existing?.status === 'ranked';
+	const ranked = !!existing && isApproved(existing.status);
 	if (ranked && !allowRanked) throw new Error('Beatmap set is already ranked');
 
 	// The intro must be live to be served, but it's never "nominated" - rank it

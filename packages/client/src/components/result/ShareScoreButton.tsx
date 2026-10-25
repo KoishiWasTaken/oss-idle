@@ -38,6 +38,8 @@ type Props = {
 	gains: SkillProgress[],
 	failed?: boolean,
 	ranking?: Ranking,
+	/** a loved map: no pp to show */
+	loved?: boolean,
 };
 
 /** The level a gain reached, as its result screen bar ends on it. */
@@ -66,7 +68,9 @@ const notice = async (text: string) => {
 let shots = 0;
 
 /** Captures the result screen as an image to share, onto the clipboard. */
-export default function ShareScoreButton({ score, beatmap, game, ranking, gains, ...card }: Props) {
+export default function ShareScoreButton({
+	score, beatmap, game, ranking, gains, loved, ...card
+}: Props) {
 	const { t } = useLingui();
 	const live = music.beatmap.use((b) => b);
 	const map = beatmap ?? live;
@@ -89,7 +93,7 @@ export default function ShareScoreButton({ score, beatmap, game, ranking, gains,
 			accuracy: score.accuracy,
 			maxCombo: score.maxCombo,
 			pfc: score.pfc,
-			pp: score.pp,
+			pp: loved ? undefined : score.pp,
 			ur: score.ur,
 			rate: score.rate,
 			mods: score.mods,

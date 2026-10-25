@@ -829,10 +829,6 @@ msgstr "Clap on the selection"
 msgid "Clear local scores"
 msgstr "Clear local scores"
 
-#: src/scenes/SongSelect.tsx
-msgid "Clearing local scores is not available yet"
-msgstr "Clearing local scores is not available yet"
-
 #: src/scenes/Lobby.tsx
 msgid "Click 'New Game' to start a new game!"
 msgstr "Click 'New Game' to start a new game!"
@@ -1166,8 +1162,8 @@ msgid "Display"
 msgstr "Display"
 
 #: src/components/options/ShowUnbundled.tsx
-msgid "Display non-bundled ranked beatmaps as downloadable in song select"
-msgstr "Display non-bundled ranked beatmaps as downloadable in song select"
+msgid "Display non-bundled approved beatmaps as downloadable in song select"
+msgstr "Display non-bundled approved beatmaps as downloadable in song select"
 
 #: src/components/mods/ModSelect.tsx
 #: src/components/result/ResultMods.tsx
@@ -1219,8 +1215,8 @@ msgid "download|beatmap|beatmaps|ranked|supporter"
 msgstr "download|beatmap|beatmaps|ranked|supporter"
 
 #: src/scenes/Options.tsx
-msgid "download|downloaded|beatmap|beatmaps|bundled|ranked"
-msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked"
+msgid "download|downloaded|beatmap|beatmaps|bundled|ranked|loved"
+msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked|loved"
 
 #: src/scenes/Options.tsx
 msgid "download|downloaded|beatmap|beatmaps|hide"
@@ -1736,6 +1732,10 @@ msgid "It is in the ranking queue: withdraw it to update it"
 msgstr "It is in the ranking queue: withdraw it to update it"
 
 #: src/editor/EditorView.tsx
+msgid "It is loved: unrank it to change it"
+msgstr "It is loved: unrank it to change it"
+
+#: src/editor/EditorView.tsx
 msgid "It is ranked: unrank it to change it"
 msgstr "It is ranked: unrank it to change it"
 
@@ -1885,6 +1885,10 @@ msgstr "Loading…"
 msgid "Local"
 msgstr "Local"
 
+#: src/scenes/SongSelect.tsx
+msgid "Local scores cleared"
+msgstr "Local scores cleared"
+
 #: src/components/community/CommunityBody.tsx
 msgid "Location"
 msgstr "Location"
@@ -1896,6 +1900,16 @@ msgstr "Locked"
 #: src/gameplay/playQueue.ts
 msgid "Loop"
 msgstr "Loop"
+
+#: src/components/direct/DirectFilters.tsx
+#: src/editor/EditorSubmission.tsx
+#: src/osu/beatmap/grouping.ts
+msgid "Loved"
+msgstr "Loved"
+
+#: src/components/direct/DirectRow.tsx
+msgid "Loved {ranked}"
+msgstr "Loved {ranked}"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Lowest frequency"
@@ -3393,6 +3407,14 @@ msgstr "Soft"
 msgid "Solo"
 msgstr "Solo"
 
+#: src/online/libraryUpdates.ts
+msgid "Some of your add-ons have updates"
+msgstr "Some of your add-ons have updates"
+
+#: src/online/libraryUpdates.ts
+msgid "Some of your skins have updates"
+msgstr "Some of your skins have updates"
+
 #: src/scenes/Options.tsx
 msgid "Song select"
 msgstr "Song select"
@@ -3568,6 +3590,10 @@ msgid "The latest beatmaps"
 msgstr "The latest beatmaps"
 
 #: src/scenes/Direct.tsx
+msgid "The latest loved beatmaps"
+msgstr "The latest loved beatmaps"
+
+#: src/scenes/Direct.tsx
 msgid "The latest ranked beatmaps"
 msgstr "The latest ranked beatmaps"
 
@@ -3598,6 +3624,10 @@ msgstr "The map's sound files"
 #: src/scenes/Direct.tsx
 msgid "The most played beatmaps"
 msgstr "The most played beatmaps"
+
+#: src/scenes/Direct.tsx
+msgid "The most played loved beatmaps"
+msgstr "The most played loved beatmaps"
 
 #: src/scenes/Direct.tsx
 msgid "The most played ranked beatmaps"

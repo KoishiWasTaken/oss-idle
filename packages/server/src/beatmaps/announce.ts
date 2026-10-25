@@ -11,13 +11,14 @@ import {
 } from '@oss-idle/shared/beatmap';
 
 export type AnnounceSet = MapCover & {
+	loved: boolean;
 	artist: string;
 	title: string;
 	creator: string;
 	difficulties: { version: string; sr: number }[];
 };
 
-/** Post the "now ranked" embed to the map feed. Fires from the rank sweep when a
+/** Post the "now ranked" (or loved) embed to the map feed. Fires from the rank sweep when a
  *  scheduled map's date passes (not at upload), so each map announces once it's
  *  actually live, pinging the opt-in role. No-op outside prod or without a configured webhook. */
 export const announceRanked = async (set: AnnounceSet): Promise<void> => {
@@ -36,10 +37,10 @@ export const announceRanked = async (set: AnnounceSet): Promise<void> => {
 				title: `${set.artist} - ${set.title}`,
 				url: `${clientUrl}/web/maps/${set.id}`,
 				description: asc.map(d => `\`${d.sr.toFixed(2)}☆\` \`${d.version}\``).join('\n'),
-				color: 5814783,
-				author: { name: `New ranked map by ${set.creator}` },
+				color: set.loved ? 16737962 : 5814783,
+				author: { name: `New ${set.loved ? 'loved' : 'ranked'} map by ${set.creator}` },
 				fields: [{
-					name: 'Ranked', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, 
+					name: set.loved ? 'Loved' : 'Ranked', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, 
 				}],
 				...cover && { image: { url: cover } },
 			},

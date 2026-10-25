@@ -40,6 +40,8 @@ export type RankedPlayContext = {
 	warmup: number;
 	/** where on the warm-up bar, 0 cold to 1 exhausted */
 	warmupBar?: number;
+	/** which way the map moves the warm-up bar, -3 cooling to 3 warming */
+	warmupTrend?: number;
 };
 
 /** A play this client resolved and is running itself (guest, or a map the
@@ -166,6 +168,7 @@ export async function startPlaySession(
 				fatigue: play.fatigue,
 				warmup: play.warmup,
 				warmupBar: play.warmupBar,
+				warmupTrend: play.warmupTrend,
 			};
 		}
 		if (play.status === 'restricted') return { mode: 'restricted' };

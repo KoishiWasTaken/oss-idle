@@ -91,7 +91,7 @@ export const allBugs = async (statuses: readonly BugStatus[]) => list()
 export const getBug = async (id: number) => {
 	const [report] = await db
 		.select({
-			...listFields, client: bugReports.client,
+			...listFields, client: bugReports.client, setup: bugReports.setup,
 		})
 		.from(bugReports)
 		.innerJoin(users, eq(users.id, bugReports.userId))

@@ -1,7 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { HTTPException } from 'hono/http-exception';
-import { env } from '../env';
 import { throttled } from './throttle';
 import {
 	oszPath,
@@ -24,17 +23,22 @@ export const checkPreviewName = (setId: number, file: string) => {
 	}
 };
 
-/** A set's .osz. `bulk` (one of a whole-library download) goes out rate-capped. */
-export const oszResponse = async (setId: number, bulk: boolean) => {
+/** A set's .osz, at most `rate` bytes/s when given. */
+export const oszResponse = async (
+	setId: number,
+	rate?: number,
+	headers?: Record<string, string>,
+) => {
 	const path = oszPath(setId);
 	if (!existsSync(path)) throw new HTTPException(404, { message: 'Beatmap file missing' });
 	const buf = await readFile(path);
-	return new Response(bulk ? throttled(buf, env.BULK_DOWNLOAD_RATE) : buf, {
+	return new Response(rate ? throttled(buf, rate) : buf, {
 		headers: {
 			'Content-Type': 'application/octet-stream',
 			'Content-Length': String(buf.length),
 			'Content-Disposition': `attachment; filename="${setId}.osz"`,
 			'Cache-Control': IMMUTABLE,
+			...headers,
 		},
 	});
 };

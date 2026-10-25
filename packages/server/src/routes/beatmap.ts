@@ -21,6 +21,7 @@ import {
 import {
 	BEATMAP_STATUS,
 	INTRO_SET_ID,
+	isApproved,
 	MAP_TAGS,
 	parseMapTags,
 } from '@oss-idle/shared/beatmap';
@@ -30,8 +31,10 @@ import {
 	oszResponse,
 	previewResponse,
 } from '../beatmaps/serve';
+import { fullSpeed } from '../beatmaps/fastDownloads';
 import { beatmapClaimRoutes } from './beatmapClaim';
 import { db } from '../db/client';
+import { env } from '../env';
 import {
 	beatmapListColumns,
 	beatmaps,
@@ -54,7 +57,6 @@ import {
 	listCondition,
 	setLiveChanged,
 	listedAt,
-	listedCondition,
 	liveDiffCondition,
 	nameMatches,
 	panelColumns,
@@ -98,7 +100,8 @@ const nominationPatch = z.object({
 type NominationPatch = z.infer<typeof nominationPatch>;
 
 /** What a queue edit writes on the set. Only a player's own upload goes back to being
- *  theirs ('unranked'), with the reason why; (re)ranking re-arms the announce. */
+ *  theirs ('unranked'), with the reason why; (re)ranking or loving re-arms the announce.
+ *  A loved set is never bundled. */
 const nominationUpdates = (existing: BeatmapsetRow, body: NominationPatch) => {
 	const player = existing.uploadedAt !== null;
 	if (body.status === 'unranked' && !player) {
@@ -108,15 +111,16 @@ const nominationUpdates = (existing: BeatmapsetRow, body: NominationPatch) => {
 	if (body.rankedAt !== undefined) updates.rankedAt = body.rankedAt ? new Date(body.rankedAt) : null;
 	if (body.bundled !== undefined) updates.bundled = body.bundled;
 	if (body.categorized !== undefined) updates.categorized = body.categorized;
+	if ((body.status ?? existing.status) === 'loved') updates.bundled = false;
 	if (body.status === undefined) return updates;
 	updates.status = body.status;
-	if (body.status === 'ranked') updates.announced = false;
+	if (isApproved(body.status)) updates.announced = false;
 	if (body.status === 'unranked') updates.reviewNote = body.note?.trim() || null;
 	return updates;
 };
 
 export const beatmapsRoutes = new Hono()
-	// Public, live-only (status='ranked' AND rankedAt <= now()).
+	// Public, live-only (approved, AND rankedAt <= now()).
 	.get('/catalog', async c => c.json(await getCatalog()))
 
 	// Every difficulty's stars at a rate, by id: song select's cards and sort follow it.
@@ -166,7 +170,7 @@ export const beatmapsRoutes = new Hono()
 			})
 			.from(beatmapset)
 			.innerJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
-			.where(listedCondition)
+			.where(listCondition('ranked'))
 			.groupBy(beatmapset.id)
 			.orderBy(desc(beatmapset.rankedAt))
 			.limit(10),
@@ -204,11 +208,15 @@ export const beatmapsRoutes = new Hono()
 
 	// A live set's .osz (404 until it's ranked + due), or a player's unranked upload.
 	// The client fetches this URL directly, not via the typed RPC.
-	// `?bulk` (download every ranked map) is rate-capped, a double-click isn't.
+	// `?bulk` (download every ranked map) is rate-capped, a double-click isn't;
+	// a non-supporter's sets past the day's full-speed ones go slower still.
 	.get('/osz/:setId', async c => {
 		const id = idParam.parse(c.req.param('setId'));
 		if (!await isSetPublic(id)) throw new HTTPException(404, { message: 'Beatmap not available' });
-		return oszResponse(id, c.req.query('bulk') !== undefined);
+		if (!await fullSpeed(c, id)) {
+			return oszResponse(id, env.SLOW_DOWNLOAD_RATE, { 'X-Download-Rate': 'reduced' });
+		}
+		return oszResponse(id, c.req.query('bulk') !== undefined ? env.BULK_DOWNLOAD_RATE : undefined);
 	})
 
 	// A downloadable set's preview audio/background. File names are set-id prefixed.
@@ -309,7 +317,7 @@ export const beatmapsRoutes = new Hono()
 	})
 	// A queued set's .osz, public or not, to try it before ranking it.
 	.get('/nomination/:setId/osz', requireAdmin, async c => {
-		const res = await oszResponse(idParam.parse(c.req.param('setId')), false);
+		const res = await oszResponse(idParam.parse(c.req.param('setId')));
 		res.headers.set('Cache-Control', 'no-store');
 		return res;
 	})

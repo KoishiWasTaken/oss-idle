@@ -46,7 +46,10 @@ export default function CharacterTopRanks({ id, countplayed }: {
 			</div>
 			<div className='character__first_places'>
 				{firstplaces.items?.map(score => (
-					<ScoreRow key={score.first_place.id} score={score.first_place} beatmap={score.beatmap} />
+					<ScoreRow
+						key={score.first_place.id} score={score.first_place} beatmap={score.beatmap}
+						loved={score.beatmapset.status === 'loved'}
+					/>
 				))}
 			</div>
 			<ShowMoreLink {...firstplaces} onClick={firstplaces.more} />
@@ -60,7 +63,10 @@ export default function CharacterTopRanks({ id, countplayed }: {
 			</div>
 			<div className='character__first_places'>
 				{recentscores.items?.map(score => (
-					<ScoreRow key={score.score.id} score={score.score} beatmap={score.beatmap} />
+					<ScoreRow
+						key={score.score.id} score={score.score} beatmap={score.beatmap}
+						loved={score.beatmapset.status === 'loved'}
+					/>
 				))}
 			</div>
 			<ShowMoreLink {...recentscores} onClick={recentscores.more} />

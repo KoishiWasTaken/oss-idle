@@ -15,8 +15,8 @@ import {
 	panelColumns,
 } from './catalog';
 
-/** Which of a user's own maps: the ranked ones they mapped, or their unranked uploads. */
-export type MappedStatus = 'ranked' | 'unranked';
+/** Which of a user's own maps: the ranked or the loved ones they mapped, or their unranked uploads. */
+export type MappedStatus = 'ranked' | 'loved' | 'unranked';
 
 const mappedCondition = (userId: number, status: MappedStatus) =>
 	and(eq(beatmapset.ownerUserId, userId), listCondition(status));

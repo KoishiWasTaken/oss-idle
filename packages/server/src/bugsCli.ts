@@ -38,7 +38,8 @@ const show = async (id: number) => {
 	console.log(`#${r.id} ${r.title}\nstatus: ${r.status}`);
 	const { userId, characterId } = r.reporter;
 	console.log(`by: ${name(r.reporter)} (user ${userId}, character ${characterId})`);
-	console.log(`version: ${r.version}\nclient: ${r.client}\nopened: ${day(r.createdAt)}`);
+	console.log(`version: ${r.version}\nclient: ${r.client}\nsetup: ${r.setup}`);
+	console.log(`opened: ${day(r.createdAt)}`);
 	for (const m of r.messages) {
 		const who = `${name(m.author)}${m.team ? ' (team)' : ''}`;
 		console.log(`\n--- ${day(m.createdAt)} ${who}${m.status ? ` set status ${m.status}` : ''}`);

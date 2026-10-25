@@ -13,7 +13,6 @@
 	color: #fff;
 	font: inherit;
 	font-size: 0.8em;
-	pointer-events: auto;
 }
 
 .channels {
@@ -25,7 +24,6 @@
 	max-height: calc(100vh - 340px);
 	margin: 60px 0 45px;
 	overflow-y: auto;
-	pointer-events: auto;
 }
 
 .channels__row {

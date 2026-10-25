@@ -8,12 +8,13 @@ import {
 } from '../../api/characters';
 import CharacterMapsSection from './CharacterMapsSection';
 
-/** osu!'s profile beatmaps: the maps the account made, ranked and unranked, and the
- *  ranked maps it proposed. Left out when there are none. */
+/** osu!'s profile beatmaps: the maps the account made, ranked, loved and unranked, and
+ *  the approved maps it proposed. Left out when there are none. */
 export default function CharacterBeatmaps({ id }: { id: string }) {
 	const any = useAsync(async () => {
 		const counts = await Promise.all([
 			getCharacterNbMapped(id, 'ranked'),
+			getCharacterNbMapped(id, 'loved'),
 			getCharacterNbMapped(id, 'unranked'),
 			getCharacterNbRankedMaps(id),
 		]);
@@ -27,6 +28,12 @@ export default function CharacterBeatmaps({ id }: { id: string }) {
 			title={<Trans>Ranked Beatmaps</Trans>}
 			count={() => getCharacterNbMapped(id, 'ranked')}
 			page={page => getCharacterMapped(id, 'ranked', page)}
+			deps={[id]}
+		/>
+		<CharacterMapsSection
+			title={<Trans>Loved Beatmaps</Trans>}
+			count={() => getCharacterNbMapped(id, 'loved')}
+			page={page => getCharacterMapped(id, 'loved', page)}
 			deps={[id]}
 		/>
 		<CharacterMapsSection

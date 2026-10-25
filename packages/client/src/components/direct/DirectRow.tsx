@@ -54,7 +54,9 @@ export default function DirectRow({
 				<span className='direct-row__sub'>
 					<Trans>mapped by {mapper}</Trans>
 					<span className='direct-row__date'>
-						{set.ranked ? <Trans>Ranked {ranked}</Trans> : <Trans>Submitted {ranked}</Trans>}
+						{set.loved
+							? <Trans>Loved {ranked}</Trans>
+							: set.ranked ? <Trans>Ranked {ranked}</Trans> : <Trans>Submitted {ranked}</Trans>}
 					</span>
 				</span>
 			</span>

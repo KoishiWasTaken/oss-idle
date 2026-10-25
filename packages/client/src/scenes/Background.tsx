@@ -3,7 +3,7 @@ import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { music } from '../audio/MusicPlayer';
 import { SETTINGS } from '../db/settings';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useFileUrl from '../osu/beatmap/useFileUrl';
 import './Background.css';
 
 /** The live track's backdrop, or a given map's - a screen about one particular
@@ -13,11 +13,10 @@ export default function Background({ beatmap, image }: { beatmap?: LightBeatmap;
 	const [parallaxOn] = useSynced(SETTINGS.parallax);
 	const parallax = useParallax(0.08, parallaxOn);
 	
-	const live = music.beatmap.use(async (map, previous) => {
-		return map?.getBackgroundUri() ?? previous?.getBackgroundUri();
-	});
-	const own = useAsync(async () => beatmap?.getBackgroundUri(), [beatmap]);
-	const background = image ?? (beatmap ? own : live);
+	const [live] = useSynced(music.beatmap);
+	const map = beatmap ?? live;
+	const stored = useFileUrl(async () => image ? undefined : map?.getBackgroundUri(), [image, map]);
+	const background = image ?? stored;
 
 	return (
 		<div

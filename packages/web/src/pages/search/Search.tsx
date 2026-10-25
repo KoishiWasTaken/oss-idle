@@ -25,9 +25,10 @@ const matches = (mapset: Mapset, words: string[]) => {
 	return words.every(w => text.includes(w));
 };
 
-/** Best first: the title holding the whole search, then a ranked map over an unranked one. */
+/** Best first: the title holding the whole search, then an approved map over an unranked one. */
 const relevance = (mapset: Mapset, query: string) =>
-	(mapset.title.toLowerCase().includes(query) ? 0 : 2) + (mapset.status === 'ranked' ? 0 : 1);
+	(mapset.title.toLowerCase().includes(query) ? 0 : 2)
+	+ (mapset.status === 'ranked' || mapset.status === 'loved' ? 0 : 1);
 
 /** A broad query matches the whole catalog; rendering ~500 of them froze the tab. */
 const MAX_CARDS = 50;

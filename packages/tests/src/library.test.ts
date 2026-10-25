@@ -43,8 +43,8 @@ describe('the library folders', () => {
 		expect(written?.info).toEqual({ id: 12 });
 		expect(written?.files.map(file => file.path).sort()).toEqual(['map [Hard].osu', 'sb/bg.png']);
 		expect(fs.existsSync(path.join(root, 'maps', 'outside.txt'))).toBe(false);
-		expect(new TextDecoder().decode(readLibrary('maps', '12 A - B', 'sb/bg.png'))).toBe('png');
-		expect(() => readLibrary('maps', '..', 'x')).toThrow();
+		expect(new TextDecoder().decode(await readLibrary('maps', '12 A - B', 'sb/bg.png'))).toBe('png');
+		await expect(readLibrary('maps', '..', 'x')).rejects.toThrow();
 		await settle();
 		expect(sent).toEqual([]);
 

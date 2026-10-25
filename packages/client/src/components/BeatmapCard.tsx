@@ -4,12 +4,9 @@ import {
 } from '../gameplay/rateStars';
 import {
 	memo,
-	useEffect,
 	useRef,
-	useState,
 } from 'react';
 import { Trans } from '@lingui/react/macro';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
 import BeatmapStore from '../osu/beatmap/beatmap_store';
 import {
 	difficultyColor,
@@ -19,6 +16,7 @@ import {
 import { DownloadState } from './BeatmapCarousel';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import useFileUrl from '../osu/beatmap/useFileUrl';
 import {
 	Score,
 	scoresVersion,
@@ -72,22 +70,18 @@ function BeatmapCard({
 
 	const stars = useStarsOf(beatmap);
 
-	const [bg, setBg] = useState<string | undefined>(
-		beatmap.metadata.runtime ? undefined 
-			: BeatmapAPI.assetUrl(beatmap.metadata.background),
+	const [showThumbnails] = useSynced(SETTINGS.showThumbnails);
+	const bg = useFileUrl(
+		async () => showThumbnails ? BeatmapStore.getBeatmapBackground(beatmap) : undefined,
+		// by file, not object: every library reload rebuilds the beatmaps, and a new blob
+		// URL for the same image flashes the card
+		[beatmap.set.metadata.id, beatmap.metadata.background, beatmap.metadata.runtime, showThumbnails],
 	);
-	useEffect(() => {
-		let cancelled = false;
-		BeatmapStore.getBeatmapBackground(beatmap)
-			.then((b) => { if (!cancelled) setBg(b); });
-		return () => { cancelled = true; };
-	}, [beatmap]);
 
 	// Grade is per-character: re-query when the live character changes (e.g. a
 	// disconnect falling back to guest, or reconnecting back to the account) so
 	// the card always reflects whoever is currently signed in.
 	const [character] = useSynced(Entities.character);
-	const [showThumbnails] = useSynced(SETTINGS.showThumbnails);
 	// scoresVersion bumps on any score write, so an imported leaderboard score for
 	// the live character refreshes the grade without a reselect.
 	const [scoresV] = useSynced(scoresVersion);
@@ -135,7 +129,7 @@ function BeatmapCard({
 			data-id={beatmap.metadata.id}
 			data-rate={beatmap.lockedRate}
 			onClick={handleClick}
-			style={bg ? { backgroundImage: showThumbnails ? `url("${bg}")` : '' } : undefined}
+			style={bg ? { backgroundImage: `url("${bg}")` } : undefined}
 		>
 			<div className="bm-card__scrim" />
 			<div className="bm-card__inner">

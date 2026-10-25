@@ -34,6 +34,8 @@ export type CarouselItem = {
 	tags?: MapTag[],
 	/** in the ranked catalog */
 	ranked?: boolean,
+	/** in the catalog as loved: no pp */
+	loved?: boolean,
 	/** By Playlist: which copy of the difficulty in the playlist */
 	entry?: PlaylistSlot,
 };
@@ -75,10 +77,17 @@ interface Props {
 	scrubArea?: RefObject<HTMLElement | null>
 }
 
-/** a right press there scrubs: level with the carousel, and the carousel shown */
-const scrubsAt = (scroller: HTMLElement, clientY: number) => {
+/**
+ * a right press there scrubs: level with the carousel, the carousel shown, and
+ * not on a leaderboard score
+ */
+const scrubsAt = (
+	scroller: HTMLElement,
+	{ clientY, target }: { clientY: number, target: EventTarget | null },
+) => {
 	const { top, bottom } = scroller.getBoundingClientRect();
 	return clientY >= top && clientY <= bottom
+		&& !(target as HTMLElement | null)?.closest?.('.score_entry__row')
 		&& getComputedStyle(scroller).pointerEvents !== 'none';
 };
 
@@ -421,7 +430,7 @@ export default function BeatmapCarousel({
 		let pendingY: number | null = null;
 		let scrubbing = false;
 		const onDown = (e: MouseEvent) => {
-			if (e.button !== 2 || !scrubsAt(scroller, e.clientY)) return;
+			if (e.button !== 2 || !scrubsAt(scroller, e)) return;
 			e.preventDefault();
 			pendingY = e.clientY;
 			scrubbing = false;
@@ -467,7 +476,7 @@ export default function BeatmapCarousel({
 				if (row?.type === 'card') onCardRightClick(row.item);
 				return;
 			}
-			if (scrubsAt(scroller, e.clientY)) scrubTo(e.clientY);
+			if (scrubsAt(scroller, e)) scrubTo(e.clientY);
 		});
 	}, [scrubTo, onCardRightClick, scrubArea]);
 

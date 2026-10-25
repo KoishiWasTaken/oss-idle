@@ -12,7 +12,7 @@ import type { BoardRow } from '../../api/maps';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
 /** osu!'s card for the map's #1, above the table. */
-export default function TopScoreCard({ row }: { row: BoardRow }) {
+export default function TopScoreCard({ row, loved }: { row: BoardRow; loved: boolean }) {
 	const { score, player } = row;
 	const stats = [
 		{
@@ -27,9 +27,9 @@ export default function TopScoreCard({ row }: { row: BoardRow }) {
 		...JUDGEMENT_COLUMNS.map(j => ({
 			label: j.label, value: num(score.judgements[j.judgement]),
 		})),
-		{
+		...loved ? [] : [{
 			label: 'pp', value: num(score.pp),
-		},
+		}],
 	];
 	return <div className='mapset__top'>
 		<ScoreLink id={score.id} label='#1' />

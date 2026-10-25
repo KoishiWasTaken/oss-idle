@@ -38,7 +38,7 @@ export default function WebBrowser() {
 	useKeyboardOwner(frameRef, {
 		active: open, layer: LAYER.WEB, close: () => isWebOpen.set(false),
 	});
-	const [mounted, setMounted] = useState(false);
+	const [src, setSrc] = useState<string>();
 	const [loaded, setLoaded] = useState(false);
 
 	// The site routes in-page (history.pushState), which fires no load event, so
@@ -56,10 +56,17 @@ export default function WebBrowser() {
 	}, [open]);
 
 
-	// Create the iframe on first open and never tear it down.
-	useEffect(() => { if (open) setMounted(true); }, [open]);
-
 	const frameWindow = () => frameRef.current?.contentWindow ?? undefined;
+
+	// Create the iframe on first open and never tear it down. Each open sends it
+	// to the asked page, which may be the url it was last opened on.
+	useEffect(() => {
+		if (!open) return;
+		const target = `/web/${url}`;
+		const loc = frameWindow()?.location;
+		if (!loc) setSrc(target);
+		else if (loc.pathname + loc.search !== target) loc.assign(target);
+	}, [open, url]);
 	const close = () => isWebOpen.set(false);
 
 	// The web platform is served under /web. When the embedded page navigates
@@ -136,11 +143,11 @@ export default function WebBrowser() {
 					<div className="web__loader" aria-hidden={loaded}>
 						<div className="web__loader-spinner" />
 					</div>
-					{mounted && (
+					{src && (
 						<iframe
 							ref={frameRef}
 							className="web__frame"
-							src={`/web/${url}`}
+							src={src}
 							title="oss! web"
 							onLoad={onFrameLoad}
 						/>

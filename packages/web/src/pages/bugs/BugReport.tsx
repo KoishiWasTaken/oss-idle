@@ -58,6 +58,7 @@ export default function BugReport({ bug }: { bug: Bug }) {
 			#{bug.id} · {dateAgo(bug.createdAt)} · {bug.version}
 			{bug.canSetStatus && <> · {bug.client}</>}
 		</p>
+		{bug.canSetStatus && bug.setup && <p className='bugs__muted bugs__small'>{bug.setup}</p>}
 
 		{bug.messages.map(m => <BugMessage key={m.id} message={m} />)}
 

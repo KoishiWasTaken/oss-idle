@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-25 11:34\n"
+"PO-Revision-Date: 2026-10-25 15:13\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -282,6 +282,10 @@ msgstr "tout"
 #: src/components/UserList.tsx
 msgid "All"
 msgstr "Tout"
+
+#: src/pages/bugs/NewBug.tsx
+msgid "Also your add-ons and skins."
+msgstr "Ainsi que vos add-ons et skins."
 
 #: src/pages/store/OrderHistory.tsx
 msgid "Amount"
@@ -989,6 +993,21 @@ msgstr "connexion"
 msgid "Long notes"
 msgstr "Longues notes"
 
+#: src/pages/beatmaps/BeatmapsetHeader.tsx
+#: src/pages/beatmaps/requestPhase.ts
+msgid "loved"
+msgstr "loved"
+
+#: src/components/MapsetCard.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Loved"
+msgstr "Loved"
+
+#: src/components/character/CharacterBeatmaps.tsx
+msgid "Loved Beatmaps"
+msgstr "Maps loved"
+
 #: src/pages/store/SupporterPerks.tsx
 msgid "Main menu heart"
 msgstr "Coeur du menu principal"
@@ -1031,6 +1050,10 @@ msgstr "créée par <0>{creator}</0>"
 #: src/pages/help/FAQ.tsx
 msgid "Maps and rankings"
 msgstr "Maps et classements"
+
+#: src/pages/help/FAQ.tsx
+msgid "Maps the team loves that aren't ranked. They play like ranked maps: the server decides the score, which counts for ranked score, grades, leaderboards and experience, but gives no pp. They don't count for the star rating and #1 medals either."
+msgstr "Des maps que l'équipe aime mais qui ne sont pas classées. Elles se jouent comme des maps classées : le serveur décide du score, qui compte pour le score classé, les rangs, les classements et l'expérience, mais ne donne pas de pp. Elles ne comptent pas non plus pour les médailles d'étoiles et de #1."
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Maps you upload always have a leaderboard, and playing any unranked map opens its leaderboard for everyone."
@@ -2201,6 +2224,10 @@ msgstr "Bienvenue, {username} !"
 #: src/pages/help/FAQ.tsx
 msgid "What are add-ons?"
 msgstr "Que sont les add-ons ?"
+
+#: src/pages/help/FAQ.tsx
+msgid "What are loved maps?"
+msgstr "Que sont les maps loved ?"
 
 #: src/pages/help/FAQ.tsx
 msgid "What are medals?"

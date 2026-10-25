@@ -14,7 +14,7 @@ import RankedMaps from '../../pages/beatmaps/RankedMaps';
 const mapsSearch = z.object({
 	sort: fallback(z.enum(['date', 'plays']), 'date').default('date'),
 	dir: fallback(z.enum(['asc', 'desc']), 'desc').default('desc'),
-	status: fallback(z.enum(['ranked', 'unranked', 'any']), 'ranked').default('ranked'),
+	status: fallback(z.enum(['ranked', 'loved', 'unranked', 'any']), 'ranked').default('ranked'),
 	q: fallback(z.string(), '').default(''),
 	// one PAGE_SIZE slice of the listing, like the leaderboards
 	page: fallback(z.coerce.number().int().positive(), 1).default(1),

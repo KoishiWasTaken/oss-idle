@@ -160,12 +160,13 @@ const sameBytes = (file: string, data: Uint8Array) =>
 export const listLibrary = (kind: LibraryKind): LibraryEntry[] =>
 	[...shelfOf(kind).entries.values()].map(scanned => scanned.entry);
 
-export const readLibrary = (
+/** Async: a sync read here blocks the main process, and the whole window with it. */
+export const readLibrary = async (
 	kind: LibraryKind, name: string, file: string,
-): Uint8Array | undefined => {
+): Promise<Uint8Array | undefined> => {
 	const full = inside(folderOf(shelfOf(kind), name), file);
 	try {
-		return full ? fs.readFileSync(full) : undefined;
+		return full ? await fs.promises.readFile(full) : undefined;
 	} catch {
 		return undefined;
 	}

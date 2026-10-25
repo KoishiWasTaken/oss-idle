@@ -16,7 +16,7 @@ import LightBeatmapSet from '../../osu/beatmap/LightBeatmapSet';
 import { findCard } from '../../osu/beatmap/findCard';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 
-export type DirectDisplay = 'ranked' | 'unranked' | 'all';
+export type DirectDisplay = 'ranked' | 'loved' | 'unranked' | 'all';
 
 export const directDisplay = new Synced<DirectDisplay>('ranked');
 export const showDownloaded = new Synced(false);

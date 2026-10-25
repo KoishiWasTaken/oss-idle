@@ -56,10 +56,10 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 	useEffect(() => () => clearTimeout(routeTimer.current), []);
 
 	const sortLabel: Record<MapSort, string> = {
-		date: status === 'ranked' ? t`Ranked` : t`Date`, plays: t`Plays`,
+		date: status === 'ranked' ? t`Ranked` : status === 'loved' ? t`Loved` : t`Date`, plays: t`Plays`,
 	};
 	const statusLabel: Record<MapStatus, string> = {
-		any: t`Any`, ranked: t`Ranked`, unranked: t`Unranked`,
+		any: t`Any`, ranked: t`Ranked`, loved: t`Loved`, unranked: t`Unranked`,
 	};
 
 	return (
@@ -87,7 +87,7 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 			</div>
 			<div className='list__beatmap_sort'>
 				<span><Trans>Categories</Trans></span>
-				{(['any', 'ranked', 'unranked'] as const).map(type => (
+				{(['any', 'ranked', 'loved', 'unranked'] as const).map(type => (
 					<Link
 						key={type}
 						className={type === status ? 'current' : ''}

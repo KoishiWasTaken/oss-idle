@@ -278,6 +278,10 @@ msgstr "all"
 msgid "All"
 msgstr "All"
 
+#: src/pages/bugs/NewBug.tsx
+msgid "Also your add-ons and skins."
+msgstr "Also your add-ons and skins."
+
 #: src/pages/store/OrderHistory.tsx
 msgid "Amount"
 msgstr "Amount"
@@ -984,6 +988,21 @@ msgstr "login"
 msgid "Long notes"
 msgstr "Long notes"
 
+#: src/pages/beatmaps/BeatmapsetHeader.tsx
+#: src/pages/beatmaps/requestPhase.ts
+msgid "loved"
+msgstr "loved"
+
+#: src/components/MapsetCard.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Loved"
+msgstr "Loved"
+
+#: src/components/character/CharacterBeatmaps.tsx
+msgid "Loved Beatmaps"
+msgstr "Loved Beatmaps"
+
 #: src/pages/store/SupporterPerks.tsx
 msgid "Main menu heart"
 msgstr "Main menu heart"
@@ -1026,6 +1045,10 @@ msgstr "mapped by <0>{creator}</0>"
 #: src/pages/help/FAQ.tsx
 msgid "Maps and rankings"
 msgstr "Maps and rankings"
+
+#: src/pages/help/FAQ.tsx
+msgid "Maps the team loves that aren't ranked. They play like ranked maps: the server decides the score, which counts for ranked score, grades, leaderboards and experience, but gives no pp. They don't count for the star rating and #1 medals either."
+msgstr "Maps the team loves that aren't ranked. They play like ranked maps: the server decides the score, which counts for ranked score, grades, leaderboards and experience, but gives no pp. They don't count for the star rating and #1 medals either."
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Maps you upload always have a leaderboard, and playing any unranked map opens its leaderboard for everyone."
@@ -2196,6 +2219,10 @@ msgstr "Welcome, {username}!"
 #: src/pages/help/FAQ.tsx
 msgid "What are add-ons?"
 msgstr "What are add-ons?"
+
+#: src/pages/help/FAQ.tsx
+msgid "What are loved maps?"
+msgstr "What are loved maps?"
 
 #: src/pages/help/FAQ.tsx
 msgid "What are medals?"

@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-25 11:34\n"
+"PO-Revision-Date: 2026-10-25 15:13\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -567,20 +567,20 @@ msgid "Get an S on The Parallax II: Future Sequence [Marathon]"
 msgstr "Obtenir un S sur The Parallax II: Future Sequence [Marathon]"
 
 #: src/display/medals.ts
-msgid "Get an SS on a ranked map"
-msgstr "Obtenir un SS sur une map classée"
-
-#: src/display/medals.ts
 msgid "Get an SS on AiAe [Wafles' SHD]"
 msgstr "Obtenir un SS sur AiAe [Wafles' SHD]"
 
 #: src/display/medals.ts
-msgid "Get an X on a ranked map"
-msgstr "Obtenir un X sur une map classée"
+msgid "Get an SS on an approved map"
+msgstr "Obtenir un SS sur une map approuvée"
 
 #: src/display/medals.ts
-msgid "Get an XX on a ranked map"
-msgstr "Obtenir un XX sur une map classée"
+msgid "Get an X on an approved map"
+msgstr "Obtenir un X sur une map approuvée"
+
+#: src/display/medals.ts
+msgid "Get an XX on an approved map"
+msgstr "Obtenir un XX sur une map approuvée"
 
 #: src/display/medals.ts
 msgid "Glass Cannon"
@@ -611,12 +611,12 @@ msgid "Hard Rock"
 msgstr "Hard Rock"
 
 #: src/display/medals.ts
-msgid "Have {count} of your own mapsets ranked"
-msgstr "Faire classer {count} de vos mapsets"
+msgid "Have {count} of your own mapsets approved"
+msgstr "Faire approuver {count} de vos mapsets"
 
 #: src/display/medals.ts
-msgid "Have {count} of your proposed maps ranked"
-msgstr "{count} de vos propositions de map sont classées"
+msgid "Have {count} of your proposed maps approved"
+msgstr "{count} de vos propositions de map sont approuvées"
 
 #: src/skills.ts
 msgid "Hbada E3 Pro"
@@ -784,8 +784,8 @@ msgid "Low latency Corsair iCUE"
 msgstr "Corsair iCUE à faible latence"
 
 #: src/display/medals.ts
-msgid "Map a set that gets ranked"
-msgstr "Faire classer un de vos mapsets"
+msgid "Map a set that gets approved"
+msgstr "Faire approuver un de vos mapsets"
 
 #: src/skills.ts
 msgid "Map editor studying"
@@ -949,8 +949,8 @@ msgid "Platinum medal"
 msgstr "Médaille de platine"
 
 #: src/display/medals.ts
-msgid "Play {count} ranked maps"
-msgstr "Jouez {count} parties classées"
+msgid "Play {count} approved maps"
+msgstr "Jouez {count} parties approuvées"
 
 #: src/display/medals.ts
 msgid "Play between 3 and 5 am"
@@ -997,8 +997,8 @@ msgid "Prestigious"
 msgstr "Prestigieux"
 
 #: src/display/medals.ts
-msgid "Propose a map that gets ranked"
-msgstr "Proposez une map qui devient classée"
+msgid "Propose a map that gets approved"
+msgstr "Proposez une map qui devient approuvée"
 
 #: src/display/addon.ts
 #: src/display/skin.ts

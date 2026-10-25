@@ -55,6 +55,8 @@ export const playStartResultDTO = z.discriminatedUnion('status', [
 		warmup: z.number().min(0).max(1).default(1),
 		/** where the character sits on the warm-up bar, 0 cold to 1 exhausted */
 		warmupBar: z.number().min(0).max(1).optional(),
+		/** which way the map moves the warm-up bar, -3 cooling to 3 warming */
+		warmupTrend: z.number().int().min(-3).max(3).optional(),
 		...offsetChunk,
 	}),
 	// played on the client, as tired as the character is now; it adds no fatigue

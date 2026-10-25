@@ -20,10 +20,10 @@ export const beatmapset = mysqlTable('beatmapset', {
 	creator: text().notNull(),
 	// 'pending' = uploaded, not scheduled; 'ranked' = scheduled/live (live once
 	// rankedAt has passed); 'rejected' = pulled from the nomination queue;
-	// 'unranked' = a player's own upload.
+	// 'unranked' = a player's own upload; 'loved' = like ranked, but no pp.
 	status: mysqlEnum(BEATMAP_STATUS).notNull().default('pending'),
 	// The scheduled rank time. Null until scheduled; a set is live (downloadable,
-	// listed) only when status='ranked' AND rankedAt <= now().
+	// listed) only when status is 'ranked' or 'loved' AND rankedAt <= now().
 	rankedAt: timestamp(),
 	// Set true by the rank sweep once the "now ranked" webhook has fired, so it
 	// announces each map exactly once when its rankedAt passes.

@@ -9,12 +9,13 @@ import Page from '../components/page/Page';
 import DirectView from '../components/direct/DirectView';
 import { directDisplay } from '../components/direct/directState';
 
-/** oss!direct: every ranked or player's map, downloadable from inside the game. */
+/** oss!direct: every approved or player's map, downloadable from inside the game. */
 export default function Direct() {
 	const { t } = useLingui();
 	const [display] = useSynced(directDisplay);
 	const subtitles = {
 		ranked: [t`The latest ranked beatmaps`, t`The most played ranked beatmaps`],
+		loved: [t`The latest loved beatmaps`, t`The most played loved beatmaps`],
 		unranked: [t`The latest unranked beatmaps`, t`The most played unranked beatmaps`],
 		all: [t`The latest beatmaps`, t`The most played beatmaps`],
 	}[display];

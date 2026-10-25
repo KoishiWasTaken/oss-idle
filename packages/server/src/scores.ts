@@ -1,5 +1,10 @@
 import { betterScore } from '@oss-idle/shared/scoreOrder';
-import { eq } from 'drizzle-orm';
+import { parseMods } from '@oss-idle/shared/mods';
+import {
+	and,
+	eq,
+} from 'drizzle-orm';
+import * as ppjs from 'rosu-pp-js';
 import { type SkillName } from '@oss-idle/shared/skills';
 import { db } from './db/client';
 import {
@@ -11,6 +16,8 @@ import {
 	beatmaps,
 	getBeatmapById,
 } from './db/schema/beatmap';
+import { beatmapset } from './db/schema/beatmapset';
+import { calculatePP } from './pp';
 import { announce } from './ws/chat';
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
 import {
@@ -111,17 +118,30 @@ export async function purgeBeatmapScores(beatmapId: number): Promise<void> {
 	}
 }
 
+/** Whether a difficulty's set is loved: its plays give no pp. */
+const isLovedBeatmap = async (beatmapId: number) => {
+	const [row] = await db.select({ id: beatmaps.id })
+		.from(beatmaps)
+		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
+		.where(and(eq(beatmaps.id, beatmapId), eq(beatmapset.status, 'loved')))
+		.limit(1);
+	return !!row;
+};
+
 /** Insert a score and refresh the character's profile aggregates. The single
  *  entry point for a new ranked play. */
 export async function submitScore(draft: NewScoreRow) {
+	const loved = await isLovedBeatmap(draft.beatmapId);
 	await addBeatmapPlayed(draft.characterId, draft.beatmapId);
-	const [ins] = await db.insert(scores).values(draft);
+	const [ins] = await db.insert(scores).values(loved ? {
+		...draft, pp: '0',
+	} : draft);
 	const score = (await getScoreById(ins.insertId))!;
-	await onSubmitScore(score);
+	await onSubmitScore(score, true, loved);
 	return score;
 }
 
-export const onSubmitScore = async (score: ScoreRow, recompute = true) => {
+export const onSubmitScore = async (score: ScoreRow, recompute = true, loved?: boolean) => {
 	const before = (await getCharacterTotals(score.characterId)).rankedScore;
 	await checkNewBest(score);
 	await refreshCharacterTotals(score.characterId);
@@ -129,8 +149,48 @@ export const onSubmitScore = async (score: ScoreRow, recompute = true) => {
 	if (Math.floor(after / 1_000_000_000) > Math.floor(before / 1_000_000_000)) {
 		await announceBillions(score, after);
 	}
-	await checkNewBestPP(score, recompute);
+	if (!(loved ?? await isLovedBeatmap(score.beatmapId))) await checkNewBestPP(score, recompute);
 	await checkNewFirstPlace(score);
+};
+
+/**
+ * Reprice a difficulty's scores after its set moved between ranked and loved:
+ * loved gives no pp, ranked prices every score again from what it stored. Scores,
+ * bests, #1s and ranked score stay; pp, top plays and the pp ranking follow.
+ */
+export const repriceBeatmapScores = async (beatmapId: number, loved: boolean): Promise<void> => {
+	const rows = await db.select().from(scores).where(eq(scores.beatmapId, beatmapId));
+	if (!rows.length) return;
+
+	const chart = loved ? undefined : (await getBeatmapById(beatmapId))?.chart;
+	const map = chart ? new ppjs.Beatmap(chart) : undefined;
+	const priced = rows.map(row => ({
+		...row,
+		pp: String(map ? calculatePP({
+			score: row.score, accuracy: Number(row.accuracy), maxCombo: row.maxCombo, counts: row,
+		}, map, Number(row.rate), parseMods(row.mods)) : 0),
+	}));
+	// bests and #1s are copies of their score: keep their pp in step
+	for (const row of priced) {
+		for (const table of [scores, best, firstPlace]) {
+			await db.update(table).set({ pp: row.pp }).where(eq(table.id, row.id));
+		}
+	}
+
+	await db.delete(bestPP).where(eq(bestPP.beatmapId, beatmapId));
+	const characterIds = new Set(priced.map(row => row.characterId));
+	if (!loved) {
+		const top = new Map<number, ScoreRow>();
+		for (const row of priced) {
+			const held = top.get(row.characterId);
+			if (!held || compareScoresPP(row, held)) top.set(row.characterId, row);
+		}
+		for (const row of top.values()) await setNewBestPPPlay(row);
+	}
+	for (const characterId of characterIds) {
+		await recomputePP(characterId);
+		await reindexCharacter(characterId);
+	}
 };
 
 export const compareScores = (s1: ScoreRow, s2: ScoreRow) => betterScore(s1, s2);

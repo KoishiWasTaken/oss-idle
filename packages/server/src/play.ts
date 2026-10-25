@@ -91,6 +91,7 @@ import {
 	tireSkill,
 	warmup,
 	warmupBar,
+	warmupTrend,
 } from '@oss-idle/shared/fatigue';
 import {
 	applySkillXp,
@@ -333,6 +334,8 @@ type RankedStartPlayResult = {
 	fatigue: number,
 	warmup: number,
 	warmupBar?: number,
+	/** which way the map moves the warm-up bar, -3 cooling to 3 warming */
+	warmupTrend?: number,
 } & OffsetChunk;
 
 /** The offsets revealed so far: every one whose note is within the buffer window
@@ -437,6 +440,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	fatigue: p.fatigue ?? 0,
 	warmup: p.warmup ?? 1,
 	warmupBar: p.warmupBar,
+	warmupTrend: p.strain && warmupTrend(p.strain.minutes, p.strain.strained),
 	...chunkFrom(p, 0),
 });
 
@@ -751,6 +755,7 @@ async function simulateAndStore(
 		fatigue,
 		warmup: warm,
 		warmupBar: bar,
+		warmupTrend: entry.strain && warmupTrend(entry.strain.minutes, entry.strain.strained),
 		...chunkFrom(entry, 0),
 	};
 }

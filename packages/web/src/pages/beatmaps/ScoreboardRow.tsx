@@ -10,7 +10,11 @@ import type { BoardRow } from '../../api/maps';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
 /** One line of the map's score table. */
-export default function ScoreboardRow({ row, rank }: { row: BoardRow; rank: number }) {
+export default function ScoreboardRow({ row, rank, loved }: {
+	row: BoardRow;
+	rank: number;
+	loved: boolean;
+}) {
 	const { score, player } = row;
 	return <tr className='mapset__row'>
 		<td className='mapset__rank'>
@@ -29,7 +33,7 @@ export default function ScoreboardRow({ row, rank }: { row: BoardRow; rank: numb
 			const count = score.judgements[j.judgement];
 			return <td key={j.judgement} className={count ? '' : 'zero'}>{num(count)}</td>;
 		})}
-		<td>{num(score.pp)}</td>
+		{!loved && <td>{num(score.pp)}</td>}
 		<td className='mapset__when'>{dateAgo(score.playedAt)}</td>
 		<td><ScoreMods mods={score.mods} rate={score.rate} /></td>
 	</tr>;

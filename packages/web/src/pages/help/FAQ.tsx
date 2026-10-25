@@ -146,6 +146,14 @@ export default function FAQ() {
 			</Trans></p>
 		</details>
 		<details>
+			<summary><Trans>What are loved maps?</Trans></summary>
+			<p><Trans>
+				Maps the team loves that aren't ranked. They play like ranked maps: the server decides the
+				score, which counts for ranked score, grades, leaderboards and experience, but gives no pp.
+				They don't count for the star rating and #1 medals either.
+			</Trans></p>
+		</details>
+		<details>
 			<summary><Trans>How do I get a map ranked?</Trans></summary>
 			<p><Trans>
 				Propose it on the <Link to='/maps/requests'>map requests</Link> page. Any 4K map from osu! can

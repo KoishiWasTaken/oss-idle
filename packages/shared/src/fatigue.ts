@@ -121,6 +121,17 @@ export const warmupBar = (minutes: number, upgrades = 0): number => {
 	return lerp(at[i - 1], at[i], Math.min(1, Math.max(0, t)));
 };
 
+/** Which way and how hard a play `minutes` long, `strained` of them, moves the
+ *  warm-up bar: 1 to 3 right (warming), -1 to -3 left (cooling), 0 neither. */
+export const warmupTrend = (minutes: number, strained: number): number => {
+	if (minutes <= 0) return 0;
+	// net strained minutes per minute played: 1 fully strained, -REST_RATE fully easy
+	const drift = (strained - REST_RATE * (minutes - strained)) / minutes;
+	return drift >= 0
+		? Math.ceil(Math.min(1, drift) * 3)
+		: -Math.ceil(Math.min(1, -drift / REST_RATE) * 3);
+};
+
 /** The share of the physical skills' xp gains a play at fatigue `level` keeps. */
 export const fatigueXp = (level: number): number => lerp(1, XP_FLOOR, level);
 

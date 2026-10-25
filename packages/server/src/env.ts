@@ -84,6 +84,8 @@ const schema = z.object({
 	// Bytes/s a supporter's "download every ranked beatmap" gets, so one bulk
 	// download can't take the uplink from players. Tune to the host's upload.
 	BULK_DOWNLOAD_RATE: z.coerce.number().int().positive().default(100_000_000 / 8), // 100 Mbps
+	// Bytes/s for a non-supporter's .osz past their daily full-speed ones (beatmaps/fastDownloads.ts).
+	SLOW_DOWNLOAD_RATE: z.coerce.number().int().positive().default(2_000_000 / 8), // 2 Mbps
 
 	// API edges nearer some players (the game picks by latency: VITE_API_EDGES); the
 	// dashboard checks them every minute.

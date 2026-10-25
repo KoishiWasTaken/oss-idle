@@ -18,6 +18,10 @@ import {
 import { ScoreBest } from './score_best';
 import { ScoreBestPP } from './score_best_pp';
 import {
+	ScoreXP,
+	xpGainsVersion,
+} from './score_xp';
+import {
 	modsKey,
 	parseMods,
 	type Mod,
@@ -128,6 +132,16 @@ export class Score extends DAO(t) {
 			mods:        this.mods,
 			playedAt:    int(this.playedAt),
 		};
+	}
+
+	/** Every character's local scores on this difficulty, with their bests and XP. */
+	static async clearBeatmap(beatmapId: number): Promise<void> {
+		await DB.write(db => {
+			for (const table of [this.table, ScoreBest.table, ScoreBestPP.table, ScoreXP.table])
+				db.run(`DELETE FROM ${table.name} WHERE beatmapId = ?`, [beatmapId]);
+		});
+		void scoresVersion.set(scoresVersion.get() + 1);
+		void xpGainsVersion.set(xpGainsVersion.get() + 1);
 	}
 
 	static getByOnlineId(onlineId: number): Promise<Score | undefined> {

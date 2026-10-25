@@ -198,6 +198,8 @@ export const serverMessage = z.discriminatedUnion('type', [
 	// The live beatmap catalog changed (a map went live, a diff was (un)ranked,
 	// a set was removed): drop any cached manifest and refetch on next use.
 	z.object({ type: z.literal('catalog:invalidate') }),
+	// An emoji was added, renamed or removed: refetch the list.
+	z.object({ type: z.literal('emoji:invalidate') }),
 	// The server's running version, pushed on connect. A version bump only ships
 	// by restarting the server (which drops the socket), so a reconnect carrying
 	// a different version is itself the "update available" signal - no polling.

@@ -4,8 +4,11 @@ import {
 	type Mod,
 } from '../mods.js';
 
+/** What pp reads off a play: a live score, or a stored one. */
+export type PerformanceScore = Pick<ScoreState, 'score' | 'accuracy' | 'maxCombo' | 'counts'>;
+
 /** rosu-pp's `Performance` arguments for a play, the same for the server and the client builds. */
-export const performanceArgs = (score: ScoreState, rate = 1, mods: readonly Mod[] = []) => ({
+export const performanceArgs = (score: PerformanceScore, rate = 1, mods: readonly Mod[] = []) => ({
 	lazer: false,
 	clockRate: rate,
 	mods: modsLabel(mods),

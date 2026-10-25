@@ -4,10 +4,15 @@ import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
 import BeatmapAPI, { type Metadata } from '../../osu/beatmap/beatmap_api';
 import BeatmapStore, { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
 import { rpc } from '../../online/client';
-import { directDisplay } from './directState';
+import {
+	directDisplay,
+	type DirectDisplay,
+} from './directState';
 
-const rankedSets = async () =>
-	(await BeatmapAPI.getManifest()).beatmaps.filter(s => s.id !== INTRO_SET_ID);
+/** The catalog's sets the display lists: ranked ones, loved ones, or both. */
+const catalogSets = async (display: DirectDisplay) =>
+	(await BeatmapAPI.getManifest()).beatmaps.filter(s => s.id !== INTRO_SET_ID
+		&& (display === 'all' || s.loved === (display === 'loved')));
 
 const unrankedSets = async (): Promise<Metadata[]> =>
 	(await rpc.v1.beatmap.unranked.$get()).json();
@@ -18,8 +23,8 @@ export default function useDirectSets() {
 	const [display] = useSynced(directDisplay);
 	return useAsync(async () => {
 		const lists = await Promise.all([
-			display !== 'unranked' ? rankedSets() : [],
-			display !== 'ranked' ? unrankedSets() : [],
+			display !== 'unranked' ? catalogSets(display) : [],
+			display === 'unranked' || display === 'all' ? unrankedSets() : [],
 		]);
 		const sets = lists.flat();
 		const stored = await Promise.all(sets.map(s => BeatmapStore.has(s.id)));

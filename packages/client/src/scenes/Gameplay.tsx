@@ -1006,6 +1006,7 @@ function GameplayInner({
 					labels: skillLabels,
 					...play.mode !== 'debug' ? {
 						warmupBar: play.warmupBar, warmupLabel, warmupState,
+						warmupTrend: play.mode === 'ranked' ? play.warmupTrend : undefined,
 					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}

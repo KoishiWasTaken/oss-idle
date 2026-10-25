@@ -103,19 +103,24 @@ function recencyGroup(last: number | undefined, now: number): Group {
 	};
 }
 
-/** Ranked (in the catalog), Unranked (a player's upload) or Local (an import or
- *  editor map: negative ids). */
+const STATUSES = ['ranked', 'loved', 'unranked', 'local'] as const;
+export type ItemStatus = (typeof STATUSES)[number];
+
+/** Ranked or Loved (in the catalog), Unranked (a player's upload) or Local (an import
+ *  or editor map: negative ids). */
+export const itemStatus = (item: CarouselItem): ItemStatus => {
+	if (item.ranked) return item.loved ? 'loved' : 'ranked';
+	return item.set.metadata.id < 0 ? 'local' : 'unranked';
+};
+
 function statusGroup(item: CarouselItem): Group {
-	if (item.ranked) return {
-		key: 'ranked', label: t`Ranked`, order: 0,
+	const status = itemStatus(item);
+	const labels: Record<ItemStatus, string> = {
+		ranked: t`Ranked`, loved: t`Loved`, unranked: t`Unranked`, local: t`Local`,
 	};
-	return item.set.metadata.id < 0
-		? {
-			key: 'local', label: t`Local`, order: 2,
-		}
-		: {
-			key: 'unranked', label: t`Unranked`, order: 1,
-		};
+	return {
+		key: status, label: labels[status], order: STATUSES.indexOf(status),
+	};
 }
 
 /**

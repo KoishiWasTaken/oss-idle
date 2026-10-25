@@ -12,11 +12,13 @@ import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
 export type Board = 'global' | 'country' | 'friends';
 
-/** osu!'s scoreboard: global, country or friends, the #1's card, then the table. */
-export default function MapScoreboard({ setId, beatmapId, board }: {
+/** osu!'s scoreboard: global, country or friends, the #1's card, then the table.
+ *  A loved map's scores give no pp: no pp column. */
+export default function MapScoreboard({ setId, beatmapId, board, loved }: {
 	setId: number;
 	beatmapId: number;
 	board: Board;
+	loved: boolean;
 }) {
 	const { t } = useLingui();
 	const me = useCurrentUser();
@@ -56,7 +58,7 @@ export default function MapScoreboard({ setId, beatmapId, board }: {
 			<Trans>No one has set a score on this difficulty yet.</Trans>
 		</p>}
 		{!signedOut && !!rows?.length && <>
-			<TopScoreCard row={rows[0]} />
+			<TopScoreCard row={rows[0]} loved={loved} />
 			<table className='mapset__table'>
 				<thead>
 					<tr>
@@ -67,13 +69,13 @@ export default function MapScoreboard({ setId, beatmapId, board }: {
 						<th><Trans>Player</Trans></th>
 						<th><Trans>Max Combo</Trans></th>
 						{JUDGEMENT_COLUMNS.map(j => <th key={j.judgement}>{j.label}</th>)}
-						<th>pp</th>
+						{!loved && <th>pp</th>}
 						<th><Trans>Time</Trans></th>
 						<th><Trans>Mods</Trans></th>
 					</tr>
 				</thead>
 				<tbody>
-					{rows.map((row, i) => <ScoreboardRow key={row.score.id} row={row} rank={i + 1} />)}
+					{rows.map((row, i) => <ScoreboardRow key={row.score.id} row={row} rank={i + 1} loved={loved} />)}
 				</tbody>
 			</table>
 		</>}

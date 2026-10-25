@@ -57,11 +57,10 @@ const load = async (source: string): Promise<AddonModule> => {
 	}
 };
 
-/** Run an add-on's source: import, call `mount`, and remember its `unmount`. */
-const mount = async ({
+/** Import an add-on's source, call `mount`, and remember its `unmount`. */
+const start = async ({
 	id, name, version, gameVersion, authorId, authorName, source,
 }: Addon): Promise<void> => {
-	if (live.has(id)) return;
 	const { host, release } = hostFor();
 	try {
 		const mod = await load(source);
@@ -83,8 +82,23 @@ const mount = async ({
 	}
 };
 
+/** Add-ons still loading, by id: a second mount waits on it rather than loading a twin. */
+const loading = new Map<number, Promise<void>>();
+
+/** Run an add-on's source once, even when asked again while it loads. */
+const mount = (addon: Addon): Promise<void> => {
+	if (live.has(addon.id)) return Promise.resolve();
+	let pending = loading.get(addon.id);
+	if (!pending) {
+		pending = start(addon).finally(() => loading.delete(addon.id));
+		loading.set(addon.id, pending);
+	}
+	return pending;
+};
+
 /** Tear down a live add-on (its `unmount`), if running, and wait for it to finish. */
 const unmount = async (id: number, name: string): Promise<void> => {
+	await loading.get(id);
 	const stop = live.get(id);
 	if (!stop) return;
 	live.delete(id);

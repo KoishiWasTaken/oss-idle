@@ -1,11 +1,28 @@
 import { starsOf } from '../../gameplay/rateStars';
+import type { ItemStatus } from './grouping';
 import LightBeatmap from './LightBeatmap';
 import LightBeatmapSet from './LightBeatmapSet';
+
+/** osu!'s `status=` values (and their one-letter forms), by the statuses they mean
+ *  here: approved is ranked or loved, a player's upload is osu!'s pending / graveyard
+ *  / wip, an import or editor map its not submitted / unknown. */
+const STATUS_TERMS: Record<string, ItemStatus[]> = {
+	r: ['ranked'], ranked: ['ranked'],
+	l: ['loved'], loved: ['loved'],
+	a: ['ranked', 'loved'], approved: ['ranked', 'loved'],
+	p: ['unranked'], pending: ['unranked'],
+	g: ['unranked'], graveyard: ['unranked'], wip: ['unranked'],
+	n: ['local'], notsubmitted: ['local'], u: ['local'], unknown: ['local'],
+};
+
+/** An unknown status word filters nothing out. */
+const statusMatches = (value: string, status?: ItemStatus) =>
+	!(value in STATUS_TERMS) || (!!status && STATUS_TERMS[value].includes(status));
 
 /**
  * osu! stable-style song-select search. The query is split on whitespace; every
  * term must match (AND). A term shaped like `key<op>value` (e.g. `stars>5`,
- * `keys=4`, `creator=sotarks`) is a filter; anything else is plain text matched
+ * `keys=4`, `creator=sotarks`, `status=loved`) is a filter; anything else is plain text matched
  * (case-insensitive substring) against artist, title, creator, difficulty
  * name and the map's tags (SV, LN). Numeric operators: `>`, `<`, `>=`, `<=`, `=`/`:`.
  *
@@ -18,6 +35,7 @@ export function matchesSearch(
 	set: LightBeatmapSet,
 	query: string,
 	tags: readonly string[] = [],
+	status?: ItemStatus,
 ): boolean {
 	const q = query.trim().toLowerCase();
 	if (!q) return true;
@@ -36,7 +54,7 @@ export function matchesSearch(
 		const filter = parseFilter(term);
 		if (filter) {
 			if (!applyFilter(filter, {
-				text, stars, keys, artist, title, creator, length, 
+				text, stars, keys, artist, title, creator, length, status,
 			}))
 				return false;
 		} else if (!text.includes(term)) {
@@ -73,6 +91,7 @@ interface Ctx {
 	title: string
 	creator: string
 	length: number
+	status?: ItemStatus
 }
 
 function applyFilter(f: Filter, ctx: Ctx): boolean {
@@ -94,6 +113,8 @@ function applyFilter(f: Filter, ctx: Ctx): boolean {
 			return ctx.artist.includes(f.value);
 		case 'title':
 			return ctx.title.includes(f.value);
+		case 'status':
+			return statusMatches(f.value, ctx.status);
 		default:
 			// unknown key → treat the whole token as plain text
 			return ctx.text.includes(`${f.key}${f.op}${f.value}`);

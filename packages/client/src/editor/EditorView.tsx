@@ -131,6 +131,7 @@ export default function EditorView({ session, onBack, onOpen }: Props) {
 		const refusals: Record<string, string> = {
 			locked: t`It is in the ranking queue: withdraw it to update it`,
 			ranked: t`It is ranked: unrank it to change it`,
+			loved: t`It is loved: unrank it to change it`,
 			notYours: t`This map belongs to another mapper`,
 			notCreator: t`The map's Creator must be your osu! name`,
 		};

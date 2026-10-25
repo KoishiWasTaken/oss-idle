@@ -3,7 +3,10 @@ import {
 	useEffect,
 	useState,
 } from 'react';
-import { Score } from '../../db/schema/score';
+import {
+	Score,
+	scoresVersion,
+} from '../../db/schema/score';
 import ScoreEntry from './ScoreEntry';
 import PersonalBest from './PersonalBest';
 import { music } from '../../audio/MusicPlayer';
@@ -33,6 +36,7 @@ export default function Leaderboard() {
 	const [beatmap] = useSynced(music.beatmap);
 	const [account] = useSynced(Account.character);
 	const [category] = useSynced(SETTINGS.leaderboard);
+	const [scoresV] = useSynced(scoresVersion);
 	const [scores, setScores] = useState<{ score: Score | ScoreDTO, player?: BoardPlayer }[]>([]);
 	const [loading, setLoading] = useState(false);
 
@@ -77,7 +81,7 @@ export default function Leaderboard() {
 		return () => {
 			cancelled = true;
 		};
-	}, [beatmap, effective, country]);
+	}, [beatmap, effective, country, scoresV]);
 
 	return (
 		<aside className="lb">

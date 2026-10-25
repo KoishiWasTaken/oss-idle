@@ -182,8 +182,8 @@ export const beatmapRequestRoutes = new Hono()
 			.limit(1);
 		if (ingested) {
 			throw new HTTPException(409, {
-				message: ingested.status === 'ranked'
-					? 'That map is already ranked in oss!idle'
+				message: ingested.status === 'ranked' || ingested.status === 'loved'
+					? `That map is already ${ingested.status} in oss!idle`
 					: 'That map is already in the nomination queue',
 			});
 		}

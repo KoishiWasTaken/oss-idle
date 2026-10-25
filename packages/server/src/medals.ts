@@ -22,6 +22,7 @@ import { followerCount } from './social';
 import { db } from './db/client';
 import { scores } from './db/schema/score';
 import { beatmaps } from './db/schema/beatmap';
+import { beatmapset } from './db/schema/beatmapset';
 import { firstPlace } from './db/schema/first_place';
 import { beatmaps_played } from './db/schema/beatmaps_played';
 import { beatmapRequests } from './db/schema/beatmap_request';
@@ -76,14 +77,17 @@ const playedStars = sql`coalesce(${scores.sr}, ${beatmaps.sr})`;
 // a play with a mod that earns no medals (EZ) counts for none of the play feats
 const medalPlay = and(...NO_MEDALS.map(mod => sql`find_in_set(${mod}, ${scores.mods}) = 0`));
 
+// loved maps count for none of the star medals
+const rankedStars = sql`if(${beatmapset.status} = 'ranked', ${playedStars}, null)`;
+
 /** Best star rating passed and full-combo'd, and the one-off score feats. */
 const scoreFacts = async (characterId: number) => {
 	const [row] = await db.select({
-		pass: max(sql<number>`floor(${playedStars})`),
-		fc: max(sql<number>`if(${scores.MISS} = 0, floor(${playedStars}), null)`),
+		pass: max(sql<number>`floor(${rankedStars})`),
+		fc: max(sql<number>`if(${scores.MISS} = 0, floor(${rankedStars}), null)`),
 		topPlay: max(scores.pp),
-		rice: max(sql<number>`${playedStars} >= 4 and ${beatmaps.rice} > 0.9 * ${beatmaps.objects}`),
-		ln: max(sql<number>`${playedStars} >= 4 and ${beatmaps.ln} > 0.5 * ${beatmaps.objects}`),
+		rice: max(sql<number>`${rankedStars} >= 4 and ${beatmaps.rice} > 0.9 * ${beatmaps.objects}`),
+		ln: max(sql<number>`${rankedStars} >= 4 and ${beatmaps.ln} > 0.5 * ${beatmaps.objects}`),
 		combo727: max(sql<number>`${scores.maxCombo} = 727`),
 		possessed: max(sql<number>`${scores.beatmapId} = ${POSSESSION_ID}
 			and ${scores.score} >= ${PERFECT_SCORE}`),
@@ -94,6 +98,7 @@ const scoreFacts = async (characterId: number) => {
 	})
 		.from(scores)
 		.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
+		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
 		.where(and(eq(scores.characterId, characterId), medalPlay));
 	// no scores yet: every aggregate is null
 	return {
@@ -109,10 +114,13 @@ const scoreFacts = async (characterId: number) => {
 	};
 };
 
+/** #1s held on ranked maps (loved ones don't count). */
 const firstPlaces = async (characterId: number) => {
 	const [row] = await db.select({ n: count() })
 		.from(firstPlace)
-		.where(eq(firstPlace.characterId, characterId));
+		.innerJoin(beatmaps, eq(beatmaps.id, firstPlace.beatmapId))
+		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
+		.where(and(eq(firstPlace.characterId, characterId), eq(beatmapset.status, 'ranked')));
 	return row?.n ?? 0;
 };
 
@@ -177,7 +185,8 @@ const live = async (character: CharacterRow, play: PlayFacts, tz?: string) => {
 		firstPlaces(id),
 		mostReplays(id),
 		countCurated(character.userId),
-		countMapped(character.userId, 'ranked'),
+		Promise.all([countMapped(character.userId, 'ranked'), countMapped(character.userId, 'loved')])
+			.then(([ranked, loved]) => ranked + loved),
 		followerCount(character.userId),
 		getCharacterTotals(id),
 		hasChatted(id),
@@ -302,15 +311,16 @@ const SKILL_STEPS = [50, 100, 105, 110];
 
 /** When each medal is earned, by id. */
 const RULES: Record<string, Rule> = {
-	...series('best star rating (floored) among stored scores',
+	...series('best star rating (floored) among stored scores on ranked maps',
 		Object.fromEntries(STAR_STEPS.map(n => [`pass-${n}`, n])), 'pass'),
-	...series('best star rating (floored) among stored scores with 0 misses',
+	...series('best star rating (floored) among stored scores on ranked maps with 0 misses',
 		Object.fromEntries(STAR_STEPS.map(n => [`fc-${n}`, n])), 'fc'),
 	'grade-ss': one('holds an SS, X or XX', p => p.totals.SS + p.totals.X + p.totals.XX > 0),
 	'grade-x': one('holds an X or XX', p => p.totals.X + p.totals.XX > 0),
 	'grade-xx': one('holds an XX', p => p.totals.XX > 0),
-	'rice': one('a score on a 4★+ map whose single notes are over 90% of its objects', p => p.rice),
-	'ln': one('a score on a 4★+ map whose long notes are over 50% of its objects', p => p.ln),
+	'rice': one('a score on a 4★+ ranked map whose single notes are over 90% of its objects',
+		p => p.rice),
+	'ln': one('a score on a 4★+ ranked map whose long notes are over 50% of its objects', p => p.ln),
 	...series('play count', {
 		'plays-100': 100, 'plays-1k': 1_000, 'plays-5k': 5_000, 'plays-25k': 25_000, 'plays-100k': 100_000,
 	}, 'plays'),
@@ -359,10 +369,10 @@ const RULES: Record<string, Rule> = {
 		'play-pp-50': 50, 'play-pp-100': 100, 'play-pp-200': 200,
 		'play-pp-500': 500, 'play-pp-750': 750, 'play-pp-1k': 1_000,
 	}, 'play-pp'),
-	...series('proposed maps now ranked and live', {
+	...series('proposed maps now approved (ranked or loved) and live', {
 		'curator-1': 1, 'curator-5': 5, 'curator-25': 25, 'curator-100': 100,
 	}, 'curator'),
-	...series('ranked and live sets the account mapped', {
+	...series('approved (ranked or loved) and live sets the account mapped', {
 		'mapper-1': 1, 'mapper-2': 2, 'mapper-5': 5, 'mapper-10': 10, 'mapper-50': 50, 'mapper-100': 100,
 	}, 'mapper'),
 	'combo-727': one('a stored score with max combo exactly 727', p => p.combo727),

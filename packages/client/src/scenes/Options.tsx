@@ -189,7 +189,7 @@ export default function Options() {
 							component: () => ShowUndownloaded,
 						},
 						{
-							search: t`download|downloaded|beatmap|beatmaps|bundled|ranked`,
+							search: t`download|downloaded|beatmap|beatmaps|bundled|ranked|loved`,
 							component: () => ShowUnbundled,
 						},
 					],
@@ -389,11 +389,9 @@ export default function Options() {
 		setActive(current ?? visible[0]?.name ?? null);
 	};
 
-	// Reset scroll + active when (re)opened so it always starts at the top.
+	// The panel keeps its scroll position across opens; sync the sidebar to it.
 	useEffect(() => {
-		if (!open) return;
-		scrollRef.current?.scrollTo({ top: 0 });
-		setActive(visible[0]?.name ?? null);
+		if (open) onScroll();
 	}, [open]);
 	useKeyboardOwner(searchRef, {
 		active: open, layer: LAYER.OPTIONS, close: () => isOptionsOpen.set(false),
