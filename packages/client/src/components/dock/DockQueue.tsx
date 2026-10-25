@@ -18,6 +18,7 @@ import { MAX_REPEAT } from '@oss-idle/shared/queue';
 import PlayQueue from '../../gameplay/playQueue';
 import DockCountdown from './DockCountdown';
 import DockCountdownBar from './DockCountdownBar';
+import DockRefresh from './DockRefresh';
 import useQueueDrag from './useQueueDrag';
 
 type Props = {
@@ -50,6 +51,7 @@ export default function DockQueue({ hint = false }: Props) {
 			<div className="dock__queue-head">
 				<span><Trans>Up next</Trans></span>
 				<span className="dock__count">{entries.length}</span>
+				<DockRefresh />
 			</div>
 			<ol ref={list} className="dock__list">
 				{rows.map(({ item: { beatmap, repeat = 1, played = 0 }, from }, index) => (

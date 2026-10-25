@@ -4,9 +4,10 @@ import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
 import { faListUl } from '@fortawesome/free-solid-svg-icons/faListUl';
 import { faRepeat } from '@fortawesome/free-solid-svg-icons/faRepeat';
 import { faShuffle } from '@fortawesome/free-solid-svg-icons/faShuffle';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import Marquee from '../Marquee';
 import DockQueueLength from './DockQueueLength';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import DockRefresh from './DockRefresh';
 import PlayQueue, {
 	AUTOPILOT_MODE,
 	autopilotModeLabels,
@@ -21,7 +22,7 @@ const MODE_ICON = {
 };
 
 /** Where the queue came from: its autopilot mode and the playlist or group,
- *  and how long it plays. */
+ *  how long it plays, and a refresh once that playlist was edited. */
 export default function DockSource() {
 	const [queue] = useSynced(PlayQueue.state);
 	if (!queue?.mode && !queue?.label && !queue?.entries.length) return null;
@@ -30,6 +31,7 @@ export default function DockSource() {
 			{queue.mode && <FontAwesomeIcon icon={MODE_ICON[queue.mode]} />}
 			{queue.mode && <span>{autopilotModeLabels()[queue.mode]}</span>}
 			{queue.label && <Marquee className="dock__source-label">{queue.label}</Marquee>}
+			<DockRefresh />
 			<DockQueueLength />
 		</span>
 	);

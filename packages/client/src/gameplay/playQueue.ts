@@ -17,6 +17,11 @@ import {
 import Socket from '../online/socket';
 import Entities from '../entity/entities';
 import { canPlayAt } from './playRate';
+import { requeue } from './requeue';
+import {
+	Playlist,
+	PlaylistEntry,
+} from '../db/schema/playlist';
 
 export {
 	AUTOPILOT_MODE,
@@ -99,6 +104,21 @@ const refAt = (entries: Queued[], at: number) => ({
 	nth: entries.slice(0, at).filter(e => e.beatmap.is(entries[at].beatmap)).length,
 });
 
+/** The playlist a queue plays: song select keys a playlist group `p<id>`. */
+const playlistOf = (s?: QueueSource): number | undefined => {
+	const fromList = s?.mode === AUTOPILOT_MODE.PLAYLIST || s?.mode === AUTOPILOT_MODE.SHUFFLE;
+	const id = fromList ? s.groupKey?.match(/^p(\d+)$/)?.[1] : undefined;
+	return id === undefined ? undefined : Number(id);
+};
+
+const playlistRows = (id: number): Promise<PlaylistEntry[]> => PlaylistEntry.query(
+	'SELECT * FROM playlist_entry WHERE playlistId = ? ORDER BY position, rowid', [id],
+);
+
+/** A playlist's entries in order, compared as a whole. */
+const contents = (rows: PlaylistEntry[]): string =>
+	rows.map(r => `${r.beatmapId}@${r.rate ?? 0}x${r.repeat}`).join();
+
 /** A signed-in character's queue is the server's; a guest's lives here. */
 const online = (): boolean => {
 	const character = Entities.character.get();
@@ -150,9 +170,14 @@ export default class PlayQueue {
 	/** Each push resolves on its own; an older one landing late must not win. */
 	private static received = 0;
 
+	/** The queue's playlist when it was first seen queued, so the queue's own
+	 *  edits never read as the playlist changing. */
+	private static queued: { id: number, contents: string } | undefined;
+
 	/** Another identity took over: its queue arrives with its own push. */
 	public static reset(): void {
 		this.received++;
+		this.queued = undefined;
 		if (this.state.get()) void this.state.set(undefined);
 	}
 
@@ -185,9 +210,60 @@ export default class PlayQueue {
 			...pool.slice(0, index),
 		]);
 		const ordered = source.mode === AUTOPILOT_MODE.SHUFFLE ? shuffled(rest) : rest;
+		this.queued = undefined;
 		// the launched map comes round again at the back, so a single-map queue
 		// (LOOP) repeats and a playlist wraps
 		const entries = launched?.beatmap.metadata.runtime ? [...ordered, launched] : ordered;
+		void this.state.set({
+			...source, entries,
+		});
+		if (online()) {
+			void Socket.sendSoon({
+				type: 'queue:set', source, entries: entries.map(toEntry),
+			});
+		}
+	}
+
+	/**
+	 * Whether the queue's playlist was edited since it was queued: the queue is a
+	 * copy taken at launch, so it keeps playing the old list. The first look at a
+	 * queue takes what its playlist holds then.
+	 */
+	public static async playlistChanged(): Promise<boolean> {
+		const id = playlistOf(this.state.get());
+		if (id === undefined) return false;
+		const rows = await playlistRows(id);
+		const now = contents(rows);
+		if (this.queued?.id !== id) this.queued = {
+			id, contents: now,
+		};
+		return rows.length > 0 && this.queued.contents !== now;
+	}
+
+	/** Rebuild the queue from its playlist as it is now, in the queue's own mode
+	 *  ({@link requeue}). */
+	public static async refreshFromPlaylist(): Promise<void> {
+		const id = playlistOf(this.state.get());
+		if (id === undefined) return;
+		const [playlist, rows] = await Promise.all([
+			Playlist.first('SELECT * FROM playlist WHERE id = ?', [id]),
+			playlistRows(id),
+		]);
+		const pool = playable(await resolve(rows.map(r => ({
+			beatmapId: r.beatmapId, rate: r.rate, repeat: r.repeat > 1 ? r.repeat : undefined,
+		})))).filter(q => canPlayAt(q.beatmap.lockedRate));
+		const s = this.state.get();
+		if (!playlist || !s || playlistOf(s) !== id || !pool.length) return;
+		this.queued = {
+			id, contents: contents(rows),
+		};
+		const entries = requeue(
+			pool, s.entries, (a, b) => a.beatmap.is(b.beatmap),
+			s.mode === AUTOPILOT_MODE.SHUFFLE ? shuffled : undefined,
+		);
+		const source: QueueSource = {
+			label: playlist.name, mode: s.mode, groupKey: s.groupKey,
+		};
 		void this.state.set({
 			...source, entries,
 		});
