@@ -3,6 +3,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
+	line-height: 1;
 }
 
 .editable-name__edit {
@@ -11,8 +12,11 @@
 	background: none;
 	color: inherit;
 	font-size: 0.6em;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
 	cursor: pointer;
-	opacity: 0;
+	opacity: 0.18;
 	transition: opacity 0.12s ease;
 }
 .editable-name:hover .editable-name__edit {
@@ -20,6 +24,10 @@
 }
 .editable-name__edit:hover {
 	opacity: 1;
+}
+/* FA svgs are 1.25em wide */
+.editable-name__edit svg {
+	width: 1em;
 }
 
 .editable-name__input {

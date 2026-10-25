@@ -79,6 +79,18 @@
 	align-items: center;
 }
 
+.character__meta-name {
+	display: inline-flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.character__country-link {
+	align-self: flex-start;
+	color: inherit;
+	text-decoration: none;
+}
+
 .character__meta-title {
 	display: block;
 	color: #fff;

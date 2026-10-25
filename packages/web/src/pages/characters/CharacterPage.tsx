@@ -8,6 +8,7 @@ import {
 } from '../../api/characters';
 import { getUser } from '../../api/users';
 import Flag from '../../components/Flag';
+import Link from '../../components/Link';
 import RestrictedProfileNotice from '../../components/character/RestrictedProfileNotice';
 import ProfilePicture from '../../components/ProfilePicture';
 import EditableProfilePicture from '../../components/EditableProfilePicture';
@@ -152,10 +153,16 @@ export default function CharacterPage({ id, character, stats }: {
 							colour={character.groups[0] && GROUP_BADGE[character.groups[0]].colour}
 						/>
 					</div>
-					<div className='character__meta-down'>
+					<Link
+						to='/rankings/global'
+						search={{
+							page: 1, country: user.country,
+						}}
+						className='character__meta-down character__country-link'
+					>
 						<div className='character__meta-flag'><Flag country={user.country} /></div>
 						<div className='character__meta-country'>{countryName(user.country, i18n.locale)}</div>
-					</div>
+					</Link>
 				</div>
 			</div>
 			<div className='character__stats'>
