@@ -132,7 +132,7 @@
 	position: absolute;
 	left: 0;
 	bottom: 0;
-	z-index: 2;
+	z-index: var(--z-card-overlay);
 	height: 3px;
 	background: var(--osu-pink, #ff66ab);
 	box-shadow: 0 0 8px rgba(255, 102, 171, 0.8);
@@ -161,7 +161,7 @@
 
 .bm-card__inner {
 	position: relative;
-	z-index: 1;
+	z-index: var(--z-card-inner);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -175,7 +175,7 @@
 }
 .bm-card__body {
 	position: relative;
-	z-index: 1;
+	z-index: var(--z-card-body);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -260,7 +260,7 @@
 	top: 7px;
 	right: 49px;
 	transform: translateX(calc(-1 * var(--pop)));
-	z-index: 2;
+	z-index: var(--z-card-overlay);
 	display: flex;
 	gap: 5px;
 	transition:

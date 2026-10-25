@@ -1,7 +1,7 @@
 .playground {
 	position: fixed;
 	inset: 0;
-	z-index: 99999;
+	z-index: var(--z-playground);
 	display: flex;
 	flex-direction: column;
 	background: #0b0910;

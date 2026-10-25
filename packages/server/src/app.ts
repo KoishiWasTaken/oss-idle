@@ -50,6 +50,7 @@ import { restrictionsRoutes } from './routes/restrictions';
 import { accountsRoutes } from './routes/accounts';
 import { bugsRoutes } from './routes/bugs';
 import { oauthRoutes } from './routes/oauth';
+import { emojiRoutes } from './routes/emoji';
 import { tokenRoutes } from './oauth';
 import { apiV2Routes } from './api/v2';
 import { UPLOAD_MAX } from './beatmaps/upload';
@@ -105,6 +106,7 @@ const v1 = new Hono()
 	.route('/me', meRoutes)
 	.route('/news', newsRoutes)
 	.route('/chat', chatRoutes)
+	.route('/emoji', emojiRoutes)
 	.route('/addons', addonsRoutes)
 	.route('/skins', skinsRoutes)
 	.route('/medals', medalsRoutes)

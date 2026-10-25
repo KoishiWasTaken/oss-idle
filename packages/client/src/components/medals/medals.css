@@ -33,7 +33,7 @@
 .medal-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 9800;
+	z-index: var(--z-medal);
 	overflow: hidden;
 	font-family: "Exo 2", sans-serif;
 	color: #fff;
@@ -70,7 +70,7 @@
 	left: 0;
 	right: 0;
 	bottom: 1.4rem;
-	z-index: 3;
+	z-index: var(--z-medal-hint);
 	text-align: center;
 	font-size: 0.85rem;
 	letter-spacing: 0.2em;
@@ -510,7 +510,7 @@
 .medal-focus {
 	position: absolute;
 	inset: 0;
-	z-index: 2;
+	z-index: var(--z-medal-focus);
 	display: flex;
 	flex-direction: column;
 	align-items: center;

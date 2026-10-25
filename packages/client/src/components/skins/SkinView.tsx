@@ -139,6 +139,7 @@ export default function SkinView({
 									value={description}
 									onChange={e => setDescription(e.target.value)} maxLength={500}
 								/>
+								<small className='listing-field__hint'><Trans>Markdown supported</Trans></small>
 							</label>
 							<div className='listing-field-row'>
 								<label className='listing-field'>

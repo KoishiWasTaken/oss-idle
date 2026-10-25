@@ -4,7 +4,7 @@
 	left: 50%;
 	transform: translateX(-50%);
 	/* over the menu, under pages (5000) */
-	z-index: 20;
+	z-index: var(--z-menu-update);
 	display: flex;
 	align-items: center;
 	max-width: 92vw;
@@ -36,7 +36,7 @@
 	height: 100%;
 	background: color-mix(in srgb, var(--osu-pink) 100%, transparent 25%);
 	transition: width 0.2s ease;
-	z-index: -1;
+	z-index: var(--z-under);
 }
 
 .dupdate.error {

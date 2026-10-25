@@ -1,7 +1,7 @@
 .ctxmenu {
 	position: fixed;
 	inset: 0;
-	z-index: 3000;
+	z-index: var(--z-dialog);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -10,6 +10,10 @@
 	animation: ctxmenu-in 0.16s ease both;
 	padding: 20px;
 	pointer-events: none;
+}
+/* portaled out of the dock, which also shows over the page overlay */
+body > .ctxmenu {
+	z-index: var(--z-dialog-portal);
 }
 @keyframes ctxmenu-in {
 	from {

@@ -3,7 +3,7 @@
 	position: fixed;
 	left: 0px;
 	bottom: 0px;
-	z-index: 9600;
+	z-index: var(--z-ticker);
 	display: flex;
 	width: 100vw;
 	background: rgba(0, 0, 0, 0.7);

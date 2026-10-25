@@ -228,6 +228,16 @@ const loadEditorSkin = async () => {
 	if (previous !== skin && previous !== currentSkin.get()) previous.dispose();
 };
 void SETTINGS.editorSkin.sync(loadEditorSkin);
+
+/** Load the skin `id` again from its files, wherever it is in use. */
+export const reloadSkin = (id: number) => {
+	const current = currentSkinDAO.get();
+	if (current?.id === id) currentSkinDAO.set(current);
+	else if (ownEditor === id) {
+		ownEditor = undefined;
+		void loadEditorSkin();
+	}
+};
 void currentSkin.sync(loadEditorSkin);
 
 void SkinDAO.getEnabled().then(current => {

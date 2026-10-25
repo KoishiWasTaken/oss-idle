@@ -4,7 +4,7 @@
 	position: fixed;
 	right: 8px;
 	bottom: 0px;
-	z-index: 9700;
+	z-index: var(--z-community-controls);
 	display: flex;
 	gap: 4px;
 }

@@ -42,19 +42,42 @@ export interface DesktopUpdater {
 	switchStream?(name: string): Promise<void>;
 }
 
-/** A map's set as a folder on disk, opened in the file explorer. Files by their path in
- *  the set ('/' between folders); undefined for one that went away. */
-export interface DesktopMapFolder {
-	/** Write the set's `files` to its folder (named `name`), watch it, and open it unless
-	 *  `show` is false. */
-	open(name: string, files: Record<string, Uint8Array>, show?: boolean): Promise<void>;
-	/** Files the game changed, written to the open folder (undefined deletes one). */
-	write(files: Record<string, Uint8Array | undefined>): void;
-	/** Stop watching the folder. */
-	close(): void;
-	/** What the player changed in the folder; returns an unsubscribe fn. */
-	onChanged(cb: (files: Record<string, Uint8Array | undefined>) => void): () => void;
-}
+/** The player's maps, skins and add-ons, one folder each under a folder of their own. */
+export type LibraryKind = 'maps' | 'skins' | 'addons';
+
+/** One folder of the library: its files ('/' between folders, none starting with a dot)
+ *  and what the game wrote about it in the folder's `.oss-idle.json`. */
+export type LibraryEntry = {
+	name: string;
+	info?: unknown;
+	files: { path: string; size: number }[];
+};
+
+/** A folder the player changed: its files `changed`, and `entry` undefined once it is gone. */
+export type LibraryChange = {
+	kind: LibraryKind;
+	name: string;
+	entry?: LibraryEntry;
+	changed: string[];
+};
+
+/** Files by path; undefined deletes one. */
+export type LibraryFiles = Record<string, Uint8Array | undefined>;
+
+export type DesktopLibrary = {
+	list(kind: LibraryKind): Promise<LibraryEntry[]>;
+	read(kind: LibraryKind, name: string, path: string): Promise<Uint8Array | undefined>;
+	/** Write files into the folder `name`, and its info when given. With `replace`, the
+	 *  files not in `files` go. Resolves to the folder as it is now. */
+	write(
+		kind: LibraryKind, name: string, files: LibraryFiles, info?: unknown, replace?: boolean,
+	): Promise<LibraryEntry>;
+	remove(kind: LibraryKind, name: string): Promise<void>;
+	/** Open the folder `name`, or the kind's own folder, in the file explorer. */
+	reveal(kind: LibraryKind, name?: string): Promise<void>;
+	/** What the player changes in the library folders; returns an unsubscribe fn. */
+	onChanged(cb: (change: LibraryChange) => void): () => void;
+};
 
 /**
  * The bridge the Electron app injects on `window.ossIdleDesktop` (via its
@@ -107,8 +130,8 @@ export interface OssIdleDesktop {
 	/** Reinstall into `<picked folder>/oss!idle` and relaunch from there. Absent where the
 	 *  install is already portable (AppImage, macOS) and on builds older than the option. */
 	moveInstall?(dialogTitle: string): Promise<DesktopMoveResult>;
-	/** The open map's folder, for the editor. Absent on builds older than it. */
-	readonly mapFolder?: DesktopMapFolder;
+	/** Maps, skins and add-ons as folders on disk. Absent on builds older than it. */
+	readonly library?: DesktopLibrary;
 	/** Steam integration - inert until wired up, exposed so callers can feature-detect. */
 	readonly steam: { readonly available: boolean };
 }

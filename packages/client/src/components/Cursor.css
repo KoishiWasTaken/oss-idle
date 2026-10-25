@@ -15,7 +15,7 @@ html.web-open .cursor-trail {
 	position: fixed;
 	top: 0;
 	left: 0;
-	z-index: 100000;
+	z-index: var(--z-cursor);
 	pointer-events: none;
 	opacity: 0;
 	will-change: transform;
@@ -69,7 +69,7 @@ html.web-open .cursor-trail {
 	position: fixed;
 	top: 0;
 	left: 0;
-	z-index: 99999;
+	z-index: var(--z-cursor-trail);
 	width: calc(26px * var(--cursor-size, 1));
 	height: calc(26px * var(--cursor-size, 1));
 	pointer-events: none;

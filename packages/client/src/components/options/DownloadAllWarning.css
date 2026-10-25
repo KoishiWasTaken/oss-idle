@@ -1,6 +1,6 @@
 .download-all-warning {
 	position: fixed;
 	inset: 0;
-	z-index: 10001;
+	z-index: var(--z-download-warning);
 	pointer-events: none;
 }

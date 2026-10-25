@@ -1,9 +1,11 @@
-export type WarmupStage = 'cold' | 'warming' | 'warm' | 'peak' | 'pushing' | 'tired';
+import { BAR_ZONES } from '@oss-idle/shared/fatigue';
 
-/** where the character is on its warm-up curve */
-export const warmupStage = (warm: number, cooling = false): WarmupStage => {
-	if (cooling) return warm < 0.5 ? 'tired' : 'pushing';
-	if (warm < 0.25) return 'cold';
-	if (warm < 0.75) return 'warming';
-	return warm < 0.995 ? 'warm' : 'peak';
+export type WarmupStage = 'cold' | 'warming' | 'peak' | 'pushing' | 'fatigued';
+
+/** which zone of the warm-up bar the character sits in */
+export const warmupStage = (bar: number): WarmupStage => {
+	const [peak, pushing, fatigued] = BAR_ZONES;
+	if (bar < peak) return bar < peak / 2 ? 'cold' : 'warming';
+	if (bar < pushing) return 'peak';
+	return bar < fatigued ? 'pushing' : 'fatigued';
 };

@@ -64,18 +64,27 @@ export const importSkin = async (files: SkinFiles, fallbackName: string): Promis
 	const name = (info.name?.trim() || fallbackName).slice(0, 80);
 	const installed = await SkinDAO.getAll();
 	const same = installed.find(s => s.local && s.name === name);
-	const id = same?.id ?? Math.min(0, ...installed.map(s => s.id)) - 1;
+	const id = same?.id ?? newLocalId(installed);
 	const blobs = new Map(Object.entries(files).map(([path, blob]) => [normalizePath(path), blob]));
-	await putSkinFiles(id, manifestOf(files), blobs);
+	await putSkinFiles(id, manifestOf(files), blobs, name);
+	if (!same) return localSkin(id, name, info.author?.trim() ?? '').add();
+	await same.update({
+		authorName: info.author?.trim() ?? '', updatedAt: new Date().toISOString(),
+	});
+	return same;
+};
+
+/** The row of a skin from the player's own files. */
+export const localSkin = (id: number, name: string, authorName: string) => {
 	const now = new Date().toISOString();
-	const dao = same ?? new SkinDAO({
+	return new SkinDAO({
 		id,
 		name,
 		description: '',
 		version: '1.0.0',
 		icon: null,
 		authorId: 0,
-		authorName: info.author?.trim() ?? '',
+		authorName,
 		tags: '',
 		status: 'UNPUBLISHED',
 		enabled: false,
@@ -84,9 +93,7 @@ export const importSkin = async (files: SkinFiles, fallbackName: string): Promis
 		publishedAt: null,
 		updatedAt: now,
 	});
-	if (same) await same.update({
-		authorName: info.author?.trim() ?? '', updatedAt: now,
-	});
-	else await dao.add();
-	return dao;
 };
+
+/** The id a new local skin gets. */
+export const newLocalId = (installed: SkinDAO[]) => Math.min(0, ...installed.map(s => s.id)) - 1;

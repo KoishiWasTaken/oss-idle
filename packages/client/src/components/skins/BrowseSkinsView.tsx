@@ -4,6 +4,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import useKeyboardOwner from '../../input/keyboardOwner';
 import {
 	Plural,
@@ -179,7 +180,7 @@ export default function BrowseSkinsView() {
 												<Plural value={ph({ downloads: a.downloads })} one='# download' other='# downloads' />
 											</span>
 										</div>
-										{a.description && <div className='listing__desc'>{a.description}</div>}
+										{a.description && <Markdown className='listing__desc' text={a.description} inline />}
 										{a.tags.length > 0 && <div className='listing__tags'>
 											{a.tags.map(tag => <span key={tag} className='listing__tag'>{tag}
 											</span>)}

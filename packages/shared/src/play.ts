@@ -53,8 +53,8 @@ export const playStartResultDTO = z.discriminatedUnion('status', [
 		fatigue: z.number().min(0).max(1).default(0),
 		/** how warmed up, 0 cold to 1 warm */
 		warmup: z.number().min(0).max(1).default(1),
-		/** past warm-up's peak: more strain cools it down */
-		cooling: z.boolean().default(false),
+		/** where the character sits on the warm-up bar, 0 cold to 1 exhausted */
+		warmupBar: z.number().min(0).max(1).optional(),
 		...offsetChunk,
 	}),
 	// played on the client, as tired as the character is now; it adds no fatigue
@@ -62,7 +62,7 @@ export const playStartResultDTO = z.discriminatedUnion('status', [
 		status: z.literal('unranked'),
 		fatigue: z.number().min(0).max(1).default(0),
 		warmup: z.number().min(0).max(1).default(1),
-		cooling: z.boolean().default(false),
+		warmupBar: z.number().min(0).max(1).optional(),
 	}),
 	z.object({ status: z.literal('refused') }),
 	// the account is restricted: no play at all, not even unranked

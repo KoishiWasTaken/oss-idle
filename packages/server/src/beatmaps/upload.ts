@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm';
 import {
 	INTRO_SET_ID,
+	monthlyQuota,
 	type BeatmapStatus,
 } from '@oss-idle/shared/beatmap';
 import {
@@ -47,14 +48,6 @@ const UNPACKED_MAX = 150 * MB;
 const CHART_MAX = {
 	notes: 100_000, points: 50_000, ms: 2 * 60 * 60 * 1000, 
 };
-
-/** New maps a month, like osu!: a base, one more per set of theirs that is ranked
- *  now, and two more for supporters. */
-const MONTHLY_BASE = 3;
-const SUPPORTER_BONUS = 2;
-
-export const monthlyQuota = (rankedSets: number, supporter: boolean) =>
-	MONTHLY_BASE + rankedSets + (supporter ? SUPPORTER_BONUS : 0);
 
 /** A difficulty the editor's checks find errors in. */
 export type UploadProblem = { file: string, version: string, checks: CheckId[] };

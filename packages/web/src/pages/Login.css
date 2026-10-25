@@ -1,0 +1,42 @@
+.login__logo {
+	position: relative;
+	width: 88px;
+	height: 88px;
+}
+
+.login__logo img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.login__osu {
+	gap: 12px;
+	border: none;
+	font-family: inherit;
+}
+
+.login__osu img {
+	width: 26px;
+	height: 26px;
+}
+
+.login__stats {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px 24px;
+	width: 100%;
+	margin: 6px 0 0;
+	padding: 16px 0 0;
+	list-style: none;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--muted);
+	font-size: 14px;
+}
+
+.login__stats b {
+	color: var(--text);
+}

@@ -17,7 +17,10 @@ import {
 	type StageFrame,
 	type StageLayer,
 } from './render/stage';
-import { drawStageNotes } from './render/stageNotes';
+import {
+	drawStageNotes,
+	preparePatterns,
+} from './render/stageNotes';
 import {
 	stageLayout,
 	type StageLayout,
@@ -66,6 +69,7 @@ export default class GameplayRenderer {
 	private layout?: StageLayout;
 	private geometry?: PlayfieldGeometry;
 	private frame?: StageFrame;
+	private next?: Skin;
 
 	constructor(
 		private ctx: CanvasRenderingContext2D,
@@ -73,8 +77,9 @@ export default class GameplayRenderer {
 		private skin: Skin,
 	) {}
 
+	/** takes over once its assets have decoded; the current skin draws until then */
 	setSkin(skin: Skin) {
-		this.skin = skin;
+		this.next = skin;
 	}
 
 	/** clear the canvas (background + dim are DOM layers beneath the transparent canvas) */
@@ -85,6 +90,7 @@ export default class GameplayRenderer {
 	private stage(assets: ManiaAssets, vp: Viewport): StageFrame {
 		let L = this.layout;
 		if (!L || L.assets !== assets || L.w !== vp.w || L.h !== vp.h) {
+			if (L?.assets !== assets) preparePatterns(this.ctx, assets);
 			L = this.layout = stageLayout(assets, vp.w, vp.h);
 			this.geometry = undefined;
 		}
@@ -114,14 +120,14 @@ export default class GameplayRenderer {
 
 	/** draw the whole frame at song time `now`; returns the geometry for play-only chrome */
 	draw(now: number, vp: Viewport, opts: DrawOptions = {}): PlayfieldGeometry {
-		const assets = this.skin.maniaAssets(this.game.keyCount);
-		if (!assets) {
-			const g = playfieldGeometry(this.game, this.skin, vp);
-			this.hud({
-				ctx: this.ctx, game: this.game, skin: this.skin, now, nowPos: 0, vp, g, opts,
-			});
-			return g;
+		const keys = this.game.keyCount;
+		if (this.next?.maniaAssets(keys)) {
+			this.skin = this.next;
+			this.next = undefined;
 		}
+		const assets = this.skin.maniaAssets(keys);
+		// nothing until decoded: a HUD without its stage lands in the wrong place
+		if (!assets) return playfieldGeometry(this.game, this.skin, vp);
 		const f = this.stage(assets, vp);
 		f.now = now;
 		f.nowPos = this.game.scroll.positionAt(now);

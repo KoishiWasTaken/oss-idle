@@ -67,6 +67,8 @@ const POSSESSION_ID = 1168087;
 const PERFECT_SCORE = 1_000_000;
 /** The Parallax II: Future Sequence [Marathon], the "Future Sequence" medal's map */
 const PARALLAX_ID = 1443309;
+/** Yuyoyuppe - AiAe [Wafles' SHD], the "Wonderful" medal's map */
+const AIAE_ID = 421066;
 
 // the stars a play was actually played at: a rate changes them
 const playedStars = sql`coalesce(${scores.sr}, ${beatmaps.sr})`;
@@ -87,6 +89,8 @@ const scoreFacts = async (characterId: number) => {
 			and ${scores.score} >= ${PERFECT_SCORE}`),
 		parallax: max(sql<number>`${scores.beatmapId} = ${PARALLAX_ID}
 			and ${scores.grade} in ('XX', 'X', 'SS', 'S')`),
+		wonderful: max(sql<number>`${scores.beatmapId} = ${AIAE_ID}
+			and ${scores.grade} in ('XX', 'X', 'SS') and ${scores.rate} >= 1`),
 	})
 		.from(scores)
 		.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
@@ -101,6 +105,7 @@ const scoreFacts = async (characterId: number) => {
 		combo727: Number(row?.combo727) > 0,
 		possessed: Number(row?.possessed) > 0,
 		parallax: Number(row?.parallax) > 0,
+		wonderful: Number(row?.wonderful) > 0,
 	};
 };
 
@@ -373,6 +378,8 @@ const RULES: Record<string, Rule> = {
 	'possessed': one(`a ${amount(PERFECT_SCORE)} score on TAG underground - POSSESSION [CHALLENGE]`,
 		p => p.possessed),
 	'parallax': one('an S or better on The Parallax II: Future Sequence [Marathon]', p => p.parallax),
+	'wonderful': one('an SS or better on Yuyoyuppe - AiAe [Wafles\' SHD] at 1.0x rate or faster',
+		p => p.wonderful),
 };
 
 // a medal without a condition could never be earned: refuse to start

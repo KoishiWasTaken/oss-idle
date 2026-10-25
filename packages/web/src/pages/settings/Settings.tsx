@@ -2,6 +2,7 @@ import './Settings.css';
 import { Trans } from '@lingui/react/macro';
 import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
 import TitleSettings from './TitleSettings';
+import EmojiSettings from './EmojiSettings';
 import OAuthSettings from './OAuthSettings';
 import ItchSettings, { type ItchClaim } from './ItchSettings';
 
@@ -17,6 +18,12 @@ export default function Settings({ itch }: { itch?: ItchClaim }) {
 			<div className='settings__name'><Trans>Title</Trans></div>
 			<div className='settings__body'>
 				<TitleSettings id={String(character.id)} />
+			</div>
+		</div>
+		<div className='settings__section'>
+			<div className='settings__name'><Trans>Emoji</Trans></div>
+			<div className='settings__body'>
+				<EmojiSettings />
 			</div>
 		</div>
 		<div className='settings__section'>

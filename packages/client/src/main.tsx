@@ -7,6 +7,7 @@ import {
 } from './i18n';
 import '@oss-idle/shared/shared.css';
 import './index.css';
+import './zindex.css';
 import './online/account'; // resolve the session + account, listen for login
 import { initWakeLock } from './responsive/wakeLock';
 import { initFullscreen } from './responsive/fullscreen';
@@ -15,6 +16,8 @@ import { SETTINGS } from './db/settings';
 import { desktop } from '@oss-idle/shared/desktop';
 import './addons/host'; // globalThis.ossIdle, before any add-on loads
 import { bootAddons } from './addons/runtime';
+import { watchMapFolders } from './osu/beatmap/diskSync';
+import { watchSkinFolders } from './osu/skin/skinFolders';
 import App from './App.tsx';
 import {
 	DEV_TOOLS,
@@ -25,6 +28,8 @@ initWakeLock(); // keep mobile screens awake while playing
 initFullscreen(); // keep the fullscreen setting in sync with Esc/F11
 initFrameLimiter(); // cap every rAF loop to the frame limiter setting
 void bootAddons(); // mount enabled installed add-ons
+void watchMapFolders();
+void watchSkinFolders();
 SETTINGS.uiScale.forceSync(scale => desktop()?.setZoomFactor?.(scale));
 
 // dev tools; the static DEV_TOOLS drops them from a release build. The profiler

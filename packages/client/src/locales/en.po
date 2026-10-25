@@ -421,10 +421,6 @@ msgstr "All but the difficulty name is shared by the set: saving writes it to ev
 msgid "All ranked beatmaps downloaded."
 msgstr "All ranked beatmaps downloaded."
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Almost at your peak."
-msgstr "Almost at your peak."
-
 #: src/scenes/Gameplay.tsx
 msgid "Already playing"
 msgstr "Already playing"
@@ -500,7 +496,6 @@ msgstr "Available"
 msgid "Average XP boost"
 msgstr "Average XP boost"
 
-#: src/components/page/Page.tsx
 #: src/components/page/pageBar.tsx
 #: src/components/songselect/BeatmapInfo.tsx
 #: src/components/Tutorial.tsx
@@ -874,6 +869,7 @@ msgstr "Click to skip"
 #: src/components/community/PlayerMenu.tsx
 #: src/components/direct/DirectLinkPanel.tsx
 #: src/components/options/DownloadAllWarning.tsx
+#: src/components/page/Page.tsx
 #: src/components/PlaylistOverlay.tsx
 #: src/editor/EditorAddonWindow.tsx
 msgid "Close"
@@ -1015,7 +1011,7 @@ msgstr "Couldn't take over the running play."
 msgid "Create character"
 msgstr "Create character"
 
-#: src/components/addons/ManageAddonsView.tsx
+#: src/components/addons/ManageAddonsActions.tsx
 msgid "Create new add-on"
 msgstr "Create new add-on"
 
@@ -1034,6 +1030,10 @@ msgstr "Ctrl + wheel"
 #: src/scenes/MatchSetup.tsx
 msgid "Current Players ({players}/{size})"
 msgstr "Current Players ({players}/{size})"
+
+#: src/components/options/GameplaySkin.tsx
+msgid "Current skin"
+msgstr "Current skin"
 
 #: src/components/options/CursorSize.tsx
 msgid "Cursor size"
@@ -1060,6 +1060,8 @@ msgstr "Custom index"
 msgid "Cut"
 msgstr "Cut"
 
+#: src/components/options/EditorSkin.tsx
+#: src/components/options/GameplaySkin.tsx
 #: src/components/skins/DefaultSkinRow.tsx
 msgid "Default skin"
 msgstr "Default skin"
@@ -1163,6 +1165,10 @@ msgstr "Dismiss"
 msgid "Display"
 msgstr "Display"
 
+#: src/components/options/ShowUnbundled.tsx
+msgid "Display non-bundled ranked beatmaps as downloadable in song select"
+msgstr "Display non-bundled ranked beatmaps as downloadable in song select"
+
 #: src/components/mods/ModSelect.tsx
 #: src/components/result/ResultMods.tsx
 msgid "Double"
@@ -1211,6 +1217,10 @@ msgstr "download|beatmap|beatmaps|bundled|supporter"
 #: src/scenes/Options.tsx
 msgid "download|beatmap|beatmaps|ranked|supporter"
 msgstr "download|beatmap|beatmaps|ranked|supporter"
+
+#: src/scenes/Options.tsx
+msgid "download|downloaded|beatmap|beatmaps|bundled|ranked"
+msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked"
 
 #: src/scenes/Options.tsx
 msgid "download|downloaded|beatmap|beatmaps|hide"
@@ -1274,6 +1284,14 @@ msgstr "Edit the queue"
 #: src/scenes/MainMenu.tsx
 msgid "Editor"
 msgstr "Editor"
+
+#: src/scenes/Options.tsx
+msgid "EDITOR"
+msgstr "EDITOR"
+
+#: src/components/options/EditorSkin.tsx
+msgid "Editor skin"
+msgstr "Editor skin"
 
 #: src/components/options/EffectVolume.tsx
 msgid "Effect"
@@ -1355,12 +1373,12 @@ msgid "Faster playback"
 msgstr "Faster playback"
 
 #: src/scenes/Gameplay.tsx
-msgid "Fatigue"
-msgstr "Fatigue"
+msgid "Fatigued"
+msgstr "Fatigued"
 
 #: src/components/gameplay/WarmupHint.tsx
-msgid "Fatigue only kicks in if you keep pushing after getting tired, and reduces XP gains."
-msgstr "Fatigue only kicks in if you keep pushing after getting tired, and reduces XP gains."
+msgid "Fatigued: you earn less XP. Play easier maps to rest."
+msgstr "Fatigued: you earn less XP. Play easier maps to rest."
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Field"
@@ -1505,6 +1523,7 @@ msgstr "Gen {generation}"
 #: src/scenes/Options.tsx
 #: src/scenes/Options.tsx
 #: src/scenes/Options.tsx
+#: src/scenes/Options.tsx
 msgid "General"
 msgstr "General"
 
@@ -1515,10 +1534,6 @@ msgstr "GENERAL"
 #: src/components/character/RebirthView.tsx
 msgid "Generation {generation}"
 msgstr "Generation {generation}"
-
-#: src/scenes/Gameplay.tsx
-msgid "Getting tired"
-msgstr "Getting tired"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Give Host"
@@ -1740,10 +1755,6 @@ msgstr "Joining this game requires a password..."
 msgid "Keep playing"
 msgstr "Keep playing"
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Keep playing physically demanding maps to reach your peak."
-msgstr "Keep playing physically demanding maps to reach your peak."
-
 #: src/components/options/KeepPlaying.tsx
 msgid "Keep playing the queue when the game is closed"
 msgstr "Keep playing the queue when the game is closed"
@@ -1961,6 +1972,11 @@ msgstr "mapped by {mapper}"
 msgid "Mapper"
 msgstr "Mapper"
 
+#: src/components/addons/AddonEditMeta.tsx
+#: src/components/skins/SkinView.tsx
+msgid "Markdown supported"
+msgstr "Markdown supported"
+
 #: src/components/options/MasterVolume.tsx
 msgid "Master"
 msgstr "Master"
@@ -2095,6 +2111,14 @@ msgstr "Multiplayer Lobby"
 #: src/components/options/MusicVolume.tsx
 msgid "Music"
 msgstr "Music"
+
+#: src/input/Controls.ts
+msgid "Music paused"
+msgstr "Music paused"
+
+#: src/input/Controls.ts
+msgid "Music playing"
+msgstr "Music playing"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Musical"
@@ -2389,6 +2413,10 @@ msgstr "Only 4K difficulties can be ranked: add one first"
 msgid "Open"
 msgstr "Open"
 
+#: src/components/skins/SkinDAORow.tsx
+msgid "Open folder"
+msgstr "Open folder"
+
 #: src/components/community/LinkMenu.tsx
 msgid "Open link"
 msgstr "Open link"
@@ -2397,14 +2425,32 @@ msgstr "Open link"
 msgid "Open oss! web"
 msgstr "Open oss! web"
 
+#: src/components/addons/ManageAddonsActions.tsx
+#: src/components/options/OpenLibraryFolders.tsx
+msgid "Open the add-ons folder"
+msgstr "Open the add-ons folder"
+
 #: src/editor/builtinActions.ts
 #: src/editor/EditorSoundFiles.tsx
 msgid "Open the map's folder"
 msgstr "Open the map's folder"
 
+#: src/components/options/OpenLibraryFolders.tsx
+msgid "Open the maps folder"
+msgstr "Open the maps folder"
+
+#: src/components/options/OpenLibraryFolders.tsx
+#: src/components/skins/ManageSkinsView.tsx
+msgid "Open the skins folder"
+msgstr "Open the skins folder"
+
 #: src/components/community/LinkMenu.tsx
 msgid "Open this link?"
 msgstr "Open this link?"
+
+#: src/scenes/Options.tsx
+msgid "open|folder|beatmap|beatmaps|maps|skins|add-ons|addons|files"
+msgstr "open|folder|beatmap|beatmaps|maps|skins|add-ons|addons|files"
 
 #: src/scenes/MainMenu.tsx
 #: src/scenes/Options.tsx
@@ -2504,6 +2550,10 @@ msgstr "Parallax"
 msgid "Password:"
 msgstr "Password:"
 
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Past the sweet spot. Play easier maps to come back to it."
+msgstr "Past the sweet spot. Play easier maps to come back to it."
+
 #: src/editor/builtinActions.ts
 msgid "Paste as copied"
 msgstr "Paste as copied"
@@ -2551,8 +2601,8 @@ msgid "Personal best"
 msgstr "Personal best"
 
 #: src/components/gameplay/WarmupHint.tsx
-msgid "Physical skills ({skills}) need some warmup to reach their peak. You still gain full XP independently of warmup."
-msgstr "Physical skills ({skills}) need some warmup to reach their peak. You still gain full XP independently of warmup."
+msgid "Physically demanding maps ({skills}) move the needle right, easier maps and time off move it left. Keep it in the middle."
+msgstr "Physically demanding maps ({skills}) move the needle right, easier maps and time off move it left. Keep it in the middle."
 
 #: src/components/direct/DirectPanel.tsx
 msgid "Pick a beatmap to see it here."
@@ -2600,6 +2650,11 @@ msgstr "Play / pause"
 msgid "Play Count: {playCount} (Lv{level})"
 msgstr "Play Count: {playCount} (Lv{level})"
 
+#: src/components/gameplay/WarmupHint.tsx
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Play harder maps to reach the sweet spot."
+msgstr "Play harder maps to reach the sweet spot."
+
 #: src/components/dock/DockQueue.tsx
 msgid "Play it one more time"
 msgstr "Play it one more time"
@@ -2615,10 +2670,6 @@ msgstr "Play next"
 #: src/components/Tutorial.tsx
 msgid "Play online"
 msgstr "Play online"
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Play physically demanding maps to warm up."
-msgstr "Play physically demanding maps to warm up."
 
 #: src/scenes/Gameplay.tsx
 msgid "Play unranked"
@@ -3282,6 +3333,14 @@ msgid "skin|skins|browse|catalog|install"
 msgstr "skin|skins|browse|catalog|install"
 
 #: src/scenes/Options.tsx
+msgid "skin|skins|current|select|gameplay"
+msgstr "skin|skins|current|select|gameplay"
+
+#: src/scenes/Options.tsx
+msgid "skin|skins|editor|select"
+msgstr "skin|skins|editor|select"
+
+#: src/scenes/Options.tsx
 msgid "skin|skins|manage|installed"
 msgstr "skin|skins|manage|installed"
 
@@ -3444,6 +3503,10 @@ msgstr "Swap column {column} with the next one picked"
 #: src/editor/builtinActions.ts
 msgid "Swap two columns of the selection"
 msgstr "Swap two columns of the selection"
+
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Sweet spot: your physical skills are at their best."
+msgstr "Sweet spot: your physical skills are at their best."
 
 #: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
@@ -3922,10 +3985,6 @@ msgid "Warm-up"
 msgstr "Warm-up"
 
 #: src/scenes/Gameplay.tsx
-msgid "Warmed up"
-msgstr "Warmed up"
-
-#: src/scenes/Gameplay.tsx
 msgid "Warming up"
 msgstr "Warming up"
 
@@ -4058,17 +4117,9 @@ msgstr "You are a player."
 msgid "You are a supporter."
 msgstr "You are a supporter."
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You are past your peak. Play easier maps to stay in optimal shape."
-msgstr "You are past your peak. Play easier maps to stay in optimal shape."
-
 #: src/scenes/MatchSetup.tsx
 msgid "You are the host!"
 msgstr "You are the host!"
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You are tiring and your physical skills are slipping."
-msgstr "You are tiring and your physical skills are slipping."
 
 #: src/online/multiplayer.ts
 msgid "You have become the host for this room!"
@@ -4077,10 +4128,6 @@ msgstr "You have become the host for this room!"
 #: src/components/addons/ManageAddonsView.tsx
 msgid "You haven't created any add-ons yet."
 msgstr "You haven't created any add-ons yet."
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You warm up by playing physically demanding maps. If you do this for too long though, you get tired and need to cool down in order to reach your peak again. Balance it out properly and you'll always play at your maximum skill level."
-msgstr "You warm up by playing physically demanding maps. If you do this for too long though, you get tired and need to cool down in order to reach your peak again. Balance it out properly and you'll always play at your maximum skill level."
 
 #: src/components/RestrictedNotice.tsx
 msgid "Your account has been <0>restricted</0>: you can't play or chat. If you think it's a mistake: <1>{email}</1>"
@@ -4117,10 +4164,6 @@ msgstr "Your character keeps playing its queue for {hours} hours after you quit.
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Your own plays and level-ups, seen only by you."
 msgstr "Your own plays and level-ups, seen only by you."
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Your physical skills are at their best."
-msgstr "Your physical skills are at their best."
 
 #: src/components/skins/ManageSkinsView.tsx
 msgid "Your published skins"

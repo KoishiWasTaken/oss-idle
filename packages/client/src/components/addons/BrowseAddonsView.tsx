@@ -4,6 +4,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import useKeyboardOwner from '../../input/keyboardOwner';
 import {
 	Plural,
@@ -203,7 +204,7 @@ export default function BrowseAddonsView() {
 												<Plural value={ph({ downloads: a.downloads })} one='# download' other='# downloads' />
 											</span>
 										</div>
-										{a.description && <div className='listing__desc'>{a.description}</div>}
+										{a.description && <Markdown className='listing__desc' text={a.description} inline />}
 										<div className='listing__tags'>
 											{a.types.map(kind => (
 												<span key={kind} className='addon-type is-active'>{addonTypeLabel(kind)}</span>

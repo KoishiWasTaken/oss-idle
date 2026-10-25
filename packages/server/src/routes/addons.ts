@@ -57,7 +57,7 @@ import {
 
 // add-ons publish without review: publishes and icon uploads are capped per account, like skins'
 const ADDONS_PER_DAY = 5;
-const ICONS_PER_DAY = 5;
+const ICONS_PER_DAY = 20;
 
 /** Load an add-on the caller owns, or throw 404/403. */
 const ownedBy = async (id: number, userId: number) => {

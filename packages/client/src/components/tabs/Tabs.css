@@ -36,7 +36,7 @@
 .tabs.classic .tab.is-active {
 	background: white;
 	color: black;
-	z-index: 2;
+	z-index: var(--z-tab-active);
 }
 
 @media (max-width: 600px) {

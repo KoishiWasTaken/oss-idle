@@ -4,7 +4,7 @@
 	display: grid;
 	place-items: center;
 	background: radial-gradient(circle at 50% 50%, #16121b 0%, #060508 78%);
-	z-index: 50;
+	z-index: var(--z-intro);
 	cursor: pointer;
 }
 

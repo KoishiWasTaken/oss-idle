@@ -3,7 +3,7 @@
 	right: 14px;
 	bottom: 34px;
 	/* over the chat buttons (CommunityControls) */
-	z-index: 9750;
+	z-index: var(--z-supporter-heart);
 	color: #fff;
 	font-size: 2rem;
 	filter: drop-shadow(0 0 6px #ffffffb0);

@@ -400,6 +400,24 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		</div>,
 	},
 	{
+		id: 'chat-emoji',
+		label: 'Chat - emoji as images: :names:, typed characters, unknown names stay text, '
+			+ 'a supporter\'s own only in their lines',
+		render: () => <div className="chat__log">
+			{([
+				['gg :sob: :thumbsup: :heart:'],
+				['typed as is 😭👍❤ ❤️ (and 🫠, not an emoji here)'],
+				[':oss: and :no_such_emoji: and :star_struck::fire:'],
+				[':sob: https://osu.ppy.sh/beatmapsets/1 :tada:'],
+				// a supporter's own (account 500711's on the emoji branch's test data)
+				['its owner sends :jokey:', 500711],
+				['someone else sends :jokey:', 45444],
+			] as const).map(([text, senderId]) => <div key={text} className="chat__line">
+				<ChatText text={text} senderId={senderId} />
+			</div>)}
+		</div>,
+	},
+	{
 		id: 'direct-link',
 		label: 'oss!direct - the panel a supporter gets from a map link in chat',
 		setup: () => void BeatmapAPI.getManifest().then(m => directLink.set(m.beatmaps[1]?.id)),
@@ -464,7 +482,7 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 	},
 	{
 		id: 'warmup-gauge',
-		label: 'Gameplay HUD - warm-up gauge: cold, warming up, warmed up, peak, pushing, getting tired',
+		label: 'Gameplay HUD - warm-up bar: cold, warming up, peak, pushing, fatigued',
 		render: () => <WarmupGaugePreview />,
 	},
 	{
@@ -647,6 +665,20 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 			addon={sampleRepoAddon()}
 			onBack={() => {}}
 			onSaved={() => {}}
+		/>,
+	},
+	{
+		id: 'addon-markdown',
+		label: 'Add-on details - a Markdown description',
+		render: () => <AddonView
+			mode='view'
+			detail={{
+				...detailOfDTO(sampleRepoAddon()),
+				description: '## What it does\nSimulates your character on **every** downloaded map'
+					+ ' to rank *farm value*.\n\n- `sim` playlists\n- ~~manual~~ automatic\n\n'
+					+ 'Source on [GitHub](https://github.com/oss-idle/addon-sim).',
+			}}
+			onBack={() => {}}
 		/>,
 	},
 ];

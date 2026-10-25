@@ -160,6 +160,7 @@ export const MEDALS: MedalDef[] = [
 	def('first-chat', 'secret', 'silver', 'chatCircleDots'),
 	def('possessed', 'secret', 'silver', 'ghost'),
 	def('parallax', 'secret', 'silver', 'personSimpleRun'),
+	def('wonderful', 'secret', 'silver', 'butterfly'),
 ];
 
 const STEPS = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -200,7 +201,7 @@ export const MEDAL_LINES: Record<MedalCategory, string[][]> = {
 		['mapper-1', 'mapper-2', 'mapper-5', 'mapper-10', 'mapper-50', 'mapper-100'],
 	],
 	secret: [
-		['combo-727', 'same-map-100', 'fail-99', 'fail-10s', 'night-owl', 'first-chat', 'possessed', 'parallax'],
+		['combo-727', 'same-map-100', 'fail-99', 'fail-10s', 'night-owl', 'first-chat', 'possessed', 'parallax', 'wonderful'],
 	],
 };
 

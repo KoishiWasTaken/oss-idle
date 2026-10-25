@@ -17,6 +17,8 @@ type Props = {
 	onUpdate: () => void,
 	onPublish: () => void,
 	onExport: () => void,
+	/** shows its folder, on desktop */
+	onOpenFolder?: () => void,
 	onUninstall: () => void,
 };
 
@@ -31,6 +33,7 @@ export default function SkinDAORow({
 	onUpdate,
 	onPublish,
 	onExport,
+	onOpenFolder,
 	onUninstall,
 }: Props) {
 	const [current] = useSynced(currentSkinDAO);
@@ -98,6 +101,13 @@ export default function SkinDAORow({
 				>
 					<Trans>Export</Trans>
 				</button>
+				{onOpenFolder && <button
+					className='listing-btn'
+					disabled={busy}
+					onClick={onOpenFolder}
+				>
+					<Trans>Open folder</Trans>
+				</button>}
 				<button
 					className='listing-btn listing-btn--danger'
 					disabled={busy}

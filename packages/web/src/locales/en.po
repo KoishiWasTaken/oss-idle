@@ -231,6 +231,10 @@ msgstr "Action"
 msgid "Active Players"
 msgstr "Active Players"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Add a chat emote of your own from your settings, and share it with everyone if you like."
+msgstr "Add a chat emote of your own from your settings, and share it with everyone if you like."
+
 #: src/components/character/FriendButton.tsx
 msgid "add friend"
 msgstr "add friend"
@@ -251,6 +255,10 @@ msgstr "Add-on documentation"
 #: src/routes/admin/addons.tsx
 msgid "add-ons"
 msgstr "add-ons"
+
+#: src/pages/settings/EmojiSettings.tsx
+msgid "Adding or renaming it needs an <0>oss!supporter</0> tag. You keep it even if your supporter tag ends."
+msgstr "Adding or renaming it needs an <0>oss!supporter</0> tag. You keep it even if your supporter tag ends."
 
 #: src/HeaderLinks.tsx
 msgid "admin"
@@ -274,6 +282,10 @@ msgstr "All"
 msgid "Amount"
 msgstr "Amount"
 
+#: src/pages/settings/EmojiSettings.tsx
+msgid "An emoji of your own for the chat, typed as :name:. Only you can use it unless you share it with everyone."
+msgstr "An emoji of your own for the chat, typed as :name:. Only you can use it unless you share it with everyone."
+
 #: src/pages/AuthError.tsx
 msgid "An error occurred when communicating with osu! ... if your osu! account is valid, please try again"
 msgstr "An error occurred when communicating with osu! ... if your osu! account is valid, please try again"
@@ -289,6 +301,10 @@ msgstr "Any"
 #: src/pages/beatmaps/MapRequests.tsx
 msgid "Anyone can propose a map for ranking in oss!idle - osu!mania 4K only. Support the ones you want to play so it shows what people are after. Accepted maps join the nomination queue and are ranked from there."
 msgstr "Anyone can propose a map for ranking in oss!idle - osu!mania 4K only. Support the ones you want to play so it shows what people are after. Accepted maps join the nomination queue and are ranked from there."
+
+#: src/pages/settings/EmojiSettings.tsx
+msgid "Anyone can use it"
+msgstr "Anyone can use it"
 
 #: src/pages/settings/OAuthSettings.tsx
 #: src/routes/docs.tsx
@@ -369,6 +385,10 @@ msgstr "beatmaps"
 #: src/pages/search/Search.tsx
 msgid "Beatmaps"
 msgstr "Beatmaps"
+
+#: src/pages/Login.tsx
+msgid "Become a legendary mania player"
+msgstr "Become a legendary mania player"
 
 #: src/pages/PlayOssIdle.tsx
 msgid "Best for performance and idling."
@@ -470,6 +490,7 @@ msgstr "changelog"
 msgid "character info"
 msgstr "character info"
 
+#: src/pages/Login.tsx
 #: src/pages/PublicLanding.tsx
 msgid "characters"
 msgstr "characters"
@@ -519,10 +540,6 @@ msgstr "combo"
 msgid "Confirmed"
 msgstr "Confirmed"
 
-#: src/pages/Login.tsx
-msgid "Connect your osu! account to appear in the leaderboards."
-msgstr "Connect your osu! account to appear in the leaderboards."
-
 #: src/routes/legal/copyright.tsx
 msgid "copyright"
 msgstr "copyright"
@@ -562,6 +579,7 @@ msgid "Date"
 msgstr "Date"
 
 #: src/pages/beatmaps/RequestActions.tsx
+#: src/pages/settings/EmojiSettingsButtons.tsx
 #: src/pages/settings/OAuthClientDialog.tsx
 msgid "Delete"
 msgstr "Delete"
@@ -628,6 +646,10 @@ msgstr "Download"
 msgid "Download every map"
 msgstr "Download every map"
 
+#: src/pages/AuthCallback.tsx
+msgid "Download for {platform}"
+msgstr "Download for {platform}"
+
 #: src/pages/PlayOssIdle.tsx
 msgid "Download for {platform} (v{version})"
 msgstr "Download for {platform} (v{version})"
@@ -669,6 +691,15 @@ msgstr "Each skill has a gear ladder of {BASE_MAX_UPGRADES} upgrades. Each one c
 #: src/pages/settings/OAuthSettings.tsx
 msgid "Edit"
 msgstr "Edit"
+
+#: src/pages/admin/AdminNav.tsx
+#: src/routes/admin/emoji.tsx
+msgid "emoji"
+msgstr "emoji"
+
+#: src/pages/settings/Settings.tsx
+msgid "Emoji"
+msgstr "Emoji"
 
 #: src/pages/AuthError.tsx
 msgid "Error"
@@ -777,10 +808,6 @@ msgstr "groups"
 #: src/components/character/BBCodeToolbar.tsx
 msgid "Heading"
 msgstr "Heading"
-
-#: src/pages/AuthCallback.tsx
-msgid "Hello {username}!"
-msgstr "Hello {username}!"
 
 #: src/HeaderLinks.tsx
 #: src/pages/PublicLanding.tsx
@@ -938,6 +965,7 @@ msgstr "listing"
 #: src/pages/friends/Friends.tsx
 #: src/pages/groups/GroupPage.tsx
 #: src/pages/oauth/Authorize.tsx
+#: src/pages/settings/EmojiSettings.tsx
 #: src/pages/settings/OAuthSettings.tsx
 #: src/pages/settings/TitleSettings.tsx
 #: src/pages/store/OrderHistory.tsx
@@ -948,7 +976,6 @@ msgstr "Loading…"
 msgid "logging out..."
 msgstr "logging out..."
 
-#: src/pages/AuthCallback.tsx
 #: src/routes/login.tsx
 msgid "login"
 msgstr "login"
@@ -999,6 +1026,10 @@ msgstr "mapped by <0>{creator}</0>"
 #: src/pages/help/FAQ.tsx
 msgid "Maps and rankings"
 msgstr "Maps and rankings"
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Maps you upload always have a leaderboard, and playing any unranked map opens its leaderboard for everyone."
+msgstr "Maps you upload always have a leaderboard, and playing any unranked map opens its leaderboard for everyone."
 
 #: src/routes/matches/$id.tsx
 msgid "match history"
@@ -1069,6 +1100,10 @@ msgstr "more"
 msgid "More map requests"
 msgstr "More map requests"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "More map uploads"
+msgstr "More map uploads"
+
 #: src/components/character/CharacterHistorical.tsx
 msgid "Most Played Beatmaps"
 msgstr "Most Played Beatmaps"
@@ -1080,6 +1115,10 @@ msgstr "most wanted"
 #: src/UserMenu.tsx
 msgid "My Profile"
 msgstr "My Profile"
+
+#: src/pages/settings/EmojiSettings.tsx
+msgid "name"
+msgstr "name"
 
 #: src/pages/bugs/BugList.tsx
 msgid "new answer"
@@ -1224,6 +1263,7 @@ msgstr "One URL per line."
 msgid "Online"
 msgstr "Online"
 
+#: src/pages/Login.tsx
 #: src/pages/PublicLanding.tsx
 msgid "online now"
 msgstr "online now"
@@ -1240,6 +1280,10 @@ msgstr "open"
 #: src/pages/bugs/useBugStatusLabels.ts
 msgid "Open"
 msgstr "Open"
+
+#: src/pages/AuthCallback.tsx
+msgid "or play in the browser"
+msgstr "or play in the browser"
 
 #: src/pages/store/Store.tsx
 msgid "order history"
@@ -1321,6 +1365,7 @@ msgstr "Play count"
 msgid "Play Count"
 msgstr "Play Count"
 
+#: src/pages/AuthCallback.tsx
 #: src/pages/PlayOssIdle.tsx
 msgid "Play in the browser"
 msgstr "Play in the browser"
@@ -1363,6 +1408,7 @@ msgstr "Players"
 msgid "Playing"
 msgstr "Playing"
 
+#: src/pages/Login.tsx
 #: src/pages/PublicLanding.tsx
 msgid "playing now"
 msgstr "playing now"
@@ -1551,6 +1597,10 @@ msgstr "remove friend"
 msgid "Remove your support"
 msgstr "Remove your support"
 
+#: src/pages/settings/EmojiSettingsButtons.tsx
+msgid "Rename"
+msgstr "Rename"
+
 #: src/pages/store/SupporterTag.tsx
 msgid "Renew automatically"
 msgstr "Renew automatically"
@@ -1558,6 +1608,10 @@ msgstr "Renew automatically"
 #: src/pages/store/SupporterTag.tsx
 msgid "Renewing automatically charges the same amount again at the end of each period. Cancel it any time."
 msgstr "Renewing automatically charges the same amount again at the end of each period. Cancel it any time."
+
+#: src/pages/settings/EmojiSettingsButtons.tsx
+msgid "Replace image"
+msgstr "Replace image"
 
 #: src/pages/bugs/BugReport.tsx
 msgid "Reply"
@@ -1768,7 +1822,6 @@ msgstr "Show client secret"
 msgid "Show more"
 msgstr "Show more"
 
-#: src/pages/Login.tsx
 #: src/pages/PublicLanding.tsx
 #: src/UserMenu.tsx
 msgid "Sign in"
@@ -1800,6 +1853,10 @@ msgstr "Sign in to see your friends."
 #: src/pages/PublicLanding.tsx
 msgid "Sign in with osu!"
 msgstr "Sign in with osu!"
+
+#: src/pages/Login.tsx
+msgid "Sign in with osu! and create your character."
+msgstr "Sign in with osu! and create your character."
 
 #: src/UserMenu.tsx
 msgid "Sign out"
@@ -1965,6 +2022,10 @@ msgstr "The <0>Global Moderation Team</0> keeps the community a fun and welcomin
 msgid "The claim didn't go through. Try again in a moment."
 msgstr "The claim didn't go through. Try again in a moment."
 
+#: src/pages/AuthCallback.tsx
+msgid "The desktop app is not yet available for {platform}."
+msgstr "The desktop app is not yet available for {platform}."
+
 #: src/pages/help/FAQ.tsx
 msgid "The game"
 msgstr "The game"
@@ -2067,6 +2128,10 @@ msgstr "Unranked"
 msgid "Unranked Beatmaps"
 msgstr "Unranked Beatmaps"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Unranked leaderboards"
+msgstr "Unranked leaderboards"
+
 #: src/pages/bugs/BugImagesField.tsx
 msgid "Up to {max}, or paste them into the text."
 msgstr "Up to {max}, or paste them into the text."
@@ -2079,6 +2144,10 @@ msgstr "Update"
 msgid "Upgrades held"
 msgstr "Upgrades held"
 
+#: src/pages/store/SupporterPerks.tsx
+msgid "Upload {bonus} more new maps a month from the editor."
+msgstr "Upload {bonus} more new maps a month from the editor."
+
 #: src/components/EditableProfilePicture.tsx
 msgid "Upload a profile picture"
 msgstr "Upload a profile picture"
@@ -2086,6 +2155,10 @@ msgstr "Upload a profile picture"
 #: src/components/character/ProfileBanner.tsx
 msgid "Upload banner"
 msgstr "Upload banner"
+
+#: src/pages/settings/EmojiSettingsButtons.tsx
+msgid "Upload image"
+msgstr "Upload image"
 
 #: src/pages/bugs/BugImagesField.tsx
 msgid "Uploading…"
@@ -2104,9 +2177,21 @@ msgstr "version adoption"
 msgid "View all"
 msgstr "View all"
 
+#: src/pages/Login.tsx
+msgid "We only use your osu! username, avatar and country."
+msgstr "We only use your osu! username, avatar and country."
+
 #: src/pages/settings/TitleSettings.tsx
 msgid "Wear the name of a medal you hold under your name on your profile."
 msgstr "Wear the name of a medal you hold under your name on your profile."
+
+#: src/pages/AuthCallback.tsx
+msgid "welcome"
+msgstr "welcome"
+
+#: src/pages/AuthCallback.tsx
+msgid "Welcome, {username}!"
+msgstr "Welcome, {username}!"
 
 #: src/pages/help/FAQ.tsx
 msgid "What are add-ons?"
@@ -2216,6 +2301,14 @@ msgstr "You're signed in!"
 msgid "Your account has been restricted!"
 msgstr "Your account has been restricted!"
 
+#: src/pages/AuthCallback.tsx
+msgid "Your account is ready."
+msgstr "Your account is ready."
+
+#: src/pages/AuthCallback.tsx
+msgid "Your account is ready. Get the desktop app: best for performance and idling."
+msgstr "Your account is ready. Get the desktop app: best for performance and idling."
+
 #: src/pages/store/SupporterTag.tsx
 msgid "Your account is restricted, so it can't buy anything."
 msgstr "Your account is restricted, so it can't buy anything."
@@ -2239,6 +2332,10 @@ msgstr "Your level role will show up on the oss!idle Discord server. You can clo
 #: src/pages/store/SupporterPerks.tsx
 msgid "Your name shows in gold in chat, for everyone to see."
 msgstr "Your name shows in gold in chat, for everyone to see."
+
+#: src/pages/store/SupporterPerks.tsx
+msgid "Your own emote"
+msgstr "Your own emote"
 
 #: src/pages/store/SupporterPerks.tsx
 msgid "Your own profile"

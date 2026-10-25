@@ -353,7 +353,8 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	// `library` bumps when the stored set changes (e.g. a wipe from Options), so
 	// the carousel reflects deletions without a full reload.
 	const [showUndownloaded] = useSynced(SETTINGS.showUndownloaded);
-	useEffect(() => { void loadLibrary(); }, [loadLibrary, library, showUndownloaded]);
+	const [showUnbundled] = useSynced(SETTINGS.showUnbundled);
+	useEffect(() => { void loadLibrary(); }, [loadLibrary, library, showUndownloaded, showUnbundled]);
 
 	useKeyboardOwner(searchRef, { active: !debugBeatmap });
 

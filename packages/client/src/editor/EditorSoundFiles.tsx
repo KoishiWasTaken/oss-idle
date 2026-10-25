@@ -8,7 +8,7 @@ import {
 	plural,
 } from '@lingui/core/macro';
 import { fileUses } from '@oss-idle/shared/editor/hitsounds';
-import { desktop } from '@oss-idle/shared/desktop';
+import { library } from '../library';
 import ConfirmMenu from '../components/ConfirmMenu';
 import {
 	pickFile,
@@ -97,7 +97,7 @@ export default function EditorSoundFiles({ session, files }: {
 					<button className='editor__small' onClick={() => void add()}>
 						<Trans>Add sound files...</Trans>
 					</button>
-					{desktop()?.mapFolder && (
+					{library() && (
 						<button className='editor__small' onClick={() => void session.openFolder()}>
 							<Trans>Open the map's folder</Trans>
 						</button>

@@ -79,7 +79,7 @@ export async function chooseDevTools(): Promise<void> {
 	const form = document.createElement('form');
 	form.style.cssText = 'position:fixed;inset:0;display:flex;flex-direction:column;'
 		+ 'justify-content:center;padding:0 max(24px,calc(50vw - 260px));'
-		+ 'background:#05040a;color:#fff;font:15px system-ui,sans-serif;z-index:1';
+		+ 'background:#05040a;color:#fff;font:15px system-ui,sans-serif;z-index:var(--z-dev)';
 	form.innerHTML = '<h2 style="margin:0 0 12px">oss!idle staging: dev tools</h2>';
 	form.append(...TOOLS.map(tool => option(tool, !!picks[tool[0]])));
 	if (stream) form.append(stream.row);

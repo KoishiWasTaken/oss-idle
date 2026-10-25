@@ -5,6 +5,12 @@ import {
 } from 'react';
 import {
 	type Emoji,
+	emojiUsable,
+} from '@oss-idle/shared/community/emoji';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { emoji } from '../../../online/emoji';
+import Auth from '../../../online/auth';
+import {
 	emojiQuery,
 	matchEmoji,
 } from './emoji';
@@ -17,13 +23,17 @@ export default function useEmojiSuggest(
 ) {
 	const [picked, setPicked] = useState(0);
 	const [dismissed, setDismissed] = useState<string>();
+	const [{ list }] = useSynced(emoji);
+	const [user] = useSynced(Auth.user);
 	const query = emojiQuery(draft);
-	const suggestions = query && dismissed !== draft ? matchEmoji(query) : [];
+	const suggestions = query && dismissed !== draft
+		? matchEmoji(list.filter(e => emojiUsable(e, user?.id)), query)
+		: [];
 
 	useEffect(() => setPicked(0), [query]);
 
 	const insert = (pick: Emoji) => {
-		setDraft(draft.slice(0, draft.length - (query?.length ?? 0) - 1) + pick.char + ' ');
+		setDraft(draft.slice(0, draft.length - (query?.length ?? 0) - 1) + `:${pick.name}: `);
 		inputRef.current?.focus();
 	};
 

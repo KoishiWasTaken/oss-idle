@@ -236,7 +236,7 @@
 .mp-over-chat {
 	position: fixed;
 	inset: 0;
-	z-index: 9600;
+	z-index: var(--z-over-chat);
 	color: #fff;
 }
 .mp-create {
@@ -470,7 +470,7 @@
 	position: absolute;
 	left: 0;
 	top: max(136px, calc(24% - 14px));
-	z-index: 5;
+	z-index: var(--z-play-scoreboard);
 	--mp-score-step: calc(var(--mp-u) * 6.15);
 	/* the self card sits 1.1 further right */
 	width: calc(var(--mp-u) * 21.5);
@@ -532,7 +532,7 @@
 }
 .mp-score__main {
 	position: relative;
-	z-index: 1;
+	z-index: var(--z-mp-score-main);
 	display: flex;
 	flex: 1;
 	flex-direction: column;
@@ -568,7 +568,7 @@
 	position: absolute;
 	right: 0;
 	top: calc(var(--mp-u) * 20);
-	z-index: 30;
+	z-index: var(--z-result-ranking);
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
@@ -662,7 +662,7 @@
 .mp-round-waiting {
 	position: absolute;
 	inset: 0;
-	z-index: 50;
+	z-index: var(--z-play-round-waiting);
 	display: flex;
 	align-items: center;
 	justify-content: center;

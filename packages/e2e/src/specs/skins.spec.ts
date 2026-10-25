@@ -107,4 +107,54 @@ test.describe('skins', () => {
 		const defaultSkin = page.locator('.listing', { hasText: 'Default skin' });
 		await expect(defaultSkin.getByRole('checkbox', { name: 'Enabled' })).toBeChecked();
 	});
+
+
+	test('the options pick the gameplay and editor skins', async ({ playerAs }) => {
+		const page = await playerAs(olga);
+		const game = new Game(page);
+		await game.start();
+		const openSkinOptions = async () => {
+			await page.keyboard.press('Control+Shift+O');
+			await page.locator('.options__search_input').fill('skin');
+		};
+		await openSkinOptions();
+		await page.getByRole('button', { name: 'Manage skins' }).click();
+		const [first, second] = [`${name} A`, `${name} B`];
+		for (const skin of [first, second]) {
+			const chooser = page.waitForEvent('filechooser');
+			await page.locator('.page__baraction', { hasText: 'Import an .osk' }).click();
+			await (await chooser).setFiles({
+				name: `${skin}.osk`, mimeType: 'application/zip', buffer: osk(skin),
+			});
+			await expect(page.locator('.listing', { hasText: skin })).toContainText('Imported');
+		}
+
+		const row = (label: string) => page.locator('.options__container .opt-row', { hasText: label });
+		const pick = async (label: string, skin: string, shot?: string) => {
+			await row(label).locator('.dropdown__current').click();
+			const option = row(label).locator('.dropdown__option', { hasText: skin });
+			await expect(option).toBeVisible();
+			if (shot) {
+				await page.waitForTimeout(500);
+				await page.screenshot({ path: `../../screenshots/${shot}.png` });
+			}
+			await option.click();
+			await expect(row(label).locator('.dropdown__label')).toHaveText(skin);
+		};
+		await openSkinOptions();
+		await expect(row('Current skin').locator('.dropdown__label')).toHaveText(second);
+		await pick('Current skin', first, 'skin-dropdown-current');
+		await pick('Editor skin', second, 'skin-dropdown-editor');
+
+		const listing = (skin: string) => page.locator('.listing', { hasText: skin });
+		await page.getByRole('button', { name: 'Manage skins' }).click();
+		await expect(listing(first).getByRole('checkbox', { name: 'Enabled' })).toBeChecked();
+		await expect(listing(second).getByRole('checkbox', { name: 'Enabled' })).not.toBeChecked();
+		await expect(listing(second).getByRole('checkbox', { name: 'Editor' })).toBeChecked();
+
+		await openSkinOptions();
+		await pick('Current skin', 'Default skin');
+		await page.getByRole('button', { name: 'Manage skins' }).click();
+		await expect(listing('Default skin').getByRole('checkbox', { name: 'Enabled' })).toBeChecked();
+	});
 });

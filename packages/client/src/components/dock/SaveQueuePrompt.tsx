@@ -24,8 +24,10 @@ export default function SaveQueuePrompt({ onClose }: Props) {
 		const entries = PlayQueue.state.get()?.entries ?? [];
 		if (!trimmed || !entries.length) return;
 		onClose();
-		// no twins, as in the playlist manager: an existing name gets the maps added
-		const playlist = await Playlist.byName(trimmed) ?? await Playlist.create(trimmed);
+		// no twins, as in the playlist manager: an existing name is overwritten
+		const existing = await Playlist.byName(trimmed);
+		await existing?.clear();
+		const playlist = existing ?? await Playlist.create(trimmed);
 		for (const { beatmap, repeat } of entries) {
 			await playlist.addBeatmap(beatmap.metadata.id, beatmap.lockedRate, repeat);
 		}

@@ -2,7 +2,7 @@
 	position: fixed;
 	right: 32px;
 	bottom: 32px;
-	z-index: 10000; /* above options (same z, mounted after); under the web browser */
+	z-index: var(--z-volume);
 	pointer-events: none; /* never steal clicks while hidden */
 	opacity: 0;
 	transform: translateY(14px);

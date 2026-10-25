@@ -9,7 +9,7 @@
 .page-overlay {
 	position: absolute;
 	inset: 0;
-	z-index: 5000;
+	z-index: var(--z-page);
 }
 .page-overlay.is-open {
 	animation: page-overlay-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;

@@ -15,6 +15,7 @@ export default function AdminNav() {
 		{admin && <Link to='/admin' activeOptions={{ exact: true }} {...tab}>{t`dashboard`}</Link>}
 		{admin && <Link to='/admin/versions' {...tab}>{t`version adoption`}</Link>}
 		<Link to='/admin/chat' {...tab}>{t`chat console`}</Link>
+		<Link to='/admin/emoji' {...tab}>{t`emoji`}</Link>
 		{admin && <Link to='/admin/bugs' {...tab}>{t`bug reports`}</Link>}
 		{admin && <>
 			<Link to='/admin/balancing' {...tab}>{t`balancing`}</Link>

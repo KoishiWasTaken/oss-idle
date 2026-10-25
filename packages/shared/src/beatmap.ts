@@ -10,6 +10,14 @@
 export const BEATMAP_STATUS = ['pending', 'ranked', 'rejected', 'unranked'] as const;
 export type BeatmapStatus = (typeof BEATMAP_STATUS)[number];
 
+/** New maps a month, like osu!: a base, one more per set of theirs that is ranked
+ *  now, and more for supporters. */
+const MONTHLY_BASE = 3;
+export const SUPPORTER_UPLOAD_BONUS = 2;
+
+export const monthlyQuota = (rankedSets: number, supporter: boolean) =>
+	MONTHLY_BASE + rankedSets + (supporter ? SUPPORTER_UPLOAD_BONUS : 0);
+
 /** Tags set by hand on a difficulty, on top of what its .osu says. */
 export const MAP_TAGS = ['sv', 'ln'] as const;
 export type MapTag = (typeof MAP_TAGS)[number];

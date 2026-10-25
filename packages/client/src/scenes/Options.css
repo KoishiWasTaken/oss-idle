@@ -3,7 +3,7 @@
 .options__container {
 	position: absolute;
 	inset: 0;
-	z-index: 10000;
+	z-index: var(--z-options);
 	display: flex;
 	align-items: stretch;
 
@@ -194,6 +194,16 @@
 .opt-row__label {
 	color: var(--text);
 	font-size: 16px;
+}
+.opt-row--fixed .opt-row__label {
+	overflow: hidden;
+	min-width: 0;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.opt-row__dropdown {
+	flex-shrink: 0;
+	width: 220px;
 }
 
 /* off its default */

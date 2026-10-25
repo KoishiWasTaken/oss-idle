@@ -29,6 +29,10 @@ const visuals = new SongVisuals();
 let clock: PlayfieldClock = {
 	playing: false, pausedAt: 0, startedAt: 0, length: 0, rate: 1,
 };
+/** This worker's `performance.now()` less the page's, the least a message took to arrive.
+ *  Not the `timeOrigin`s' difference: each reads the wall clock once, when made, and the
+ *  wall clock moves against these (clock syncs, sleep) - paused and playing would differ. */
+let pageLag = Infinity;
 
 // filled in by the page's messages; the painter and the preview read it every frame
 const state: Partial<PaintState> & { selected: Set<Note> } = {
@@ -41,7 +45,7 @@ const selectedOf = (indices: number[]) => new Set(indices.map(i => state.doc!.no
 /** The song's time at the frame begun at `frame` (this worker's clock). */
 const nowAt = (frame: number): number => {
 	if (!clock.playing) return clock.pausedAt;
-	const played = performance.timeOrigin + frame - clock.startedAt;
+	const played = frame - pageLag - clock.startedAt;
 	return Math.min(clock.length, clock.pausedAt + Math.max(0, played) * clock.rate);
 };
 
@@ -96,6 +100,7 @@ const handle = (message: ToPlayfield) => {
 			return;
 		case 'clock':
 			clock = message.clock;
+			pageLag = Math.min(pageLag, performance.now() - message.sentAt);
 			return;
 		case 'song':
 			visuals.setSong(message.pcm, message.rate);

@@ -26,12 +26,13 @@ const FATIGUE_CB = cubic_bezier(.4, 0, .6, 1);
 // of their gains: one map on loop averages about x0.1 a day
 const PLAY_FLOOR = 0.25;
 const XP_FLOOR = 0.05;
-// The same strained minutes warm the character up over 1h30, then cool it to half
-// at 5 hours and cold at 6. Cold, a physical skill plays with COLD_FLOOR of its xp
+// The same strained minutes warm the character up over 1h (WARM_EARLY before the
+// peak's 1h30 end), then cool it to half at 5 hours and cold at 6. Cold, a physical skill plays with COLD_FLOOR of its xp
 // from level COLD_LEVEL, less below; warm-up never touches xp gains. Each stamina
 // gear up to GEAR_LADDER warms GEAR_SPEED faster and holds the peak GEAR_HOLD
 // longer; each tier past it is worth GEAR_DECAY of the one before.
 const WARM_MINUTES = 90;
+const WARM_EARLY = 30;
 const GEAR_LADDER = 10;
 const GEAR_SPEED = 0.1;
 const GEAR_HOLD = 3;
@@ -67,7 +68,7 @@ export const warmupCurve = (upgrades = 0) => {
 	const cold = Math.min(COLD_MINUTES + gear * GEAR_HOLD, STRAIN_CAP);
 	const half = Math.min(HALF_WARM_MINUTES + gear * GEAR_HOLD, cold);
 	const peakEnd = Math.min(WARM_MINUTES + gear * GEAR_HOLD, half);
-	const warm = Math.min(WARM_MINUTES / (1 + gear * GEAR_SPEED), peakEnd);
+	const warm = Math.min(WARM_MINUTES / (1 + gear * GEAR_SPEED) - WARM_EARLY, peakEnd);
 	return {
 		warm, peakEnd, half, cold,
 	};
@@ -83,9 +84,42 @@ export const warmup = (minutes: number, upgrades = 0): number => {
 	return lerp(0.5, 0, ease(minutes, half, cold));
 };
 
-/** Whether `minutes` of fatigue are past warm-up's peak, cooling it down. */
-export const coolingDown = (minutes: number, upgrades = 0): boolean =>
-	minutes > warmupCurve(upgrades).peakEnd;
+// The warm-up bar reads like a hit error bar: cold at the left, the sweet spot
+// (warm-up from SWEET_SPOT) in the middle, past the peak right of it and fatigue at
+// the right end. More strain always moves it right, rest left.
+const SWEET_SPOT = 0.9;
+/** Where the warm-up bar's sweet spot, past-peak and fatigued zones start. */
+export const BAR_ZONES = [0.4, 0.6, 0.8] as const;
+
+/** Where in [lo, hi] `turned` flips from false to true. */
+const crossing = (turned: (m: number) => boolean, lo: number, hi: number): number => {
+	for (let i = 0; i < 30; i++) {
+		const mid = (lo + hi) / 2;
+		if (turned(mid)) hi = mid;
+		else lo = mid;
+	}
+	return hi;
+};
+
+/** Where `minutes` of fatigue sit on the warm-up bar, 0 to 1, with `upgrades` stamina gear. */
+export const warmupBar = (minutes: number, upgrades = 0): number => {
+	const { warm, peakEnd, cold } = warmupCurve(upgrades);
+	const onset = Math.min(ONSET_MINUTES, FULL_MINUTES, STRAIN_CAP);
+	const sweetEnd = crossing(m => warmup(m, upgrades) < SWEET_SPOT, peakEnd, cold);
+	const knots = [
+		0,
+		crossing(m => warmup(m, upgrades) >= SWEET_SPOT, 0, warm),
+		Math.min(sweetEnd, onset),
+		onset,
+		STRAIN_CAP,
+	];
+	const at = [0, ...BAR_ZONES, 1];
+	let i = 1;
+	while (i < knots.length - 1 && minutes > knots[i]) i++;
+	const span = knots[i] - knots[i - 1];
+	const t = span > 0 ? (minutes - knots[i - 1]) / span : 1;
+	return lerp(at[i - 1], at[i], Math.min(1, Math.max(0, t)));
+};
 
 /** The share of the physical skills' xp gains a play at fatigue `level` keeps. */
 export const fatigueXp = (level: number): number => lerp(1, XP_FLOOR, level);

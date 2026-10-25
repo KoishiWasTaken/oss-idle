@@ -37,15 +37,10 @@ export type StrainHud = {
 	labels: Record<SkillName, string>,
 	/** where the gauges start, past anything drawn at the left edge */
 	left?: number,
-	/** how tired the character plays it, 0 rested to 1 exhausted */
-	fatigue?: number,
-	fatigueLabel?: string,
-	/** how warmed up, 0 cold to 1 warm */
-	warmup?: number,
-	/** past warm-up's peak */
-	cooling?: boolean,
+	/** where on the warm-up bar, 0 cold to 1 exhausted */
+	warmupBar?: number,
 	warmupLabel?: string,
-	/** Cold, Warming up, ... Getting tired */
+	/** Cold, Warming up, Peak, Pushing, Fatigued */
 	warmupState?: string,
 };
 

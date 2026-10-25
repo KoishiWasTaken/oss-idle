@@ -1,0 +1,112 @@
+/* Every z-index in the client: write var(--z-…), never a number. Grouped by
+   stacking context, lowest first; values only compare within a group. */
+:root {
+	/* ---- root ----
+	   Scenes don't form a stacking context, so their layers sit here, under
+	   the overlays; one scene shows at a time. */
+	/* the hidden menu drawn at boot to compile its shaders (MenuWarmup) */
+	--z-warmup: -1;
+	--z-play-bg: 0;
+	--z-play-video: 1;
+	--z-play-dim: 2;
+	--z-play-canvas: 3;
+	--z-play-warmup-hint: 4;
+	--z-play-scoreboard: 5;
+	--z-play-hud: 6;
+	--z-play-round-waiting: 7;
+	--z-menu-vignette: 8;
+	--z-menu-center: 9;
+	--z-menu-brand: 10;
+	--z-menu-direct-tab: 11;
+	--z-menu-announce: 12;
+	--z-menu-update: 13;
+	--z-menu-flash: 14;
+	--z-editor-panel-resize: 15;
+	--z-editor-addon-window: 16;
+	--z-editor-commands-shade: 17;
+	--z-result: 18;
+	--z-intro: 19;
+	--z-dropdown: 20;
+	--z-dock: 60;
+	--z-mod-select: 900;
+	--z-transition: 1000;
+	/* also inside song select and the community overlay */
+	--z-dialog: 3000;
+	--z-page: 5000;
+	--z-direct-link: 5100;
+	--z-dock-left: 5110;
+	--z-tooltip: 5200;
+	--z-dialog-portal: 5300;
+	--z-community: 9500;
+	--z-ticker: 9600;
+	--z-over-chat: 9610;
+	--z-community-controls: 9700;
+	--z-supporter-heart: 9750;
+	--z-medal: 9800;
+	--z-restricted: 9900;
+	--z-options: 10000;
+	--z-volume: 10010;
+	--z-browser: 10020;
+	--z-floating-deltas: 10030;
+	--z-popups: 10040;
+	--z-download-warning: 10050;
+	--z-share-preview: 10060;
+	--z-message: 10070;
+	--z-tutorial: 15000;
+	--z-onboarding: 20000;
+	--z-playground: 99990;
+	--z-fps: 99998;
+	--z-cursor-trail: 99999;
+	--z-cursor: 100000;
+	--z-dev: 2147483647;
+
+	/* ---- any box: a decoration behind its content ---- */
+	--z-under: -1;
+
+	/* ---- song select (.game) ---- */
+	--z-select-lb: 4;
+	--z-select-body: 5;
+	--z-select-topshape: 12;
+	--z-select-top: 13;
+	--z-select-search: 20;
+	--z-select-strain: 60;
+	--z-select-botbar: 100;
+	--z-select-exit: 500;
+	--z-select-mobile-scores: 1000;
+	/* --z-dialog: 3000 */
+	--z-select-debug: 4000;
+
+	/* ---- beatmap card ---- */
+	--z-card-inner: 1;
+	--z-card-overlay: 2;
+	/* .bm-card__inner */
+	--z-card-body: 1;
+
+	/* ---- main menu centre (.menu__center) ---- */
+	--z-menu-visualizer: 0;
+	--z-menu-option-bg: 1;
+	--z-menu-logo: 2;
+	--z-menu-option-text: 3;
+
+	/* ---- logo (.main-logo) ---- */
+	--z-logo-pulse: 1;
+	--z-logo-over: 2;
+
+	/* ---- result screen (.resultscreen) ---- */
+	--z-result-left: 1;
+	--z-result-ranking: 2;
+	--z-result-actions: 3;
+
+	/* ---- multiplayer scoreboard slot ---- */
+	--z-mp-score-main: 1;
+
+	/* ---- medal overlay (.medal-overlay) ---- */
+	--z-medal-focus: 1;
+	--z-medal-hint: 2;
+
+	/* ---- chat (.community) ---- */
+	--z-chat-emoji: 2;
+
+	/* ---- classic tabs ---- */
+	--z-tab-active: 1;
+}

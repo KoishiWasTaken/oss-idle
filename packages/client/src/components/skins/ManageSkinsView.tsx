@@ -20,7 +20,11 @@ import {
 	publishSkin,
 	Skin as SkinDTO,
 } from '../../online/skins';
-import { getManifest } from '../../osu/skin/skinFiles';
+import {
+	getManifest,
+	revealSkin,
+} from '../../osu/skin/skinFiles';
+import { library } from '../../library';
 import {
 	installedSource,
 	remoteSource,
@@ -154,6 +158,7 @@ export default function ManageSkinsView() {
 							kind: 'publish', skin: a, content: await installedContent(a.id),
 						}))}
 						onExport={() => run(() => exportSkin(a))}
+						onOpenFolder={library() && (() => run(() => revealSkin(a.id)))}
 						onUninstall={() => run(() => a.uninstall())}
 					/>
 				))}
@@ -203,6 +208,12 @@ export default function ManageSkinsView() {
 					disabled: busy,
 					order: 11,
 				},
+				...library() ? [{
+					id: 'open-folder',
+					label: <Trans>Open the skins folder</Trans>,
+					onClick: () => void library()!.reveal('skins'),
+					order: 12,
+				}] : [],
 			]} />
 		</>
 	);

@@ -78,6 +78,17 @@ export class SkinDAO extends DAO(skin) {
 
 	async uninstall(): Promise<void> {
 		await this.delete();
+		this.letGo();
+	}
+
+	/** Drop its row, its folder being gone already. */
+	async forget(): Promise<void> {
+		await super.delete();
+		await reloadInstalledSkins();
+		this.letGo();
+	}
+
+	private letGo(): void {
 		if (currentSkinDAO.get()?.id === this.id) currentSkinDAO.set(undefined);
 		if (SETTINGS.editorSkin.get() === this.id) SETTINGS.editorSkin.set(0);
 	}

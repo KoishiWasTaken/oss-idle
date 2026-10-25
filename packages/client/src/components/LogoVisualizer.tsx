@@ -221,7 +221,7 @@ export default function LogoVisualizer({
 				left: '50%',
 				transform: 'translate(-50%, -50%)',
 				pointerEvents: 'none',
-				zIndex: 0,
+				zIndex: 'var(--z-menu-visualizer)',
 			}}
 		/>
 	);

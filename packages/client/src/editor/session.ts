@@ -45,7 +45,6 @@ import {
 	changeSetFiles,
 	localCopyOf,
 	removeSetFile,
-	setFiles,
 	saveChart,
 	setBackgroundImage,
 	writeIds,
@@ -53,7 +52,12 @@ import {
 import type { UploadIds } from './upload';
 import EditorSounds from './editorSounds';
 import { currentPlacing } from './placing';
-import { desktop } from '@oss-idle/shared/desktop';
+import {
+	entryById,
+	library,
+	onLibraryChanged,
+	readEntryFile,
+} from '../library';
 import { effects } from '../audio/EffectPlayer';
 import { assetKey } from '../osu/beatmap/storyboard';
 import type { PlayfieldClock } from './playfieldMessages';
@@ -776,40 +780,46 @@ export default class EditorSession {
 		this.soundFilesChanged(files.map(file => file.name));
 	}
 
-	/** stops watching the set's folder, when one is open */
+	/** stops following the set's folder, when one is followed */
 	private closeFolder?: () => void;
-	/** the folder was watched when the editor left for a test play */
+	/** the folder followed */
+	private folder?: string;
+	/** the folder was followed when the editor left for a test play */
 	private folderWatched = false;
 
-	/** The set as a folder in the file explorer (desktop): sounds, images and the rest
+	/** The set's folder in the file explorer (desktop): sounds, images and the rest
 	 *  changed there come into the map while the editor is open; its .osu files stay the
-	 *  editor's, written there on save. */
+	 *  editor's. */
 	public async openFolder(show = true): Promise<void> {
-		const folder = desktop()?.mapFolder;
-		if (!folder) return;
+		if (!library()) return;
 		this.closeFolder?.();
-		const stop = folder.onChanged(changed => void this.takeFolderFiles(changed));
-		this.closeFolder = () => {
-			stop();
-			folder.close();
-		};
-		const { id, artist, title } = this.beatmap.set.metadata;
-		await folder.open(`${id} ${artist} - ${title}`, await setFiles(this.beatmap), show);
+		const folder = (await entryById('maps', this.beatmap.set.metadata.id))?.name;
+		if (!folder) return;
+		this.folder = folder;
+		this.closeFolder = onLibraryChanged('maps', change => {
+			if (change.name === folder) void this.takeFolderFiles(folder, change.changed);
+		});
+		if (show) await library()!.reveal('maps', folder);
 	}
 
-	private async takeFolderFiles(changed: Record<string, Uint8Array | undefined>): Promise<void> {
-		const names = Object.keys(changed).filter(name => !/\.(osu|oss)$/i.test(name));
+	private async takeFolderFiles(folder: string, changed: string[]): Promise<void> {
+		const names = changed.filter(name => !/\.(osu|oss)$/i.test(name));
 		if (!names.length) return;
+		const files: Record<string, Uint8Array | undefined> = {};
+		for (const name of names) {
+			const blob = await readEntryFile('maps', folder, name);
+			files[name] = blob && new Uint8Array(await blob.arrayBuffer());
+		}
 		const switches = this.switches;
-		this.took(await changeSetFiles(this.beatmap, changed), switches);
-		this.soundFilesChanged(names, false);
+		this.took(await changeSetFiles(this.beatmap, files), switches);
+		this.soundFilesChanged(names);
 	}
 
-	/** The set's files `names` as they are now stored, written to its open folder. */
-	private async toFolder(names: string[]): Promise<void> {
+	/** Follow the set's own folder once edits moved the map to its local copy. */
+	private async followFolder(): Promise<void> {
 		if (!this.closeFolder) return;
-		const stored = await setFiles(this.beatmap);
-		desktop()?.mapFolder?.write(Object.fromEntries(names.map(name => [name, stored[name]])));
+		const now = (await entryById('maps', this.beatmap.set.metadata.id))?.name;
+		if (now && now !== this.folder) await this.openFolder(false);
 	}
 
 	/** The sound file `name` with new audio: the notes playing it play the new one. */
@@ -839,11 +849,11 @@ export default class EditorSession {
 		effects.play(key);
 	}
 
-	private soundFilesChanged(names: string[], toFolder = true): void {
+	private soundFilesChanged(names: string[]): void {
 		for (const name of names) effects.forget(assetKey(this.beatmap.set.metadata.id, name));
 		this.sounds.reload();
 		this.changed();
-		if (toFolder) void this.toFolder(names);
+		void this.followFolder();
 		const song = this.chart.audio.toLowerCase();
 		if (names.some(name => name.toLowerCase() === song)) void this.reloadSong();
 	}
@@ -985,8 +995,7 @@ export default class EditorSession {
 		if (!this.took(await saveChart(this.beatmap, text, doc.metadata, writeExtras(doc)), switches)) {
 			return;
 		}
-		const file = this.beatmap.metadata.file;
-		if (file) void this.toFolder([file, extrasFile(file)]);
+		void this.followFolder();
 		this.chart = {
 			...this.chart, ...doc, text,
 		};
@@ -1110,7 +1119,7 @@ export default class EditorSession {
 		return {
 			playing: this.playing,
 			pausedAt: this.pausedAt,
-			startedAt: performance.timeOrigin + this.startedAt,
+			startedAt: this.startedAt,
 			length: this.length,
 			rate: this.rate,
 		};

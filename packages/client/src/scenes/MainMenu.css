@@ -14,7 +14,7 @@
 		transparent 45%,
 		rgba(0, 0, 0, 0.65) 100%
 	);
-	z-index: 1;
+	z-index: var(--z-menu-vignette);
 }
 
 .menu__brand {
@@ -22,7 +22,7 @@
 	top: 3px;
 	left: 3px;
 	/* above .menu__center, which covers the screen */
-	z-index: 6;
+	z-index: var(--z-menu-brand);
 	display: flex;
 	align-items: baseline;
 	gap: 0.15rem;
@@ -89,28 +89,8 @@
 	inset: 0;
 	display: grid;
 	place-items: center;
-	z-index: 5;
+	z-index: var(--z-menu-center);
 	will-change: transform;
-}
-
-.menu__bottom-left {
-	position: absolute;
-	left: 1.8rem;
-	bottom: 1.6rem;
-	display: flex;
-	flex-direction: column;
-	gap: 0.2rem;
-	z-index: 10;
-}
-.menu__stat {
-	font-size: 0.8rem;
-	font-weight: 600;
-	letter-spacing: 0.05em;
-	color: var(--osu-pink-light);
-}
-.menu__stat--dim {
-	font-weight: 400;
-	color: var(--text-dim);
 }
 
 /* ---- "drop" entrance from the intro ----
@@ -119,7 +99,7 @@
 .menu__flash {
 	position: absolute;
 	inset: 0;
-	z-index: 30;
+	z-index: var(--z-menu-flash);
 	background: #fff;
 	pointer-events: none;
 	animation: menu-flash 0.6s ease-out forwards;
@@ -142,7 +122,7 @@
 /* keep the logo above its waveform halo */
 .menu__logo-enter .main-logo {
 	position: relative;
-	z-index: 1;
+	z-index: var(--z-menu-logo);
 }
 .menu__logo-menu {
 	transition: transform 0.6s ease;
@@ -223,7 +203,7 @@
 
 .menu_option_contents {
 	position: absolute;
-	z-index: 10;
+	z-index: var(--z-menu-option-text);
 	/* clear of the logo at its hovered size */
 	left: 38%;
 }
@@ -233,7 +213,6 @@
 	background-repeat: no-repeat;
 	background-position: top right;
 	background-size: cover;
-	z-index: 2;
 	width: 100%;
 	height: 100%;
 
@@ -241,7 +220,7 @@
 }
 .menu__option_bg_safe {
 	position: absolute;
-	z-index: 1;
+	z-index: var(--z-menu-option-bg);
 	background: linear-gradient(90deg, #8766ee 80%, transparent 90%);
 	width: 100%;
 	height: 100%;

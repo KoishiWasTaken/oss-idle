@@ -5,6 +5,7 @@ import {
 	Skin,
 	skinIconUrl,
 } from '../../online/skins';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import ListingIcon from '../listing/ListingIcon';
 
 type Shown = Skin | (SkinCreateBody & { authorName?: string });
@@ -28,7 +29,7 @@ export default function SkinReadMeta({ skin }: { skin: Shown }) {
 			{skin.tags.length > 0 && <div className='listing__tags'>
 				{skin.tags.map(t => <span key={t} className='listing__tag'>{t}</span>)}
 			</div>}
-			{skin.description && <p className='listing-view__desc'>{skin.description}</p>}
+			{skin.description && <Markdown className='listing-view__desc' text={skin.description} />}
 		</>
 	);
 }

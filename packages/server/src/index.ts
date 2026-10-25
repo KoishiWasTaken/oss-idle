@@ -37,6 +37,7 @@ import {
 } from './ws/presence';
 import { activateServerI18n } from './i18n';
 import { sweepAbby } from './abby';
+import { sweepThanks } from './supporter';
 
 activateServerI18n();
 
@@ -119,6 +120,10 @@ adoptionSweep.unref();
 const abbySweep = setInterval(() => void sweepAbby(), 60 * 60_000);
 abbySweep.unref();
 
+// Send the supporter thank-yous once Stripe has each payment's net amount.
+const thanksSweep = setInterval(() => void sweepThanks(), 10_000);
+thanksSweep.unref();
+
 // The dashboard's minute checks of every service prod depends on.
 const monitor = startMonitor();
 
@@ -129,7 +134,7 @@ const monitor = startMonitor();
  */
 const shutdown = (signal: string): void => {
 	console.log(`\n${signal} received - shutting down.`);
-	[sweep, queueSweep, matchSweep, rankSweep, rankHistorySweep, presenceSweep, adoptionSweep, abbySweep, monitor]
+	[sweep, queueSweep, matchSweep, rankSweep, rankHistorySweep, presenceSweep, adoptionSweep, abbySweep, thanksSweep, monitor]
 		.forEach(clearInterval);
 	hub.closeAll();
 	drain();

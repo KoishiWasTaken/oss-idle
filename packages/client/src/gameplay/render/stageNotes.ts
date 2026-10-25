@@ -2,10 +2,10 @@ import {
 	NOTE_BODY,
 	type NoteBodyStyle,
 } from '@oss-idle/shared/osuSkin/mania';
-import {
-	dimmed,
-	type ColumnAssets,
-	type Sprite,
+import type {
+	ColumnAssets,
+	ManiaAssets,
+	Sprite,
 } from '../../osu/skin/maniaAssets';
 import {
 	noteY,
@@ -29,6 +29,23 @@ const heightOf = (f: F, s: Sprite) => s.h * f.L.noteRef / s.w;
 const patterns = new WeakMap<CanvasImageSource, CanvasPattern>();
 const tile = new DOMMatrix();
 
+const patternOf = (ctx: Context2D, img: CanvasImageSource) => {
+	let pattern = patterns.get(img);
+	if (!pattern) {
+		pattern = ctx.createPattern(img, 'repeat')!;
+		patterns.set(img, pattern);
+	}
+	return pattern;
+};
+
+/** Make the repeated hold bodies' patterns before they first show. */
+export const preparePatterns = (ctx: Context2D, assets: ManiaAssets) => {
+	assets.columns.forEach((col, c) => {
+		if (assets.config.noteBodyStyle[c] === NOTE_BODY.STRETCH) return;
+		for (const body of [col.body, col.dimBody]) body?.frames.forEach(img => patternOf(ctx, img));
+	});
+};
+
 /** A hold body from `top` to `bottom` in the column at `x`, `w` wide: stretched, or repeated
  *  from its far end (an image drawn with its end at the top shows it there). */
 export const fillBody = (
@@ -41,11 +58,7 @@ export const fillBody = (
 		ctx.drawImage(img, x, top, w, bottom - top);
 		return;
 	}
-	let pattern = patterns.get(img);
-	if (!pattern) {
-		pattern = ctx.createPattern(img, 'repeat')!;
-		patterns.set(img, pattern);
-	}
+	const pattern = patternOf(ctx, img);
 	// the tile at the sprite's own size: its bitmap may be kept smaller
 	const iw = (img as ImageBitmap).width;
 	const ih = (img as ImageBitmap).height;
@@ -70,9 +83,9 @@ const drawHold = (
 ) => {
 	const { L } = f;
 	const flip = L.assets.config.noteFlip[c];
-	const head = dim && col.head ? dimmed(col.head) : col.head;
-	const tail = dim && col.tail ? dimmed(col.tail) : col.tail;
-	const body = dim && col.body ? dimmed(col.body) : col.body;
+	const head = dim ? col.dimHead : col.head;
+	const tail = dim ? col.dimTail : col.tail;
+	const body = dim ? col.dimBody : col.body;
 	const hh = head ? heightOf(f, head) : 0;
 	const th = tail ? heightOf(f, tail) : 0;
 	if (body) drawBody(f, body, c, yTail - th / 2, yHead - hh / 2, bodyT);

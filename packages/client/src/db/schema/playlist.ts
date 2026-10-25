@@ -52,10 +52,14 @@ export class Playlist extends DAO(playlist) {
 		touch();
 	}
 
-	async deleteWithEntries(): Promise<void> {
+	async clear(): Promise<void> {
 		await DB.run('DELETE FROM playlist_entry WHERE playlistId = ?', [this.id]);
-		await this.delete();
 		touch();
+	}
+
+	async deleteWithEntries(): Promise<void> {
+		await this.clear();
+		await this.delete();
 	}
 
 	/** At the end. `rate` locks the entry at it; without one it follows the mod. */

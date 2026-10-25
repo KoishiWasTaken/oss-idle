@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 import Listener from '@oss-idle/shared/helpers/listener';
 import Synced from '@oss-idle/shared/helpers/synced';
 import SceneManager, { SCENE } from '../scenes/SceneManager';
@@ -149,7 +150,10 @@ export default class Controls {
 				case 'f4':
 					e.preventDefault();
 					if (SceneManager.current.get() === SCENE.SELECT && !e.ctrlKey) {
-						if (press) music.toggle();
+						if (press) {
+							await music.toggle();
+							message.set(music.playing.get() ? t`Music playing` : t`Music paused`);
+						}
 						break;
 					}
 					await this.increaseScrollSpeed.trigger(press, release);

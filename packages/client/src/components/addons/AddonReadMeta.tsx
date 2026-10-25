@@ -1,6 +1,7 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { repoCommitUrl } from '@oss-idle/shared/addon';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import { addonIconUrl } from '../../online/addons';
 import ListingIcon from '../listing/ListingIcon';
 import type { AddonDetail } from './AddonView';
@@ -23,7 +24,7 @@ export default function AddonReadMeta({ detail }: { detail: AddonDetail }) {
 			{detail.tags.length > 0 && <div className='listing__tags'>
 				{detail.tags.map(t => <span key={t} className='listing__tag'>{t}</span>)}
 			</div>}
-			{detail.description && <p className='listing-view__desc'>{detail.description}</p>}
+			{detail.description && <Markdown className='listing-view__desc' text={detail.description} />}
 			{detail.repoUrl && detail.commit && detail.tag && (
 				<div className='listing__by'>
 					<Trans>Built from</Trans>{' '}

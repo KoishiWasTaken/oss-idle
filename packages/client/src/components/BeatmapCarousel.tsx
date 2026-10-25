@@ -131,8 +131,8 @@ function arcCards(
 	const els = scroller.querySelectorAll<HTMLElement>('.bm-card');
 	const cards: ArcCard[] = [];
 	const last = Math.min(end, rows.length);
+	// group headers are .bm-card too: they ride the arc, one element per row
 	for (let i = start; i < last && cards.length < els.length; i++) {
-		if (rows[i].type === 'header') continue;
 		const el = els[cards.length];
 		cards.push({
 			el,
@@ -364,6 +364,16 @@ export default function BeatmapCarousel({
 	// the beatmap id we last glided to, so a mere collapse/expand (which rebuilds
 	// `rows`) doesn't yank the view back to the selection in some other group.
 	const lastCenteredRef = useRef<number | null>(null);
+	// the header just toggled and its offset in the viewport: closing a taller group
+	// above it shrinks the list, and the browser would clamp the old scrollTop
+	const toggledRef = useRef<{ key: string, offset: number } | undefined>(undefined);
+	const toggleGroup = useCallback((key: string) => {
+		const i = rowsRef.current.findIndex(r => r.type === 'header' && r.key === key);
+		toggledRef.current = {
+			key, offset: i * STRIDE - posRef.current, 
+		};
+		onToggleGroup(key);
+	}, [onToggleGroup]);
 	const centerOnActive = useCallback(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
@@ -490,6 +500,13 @@ export default function BeatmapCarousel({
 	// too once the items are in.
 	useLayoutEffect(() => {
 		forget();
+		const toggled = toggledRef.current;
+		toggledRef.current = undefined;
+		if (toggled && scrollRef.current) {
+			const i = rows.findIndex(r => r.type === 'header' && r.key === toggled.key);
+			targetRef.current = null;
+			scrollRef.current.scrollTop = i * STRIDE - toggled.offset;
+		}
 		posRef.current = scrollRef.current?.scrollTop ?? 0;
 		syncWindow();
 		updateCurve();
@@ -543,7 +560,7 @@ export default function BeatmapCarousel({
 							label={row.label}
 							count={row.count}
 							collapsed={row.collapsed}
-							onToggle={() => onToggleGroup(row.key)}
+							onToggle={() => toggleGroup(row.key)}
 						/>
 						: <BeatmapCard
 							key={`c:${row.item.beatmap.metadata.id}:${row.item.beatmap.lockedRate ?? ''}`

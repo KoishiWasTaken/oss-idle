@@ -4,7 +4,7 @@
 .transition {
 	position: fixed;
 	inset: 0;
-	z-index: 1000;
+	z-index: var(--z-transition);
 	display: grid;
 	place-items: center;
 	padding: 2rem;

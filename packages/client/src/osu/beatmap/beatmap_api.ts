@@ -38,7 +38,7 @@ const downloadSlot = async (): Promise<() => void> => {
 
 /** In song select before it is downloaded. */
 export const isListed = (meta: Metadata) =>
-	meta.bundled && SETTINGS.showUndownloaded.get();
+	SETTINGS.showUndownloaded.get() && (meta.bundled || SETTINGS.showUnbundled.get());
 
 export default class BeatmapAPI {
 

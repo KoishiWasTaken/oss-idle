@@ -39,7 +39,7 @@
 
 .game__body {
 	position: relative;
-	z-index: 5;
+	z-index: var(--z-select-body);
 	display: flex;
 	height: calc(100% - 220px);
 	padding-left: 500px;
@@ -69,7 +69,7 @@
 /* compound so it wins over the base .game__topbar height regardless of order */
 .game__topbar.game__topbar--compact {
 	height: 64px;
-	z-index: 13;
+	z-index: var(--z-select-top);
 	background: rgba(0, 0, 0, 0.82);
 	border-bottom: 2px solid #3c5dd1;
 }
@@ -99,7 +99,7 @@
 	left: 0;
 	width: 100%;
 	height: 200px;
-	z-index: 12;
+	z-index: var(--z-select-topshape);
 	overflow: visible;
 	pointer-events: none;
 }
@@ -126,7 +126,7 @@
 .game__topfilter {
 	position: relative;
 	height: 110px;
-	z-index: 13;
+	z-index: var(--z-select-top);
 	overflow: visible;
 	/* decorative overlay - must not eat clicks meant for the carousel below */
 	pointer-events: none;
@@ -163,10 +163,10 @@
 
 .game__top_md-container {
 	width: 100vw;
-	/* keep the metadata above the bar shape (z 12); paired with topinfo dropping
+	/* keep the metadata above the bar shape; paired with topinfo dropping
 	   its stacking context on mobile so the leaderboard can fall behind the body */
 	position: relative;
-	z-index: 13;
+	z-index: var(--z-select-top);
 }
 .game__top_md {
 	display: flex;
@@ -222,7 +222,7 @@
 	max-width: 27.5vw;
 	width: 520px;
 	height: 200px;
-	z-index: 13;
+	z-index: var(--z-select-top);
 	/* transparent overlay (incl. the 100vw metadata row) - let carousel clicks
 	   through; the leaderboard container re-enables pointer events */
 	pointer-events: none;
@@ -235,7 +235,7 @@
 	background-color: #000;
 
 	border-top: 2px solid #3c5dd1;
-	z-index: 100;
+	z-index: var(--z-select-botbar);
 
 	display: grid;
 	/* the user card centred, kept clear of the song select buttons */
@@ -293,7 +293,7 @@
 }
 .game__user-meta {
 	position: relative;
-	/* keeps .game__user-rank's z-index -1 inside the card */
+	/* keeps .game__user-rank's --z-under inside the card */
 	isolation: isolate;
 	display: flex;
 	flex-direction: column;
@@ -308,7 +308,7 @@
 	position: absolute;
 	right: 4px;
 	bottom: 12px;
-	z-index: -1;
+	z-index: var(--z-under);
 	font-size: 66px;
 	font-weight: 200;
 	line-height: 1;
@@ -379,7 +379,7 @@
 .songsearch {
 	position: absolute;
 	right: 0;
-	z-index: 20;
+	z-index: var(--z-select-search);
 	width: min(380px, 46%);
 	text-align: right;
 	pointer-events: none;
@@ -578,7 +578,7 @@
 	position: absolute;
 	left: 0.8rem;
 	bottom: 0.8rem;
-	z-index: 4000;
+	z-index: var(--z-select-debug);
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
@@ -608,7 +608,7 @@
 	transition:
 		transform 0.12s ease,
 		filter 0.15s ease;
-	z-index: 500;
+	z-index: var(--z-select-exit);
 }
 .game__exit:hover {
 	transform: translateY(-1px);
@@ -631,7 +631,7 @@
 	border-bottom: 2px solid #3c5dd1;
 	transition: all 0.16s ease;
 	margin: 15px 5px 0;
-	z-index: 1000;
+	z-index: var(--z-select-mobile-scores);
 	padding: 10px;
 	width: calc(100% - 10px);
 	justify-content: center;
@@ -644,18 +644,18 @@
 	}
 
 	/* drop topinfo's stacking context so its descendants compete in .game's
-	   context: the metadata stays above the shape (z 13), the leaderboard falls
-	   behind the body (z 4 < 5), i.e. behind the carousel. */
+	   context: the metadata stays above the shape, the leaderboard falls behind the
+	   body, i.e. behind the carousel. */
 	.game__topinfo {
 		z-index: auto;
 	}
 
-	/* leaderboard below the body (z 5) so it sits behind the carousel; its
-	   container keeps z-index auto so the Show-scores button (z 1000) still
-	   escapes above the rest of the UI */
+	/* leaderboard below the body so it sits behind the carousel; its
+	   container keeps z-index auto so the Show-scores button still escapes
+	   above the rest of the UI */
 	.lb {
 		position: relative;
-		z-index: 4;
+		z-index: var(--z-select-lb);
 		opacity: 0.3;
 		transition: opacity 200ms;
 		margin-top: 50px;

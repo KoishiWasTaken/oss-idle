@@ -20,7 +20,7 @@ const day = new Intl.DateTimeFormat(undefined, {
 	day: 'numeric', month: 'short', year: 'numeric',
 });
 
-/** One medal on the profile, lit when held; a hidden one stays a "?" until then. */
+/** One medal on the profile, lit when held; a hidden one shows only its name until then. */
 export default function ProfileMedal({ medal, unlockedAt, progress, holders, players }: {
 	medal: MedalDef,
 	unlockedAt?: number,
@@ -41,7 +41,7 @@ export default function ProfileMedal({ medal, unlockedAt, progress, holders, pla
 			</div>
 			<div className='profile-medal__main'>
 				<div className='profile-medal__big'>{icon}</div>
-				<div className='profile-medal__name'>{hidden ? '???' : medalName(medal.id)}</div>
+				<div className='profile-medal__name'>{medalName(medal.id)}</div>
 				<div className='profile-medal__desc'>
 					{hidden ? <Trans>A hidden medal</Trans> : medalDescription(medal.id)}
 				</div>

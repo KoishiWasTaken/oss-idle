@@ -47,7 +47,7 @@ export default function MenuWarmup() {
 	if (done) return null;
 	return (
 		<div aria-hidden style={{
-			position: 'fixed', inset: 0, opacity: 0.01, pointerEvents: 'none', zIndex: -1,
+			position: 'fixed', inset: 0, opacity: 0.01, pointerEvents: 'none', zIndex: 'var(--z-warmup)',
 		}}>
 			<MainMenu flash />
 		</div>

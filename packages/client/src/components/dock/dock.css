@@ -6,7 +6,7 @@
  * small target. The look is the playlist manager's - square edges, thin grey
  * border, pink for what matters.
  *
- * It sits above the community controls (bottom right, z 9700) and above song
+ * It sits above the community controls (bottom right) and above song
  * select's bottom bar, so it never lands on either.
  */
 .dock {
@@ -17,7 +17,7 @@
 	right: 8px;
 	/* just clear of the community controls (bottom right, ~34px tall) */
 	bottom: 44px;
-	z-index: 60;
+	z-index: var(--z-dock);
 	color: #fff;
 	background: rgba(8, 7, 11, 0.88);
 	border: 1px solid var(--dock-line);
@@ -35,11 +35,11 @@
 	}
 }
 
-/* song select keeps a 110px bottom bar, which paints over the dock (z 100) */
+/* song select keeps a 110px bottom bar, which paints over the dock */
 .dock--above-bar {
 	bottom: 120px;
 }
-/* the open chat (z 9500) covers it; the docked column keeps its own place */
+/* the open chat covers it; the docked column keeps its own place */
 html.is-chat-open .dock:not(.dock--left) {
 	bottom: calc(var(--community-chat-height) + 10px);
 }
@@ -84,8 +84,8 @@ html.is-chat-open .dock:not(.dock--left) {
 	max-width: none;
 	border: 0;
 	border-right: 1px solid var(--dock-line);
-	/* the queue carousel is a page overlay (5000) when it is not the scene */
-	z-index: 5100;
+	/* the queue carousel is a page overlay when it is not the scene */
+	z-index: var(--z-dock-left);
 }
 /* in song select the carousel is the scene, which keeps its bottom bar */
 .dock--left-scene {

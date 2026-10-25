@@ -18,20 +18,24 @@ export function openSave(name: string, create: boolean): Promise<IDBDatabase> {
 	});
 }
 
-/** The save held in database `name`, if there is one. */
+/** The save held in database `name`, if there is one. Throws when IndexedDB can't be
+ *  read (its files still held by the previous run, after an update): taken for no save,
+ *  an empty one would be written over the player's. */
 export async function readSave(name: string): Promise<Uint8Array | undefined> {
+	let db: IDBDatabase;
 	try {
-		const db = await openSave(name, false);
-		try {
-			const req = db.transaction(SAVE_STORE, 'readonly').objectStore(SAVE_STORE).get(SAVE_KEY);
-			return await new Promise((resolve, reject) => {
-				req.onsuccess = () => resolve(req.result as Uint8Array | undefined);
-				req.onerror = () => reject(req.error);
-			});
-		} finally {
-			db.close();
-		}
-	} catch {
-		return undefined;
+		db = await openSave(name, false);
+	} catch (e) {
+		if (e instanceof DOMException && e.name === 'AbortError') return undefined;
+		throw e;
+	}
+	try {
+		const req = db.transaction(SAVE_STORE, 'readonly').objectStore(SAVE_STORE).get(SAVE_KEY);
+		return await new Promise((resolve, reject) => {
+			req.onsuccess = () => resolve(req.result as Uint8Array | undefined);
+			req.onerror = () => reject(req.error);
+		});
+	} finally {
+		db.close();
 	}
 }

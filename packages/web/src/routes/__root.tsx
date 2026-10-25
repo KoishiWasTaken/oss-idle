@@ -47,6 +47,8 @@ function RootLayout() {
 	if (leafId === '/preview') return <Outlet />;
 	// the API docs are their own page, like osu!'s
 	if (leafId === '/docs' || leafId === '/docs_/addons') return <Outlet />;
+	// sign in and welcome cover the whole window
+	if (leafId === '/login' || leafId === '/auth/callback') return <Outlet />;
 
 	// On the index the signed-out vs signed-in UI diverge entirely; wait for the
 	// session so we don't flash the public landing to a signed-in user.

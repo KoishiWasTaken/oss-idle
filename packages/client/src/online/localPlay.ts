@@ -37,7 +37,7 @@ const RESULT_TTL_MS = 10 * 60 * 1000;
 export type LocalScoring = 'guest' | 'unranked';
 
 /** How tired and warmed up the server says the character plays right now. */
-export type Tiredness = { fatigue: number, warmup: number, cooling?: boolean };
+export type Tiredness = { fatigue: number, warmup: number, warmupBar?: number };
 
 export type LocalStart = { mode: LocalScoring, tired?: Tiredness };
 

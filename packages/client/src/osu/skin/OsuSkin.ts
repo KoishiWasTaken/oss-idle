@@ -25,7 +25,23 @@ export type Fit = 'scale' | 'top';
 /** A decoded image and its size as the file has it (the bitmap may be smaller). */
 export type Decoded = { img: ImageBitmap, w: number, h: number };
 
+/** The image copied onto the GPU: drawn from a decoded file's bitmap, a skin's images cost
+ *  milliseconds every frame even on a fast GPU. */
+export const resident = (img: ImageBitmap): ImageBitmap => {
+	const canvas = new OffscreenCanvas(img.width, img.height);
+	canvas.getContext('2d')!.drawImage(img, 0, 0);
+	img.close();
+	return canvas.transferToImageBitmap();
+};
+
 const decode = async (blob: Blob, fit: Fit): Promise<Decoded> => {
+	const decoded = await decodeFile(blob, fit);
+	return {
+		...decoded, img: resident(decoded.img),
+	};
+};
+
+const decodeFile = async (blob: Blob, fit: Fit): Promise<Decoded> => {
 	const img = await createImageBitmap(blob);
 	const { width: w, height: h } = img;
 	if (w <= MAX_SIDE && h <= MAX_SIDE) return {
@@ -92,7 +108,9 @@ const TRIMMED_MAX = 512;
 
 /** Where a row or column of `alpha` (width × height) is covered enough to count: a thin
  *  line or a faint glow across the image is not what it shows. */
-const coveredSpan = (alpha: Uint8ClampedArray, width: number, height: number, rows: boolean) => {
+export const coveredSpan = (
+	alpha: Uint8ClampedArray, width: number, height: number, rows: boolean,
+) => {
 	const counts = new Array<number>(rows ? height : width).fill(0);
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {

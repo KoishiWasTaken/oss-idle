@@ -10,7 +10,11 @@ import { BeatmapDecoder } from 'osu-parsers';
 import * as ppjs from 'rosu-pp-js-web';
 import { message } from '../../globals';
 import rosuReady from '../rosu';
-import BeatmapStore, { type SetRecord } from './beatmap_store';
+import BeatmapStore, {
+	type SetRecord,
+	type StoreMetadata,
+} from './beatmap_store';
+import { isChart } from './setFiles';
 import LightBeatmapSet from './LightBeatmapSet';
 import { pickFile } from '../../pickFile';
 import { unwrapArchive } from '@oss-idle/shared/osuSkin/files';
@@ -24,7 +28,7 @@ const hash = (text: string): number => {
 
 /** Negative, so it never meets a server id; derived from the map, so importing
  *  it again replaces it and keeps its local scores. */
-const localId =(key: string): number => -(hash(key) || 1);
+export const localId = (key: string): number => -(hash(key) || 1);
 
 /** The local id a set's charts give it: by its BeatmapSetID when it has one (another map of
  *  the same song and mapper is another set), else by artist, title and mapper. */
@@ -41,12 +45,12 @@ export const importOsz = async (data: Uint8Array): Promise<SetRecord> =>
 		unzip(data, (err, out) => (err ? reject(err) : resolve(out)));
 	})));
 
-/** Store an unpacked set as a local set, replacing the one it was imported as before,
- *  or the local set `id` when given. */
-export const importFiles = async (files: Unzipped, setId?: number): Promise<SetRecord> => {
+/** A local set's metadata out of its files: the set `id` when given, else the one its charts
+ *  give it. */
+export const localMetadata = async (files: Unzipped, setId?: number): Promise<StoreMetadata> => {
 	const decoder = new TextDecoder();
 	const charts = Object.keys(files)
-		.filter(name => name.toLowerCase().endsWith('.osu'))
+		.filter(isChart)
 		.map(file => {
 			const text = decoder.decode(files[file]);
 			return {
@@ -66,11 +70,15 @@ export const importFiles = async (files: Unzipped, setId?: number): Promise<SetR
 		difficulty: Math.round(new ppjs.Difficulty({ lazer: false })
 			.calculate(new ppjs.Beatmap(text)).stars * 100) / 100,
 	}));
-
-	return BeatmapStore.storeOsz({
+	return {
 		id, artist, title, creator, versions,
-	}, files, true);
+	};
 };
+
+/** Store an unpacked set as a local set, replacing the one it was imported as before,
+ *  or the local set `id` when given. */
+export const importFiles = async (files: Unzipped, setId?: number): Promise<SetRecord> =>
+	BeatmapStore.storeOsz(await localMetadata(files, setId), files, true);
 
 const importFile = async (file: File): Promise<SetRecord | undefined> => {
 	message.set(t`Importing ${ph({ name: file.name })}...`);

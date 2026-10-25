@@ -9,7 +9,12 @@ import { music } from '../audio/MusicPlayer';
 import { currentSkin } from '../osu/skin/Skin';
 import Controls from '../input/Controls';
 import useTick from '../components/dock/useTick';
-import { openPage } from '../globals';
+import {
+	isCommunityOpen,
+	isOptionsOpen,
+	isWebOpen,
+	openPage,
+} from '../globals';
 import Background from './Background';
 import { leaveScreensaver } from './screensaver';
 import './Screensaver.css';
@@ -26,13 +31,18 @@ export default function Screensaver() {
 	const [live] = useSynced(PlayManager.live);
 	const [skin] = useSynced(currentSkin);
 	const [page] = useSynced(openPage);
+	const [community] = useSynced(isCommunityOpen);
+	const [options] = useSynced(isOptionsOpen);
+	const [web] = useSynced(isWebOpen);
+	const overlaid = !!page || !!community || !!options || !!web;
 	useTick(!!live);
 	Controls.back.usePress(leaveScreensaver);
 
 	// burn-in: the dock, cursor and other fixed chrome fade out (Screensaver.css)
-	// until the pointer or a key wakes them; a page open over it stays up
+	// until the pointer or a key wakes them; a page, chat, options or browser
+	// open over it keeps them up
 	useEffect(() => {
-		if (page) return;
+		if (overlaid) return;
 		const html = document.documentElement;
 		let timer = 0;
 		const wake = () => {
@@ -48,7 +58,7 @@ export default function Screensaver() {
 			events.forEach(e => window.removeEventListener(e, wake));
 			html.classList.remove('is-saver-idle');
 		};
-	}, [!!page]);
+	}, [overlaid]);
 
 	// the track follows the play, at the play's position
 	useEffect(() => {

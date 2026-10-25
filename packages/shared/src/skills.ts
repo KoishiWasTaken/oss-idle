@@ -183,6 +183,7 @@ export const PHYSICAL_SKILLS: SkillName[] = [
 	SKILL.speed,
 	SKILL.stamina,
 	SKILL.jackspeed,
+	SKILL.coordination,
 ];
 
 const MINDBLOCK_EXEMPT = new Set<SkillName>([

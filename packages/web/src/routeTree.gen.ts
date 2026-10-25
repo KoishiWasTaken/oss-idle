@@ -61,6 +61,7 @@ import { Route as AdminRestrictionsRouteImport } from './routes/admin/restrictio
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminNominationRouteImport } from './routes/admin/nomination'
 import { Route as AdminMedalsRouteImport } from './routes/admin/medals'
+import { Route as AdminEmojiRouteImport } from './routes/admin/emoji'
 import { Route as AdminClaimsRouteImport } from './routes/admin/claims'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminBugsRouteImport } from './routes/admin/bugs'
@@ -334,6 +335,11 @@ const AdminMedalsRoute = AdminMedalsRouteImport.update({
   path: '/medals',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminEmojiRoute = AdminEmojiRouteImport.update({
+  id: '/emoji',
+  path: '/emoji',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminClaimsRoute = AdminClaimsRouteImport.update({
   id: '/claims',
   path: '/claims',
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/emoji': typeof AdminEmojiRoute
   '/admin/medals': typeof AdminMedalsRoute
   '/admin/nomination': typeof AdminNominationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -479,6 +486,7 @@ export interface FileRoutesByTo {
   '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/emoji': typeof AdminEmojiRoute
   '/admin/medals': typeof AdminMedalsRoute
   '/admin/nomination': typeof AdminNominationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -546,6 +554,7 @@ export interface FileRoutesById {
   '/admin/bugs': typeof AdminBugsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/emoji': typeof AdminEmojiRoute
   '/admin/medals': typeof AdminMedalsRoute
   '/admin/nomination': typeof AdminNominationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -614,6 +623,7 @@ export interface FileRouteTypes {
     | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
+    | '/admin/emoji'
     | '/admin/medals'
     | '/admin/nomination'
     | '/admin/orders'
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
+    | '/admin/emoji'
     | '/admin/medals'
     | '/admin/nomination'
     | '/admin/orders'
@@ -745,6 +756,7 @@ export interface FileRouteTypes {
     | '/admin/bugs'
     | '/admin/chat'
     | '/admin/claims'
+    | '/admin/emoji'
     | '/admin/medals'
     | '/admin/nomination'
     | '/admin/orders'
@@ -1215,6 +1227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMedalsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/emoji': {
+      id: '/admin/emoji'
+      path: '/emoji'
+      fullPath: '/admin/emoji'
+      preLoaderRoute: typeof AdminEmojiRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/claims': {
       id: '/admin/claims'
       path: '/claims'
@@ -1308,6 +1327,7 @@ interface AdminRouteRouteChildren {
   AdminBugsRoute: typeof AdminBugsRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminClaimsRoute: typeof AdminClaimsRoute
+  AdminEmojiRoute: typeof AdminEmojiRoute
   AdminMedalsRoute: typeof AdminMedalsRoute
   AdminNominationRoute: typeof AdminNominationRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -1324,6 +1344,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBugsRoute: AdminBugsRoute,
   AdminChatRoute: AdminChatRoute,
   AdminClaimsRoute: AdminClaimsRoute,
+  AdminEmojiRoute: AdminEmojiRoute,
   AdminMedalsRoute: AdminMedalsRoute,
   AdminNominationRoute: AdminNominationRoute,
   AdminOrdersRoute: AdminOrdersRoute,

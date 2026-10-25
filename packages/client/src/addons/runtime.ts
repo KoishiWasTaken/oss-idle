@@ -1,10 +1,25 @@
 import { message } from '../globals';
-import { Addon } from '../db/schema/addon';
+import {
+	Addon,
+	addonsVersion,
+} from '../db/schema/addon';
 import type { Addon as AddonDTO } from '../online/addons';
 import {
 	hostFor,
 	type AddonHost,
 } from './host';
+import {
+	entryById,
+	library,
+	onLibraryChanged,
+} from '../library';
+import {
+	addonsMoved,
+	markAddonsMoved,
+	readAddonFile,
+	removeAddonFile,
+	writeAddonFile,
+} from './addonFiles';
 
 /**
  * Add-on runtime. Add-ons are unsandboxed userscripts: we run them by turning
@@ -106,6 +121,7 @@ export const installAddon = async (dto: AddonDTO): Promise<void> => {
 		enabled: false,
 		installedAt: Date.now(),
 	}).add();
+	await writeAddonFile(installed);
 	await enableAddon(installed);
 };
 
@@ -119,6 +135,7 @@ export const disableAddon = async (addon: Addon): Promise<void> => {
 export const uninstallAddon = async (addon: Addon): Promise<void> => {
 	await unmount(addon.id, addon.name);
 	await addon.uninstall();
+	await removeAddonFile(addon.id);
 };
 
 /** Swap a running add-on's source after an update: unmount old, mount new. */
@@ -127,8 +144,44 @@ export const remountAddon = async (addon: Addon): Promise<void> => {
 	if (addon.enabled) await mount(addon);
 };
 
+/** On desktop the code lives in each add-on's folder: what changed there is taken in (and
+ *  runs), and an add-on whose folder went is uninstalled. */
+const syncFolders = async (): Promise<void> => {
+	const moved = addonsMoved();
+	for (const addon of await Addon.getAll()) {
+		const entry = await entryById('addons', addon.id);
+		if (!entry) {
+			if (moved) await uninstallAddon(addon);
+			else await writeAddonFile(addon);
+			continue;
+		}
+		const source = await readAddonFile(entry);
+		if (source === undefined || source === addon.source) continue;
+		await addon.update({ source });
+		addonsVersion.set(addonsVersion.get() + 1);
+		await remountAddon(addon);
+	}
+	markAddonsMoved();
+};
+
+let queue: Promise<unknown> = Promise.resolve();
+const later = (job: () => Promise<void>) => {
+	queue = queue.then(job).catch(e => console.error('[add-ons folder]', e));
+};
+
+let timer: ReturnType<typeof setTimeout> | undefined;
+
 /** On boot, mount every enabled installed add-on. */
 export const bootAddons = async (): Promise<void> => {
+	if (library()) {
+		later(syncFolders);
+		await queue;
+		onLibraryChanged('addons', () => {
+			clearTimeout(timer);
+			// a folder renamed goes and comes back: look once both are in
+			timer = setTimeout(() => later(syncFolders), 300);
+		});
+	}
 	const installed = await Addon.getAll();
 	await Promise.all(
 		installed

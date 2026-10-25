@@ -1,7 +1,7 @@
 .strain {
 	position: absolute;
 	inset: 0;
-	z-index: 60;
+	z-index: var(--z-select-strain);
 	display: flex;
 	flex-direction: column;
 	background: rgba(5, 4, 10, 0.94);

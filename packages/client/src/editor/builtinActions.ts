@@ -3,7 +3,7 @@ import {
 	plural,
 	t,
 } from '@lingui/core/macro';
-import { desktop } from '@oss-idle/shared/desktop';
+import { library } from '../library';
 import { message } from '../globals';
 import {
 	keyBindings,
@@ -114,7 +114,7 @@ export const BUILTIN_ACTIONS: EditorAction[] = [
 		id: 'file.export', group: 'file', label: () => t`Export .osz`,
 		run: ({ commands }) => commands.exportSet(),
 	},
-	...desktop()?.mapFolder ? [{
+	...library() ? [{
 		id: 'file.openFolder', group: 'file', label: () => t`Open the map's folder`, more: true,
 		run: ({ session }) => void session.openFolder(),
 	} satisfies EditorAction] : [],

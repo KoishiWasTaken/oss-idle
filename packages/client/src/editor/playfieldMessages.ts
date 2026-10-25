@@ -7,7 +7,7 @@ import type { Overlay } from './painter';
 import type { VisualOptions } from './visualOptions';
 
 /** The song's clock, run by the worker on its own frames: playing from `pausedAt` since
- *  `startedAt` (ms since the epoch, which the page and the worker share). */
+ *  `startedAt` (the page's `performance.now()`). */
 export type PlayfieldClock = {
 	playing: boolean,
 	pausedAt: number,
@@ -29,7 +29,7 @@ export type ToPlayfield =
 	| {
 		kind: 'view', divisor: number, zoom: number, preview: boolean, scrollMs: number, sounds: boolean,
 	}
-	| { kind: 'clock', clock: PlayfieldClock }
+	| { kind: 'clock', clock: PlayfieldClock, sentAt: number }
 	| { kind: 'song', pcm: Float32Array, rate: number }
 	| { kind: 'visuals', options: VisualOptions }
 	| { kind: 'overlay', overlay: Overlay }

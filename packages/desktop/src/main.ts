@@ -28,11 +28,13 @@ import {
 import { handleDeepLink } from './deeplink';
 import { recordTrace } from './trace';
 import {
-	closeMapFolder,
-	openMapFolder,
-	writeMapFolder,
-	type SetFiles,
-} from './mapFolder';
+	initLibrary,
+	listLibrary,
+	readLibrary,
+	removeLibrary,
+	revealLibrary,
+	writeLibrary,
+} from './library';
 import { isAppFrame } from './frames';
 import {
 	checkForUpdate,
@@ -44,6 +46,8 @@ import {
 } from './update';
 import {
 	canMoveInstall,
+	finishMove,
+	libraryRoot,
 	moveInstall,
 } from './install';
 import {
@@ -231,16 +235,20 @@ if (!app.requestSingleInstanceLock()) {
 		ipcMain.handle('oss-idle:streams', () => listStreams());
 		ipcMain.handle('oss-idle:switch-stream', (_event, name: string) => switchStream(String(name)));
 
-		// The editor's map as a folder in the file explorer.
-		ipcMain.handle('oss-idle:map-folder-open', (event, name: string, files: SetFiles, show = true) =>
-			(isAppFrame(event.senderFrame)
-				? openMapFolder(USER_DATA, event.sender, String(name), files, show !== false) : undefined));
-		ipcMain.on('oss-idle:map-folder-write', (event, files: SetFiles) => {
-			if (isAppFrame(event.senderFrame)) writeMapFolder(files);
-		});
-		ipcMain.on('oss-idle:map-folder-close', (event) => {
-			if (isAppFrame(event.senderFrame)) closeMapFolder();
-		});
+		// Maps, skins and add-ons as folders on disk.
+		finishMove();
+		initLibrary(libraryRoot(), change =>
+			mainWindow?.webContents.send('oss-idle:library-changed', change));
+		const library: Record<string, (...args: never[]) => unknown> = {
+			list: listLibrary,
+			read: readLibrary,
+			write: writeLibrary,
+			remove: removeLibrary,
+			reveal: revealLibrary,
+		};
+		ipcMain.handle('oss-idle:library', (event, op: string, ...args: unknown[]) =>
+			(isAppFrame(event.senderFrame) && Object.hasOwn(library, op)
+				? (library[op] as (...given: unknown[]) => unknown)(...args) : undefined));
 
 		// Discord Rich Presence. The renderer pushes scene/map changes; the client
 		// is self-healing, so this is fire-and-forget too.

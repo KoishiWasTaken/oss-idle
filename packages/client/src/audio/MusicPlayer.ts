@@ -715,8 +715,8 @@ export class MusicPlayer {
 		this.play(0);
 	}
 	
-	toggle() {
-		if (this._playing) this.pause(); else this.play();
+	async toggle() {
+		if (this._playing) this.pause(); else await this.play();
 	}
 }
 

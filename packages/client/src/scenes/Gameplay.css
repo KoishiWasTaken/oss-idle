@@ -9,7 +9,7 @@
 .play__bg {
 	position: absolute;
 	inset: 0;
-	z-index: 0;
+	z-index: var(--z-play-bg);
 	background-size: cover;
 	background-position: center;
 }
@@ -17,7 +17,7 @@
 .play__video {
 	position: absolute;
 	inset: 0;
-	z-index: 1;
+	z-index: var(--z-play-video);
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
@@ -27,7 +27,7 @@
 .play__dim {
 	position: absolute;
 	inset: 0;
-	z-index: 2;
+	z-index: var(--z-play-dim);
 	background: #05040a;
 	opacity: 0;
 	pointer-events: none;
@@ -36,7 +36,7 @@
 .play__canvas {
 	position: absolute;
 	inset: 0;
-	z-index: 3;
+	z-index: var(--z-play-canvas);
 	width: 100%;
 	height: 100%;
 }
@@ -47,7 +47,7 @@
 	position: absolute;
 	top: 1rem;
 	left: 1.2rem;
-	z-index: 10;
+	z-index: var(--z-play-hud);
 	display: flex;
 	align-items: center;
 	gap: 0.6rem;
@@ -78,7 +78,7 @@
 	top: 1.1rem;
 	left: 50%;
 	transform: translateX(-50%);
-	z-index: 10;
+	z-index: var(--z-play-hud);
 	font-size: 0.95rem;
 	font-weight: 600;
 	color: rgba(255, 255, 255, 0.85);
@@ -92,7 +92,7 @@
 /* grade badge: overlaid left of the canvas-drawn score, placed each frame (gradeBadge.ts) */
 .play__grade {
 	position: absolute;
-	z-index: 10;
+	z-index: var(--z-play-hud);
 	pointer-events: none;
 	filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
@@ -108,7 +108,7 @@
 	bottom: 2.2rem;
 	left: 50%;
 	transform: translateX(-50%);
-	z-index: 10;
+	z-index: var(--z-play-hud);
 	display: flex;
 	align-items: center;
 	gap: 0.6rem;
@@ -148,7 +148,7 @@
 	position: absolute;
 	bottom: 1rem;
 	right: 1.2rem;
-	z-index: 10;
+	z-index: var(--z-play-hud);
 	padding: 0.45rem 1rem;
 	border-radius: 999px;
 	font-weight: 700;
@@ -184,7 +184,7 @@
 /* hover area over the warm-up gauge the canvas draws */
 .play__warmup-hint {
 	position: absolute;
-	z-index: 4;
+	z-index: var(--z-play-warmup-hint);
 }
 
 .play__warmup-hint > span,

@@ -110,3 +110,11 @@
 	font-weight: 600;
 	cursor: pointer;
 }
+
+/* the game's, Discord's inline size */
+.chat-console__text .emoji-text {
+	width: 1.375em;
+	height: 1.375em;
+	object-fit: contain;
+	vertical-align: -0.3em;
+}

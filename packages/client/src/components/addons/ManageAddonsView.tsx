@@ -25,6 +25,8 @@ import {
 	remountAddon,
 	uninstallAddon,
 } from '../../addons/runtime';
+import { writeAddonFile } from '../../addons/addonFiles';
+import ManageAddonsActions from './ManageAddonsActions';
 import {
 	deleteAddon,
 	getAddon,
@@ -41,7 +43,6 @@ import AddonView, {
 import MyAddonRow from './MyAddonRow';
 import InstalledAddonRow from './InstalledAddonRow';
 import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
-import PageBarActions from '../page/PageBarActions';
 import { useHasUpdate } from '../listing/useHasUpdate';
 
 /** What the editor is editing: a blank draft (`{}`) or an existing add-on. */
@@ -110,6 +111,7 @@ export default function ManageAddonsView() {
 			icon: remote.icon, 
 			status: remote.status, 
 		});
+		await writeAddonFile(local);
 		await remountAddon(local);
 		setUpdating(undefined);
 	});
@@ -224,16 +226,7 @@ export default function ManageAddonsView() {
 				onClose={() => setConfirming(undefined)} 
 			/>}
 
-			{user && (
-				<PageBarActions actions={[
-					{
-						id: 'create',
-						label: <Trans>Create new add-on</Trans>,
-						onClick: () => setEditing({}),
-						order: 10,
-					},
-				]} />
-			)}
+			<ManageAddonsActions onCreate={user ? () => setEditing({}) : undefined} />
 		</>
 	);
 }

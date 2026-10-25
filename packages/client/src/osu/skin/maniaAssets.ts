@@ -15,7 +15,11 @@ import {
 	type Judgement,
 } from '@oss-idle/shared/judgement';
 import type OsuSkin from './OsuSkin';
-import type { Fit } from './OsuSkin';
+import {
+	coveredSpan,
+	resident,
+	type Fit,
+} from './OsuSkin';
 
 /** A decoded element: its frames, and its size in stable's 768-high space (@2x halved). */
 export type Sprite = {
@@ -32,6 +36,9 @@ export type Glyph = { img: CanvasImageSource, w: number, h: number };
 export type Font = {
 	glyphs: Partial<Record<string, Glyph>>,
 	overlap: number,
+	/** the rows of `0` that show something, in units: a glyph can be a big canvas with the
+	 *  digit in a corner */
+	ink: { top: number, height: number },
 };
 
 export type ColumnAssets = {
@@ -39,6 +46,10 @@ export type ColumnAssets = {
 	head?: Sprite,
 	body?: Sprite,
 	tail?: Sprite,
+	/** the hold's pieces darkened, as a dropped hold shows them */
+	dimHead?: Sprite,
+	dimBody?: Sprite,
+	dimTail?: Sprite,
 	key?: Sprite,
 	keyDown?: Sprite,
 	/** the stage light, tinted with the column's light colour */
@@ -144,17 +155,6 @@ const tint = (s: Sprite | undefined, colour: Rgba): Sprite | undefined => {
 };
 
 const DARK_GRAY: Rgba = [169, 169, 169, 255];
-const dims = new WeakMap<Sprite, Sprite>();
-
-/** A hold piece darkened, as a dropped hold shows it: made the first time one is dropped. */
-export const dimmed = (s: Sprite): Sprite => {
-	let dim = dims.get(s);
-	if (!dim) {
-		dim = tint(s, DARK_GRAY)!;
-		dims.set(s, dim);
-	}
-	return dim;
-};
 
 /** An image drawn additively, made to add the same light onto our see-through canvas: its
  *  black turns transparent (the brightest channel becomes the alpha), so it leaves no box
@@ -181,7 +181,8 @@ const lightImage = (img: Sized) => {
 		px[i + 3] = max;
 	}
 	ctx.putImageData(data, 0, 0);
-	return canvas.transferToImageBitmap();
+	// read back, the canvas may have left the GPU
+	return resident(canvas.transferToImageBitmap());
 };
 
 const light = (s: Sprite | undefined): Sprite | undefined => s && {
@@ -213,7 +214,25 @@ const font = async (
 		};
 	}));
 	return {
-		glyphs, overlap: own ? overlap ?? 0 : fallback.ini.fonts.scoreOverlap ?? 0,
+		glyphs, overlap: own ? overlap ?? 0 : fallback.ini.fonts.scoreOverlap ?? 0, ink: ink(glyphs['0']),
+	};
+};
+
+const ink = (g: Glyph | undefined): Font['ink'] => {
+	if (!g) return {
+		top: 0, height: 0,
+	};
+	const img = g.img as ImageBitmap;
+	const ctx = new OffscreenCanvas(img.width, img.height).getContext('2d')!;
+	ctx.drawImage(img, 0, 0);
+	const { data, width, height } = ctx.getImageData(0, 0, img.width, img.height);
+	const [top, bottom] = coveredSpan(data, width, height, true);
+	if (top < 0) return {
+		top: 0, height: g.h,
+	};
+	const k = g.h / height;
+	return {
+		top: top * k, height: (bottom + 1 - top) * k,
 	};
 };
 
@@ -272,6 +291,9 @@ const column = async (
 		head,
 		body,
 		tail,
+		dimHead: tint(head, DARK_GRAY),
+		dimBody: tint(body, DARK_GRAY),
+		dimTail: tint(tail, DARK_GRAY),
 		key,
 		keyDown,
 		light: tint(light, cfg.colours.light[c]),

@@ -7,6 +7,7 @@ import {
 } from '@oss-idle/shared/skills';
 import { type Grade } from '@oss-idle/shared/judgement';
 import { MAX_HP } from '@oss-idle/shared/sim/scoring';
+import { BAR_ZONES } from '@oss-idle/shared/fatigue';
 import { drawHitErrorBar } from '../hitError';
 import {
 	roundRect,
@@ -20,41 +21,32 @@ import type { StageFrame } from './stage';
 
 const HP_EASE_MS = 200;
 
-const FATIGUE_COLOR = '#b48cff';
-const GOLD = '#ffd34d';
-const COOL_GLOW = '#2b4fd8';
-const COOL_TRACK = 'rgba(25,45,140,0.7)';
-const COOL_TEXT = '#7f9dff';
 const TRACK = 'rgba(255,255,255,0.12)';
 const GAUGE_W = 150;
-const SHINE_W = 40;
-const SHINE_MS = 1600;
+const BAR_H = 6;
 
-// spans the whole gauge, so a cold warm-up only shows the red end
-let warmupFill: CanvasGradient | undefined;
-let goldShine: CanvasGradient | undefined;
-const gradients = (ctx: CanvasRenderingContext2D) => {
-	if (!warmupFill) {
-		warmupFill = ctx.createLinearGradient(0, 0, GAUGE_W, 0);
-		warmupFill.addColorStop(0, '#ff4d4d');
-		warmupFill.addColorStop(0.5, '#ffa64d');
-		warmupFill.addColorStop(0.75, '#c6e04d');
-		warmupFill.addColorStop(1, '#4de06a');
-	}
-	if (!goldShine) {
-		goldShine = ctx.createLinearGradient(-SHINE_W, 0, 0, 0);
-		goldShine.addColorStop(0, 'rgba(255,225,120,0)');
-		goldShine.addColorStop(0.5, 'rgba(255,245,200,0.95)');
-		goldShine.addColorStop(1, 'rgba(255,225,120,0)');
-	}
-	return {
-		fill: warmupFill,
-		shine: goldShine,
-	};
+// the warm-up bar's zones, left to right: cold, the sweet spot, past the peak, fatigued
+const ZONE_COLORS = ['#4da3ff', '#ffd34d', '#ff9a4d', '#b48cff'];
+
+// spans the bar from the origin: cold blue, gold through the sweet spot, orange, fatigue purple
+let barFill: CanvasGradient | undefined;
+const warmupFill = (ctx: CanvasRenderingContext2D) => {
+	if (barFill) return barFill;
+	const [peak, pushing, fatigued] = BAR_ZONES;
+	barFill = ctx.createLinearGradient(0, 0, GAUGE_W, 0);
+	barFill.addColorStop(0, ZONE_COLORS[0]);
+	barFill.addColorStop(peak, ZONE_COLORS[1]);
+	barFill.addColorStop(pushing, ZONE_COLORS[1]);
+	barFill.addColorStop(fatigued, ZONE_COLORS[2]);
+	barFill.addColorStop(1, ZONE_COLORS[3]);
+	return barFill;
 };
 
-// red → orange → green, the tint of the warm-up gauge's % on narrow screens
-const warmupHue = (v: number) => v < 0.5 ? v * 60 : 30 + (v - 0.5) * 230;
+const zoneOf = (v: number) => {
+	let i = 0;
+	while (i < BAR_ZONES.length && v >= BAR_ZONES[i]) i++;
+	return i;
+};
 
 // one gauge row: label, % and a bar - just the label and a tinted % when compact
 const drawGauge = (
@@ -64,8 +56,6 @@ const drawGauge = (
 	color: string,
 	bx: number,
 	by: number,
-	fill: string | CanvasGradient = color,
-	track = TRACK,
 ) => {
 	const { ctx, vp } = f;
 	ctx.textAlign = 'left';
@@ -78,103 +68,70 @@ const drawGauge = (
 	}
 	ctx.textAlign = 'right';
 	ctx.fillText(`${Math.round(v * 100)}%`, bx + GAUGE_W, by);
-	ctx.fillStyle = track;
+	ctx.fillStyle = TRACK;
 	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
 	ctx.fill();
 	if (v > 0.005) {
-		// drawn from the origin so a gradient fill lines up wherever the gauge sits
-		ctx.save();
-		ctx.translate(bx, by + 5);
-		ctx.fillStyle = fill;
-		roundRect(ctx, 0, 0, Math.max(8, GAUGE_W * v), 8, 4);
+		ctx.fillStyle = color;
+		roundRect(ctx, bx, by + 5, Math.max(8, GAUGE_W * v), 8, 4);
 		ctx.fill();
-		ctx.restore();
 	}
 };
 
-// full warm-up: a pulsing gold glow and rim, and a gold shine sweeping across
-const drawWarmedUp = (
-	ctx: CanvasRenderingContext2D,
-	shine: CanvasGradient,
-	bx: number,
-	by: number,
-) => {
-	const t = performance.now();
-	ctx.save();
-	ctx.translate(bx, by + 5);
-	roundRect(ctx, 0, 0, GAUGE_W, 8, 4);
-	ctx.shadowColor = GOLD;
-	ctx.shadowBlur = 8 + 4 * Math.sin(t / 250);
-	ctx.strokeStyle = GOLD;
-	ctx.lineWidth = 1.5;
-	ctx.stroke();
-	ctx.shadowBlur = 0;
-	ctx.clip();
-	ctx.translate((t % SHINE_MS) / SHINE_MS * (GAUGE_W + SHINE_W * 2), 0);
-	ctx.fillStyle = shine;
-	ctx.fillRect(-SHINE_W, 0, SHINE_W, 8);
-	ctx.restore();
-};
-
-// past the peak: the dark blue track the warm-up drains into, under a pulsing dark blue glow
-const drawCooling = (ctx: CanvasRenderingContext2D, bx: number, by: number) => {
-	ctx.save();
-	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
-	ctx.shadowColor = COOL_GLOW;
-	ctx.shadowBlur = 8 + 4 * Math.sin(performance.now() / 400);
-	ctx.strokeStyle = COOL_GLOW;
-	ctx.lineWidth = 1.5;
-	ctx.stroke();
-	ctx.restore();
-};
-
-// the warm-up state, right of the bar (after the % on narrow screens)
-const drawWarmupState = (
-	f: Frame,
-	state: string,
-	color: string,
-	v: number,
-	bx: number,
-	by: number,
-) => {
-	const { ctx, vp } = f;
-	ctx.textAlign = 'left';
-	ctx.fillStyle = color;
-	const pct = `${Math.round(v * 100)}% `;
-	if (vp.w < 700) ctx.fillText(state, bx + ctx.measureText(pct).width, by + 13);
-	else ctx.fillText(state, bx + GAUGE_W + 8, by + 12);
-};
-
+// a hit error bar for warm-up: the zones, a centre line, and a needle where the character sits
 export const drawWarmupGauge = (
 	f: Frame,
 	label: string,
 	state: string,
 	v: number,
-	cooling: boolean,
 	bx: number,
 	by: number,
 ) => {
-	const full = v >= 0.995;
-	const cool = cooling && !full;
-	const { fill, shine } = gradients(f.ctx);
-	const color = full ? GOLD : `hsl(${warmupHue(v)}, 85%, 55%)`;
-	drawGauge(f, label, v, color, bx, by, fill, cool ? COOL_TRACK : TRACK);
-	drawWarmupState(f, state, cool ? COOL_TEXT : color, v, bx, by);
-	if (f.vp.w < 700) return;
-	if (full) drawWarmedUp(f.ctx, shine, bx, by);
-	else if (cool) drawCooling(f.ctx, bx, by);
+	const { ctx, vp } = f;
+	const zone = zoneOf(v);
+	ctx.textAlign = 'left';
+	ctx.fillStyle = 'rgba(255,255,255,0.75)';
+	ctx.fillText(label, bx, by);
+	ctx.fillStyle = ZONE_COLORS[zone];
+	if (vp.w < 700) {
+		ctx.fillText(state, bx, by + 13);
+		return;
+	}
+	ctx.textAlign = 'right';
+	ctx.fillText(state, bx + GAUGE_W, by);
+	const y = by + 6;
+	ctx.save();
+	ctx.translate(bx, y);
+	ctx.fillStyle = warmupFill(ctx);
+	ctx.fillRect(0, 0, GAUGE_W, BAR_H);
+	ctx.restore();
+	ctx.fillStyle = 'rgba(255,255,255,0.6)';
+	ctx.fillRect(bx + GAUGE_W / 2 - 0.5, y - 2, 1, BAR_H + 4);
+	const x = bx + v * GAUGE_W;
+	ctx.save();
+	ctx.shadowColor = ZONE_COLORS[zone];
+	ctx.shadowBlur = zone === 1 ? 8 + 4 * Math.sin(performance.now() / 250) : 6;
+	ctx.fillStyle = '#fff';
+	ctx.fillRect(x - 1, y - 3, 2, BAR_H + 6);
+	ctx.beginPath();
+	ctx.moveTo(x, y + BAR_H + 4);
+	ctx.lineTo(x - 4, y + BAR_H + 10);
+	ctx.lineTo(x + 4, y + BAR_H + 10);
+	ctx.closePath();
+	ctx.fill();
+	ctx.restore();
 };
 
 type Size = Pick<Viewport, 'w' | 'h'>;
 const strainStep = (vp: Size) => vp.w < 700 ? 30 : 26;
 const strainTop = (vp: Size) => Math.max(150, vp.h * 0.24);
 
-/** the warm-up gauge with its label and state, for a hover area over the canvas */
+/** the warm-up bar with its label and state, for a hover area over the canvas */
 export const warmupGaugeBox = (vp: Size, left = 16) => ({
 	left,
-	top: strainTop(vp) + (STRAIN_HUD_SKILLS.length + 1) * strainStep(vp),
-	width: GAUGE_W + (vp.w < 700 ? 0 : 100),
-	height: 28,
+	top: strainTop(vp) + STRAIN_HUD_SKILLS.length * strainStep(vp),
+	width: GAUGE_W,
+	height: 32,
 });
 
 // strain meters (left side): one stress gauge per skill, 0-100%. Narrow screens
@@ -196,19 +153,14 @@ const drawStrainMeters = (
 		// calm green → stressed red
 		drawGauge(f, strain.labels[skill], v, `hsl(${120 - v * 120}, 85%, 55%)`, bx, by0 + i * step);
 	});
-	if (strain.fatigue === undefined) return;
-	// how tired the character plays this map, fixed for the whole play
-	const fy = by0 + STRAIN_HUD_SKILLS.length * step + 12;
-	drawGauge(f, strain.fatigueLabel ?? '', strain.fatigue, FATIGUE_COLOR, bx, fy);
-	if (strain.warmup === undefined) return;
+	if (strain.warmupBar === undefined) return;
 	drawWarmupGauge(
 		f,
 		strain.warmupLabel ?? '',
 		strain.warmupState ?? '',
-		strain.warmup,
-		strain.cooling ?? false,
+		strain.warmupBar,
 		bx,
-		fy + step,
+		by0 + STRAIN_HUD_SKILLS.length * step + 12,
 	);
 };
 

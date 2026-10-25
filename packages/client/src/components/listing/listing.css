@@ -311,6 +311,10 @@
 	letter-spacing: 0.06em;
 	color: var(--text-dim);
 }
+.listing-field__hint {
+	font-size: 0.75rem;
+	color: var(--text-dim);
+}
 .listing-field-row {
 	display: flex;
 	gap: 1rem;

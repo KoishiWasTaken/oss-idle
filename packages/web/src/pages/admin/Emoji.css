@@ -1,0 +1,59 @@
+.admin-emoji__bar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 16px 0;
+}
+
+.admin-emoji__error {
+	color: hsl(var(--hsl-red-1));
+}
+
+.admin-emoji__img {
+	display: block;
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+}
+
+.admin-emoji__name {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	color: hsl(var(--hsl-c2));
+}
+
+.admin-emoji__name input {
+	width: 24ch;
+	padding: 4px 8px;
+	border: none;
+	border-radius: 4px;
+	background: hsl(var(--hsl-b4));
+	color: hsl(var(--hsl-c1));
+	font: inherit;
+}
+
+.admin-emoji__actions {
+	text-align: right;
+}
+
+.admin-emoji__bar .search__box {
+	flex: 0 1 320px;
+}
+
+.admin-emoji__bar .search__box input {
+	padding: 8px 0;
+	font-size: 14px;
+}
+
+.admin-emoji__check {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.admin-emoji__owner {
+	color: hsl(var(--hsl-c2));
+}

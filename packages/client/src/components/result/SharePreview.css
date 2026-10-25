@@ -1,7 +1,7 @@
 .share-preview {
 	position: fixed;
 	inset: 0;
-	z-index: 10002;
+	z-index: var(--z-share-preview);
 	display: flex;
 	align-items: center;
 	justify-content: center;

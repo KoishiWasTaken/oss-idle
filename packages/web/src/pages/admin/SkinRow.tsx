@@ -6,6 +6,7 @@ import {
 	skinIconUrl,
 	type AdminSkin,
 } from '../../api/skins';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import { formatDate } from './formatDate';
 
 export default function SkinRow({ row, busy, onModerate }: {
@@ -41,7 +42,7 @@ export default function SkinRow({ row, busy, onModerate }: {
 				</div>
 			</div>
 
-			{row.description && <p className='admin-list__desc'>{row.description}</p>}
+			{row.description && <Markdown className='admin-list__desc' text={row.description} />}
 
 			<div className='admin-list__actions'>
 				{row.status !== SKIN_STATUS.PUBLISHED && (

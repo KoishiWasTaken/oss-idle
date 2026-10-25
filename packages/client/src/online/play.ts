@@ -38,8 +38,8 @@ export type RankedPlayContext = {
 	fatigue: number;
 	/** how warmed up, 0 cold to 1 warm */
 	warmup: number;
-	/** past warm-up's peak */
-	cooling: boolean;
+	/** where on the warm-up bar, 0 cold to 1 exhausted */
+	warmupBar?: number;
 };
 
 /** A play this client resolved and is running itself (guest, or a map the
@@ -57,7 +57,7 @@ export type LocalPlayContext = {
 	/** unranked: as tired as the server said the character was */
 	fatigue?: number;
 	warmup?: number;
-	cooling?: boolean;
+	warmupBar?: number;
 };
 
 /**
@@ -165,7 +165,7 @@ export async function startPlaySession(
 				endsAt: play.endsAt + skew,
 				fatigue: play.fatigue,
 				warmup: play.warmup,
-				cooling: play.cooling,
+				warmupBar: play.warmupBar,
 			};
 		}
 		if (play.status === 'restricted') return { mode: 'restricted' };
@@ -174,7 +174,7 @@ export async function startPlaySession(
 		return {
 			mode: 'unranked',
 			tired: {
-				fatigue: play.fatigue, warmup: play.warmup, cooling: play.cooling,
+				fatigue: play.fatigue, warmup: play.warmup, warmupBar: play.warmupBar,
 			},
 		};
 	} catch {

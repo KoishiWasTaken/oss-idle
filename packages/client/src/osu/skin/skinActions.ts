@@ -71,7 +71,7 @@ export const publishImported = async (
 	const created = await createSkin(body);
 	const packed = files ? await osk(files) : await zipOsk(await installedFiles(dao.id));
 	await uploadSkinFiles(created.id, packed);
-	if (files) await putSkinFiles(created.id, manifestOf(files), blobsOf(files));
+	if (files) await putSkinFiles(created.id, manifestOf(files), blobsOf(files), body.name);
 	else await moveSkinFiles(dao.id, created.id);
 	const remote = await getSkin(created.id);
 	// the files are already here: only their hashes are new

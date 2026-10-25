@@ -5,11 +5,11 @@ import {
 } from 'vitest';
 import {
 	afterPlay,
-	coolingDown,
 	fatigueLevel,
 	restedFatigue,
 	tireSkill,
 	warmup,
+	warmupBar,
 	type Fatigue,
 } from '@oss-idle/shared/fatigue';
 import Reading from '@oss-idle/shared/sim/skills/reading';
@@ -78,20 +78,37 @@ describe('fatigue', () => {
 
 	it('warms up over 1h30 of strain, then cools to half at 5 hours and cold at 6', () => {
 		expect(warmup(0)).toBe(0);
+		expect(warmup(59)).toBeLessThan(1);
+		expect(warmup(60)).toBe(1);
 		expect(warmup(90)).toBe(1);
 		expect(warmup(300)).toBe(0.5);
 		expect(warmup(360)).toBe(0);
 		expect(warmup(420)).toBe(0);
 	});
 
-	it('warms twice as fast and holds the peak 30 minutes longer with 10 stamina gear', () => {
+	it('warms faster and holds the peak 30 minutes longer with 10 stamina gear', () => {
+		expect(warmup(15, 10)).toBe(1);
 		expect(warmup(45, 10)).toBe(1);
 		expect(warmup(120, 10)).toBe(1);
 		expect(warmup(121, 10)).toBeLessThan(1);
-		expect(coolingDown(120, 10)).toBe(false);
-		expect(coolingDown(121, 10)).toBe(true);
 		expect(warmup(330, 10)).toBe(0.5);
 		expect(warmup(390, 10)).toBe(0);
+	});
+
+	it('puts the warm-up bar\'s sweet spot around the peak and fatigue at the right end', () => {
+		for (const gear of [0, 10, 20]) {
+			const bar = [...Array(421).keys()].map(m => warmupBar(m, gear));
+			expect(bar.every((v, m) => m === 0 || v >= bar[m - 1])).toBe(true);
+			expect(bar[0]).toBe(0);
+			expect(bar[420]).toBe(1);
+			bar.forEach((v, m) => {
+				if (v > 0.4 && v < 0.6) expect(warmup(m, gear)).toBeGreaterThan(0.9);
+				if (v > 0.8) expect(fatigueLevel(m)).toBeGreaterThan(0);
+			});
+		}
+		expect(warmupBar(90)).toBeGreaterThan(0.4);
+		expect(warmupBar(90)).toBeLessThan(0.6);
+		expect(warmupBar(300)).toBeCloseTo(0.8);
 	});
 
 	it('adds less with each gear tier past the ladder, cold by the strain cap', () => {

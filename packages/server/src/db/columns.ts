@@ -16,3 +16,7 @@ export const jsonColumn = <T>() =>
 		toDriver: value => JSON.stringify(value),
 		fromDriver: value => (typeof value === 'string' ? JSON.parse(value) : value) as T,
 	})();
+
+/** Bytes, up to 16 MB. */
+type Bytes = { data: Buffer; driverData: Buffer };
+export const mediumblob = customType<Bytes>({ dataType: () => 'mediumblob' });

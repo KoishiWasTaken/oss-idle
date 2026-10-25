@@ -129,6 +129,10 @@ const makeCombo = () => {
 	};
 };
 
+/** The badge's height over the digits' visible height: the default skin's badge as tall as
+ *  its whole score glyph. */
+const GRADE_OVER_DIGITS = 60 / 35;
+
 /** Score, then accuracy under it, in the skin's score font at the top right. */
 const makeScore = () => {
 	let scoreValue = -1;
@@ -156,8 +160,8 @@ const makeScore = () => {
 		drawScratch(ctx, font, true, left, top, sk);
 		const grade = f.g.grade;
 		grade.right = L.w - left + 8 * L.u;
-		grade.top = top;
-		grade.height = glyphHeight(font) * sk;
+		grade.height = font.ink.height * GRADE_OVER_DIGITS * sk;
+		grade.top = top + (font.ink.top + font.ink.height / 2) * sk - grade.height / 2;
 		const ak = 0.6 * 0.96 * L.u;
 		fill(accText);
 		const ay = top + glyphHeight(font) * sk + 9 * L.u;

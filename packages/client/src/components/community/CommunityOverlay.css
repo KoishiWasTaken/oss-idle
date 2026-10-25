@@ -9,7 +9,7 @@
 .community {
 	position: fixed;
 	inset: 0;
-	z-index: 9500;
+	z-index: var(--z-community);
 	display: flex;
 	flex-direction: column;
 	pointer-events: none;

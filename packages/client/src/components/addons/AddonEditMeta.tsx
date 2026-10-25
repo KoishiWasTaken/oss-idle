@@ -77,6 +77,7 @@ export default function AddonEditMeta({
 					value={form.description}
 					onChange={e => set('description', e.target.value)} maxLength={500}
 				/>
+				<small className='listing-field__hint'><Trans>Markdown supported</Trans></small>
 			</label>
 			{!repo && <div className='listing-field-row'>
 				<label className='listing-field'>

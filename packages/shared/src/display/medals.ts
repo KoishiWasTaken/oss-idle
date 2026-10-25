@@ -137,6 +137,7 @@ const NAMES = defineMessages({
 	'first-chat': 'Hello World',
 	possessed: 'Possessed',
 	parallax: 'Future Sequence',
+	wonderful: 'Wonderful',
 });
 
 const DESCRIPTIONS = defineMessages({
@@ -161,6 +162,7 @@ const DESCRIPTIONS = defineMessages({
 	'first-chat': 'Say something in #oss!idle',
 	possessed: 'Get a 1,000,000 score on TAG underground - POSSESSION',
 	parallax: 'Get an S on The Parallax II: Future Sequence [Marathon]',
+	wonderful: 'Get an SS on AiAe [Wafles\' SHD]',
 });
 
 /** The medals of a numbered series share one text: the number is the medal
@@ -207,7 +209,7 @@ const MEDAL_SKILL: Record<SkillName, () => string> = {
 	reading: () => __('Reading', 'skill in a medal name'),
 	consistency: () => __('Consistency', 'skill in a medal name'),
 	concentration: () => __('Concentration', 'skill in a medal name'),
-	speedjam: () => __('Speed Jam', 'skill in a medal name'),
+	speedjam: () => __('SV', 'skill in a medal name'),
 	memory: () => __('Memory', 'skill in a medal name'),
 };
 

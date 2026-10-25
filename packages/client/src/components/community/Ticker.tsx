@@ -52,7 +52,7 @@ export default function Ticker() {
 					className="chat__from"
 					style={{ color: latest.from.color }}
 				>{`${time} ${latest.from.name}:`}</span>
-				<ChatText text={latest.text} />
+				<ChatText text={latest.text} senderId={latest.from.userId} />
 			</div>
 		</div>
 	);

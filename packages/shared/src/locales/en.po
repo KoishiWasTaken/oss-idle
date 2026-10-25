@@ -566,6 +566,10 @@ msgid "Get an SS on a ranked map"
 msgstr "Get an SS on a ranked map"
 
 #: src/display/medals.ts
+msgid "Get an SS on AiAe [Wafles' SHD]"
+msgstr "Get an SS on AiAe [Wafles' SHD]"
+
+#: src/display/medals.ts
 msgid "Get an X on a ranked map"
 msgstr "Get an X on a ranked map"
 
@@ -1147,11 +1151,6 @@ msgstr "Speed"
 msgid "Speed Jam"
 msgstr "Speed Jam"
 
-#: src/display/medals.ts
-msgctxt "skill in a medal name"
-msgid "Speed Jam"
-msgstr "Speed Jam"
-
 #: src/skills.ts
 msgid "Split map sections training"
 msgstr "Split map sections training"
@@ -1200,6 +1199,11 @@ msgstr "Sudden Death"
 #: src/display/medals.ts
 msgid "Supernova"
 msgstr "Supernova"
+
+#: src/display/medals.ts
+msgctxt "skill in a medal name"
+msgid "SV"
+msgstr "SV"
 
 #: src/skills.ts
 msgid "Synaptics drivers"
@@ -1349,6 +1353,10 @@ msgstr "Where Did The Day Go"
 #: src/display/medals.ts
 msgid "Wildfire"
 msgstr "Wildfire"
+
+#: src/display/medals.ts
+msgid "Wonderful"
+msgstr "Wonderful"
 
 #: src/skills.ts
 msgid "Wooden chair"

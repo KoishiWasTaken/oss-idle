@@ -16,7 +16,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	z-index: -1;
+	z-index: var(--z-under);
 	border-radius: inherit;
 	background: linear-gradient(
 		0deg,
@@ -30,7 +30,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	z-index: -1;
+	z-index: var(--z-under);
 	border-radius: inherit;
 	background: white;
 	opacity: 0;

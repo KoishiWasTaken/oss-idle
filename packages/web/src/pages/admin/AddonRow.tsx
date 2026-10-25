@@ -7,6 +7,7 @@ import {
 	addonIconUrl,
 	type AdminAddon,
 } from '../../api/addons';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import AddonRepoLine from './AddonRepoLine';
 import AddonRowCode from './AddonRowCode';
 import { formatDate } from './formatDate';
@@ -44,7 +45,7 @@ export default function AddonRow({
 				</div>
 			</div>
 
-			{row.description && <p className='admin-list__desc'>{row.description}</p>}
+			{row.description && <Markdown className='admin-list__desc' text={row.description} />}
 			{row.kind === ADDON_KIND.repo && <AddonRepoLine row={row} />}
 			<AddonRowCode source={row.source} />
 

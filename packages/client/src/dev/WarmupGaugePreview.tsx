@@ -5,16 +5,15 @@ import {
 import { drawWarmupGauge } from '../gameplay/render/hud';
 import type { Frame } from '../gameplay/render/frame';
 
-const STATES: [string, number, boolean][] = [
-	['Cold', 0.1, false],
-	['Warming up', 0.4, false],
-	['Warmed up', 0.85, false],
-	['Peak', 1, false],
-	['Pushing', 0.64, true],
-	['Getting tired', 0.15, true],
+const STATES: [string, number][] = [
+	['Cold', 0.05],
+	['Warming up', 0.3],
+	['Peak', 0.5],
+	['Pushing', 0.7],
+	['Fatigued', 0.9],
 ];
 
-/** The gameplay HUD's warm-up gauge in each of its states, on a dark field. */
+/** The gameplay HUD's warm-up bar in each of its zones, on a dark field. */
 export default function WarmupGaugePreview() {
 	const ref = useRef<HTMLCanvasElement>(null);
 
@@ -32,8 +31,8 @@ export default function WarmupGaugePreview() {
 			ctx.fillStyle = '#111';
 			ctx.fillRect(0, 0, 300, 30 + STATES.length * 40);
 			ctx.font = '600 11px "Exo 2", sans-serif';
-			STATES.forEach(([state, v, cooling], i) =>
-				drawWarmupGauge(f, 'Warm-up', state, v, cooling, 30, 30 + i * 40));
+			STATES.forEach(([state, v], i) =>
+				drawWarmupGauge(f, 'Warm-up', state, v, 30, 30 + i * 40));
 			raf = requestAnimationFrame(draw);
 		};
 		draw();

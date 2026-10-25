@@ -85,12 +85,12 @@ import {
 	playStrain,
 } from './fatigue';
 import {
-	coolingDown,
 	fatigueLevel,
 	fatigueXp,
 	restedFatigue,
 	tireSkill,
 	warmup,
+	warmupBar,
 } from '@oss-idle/shared/fatigue';
 import {
 	applySkillXp,
@@ -157,8 +157,8 @@ type Pending = {
 	fatigue?: number,
 	/** how warmed up, 0 cold to 1 warm */
 	warmup?: number,
-	/** past warm-up's peak */
-	cooling?: boolean,
+	/** where on the warm-up bar, 0 cold to 1 exhausted */
+	warmupBar?: number,
 	samples?: PlaySample[],
 	skipped?: true,
 	failedAt?: number,
@@ -332,7 +332,7 @@ type RankedStartPlayResult = {
 	serverNow: number,
 	fatigue: number,
 	warmup: number,
-	cooling: boolean,
+	warmupBar?: number,
 } & OffsetChunk;
 
 /** The offsets revealed so far: every one whose note is within the buffer window
@@ -347,7 +347,7 @@ function chunkFrom(p: Pending, from: number): OffsetChunk {
 }
 
 type StartPlayResult = RankedStartPlayResult
-	| { status: 'unranked', fatigue: number, warmup: number, cooling: boolean }
+	| { status: 'unranked', fatigue: number, warmup: number, warmupBar: number }
 	| { status: 'refused' }
 	| { status: 'restricted' };
 
@@ -436,7 +436,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	serverNow: Date.now(),
 	fatigue: p.fatigue ?? 0,
 	warmup: p.warmup ?? 1,
-	cooling: p.cooling ?? false,
+	warmupBar: p.warmupBar,
 	...chunkFrom(p, 0),
 });
 
@@ -477,7 +477,7 @@ const tiredness = (character: CharacterRow) => {
 	return {
 		fatigue: fatigueLevel(tired),
 		warmup: warmup(tired, character.staminaUpgrades),
-		cooling: coolingDown(tired, character.staminaUpgrades),
+		warmupBar: warmupBar(tired, character.staminaUpgrades),
 	};
 };
 
@@ -616,7 +616,7 @@ async function simulateAndStore(
 		xpMultiplier = 1, rate = 1, mods = [], round = false, board = false,
 	}: PlayOptions,
 ): Promise<StartPlayResult> {
-	const { fatigue, warmup: warm, cooling } = tiredness(character);
+	const { fatigue, warmup: warm, warmupBar: bar } = tiredness(character);
 	const skills = await loadCharacterSkills(character, beatmapId, fatigue, warm);
 
 	const chart = decoder.decodeFromString(beatmap.chart);
@@ -711,7 +711,7 @@ async function simulateAndStore(
 		), xpMultiplier),
 		fatigue,
 		warmup: warm,
-		cooling,
+		warmupBar: bar,
 		...fail,
 		...board ? { board: 'unranked' as const } : {
 			strain: {
@@ -750,7 +750,7 @@ async function simulateAndStore(
 		serverNow: Date.now(),
 		fatigue,
 		warmup: warm,
-		cooling,
+		warmupBar: bar,
 		...chunkFrom(entry, 0),
 	};
 }

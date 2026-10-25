@@ -156,7 +156,7 @@ export default class PlayfieldLink {
 		if (!sameClock(sent.clock, clock)) {
 			sent.clock = clock;
 			this.post({
-				kind: 'clock', clock,
+				kind: 'clock', clock, sentAt: performance.now(),
 			});
 		}
 	}

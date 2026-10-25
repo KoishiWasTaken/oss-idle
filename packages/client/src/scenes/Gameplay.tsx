@@ -220,18 +220,17 @@ function GameplayInner({
 		)) as Record<SkillName, string>,
 		[i18n],
 	);
-	const fatigueLabel = useMemo(() => t`Fatigue`, [t]);
 	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
 	const warmupState = useMemo(() => {
 		const labels: Record<WarmupStage, string> = {
 			cold: t`Cold`,
 			warming: t`Warming up`,
-			warm: t`Warmed up`,
 			peak: t`Peak`,
 			pushing: t`Pushing`,
-			tired: t`Getting tired`,
+			fatigued: t`Fatigued`,
 		};
-		return play.mode === 'debug' ? labels.peak : labels[warmupStage(play.warmup ?? 1, play.cooling)];
+		if (play.mode === 'debug' || play.warmupBar === undefined) return '';
+		return labels[warmupStage(play.warmupBar)];
 	}, [t, play]);
 	// clock state lives in a ref so it survives HMR effect re-runs: the lead-in
 	// isn't restarted and the audio isn't re-triggered, keeping the gameplay
@@ -1006,7 +1005,7 @@ function GameplayInner({
 					bot: strainBotRef.current,
 					labels: skillLabels,
 					...play.mode !== 'debug' ? {
-						fatigue: play.fatigue, fatigueLabel, warmup: play.warmup, cooling: play.cooling, warmupLabel, warmupState,
+						warmupBar: play.warmupBar, warmupLabel, warmupState,
 					} : {},
 					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}
@@ -1120,7 +1119,7 @@ function GameplayInner({
 			<video ref={videoRef} className="play__video" muted playsInline />
 			<div ref={dimRef} className="play__dim" />
 			<canvas ref={canvasRef} className="play__canvas" />
-			{owned && play.warmup !== undefined && <WarmupHint warmup={play.warmup} cooling={play.cooling} />}
+			{owned && play.warmupBar !== undefined && <WarmupHint bar={play.warmupBar} />}
 			{!done && <div ref={gradeRef} className='play__grade'>{skin.grade(grade)}</div>}
 			{done && play.mode === 'ranked' && (
 				<div className="play__loading">

@@ -35,10 +35,9 @@ type NoTabsProps = {
 type Props = {
 	title: ReactNode,
 	subtitle?: ReactNode,
-	/** Bottom-bar back action (a default action at order 0). */
+	/** Bottom-bar Close action (a default action at order 0). */
 	onBack: () => void,
-	backLabel?: ReactNode,
-	/** Extra default bar actions beside Back */
+	/** Extra default bar actions beside Close */
 	actions?: PageAction[],
 } & (
 	| TabsProps
@@ -52,7 +51,7 @@ type Props = {
  * Sub-views portal their own action buttons into the bar with PageBarActions.
  */
 export default function Page(props: Props) {
-	const { title, subtitle, onBack, backLabel } = props;
+	const { title, subtitle, onBack } = props;
 	const tabs = props.tabs;
 	const [barSlot, setBarSlot] = useState<HTMLElement | null>(null);
 	const [activeId, setActiveId] = useState(() => props.tabs && (
@@ -64,7 +63,7 @@ export default function Page(props: Props) {
 	const buttons: PageAction[] = [
 		{ 
 			id: 'back', 
-			label: backLabel ?? <Trans>Back</Trans>, 
+			label: <Trans>Close</Trans>, 
 			onClick: onBack, 
 			order: 0, 
 		},

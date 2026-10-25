@@ -7,6 +7,8 @@ import {
 	useState,
 } from 'react';
 import { DEFAULT_CHANNEL } from '@oss-idle/shared/community/wire';
+import { emojiMatcher } from '@oss-idle/shared/community/emoji';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
 import clock from '@oss-idle/shared/display/clock';
 import {
 	type ChatHistory,
@@ -18,6 +20,8 @@ import {
 import ChatUserMenu from './ChatUserMenu';
 import ChatReports from './ChatReports';
 import { getReports } from '../../api/social';
+import { listEmoji } from '../../api/emoji';
+import EmojiText from '../../components/EmojiText';
 
 const REFRESH_MS = 2000;
 
@@ -37,6 +41,7 @@ export default function ChatConsole() {
 			.catch(() => undefined);
 	}, []);
 	const logRef = useRef<HTMLDivElement>(null);
+	const emoji = useAsync(() => listEmoji().then(emojiMatcher), []);
 
 	const refresh = useCallback(() =>
 		getChatHistory(channel)
@@ -116,7 +121,9 @@ export default function ChatConsole() {
 									characterId: m.from.characterId, messageId: m.id,
 								})}
 							>{m.from.name}{badge}:</button>
-							<span className='chat-console__text'>{m.text}</span>
+							<span className='chat-console__text'>
+								<EmojiText text={m.text} split={emoji?.split} senderId={m.from.userId} />
+							</span>
 						</div>
 					);
 				})}

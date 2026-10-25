@@ -1,6 +1,9 @@
 import '@oss-idle/shared/osu/controlPointPatch';
 import Synced from '@oss-idle/shared/helpers/synced';
-import { Unzipped } from 'fflate';
+import {
+	strToU8,
+	Unzipped,
+} from 'fflate';
 import {
 	Manifest,
 	Metadata,
@@ -10,33 +13,29 @@ import { Beatmap } from 'osu-classes';
 import { BeatmapDecoder } from 'osu-parsers';
 import type LightBeatmap from './LightBeatmap';
 import LightBeatmapSet from './LightBeatmapSet';
+import {
+	chartFile,
+	isChart,
+	mime,
+	normalizeName,
+} from './setFiles';
+import { library } from '../../library';
+import {
+	diskAllMeta,
+	diskChart,
+	diskCharts,
+	diskFile,
+	diskFiles,
+	diskMeta,
+	diskOsbName,
+	putDiskSet,
+	removeAllDiskSets,
+	removeDiskSet,
+	updateDiskSet,
+} from './diskSets';
 
 const DB_NAME = 'beatmaps';
 const DB_VERSION = 3;
-
-const MIME: Record<string, string> = {
-	mp3: 'audio/mpeg',
-	ogg: 'audio/ogg',
-	wav: 'audio/wav',
-	jpg: 'image/jpeg',
-	jpeg: 'image/jpeg',
-	png: 'image/png',
-	mp4: 'video/mp4',
-	webm: 'video/webm',
-	m4v: 'video/mp4',
-	avi: 'video/x-msvideo',
-	flv: 'video/x-flv',
-};
-
-function mime(name: string): string {
-	return MIME[name.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream';
-}
-
-// osu references assets case-insensitively and treats \ and / as the same
-// separator, while zip entries use /. Normalize both when storing and reading so
-// a reference resolves regardless of separator/case - this only matches keys, it
-// never alters the stored bytes or the path inside the chart.
-const normalizeName = (name: string) => name.toLowerCase().replace(/\\/g, '/');
 
 function fileKey(setId: number, name: string): string {
 	return `${setId}/${normalizeName(name)}`;
@@ -327,6 +326,140 @@ const request = async <T>(
 	}));
 };
 
+/** A set's metadata and kept charts out of its files, and the audio only the charts left
+ *  out (not in `metadata`) use. */
+export const deriveSet = (metadata: StoreMetadata, files: Unzipped) => {
+	const decoder = new TextDecoder();
+	
+	const runtimeMetadata: RuntimeMetadata = {
+		id: metadata.id,
+		runtime: true,
+		artist: metadata.artist,
+		creator: metadata.creator,
+		title: metadata.title,
+		versions: [],
+
+		// placeholders, overwritten below from the actual .osu files
+		audio: metadata.audio ?? '',
+		background: metadata.background ?? '',
+	};
+
+	const keptAudio = new Set<string>();
+	const droppedAudio = new Set<string>();
+
+	const osu = Object.keys(files)
+		.filter(isChart)
+		.reduce((set, file) => {
+			const text = decoder.decode(files[file]);
+			const beatmap = (new BeatmapDecoder()).decodeFromString(text);
+			const meta = metadata.versions.find(v => v.file
+				? v.file === file
+				: v.id === beatmap.metadata.beatmapId);
+			const audio = beatmap.general.audioFilename;
+
+			if (!meta) {
+				if (audio) droppedAudio.add(normalizeName(audio));
+				return set;
+			}
+			if (audio) keptAudio.add(normalizeName(audio));
+
+			set[meta.id] = text;
+
+			runtimeMetadata.audio = beatmap.general.audioFilename;
+			if (beatmap.events.backgroundPath) {
+				runtimeMetadata.background = beatmap.events.backgroundPath;
+			}
+
+			runtimeMetadata.versions.push({
+				id: meta.id,
+				runtime: true,
+				file,
+				audio: beatmap.general.audioFilename,
+				background: beatmap.events.backgroundPath ?? runtimeMetadata.background,
+				difficulty: meta.difficulty,
+				keys: beatmap.difficulty.circleSize,
+				mode: beatmap.mode,
+				version: beatmap.metadata.version,
+				previewTime: beatmap.general.previewTime,
+				total_length: beatmap.totalLength,
+				bpm: beatmap.bpm,
+				objects: beatmap.hitObjects.length,
+				rice: beatmap.hitObjects.filter(h => h.hitType === 1).length,
+				ln: beatmap.hitObjects.filter(h => h.hitType === 128).length,
+			});
+			return set;
+		}, {} as Record<number, string>);
+
+	// Audio only the dropped (not in the catalog = unranked) charts use.
+	const osbTexts = Object.keys(files)
+		.filter(name => name.toLowerCase().endsWith('.osb'))
+		.map(name => decoder.decode(files[name]));
+	const skippedAudio = new Set(orphanedAudio(
+		droppedAudio, keptAudio, [...Object.values(osu), ...osbTexts],
+	));
+	return {
+		runtimeMetadata, osu, skippedAudio,
+	};
+};
+
+/** Every file IndexedDB holds for a set but its charts, by normalized name. */
+const storedFiles = async (d: IDBDatabase, setId: number): Promise<Unzipped> => {
+	const prefix = `${setId}/`;
+	const blobs = await new Promise<[string, Blob][]>((resolve, reject) => {
+		const found: [string, Blob][] = [];
+		const cursor = d.transaction('files', 'readonly').objectStore('files')
+			.openCursor(IDBKeyRange.bound(prefix, `${prefix}\uffff`));
+		cursor.onerror = () => reject(cursor.error);
+		cursor.onsuccess = () => {
+			const c = cursor.result;
+			if (!c) return resolve(found);
+			found.push([String(c.key).slice(prefix.length), c.value as Blob]);
+			c.continue();
+		};
+	});
+	return Object.fromEntries(await Promise.all(blobs.map(async ([name, blob]) =>
+		[name, new Uint8Array(await blob.arrayBuffer())] as const)));
+};
+
+/** The sets IndexedDB held, moved into the maps folder. IndexedDB goes once all moved. */
+const moveToDisk = async (): Promise<void> => {
+	if (!(await indexedDB.databases()).some(known => known.name === DB_NAME)) return;
+	const d = await db();
+	const metas = await withStore(d, 'meta', 'readonly', s => s.getAll()) as RuntimeMetadata[];
+	let failed = false;
+	for (const meta of metas) {
+		try {
+			if (await diskMeta(meta.id)) continue;
+			const osu = await withStore(d, 'charts', 'readonly', s => s.get(meta.id)) as
+				Record<number, string> | undefined;
+			const files = await storedFiles(d, meta.id);
+			for (const version of meta.versions) {
+				const text = osu?.[version.id];
+				if (text === undefined) continue;
+				version.file = chartFile(meta, version);
+				files[version.file] = strToU8(text);
+			}
+			await putDiskSet(meta, files, false);
+		} catch (e) {
+			failed = true;
+			console.error(`[beatmaps] moving set ${meta.id} to its folder failed`, e);
+		}
+	}
+	if (failed) return;
+	d.close();
+	dbPromise = undefined;
+	indexedDB.deleteDatabase(DB_NAME);
+};
+
+let moved: Promise<void> | undefined;
+
+/** Whether sets live in the maps folder (desktop), once IndexedDB's moved there. */
+export const onDisk = async (): Promise<boolean> => {
+	if (!library()) return false;
+	await (moved ??= moveToDisk());
+	return true;
+};
+
 export default class BeatmapStore {
 
 	/** Store a set's files; with `replace`, what it held before goes in the same
@@ -336,99 +469,39 @@ export default class BeatmapStore {
 		files: Unzipped,
 		replace = false,
 	): Promise<SetRecord> {
-		const decoder = new TextDecoder();
-		
-		const runtimeMetadata: RuntimeMetadata = {
-			id: metadata.id,
-			runtime: true,
-			artist: metadata.artist,
-			creator: metadata.creator,
-			title: metadata.title,
-			versions: [],
+		const { runtimeMetadata, osu, skippedAudio } = deriveSet(metadata, files);
 
-			// placeholders, overwritten below from the actual .osu files
-			audio: metadata.audio ?? '',
-			background: metadata.background ?? '',
-		};
+		if (await onDisk()) {
+			const kept = new Set(runtimeMetadata.versions.map(version => version.file));
+			await putDiskSet(runtimeMetadata, Object.fromEntries(Object.entries(files)
+				.filter(([name]) => (isChart(name) ? kept.has(name) : !skippedAudio.has(normalizeName(name))))),
+			replace);
+		} else {
+			const d = await db();
+			await new Promise<void>((resolve, reject) => {
+				const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
+				tx.oncomplete = () => resolve();
+				tx.onerror = () => reject(tx.error);
 
-		const keptAudio = new Set<string>();
-		const droppedAudio = new Set<string>();
+				tx.objectStore('meta').put(runtimeMetadata);
+				tx.objectStore('charts').put(osu, metadata.id);
 
-		const osu = Object.keys(files)
-			.filter(file => file.toLowerCase().endsWith('.osu'))
-			.reduce((set, file) => {
-				const text = decoder.decode(files[file]);
-				const beatmap = (new BeatmapDecoder()).decodeFromString(text);
-				const meta = metadata.versions.find(v => v.file
-					? v.file === file
-					: v.id === beatmap.metadata.beatmapId);
-				const audio = beatmap.general.audioFilename;
-
-				if (!meta) {
-					if (audio) droppedAudio.add(normalizeName(audio));
-					return set;
+				// store every bundled asset (keysounds, storyboard samples, video, .osb)
+				// except the charts, which live in `charts`, and audio no kept chart
+				// uses. Paths are kept verbatim so references resolve against the
+				// original archive structure.
+				const fs = tx.objectStore('files');
+				if (replace) fs.delete(IDBKeyRange.bound(`${metadata.id}/`, `${metadata.id}/\uffff`));
+				for (const name of Object.keys(files)) {
+					if (isChart(name)) continue;
+					if (skippedAudio.has(normalizeName(name))) continue;
+					fs.put(
+						new Blob([files[name]], { type: mime(name) }),
+						fileKey(metadata.id, name),
+					);
 				}
-				if (audio) keptAudio.add(normalizeName(audio));
-
-				set[meta.id] = text;
-
-				runtimeMetadata.audio = beatmap.general.audioFilename;
-				if (beatmap.events.backgroundPath) {
-					runtimeMetadata.background = beatmap.events.backgroundPath;
-				}
-
-				runtimeMetadata.versions.push({
-					id: meta.id,
-					runtime: true,
-					file,
-					audio: beatmap.general.audioFilename,
-					background: beatmap.events.backgroundPath ?? runtimeMetadata.background,
-					difficulty: meta.difficulty,
-					keys: beatmap.difficulty.circleSize,
-					mode: beatmap.mode,
-					version: beatmap.metadata.version,
-					previewTime: beatmap.general.previewTime,
-					total_length: beatmap.totalLength,
-					bpm: beatmap.bpm,
-					objects: beatmap.hitObjects.length,
-					rice: beatmap.hitObjects.filter(h => h.hitType === 1).length,
-					ln: beatmap.hitObjects.filter(h => h.hitType === 128).length,
-				});
-				return set;
-			}, {} as Record<number, string>);
-
-		// Audio only the dropped (not in the catalog = unranked) charts use.
-		const osbTexts = Object.keys(files)
-			.filter(name => name.toLowerCase().endsWith('.osb'))
-			.map(name => decoder.decode(files[name]));
-		const skippedAudio = new Set(orphanedAudio(
-			droppedAudio, keptAudio, [...Object.values(osu), ...osbTexts],
-		));
-
-		const d = await db();
-		await new Promise<void>((resolve, reject) => {
-			const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
-			tx.oncomplete = () => resolve();
-			tx.onerror = () => reject(tx.error);
-
-			tx.objectStore('meta').put(runtimeMetadata);
-			tx.objectStore('charts').put(osu, metadata.id);
-
-			// store every bundled asset (keysounds, storyboard samples, video, .osb)
-			// except the charts, which live in `charts`, and audio no kept chart
-			// uses. Paths are kept verbatim so references resolve against the
-			// original archive structure.
-			const fs = tx.objectStore('files');
-			if (replace) fs.delete(IDBKeyRange.bound(`${metadata.id}/`, `${metadata.id}/\uffff`));
-			for (const name of Object.keys(files)) {
-				if (name.toLowerCase().endsWith('.osu')) continue;
-				if (skippedAudio.has(normalizeName(name))) continue;
-				fs.put(
-					new Blob([files[name]], { type: mime(name) }),
-					fileKey(metadata.id, name),
-				);
-			}
-		});
+			});
+		}
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
 
 		return {
@@ -447,8 +520,8 @@ export default class BeatmapStore {
 		index(manifest.intro);
 		manifest.beatmaps.forEach(index);
 
-		const d = await db();
-		const metas = await withStore(d, 'meta', 'readonly',
+		const disk = await onDisk();
+		const metas = disk ? await diskAllMeta() : await withStore(await db(), 'meta', 'readonly',
 			(s) => s.getAll(),
 		) as RuntimeMetadata[];
 
@@ -471,9 +544,7 @@ export default class BeatmapStore {
 
 			const dropped = meta.versions.filter(v => !keep.has(v.id));
 			meta.versions = meta.versions.filter(v => keep.has(v.id));
-			const osu = await withStore(d, 'charts', 'readonly',
-				(s) => s.get(meta.id),
-			) as Record<number, string> | undefined;
+			const osu = await this.charts(meta.id);
 			if (osu) {
 				for (const id of Object.keys(osu)) {
 					if (!keep.has(Number(id))) delete osu[Number(id)];
@@ -488,22 +559,31 @@ export default class BeatmapStore {
 				dropped.map(v => normalizeName(v.audio)),
 				new Set(meta.versions.map(v => normalizeName(v.audio))),
 				texts,
-			).map(name => fileKey(meta.id, name));
+			);
 
-			await new Promise<void>((resolve, reject) => {
-				const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
-				tx.oncomplete = () => resolve();
-				tx.onerror = () => reject(tx.error);
-				tx.objectStore('meta').put(meta);
-				if (osu) tx.objectStore('charts').put(osu, meta.id);
-				for (const key of staleAudio) tx.objectStore('files').delete(key);
-			});
+			if (disk) {
+				await updateDiskSet(meta, [
+					...dropped.flatMap(v => (v.file ? [v.file] : [])),
+					...staleAudio,
+				]);
+			} else {
+				const d = await db();
+				await new Promise<void>((resolve, reject) => {
+					const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
+					tx.oncomplete = () => resolve();
+					tx.onerror = () => reject(tx.error);
+					tx.objectStore('meta').put(meta);
+					if (osu) tx.objectStore('charts').put(osu, meta.id);
+					for (const name of staleAudio) tx.objectStore('files').delete(fileKey(meta.id, name));
+				});
+			}
 			changed = true;
 		}
 		if (changed) void beatmapsVersion.set(beatmapsVersion.get() + 1);
 	}
 
 	public static async has(setId: number): Promise<boolean> {
+		if (await onDisk()) return (await diskMeta(setId)) !== undefined;
 		return (await request('meta', 'readonly', 
 			(s) => s.getKey(setId),
 		)) !== undefined;
@@ -511,56 +591,83 @@ export default class BeatmapStore {
 
 	/** Wipe every downloaded set (metadata, charts and media) and notify views. */
 	public static async deleteAll(): Promise<void> {
-		const d = await db();
-		await new Promise<void>((resolve, reject) => {
-			const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
-			tx.oncomplete = () => resolve();
-			tx.onerror = () => reject(tx.error);
-			tx.objectStore('meta').clear();
-			tx.objectStore('charts').clear();
-			tx.objectStore('files').clear();
-		});
+		if (await onDisk()) {
+			await removeAllDiskSets();
+		} else {
+			const d = await db();
+			await new Promise<void>((resolve, reject) => {
+				const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
+				tx.oncomplete = () => resolve();
+				tx.onerror = () => reject(tx.error);
+				tx.objectStore('meta').clear();
+				tx.objectStore('charts').clear();
+				tx.objectStore('files').clear();
+			});
+		}
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
 	}
 
 	/** Delete one downloaded set (its metadata, charts and media) and notify
 	 *  views. Files are key `${setId}/<name>`, so a prefix range drops them all. */
 	public static async deleteSet(setId: number): Promise<void> {
-		const d = await db();
-		await new Promise<void>((resolve, reject) => {
-			const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
-			tx.oncomplete = () => resolve();
-			tx.onerror = () => reject(tx.error);
-			tx.objectStore('meta').delete(setId);
-			tx.objectStore('charts').delete(setId);
-			const files = tx.objectStore('files');
-			const cursor = files.openKeyCursor(
-				IDBKeyRange.bound(`${setId}/`, 
-					`${setId}/\uffff`,
-				),
-			);
-			cursor.onsuccess = () => {
-				const c = cursor.result;
-				if (!c) return;
-				files.delete(c.primaryKey);
-				c.continue();
-			};
-		});
+		if (await onDisk()) {
+			await removeDiskSet(setId);
+		} else {
+			const d = await db();
+			await new Promise<void>((resolve, reject) => {
+				const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
+				tx.oncomplete = () => resolve();
+				tx.onerror = () => reject(tx.error);
+				tx.objectStore('meta').delete(setId);
+				tx.objectStore('charts').delete(setId);
+				const files = tx.objectStore('files');
+				const cursor = files.openKeyCursor(
+					IDBKeyRange.bound(`${setId}/`, 
+						`${setId}/\uffff`,
+					),
+				);
+				cursor.onsuccess = () => {
+					const c = cursor.result;
+					if (!c) return;
+					files.delete(c.primaryKey);
+					c.continue();
+				};
+			});
+		}
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
+	}
+
+	private static async meta(setId: number): Promise<RuntimeMetadata | undefined> {
+		if (await onDisk()) return diskMeta(setId);
+		return await request('meta', 'readonly', 
+			(s) => s.get(setId),
+		) as RuntimeMetadata | undefined;
+	}
+
+	private static async charts(setId: number): Promise<Record<number, string> | undefined> {
+		if (await onDisk()) return diskCharts(setId);
+		return request<Record<number, string> | undefined>('charts', 'readonly', 
+			(s) => s.get(setId),
+		);
+	}
+
+	private static async file(setId: number, name: string): Promise<Blob | undefined> {
+		if (await onDisk()) return diskFile(setId, name);
+		return request<Blob | undefined>('files', 'readonly', 
+			(s) => s.get(fileKey(setId, name)),
+		);
 	}
 
 	public static async getBeatmapSet(
 		setId: number,
 	): Promise<LightBeatmapSet | undefined> {
-		const meta = await request('meta', 'readonly', 
-			(s) => s.get(setId),
-		) as RuntimeMetadata | undefined;
+		const meta = await this.meta(setId);
 		if (!meta) return;
 		return LightBeatmapSet.fromMetadata(meta);
 	}
 
 	public static async getAllSets(): Promise<LightBeatmapSet[]> {
-		const metas = (await request('meta', 'readonly', 
+		const metas = await onDisk() ? await diskAllMeta() : (await request('meta', 'readonly', 
 			(s) => s.getAll(),
 		)) as RuntimeMetadata[];
 		return metas.map(meta => LightBeatmapSet.fromMetadata(meta));
@@ -569,9 +676,7 @@ export default class BeatmapStore {
 	public static async getSet(setId: number): Promise<SetRecord | undefined> {
 		const mapset = await this.getBeatmapSet(setId);
 		if (!mapset || !mapset.metadata.runtime) return undefined;
-		const osu = await request<Record<number, string>>('charts', 'readonly', 
-			(s) => s.get(setId),
-		);
+		const osu = (await this.charts(setId))!;
 		return {
 			setId, metadata: mapset.metadata, osu, 
 		};
@@ -581,21 +686,15 @@ export default class BeatmapStore {
 		setId: number, 
 		beatmapId: number,
 	): Promise<string | undefined> {
-		const osu = await request<Record<number, string> | undefined>(
-			'charts', 
-			'readonly',
-			(s) => s.get(setId),
-		);
-		return osu?.[beatmapId];
+		if (await onDisk()) return diskChart(setId, beatmapId);
+		return (await this.charts(setId))?.[beatmapId];
 	}
 
 	public static async getFileUrl(
 		setId: number, 
 		name: string,
 	): Promise<string | undefined> {
-		const blob = await request<Blob | undefined>('files', 'readonly', 
-			(s) => s.get(fileKey(setId, name)),
-		);
+		const blob = await this.file(setId, name);
 		return blob && URL.createObjectURL(blob);
 	}
 
@@ -617,24 +716,11 @@ export default class BeatmapStore {
 		return undefined;
 	}
 
-	/** Every stored file of a set but its charts, by normalized name. */
+	/** Every stored file of a set but its charts: by normalized name in IndexedDB, by
+	 *  its path in the folder on disk. */
 	public static async getFiles(setId: number): Promise<Unzipped> {
-		const d = await db();
-		const prefix = `${setId}/`;
-		const blobs = await new Promise<[string, Blob][]>((resolve, reject) => {
-			const found: [string, Blob][] = [];
-			const cursor = d.transaction('files', 'readonly').objectStore('files')
-				.openCursor(IDBKeyRange.bound(prefix, `${prefix}\uffff`));
-			cursor.onerror = () => reject(cursor.error);
-			cursor.onsuccess = () => {
-				const c = cursor.result;
-				if (!c) return resolve(found);
-				found.push([String(c.key).slice(prefix.length), c.value as Blob]);
-				c.continue();
-			};
-		});
-		return Object.fromEntries(await Promise.all(blobs.map(async ([name, blob]) =>
-			[name, new Uint8Array(await blob.arrayBuffer())] as const)));
+		if (await onDisk()) return diskFiles(setId);
+		return storedFiles(await db(), setId);
 	}
 
 	/** Decode a stored text asset (e.g. a `.osb` storyboard) to a string. */
@@ -642,14 +728,15 @@ export default class BeatmapStore {
 		setId: number, 
 		name: string,
 	): Promise<string | undefined> {
-		const blob = await request<Blob | undefined>('files', 'readonly', 
-			(s) => s.get(fileKey(setId, name)),
-		);
-		return blob && blob.text();
+		return (await this.file(setId, name))?.text();
 	}
 
 	/** The set's `.osb` storyboard text, if it bundled one. */
 	public static async getOsbText(setId: number): Promise<string | undefined> {
+		if (await onDisk()) {
+			const name = await diskOsbName(setId);
+			return name ? this.getFileText(setId, name) : undefined;
+		}
 		const d = await db();
 		const name = await new Promise<string | undefined>((resolve, reject) => {
 			const cursor = d.transaction('files', 'readonly').objectStore('files')

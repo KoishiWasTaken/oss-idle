@@ -1,18 +1,38 @@
-import { Trans } from '@lingui/react/macro';
+import './Login.css';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { loginWithOsu } from '../auth';
+import { Asset } from '../router';
+import { getGeneralStats } from '../api/stats';
+import AuthBackdrop from '../components/AuthBackdrop';
+
+const count = (n = 0) => n.toLocaleString('en-US');
 
 export default function Login() {
-	return (<>
-		<main className="page-contents">
-			<div className="page-text">
-				<h1 className="center"><Trans>Sign in</Trans></h1>
-				<p className="center"><Trans>Connect your osu! account to appear in the leaderboards.</Trans></p>
-				<div className='center' style={{ marginTop: '30px' }}>
-					<a onClick={loginWithOsu} className='cta-button'>
-						<span><Trans>Sign in with osu!</Trans></span>
-					</a>
-				</div>
+	const { t } = useLingui();
+	const stats = useAsync(getGeneralStats, []);
+
+	return (
+		<AuthBackdrop>
+			<div className="login__logo">
+				<img src={Asset('/idle-back.png')} alt="" />
+				<img src={Asset('/idle-white.png')} alt="oss!idle" />
 			</div>
-		</main>
-	</>);
+			<h1><Trans>Become a legendary mania player</Trans></h1>
+			<p className="auth__text"><Trans>Sign in with osu! and create your character.</Trans></p>
+			<button type="button" className="cta-button login__osu" onClick={loginWithOsu}>
+				<img src={Asset('/idle.png')} alt="" />
+				<Trans>Sign in with osu!</Trans>
+			</button>
+			<p className="auth__fine"><Trans>We only use your osu! username, avatar and country.</Trans></p>
+			<ul className="login__stats">
+				<li><b>{count(stats?.users)}</b> {t`characters`}</li>
+				<li><b>{count(stats?.online)}</b> {t`online now`}</li>
+				<li><b>{count(stats?.playing)}</b> {t`playing now`}</li>
+			</ul>
+		</AuthBackdrop>
+	);
 }

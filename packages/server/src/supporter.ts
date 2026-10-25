@@ -36,7 +36,9 @@ import { supporterOrders } from './db/schema/supporter_order';
 import {
 	clientUrl,
 	env,
+	redisKeyPrefix,
 } from './env';
+import { redis } from './redis';
 import {
 	idOf,
 	needStripe,
@@ -106,10 +108,23 @@ export const serverSeconds = (cents: number): number | undefined => env.SERVER_M
 	&& Math.floor(env.SUPPORTER_TAXES.reduce((net, tax) => net * (1 - tax / 100), cents / 100)
 		/ env.SERVER_MONTHLY_COST * 365.25 / 12 * 86400);
 
-export const sendThanks = async (orderId: number, to: string, before: Before): Promise<void> => {
-	if (!mailer || !env.SMTP_URL) return;
+const THANKS_KEY = `${redisKeyPrefix}supporter:thanks`;
+// Stripe attaches the balance transaction seconds to minutes after the checkout
+const NET_WAIT_MS = 10 * 60_000;
+
+type PendingThanks = {
+	to: string;
+	before: Before;
+	at: number;
+};
+
+/** Sends one thank-you; false while the payment's net amount is still on its way. */
+const sendThanks = async (orderId: number, { to, before, at }: PendingThanks): Promise<boolean> => {
+	if (!mailer || !env.SMTP_URL) return true;
 	const [order] = await orderRows(eq(supporterOrders.id, orderId));
-	if (!order?.buyerId) return;
+	if (!order?.buyerId) return true;
+	const net = await received(order).catch(() => undefined);
+	if (net === undefined && Date.now() - at < NET_WAIT_MS) return false;
 	const [bought] = await db
 		.select({ n: count() })
 		.from(supporterOrders)
@@ -124,7 +139,7 @@ export const sendThanks = async (orderId: number, to: string, before: Before): P
 		buyerName: order.buyerName ?? undefined,
 		giftTo: order.recipientId === order.buyerId ? undefined : order.recipientName ?? 'another player',
 		months: order.months,
-		serverSeconds: serverSeconds(await received(order).catch(() => 0)),
+		serverSeconds: serverSeconds(net ?? 0),
 		recurring: order.recurring,
 		tagEndsAt: order.endsAt ?? undefined,
 		storeUrl,
@@ -142,6 +157,25 @@ export const sendThanks = async (orderId: number, to: string, before: Before): P
 	await fileSent(env.SMTP_URL, raw).catch((e: Error) => {
 		warn(`Supporter order ${orderId}: thank-you sent, but not filed in Sent: ${e.message}`);
 	});
+	return true;
+};
+
+/** Sends the thank-yous grant queued, kept in Redis so a reload doesn't lose them. */
+export const sweepThanks = async (): Promise<void> => {
+	if (!mailer) return;
+	const lock = `${THANKS_KEY}:lock`;
+	if (await redis.set(lock, '1', 'EX', 600, 'NX') !== 'OK') return;
+	try {
+		for (const [id, raw] of Object.entries(await redis.hgetall(THANKS_KEY))) {
+			const sent = await sendThanks(Number(id), JSON.parse(raw) as PendingThanks).catch((e: Error) => {
+				warn(`Supporter order ${id}: thank-you email not sent: ${e.message}`);
+				return true;
+			});
+			if (sent) await redis.hdel(THANKS_KEY, id);
+		}
+	} finally {
+		await redis.del(lock);
+	}
 };
 
 /** A paid tag lands: extends the recipient's tag from now or from its current end, once per
@@ -196,9 +230,12 @@ const grant = async (
 		return;
 	}
 	const { order } = landed;
-	if (order && email) {
-		void sendThanks(order.id, email, order.before).catch((e: Error) => {
-			warn(`Supporter order ${order.id}: thank-you email not sent: ${e.message}`);
+	if (order && email && mailer) {
+		const thanks: PendingThanks = {
+			to: email, before: order.before, at: Date.now(),
+		};
+		await redis.hset(THANKS_KEY, order.id, JSON.stringify(thanks)).catch((e: Error) => {
+			warn(`Supporter order ${order.id}: thank-you email not queued: ${e.message}`);
 		});
 	}
 };

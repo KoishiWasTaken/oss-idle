@@ -11,6 +11,7 @@ import type {
 	DesktopMoveResult,
 	DesktopPresence,
 	DesktopUpdateStatus,
+	LibraryChange,
 	OssIdleDesktop,
 } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 
@@ -65,11 +66,10 @@ ipcRenderer.on('oss-idle:deep-link', (_event, link: string) => {
 	}
 });
 
-type SetFiles = Record<string, Uint8Array | undefined>;
-const folderListeners = new Set<(files: SetFiles) => void>();
-ipcRenderer.on('oss-idle:map-folder-changed', (_event, files: SetFiles) => {
-	for (const cb of folderListeners) {
-		try { cb(files); } catch (e) { console.error('[desktop] map folder listener threw', e); }
+const libraryListeners = new Set<(change: LibraryChange) => void>();
+ipcRenderer.on('oss-idle:library-changed', (_event, change: LibraryChange) => {
+	for (const cb of libraryListeners) {
+		try { cb(change); } catch (e) { console.error('[desktop] library listener threw', e); }
 	}
 });
 
@@ -115,13 +115,16 @@ const bridge: OssIdleDesktop = {
 		moveInstall: (dialogTitle: string) =>
 			ipcRenderer.invoke('oss-idle:move-install', dialogTitle) as Promise<DesktopMoveResult>,
 	} : {},
-	mapFolder: {
-		open: (name, files, show) => ipcRenderer.invoke('oss-idle:map-folder-open', name, files, show),
-		write: files => ipcRenderer.send('oss-idle:map-folder-write', files),
-		close: () => ipcRenderer.send('oss-idle:map-folder-close'),
+	library: {
+		list: kind => ipcRenderer.invoke('oss-idle:library', 'list', kind),
+		read: (kind, name, file) => ipcRenderer.invoke('oss-idle:library', 'read', kind, name, file),
+		write: (kind, name, files, info, replace) =>
+			ipcRenderer.invoke('oss-idle:library', 'write', kind, name, files, info, replace),
+		remove: (kind, name) => ipcRenderer.invoke('oss-idle:library', 'remove', kind, name),
+		reveal: (kind, name) => ipcRenderer.invoke('oss-idle:library', 'reveal', kind, name),
 		onChanged: cb => {
-			folderListeners.add(cb);
-			return () => { folderListeners.delete(cb); };
+			libraryListeners.add(cb);
+			return () => { libraryListeners.delete(cb); };
 		},
 	},
 	steam: { available: false },

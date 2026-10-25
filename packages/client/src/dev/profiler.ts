@@ -241,7 +241,7 @@ const text = (n = GRAPH) => {
 };
 
 const overlay = document.createElement('div');
-overlay.style.cssText = 'position:fixed;top:4px;left:4px;z-index:2147483647;pointer-events:none;'
+overlay.style.cssText = 'position:fixed;top:4px;left:4px;z-index:var(--z-dev);pointer-events:none;'
 	+ 'background:rgba(0,0,0,.8);color:#cfc;font:11px/1.3 monospace;padding:6px;'
 	+ 'border-radius:4px;max-width:calc(100vw - 8px);overflow:hidden';
 const graph = document.createElement('canvas');

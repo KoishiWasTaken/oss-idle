@@ -13,7 +13,7 @@
 	display: grid;
 	place-items: center;
 	will-change: transform;
-	z-index: 2;
+	z-index: var(--z-logo-pulse);
 }
 
 .main-logo__pulse img {
@@ -30,7 +30,7 @@
 	place-items: center;
 	will-change: transform;
 	opacity: 0.5;
-	z-index: 3;
+	z-index: var(--z-logo-over);
 }
 
 .main-logo__ripple {
@@ -38,7 +38,7 @@
 	inset: 6%;
 	border-radius: 50%;
 	border: 3px solid rgba(255, 255, 255, 0.6);
-	z-index: 3;
+	z-index: var(--z-logo-over);
 	pointer-events: none;
 	animation: osu-ripple 0.65s ease-out forwards;
 }
@@ -51,31 +51,5 @@
 	100% {
 		transform: scale(1.5);
 		opacity: 0;
-	}
-}
-
-.main-logo__hint {
-	position: absolute;
-	bottom: -2.6rem;
-	left: 50%;
-	transform: translateX(-50%);
-	font-size: 0.95rem;
-	font-weight: 600;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--text-dim);
-	white-space: nowrap;
-	z-index: 3;
-	pointer-events: none;
-	animation: hint-fade 2.6s ease-in-out infinite;
-}
-
-@keyframes hint-fade {
-	0%,
-	100% {
-		opacity: 0.3;
-	}
-	50% {
-		opacity: 0.85;
 	}
 }

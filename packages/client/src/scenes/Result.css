@@ -238,7 +238,7 @@ img.result__judge-label {
 	position: absolute;
 	left: 0;
 	top: 0;
-	z-index: 20;
+	z-index: var(--z-result);
 	overflow-y: auto;
 	/* iOS: own the vertical drag, keep momentum, don't chain to the page. */
 	touch-action: pan-y;
@@ -283,7 +283,7 @@ img.result__judge-label {
 	flex-direction: column;
 	gap: 3.5rem;
 	width: 65vw;
-	z-index: 10;
+	z-index: var(--z-result-left);
 }
 .result__right {
 	display: flex;
@@ -386,7 +386,7 @@ img.result__judge-label {
 	bottom: 0;
 	left: 0;
 	display: flex;
-	z-index: 500;
+	z-index: var(--z-result-actions);
 }
 .result__exit {
 	font-size: 2rem;

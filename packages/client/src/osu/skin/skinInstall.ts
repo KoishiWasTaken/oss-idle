@@ -42,7 +42,7 @@ export const downloadSkin = async (id: number): Promise<SkinWithFiles> => {
 			if (!res.ok) throw new Error(`${f.path}: ${res.status}`);
 			blobs.set(normalizePath(f.path), await res.blob());
 		}));
-	await putSkinFiles(id, remote.files, blobs);
+	await putSkinFiles(id, remote.files, blobs, remote.name);
 	return remote;
 };
 

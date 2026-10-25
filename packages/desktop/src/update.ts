@@ -4,10 +4,14 @@ import {
 } from 'electron';
 // electron-updater is CommonJS and exposes `autoUpdater` as a *named* export (no
 // default), so import it by name - a default import resolves to `undefined`.
-import { autoUpdater } from 'electron-updater';
+import {
+	autoUpdater,
+	NsisUpdater,
+} from 'electron-updater';
 // eslint-disable-next-line @stylistic/max-len
 import type { DesktopUpdateStatus } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 import { broadcast } from './frames';
+import { updateDir } from './install';
 import {
 	DESKTOP_SCHEME,
 	STAGING,
@@ -111,6 +115,7 @@ export function installUpdate(): void {
 		autoUpdater.quitAndInstall(true, false);
 		return;
 	}
+	if (autoUpdater instanceof NsisUpdater) autoUpdater.installDirectory = updateDir();
 	autoUpdater.quitAndInstall();
 }
 

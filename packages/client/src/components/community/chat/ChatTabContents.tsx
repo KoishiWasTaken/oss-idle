@@ -27,7 +27,7 @@ import {
 import { blocked } from '../../../online/blocks';
 import ChatText from './ChatText';
 import useEmojiSuggest from './useEmojiSuggest';
-import { replaceShortcodes } from './emoji';
+import { emojiSrc } from '../../../online/emoji';
 import { mapLink } from './links';
 import {
 	MENTION_COLOR,
@@ -46,6 +46,7 @@ type LogLine = {
 	text: string,
 	color?: string,
 	name?: string,
+	fromId?: number,
 	link?: { label: string, path: string },
 	sender?: MenuTarget,
 };
@@ -78,7 +79,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 				id: l.id, at: l.at, text: '<block>',
 			};
 			return {
-				id: l.id, at: l.at, text: l.text, name: l.from.name,
+				id: l.id, at: l.at, text: l.text, name: l.from.name, fromId: l.from.userId,
 				color: mentionsMe(l.text) && l.from.userId !== me ? MENTION_COLOR : l.from.color,
 				sender: {
 					...l.from, line: l,
@@ -127,7 +128,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
-		const text = replaceShortcodes(draft.trim());
+		const text = draft.trim();
 		if (!text || !chatTabs.get()?.includes(channel)) return;
 		if (contact === undefined) Socket.sendChat(handleCommand(text), channel);
 		else sendPm(contact, handleCommand(text));
@@ -160,7 +161,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 								})}
 							>{line.name}</span>:
 						</span>
-						<ChatText text={line.text} link={line.link} />
+						<ChatText text={line.text} link={line.link} senderId={line.fromId} />
 					</div>
 				);
 			})}
@@ -182,7 +183,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 								onMouseDown={e => e.preventDefault()}
 								onClick={() => emoji.insert(s)}
 							>
-								<span className="chat__emoji-char">{s.char}</span>
+								<img className="chat__emoji-img" src={emojiSrc(s.id)} alt="" />
 								:{s.name}:
 							</button>
 						))}

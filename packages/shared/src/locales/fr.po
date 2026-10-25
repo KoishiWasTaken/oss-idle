@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-24 19:27\n"
+"PO-Revision-Date: 2026-10-25 11:34\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -571,6 +571,10 @@ msgid "Get an SS on a ranked map"
 msgstr "Obtenir un SS sur une map classée"
 
 #: src/display/medals.ts
+msgid "Get an SS on AiAe [Wafles' SHD]"
+msgstr "Obtenir un SS sur AiAe [Wafles' SHD]"
+
+#: src/display/medals.ts
 msgid "Get an X on a ranked map"
 msgstr "Obtenir un X sur une map classée"
 
@@ -729,7 +733,7 @@ msgstr "Jackspeed"
 #: src/display/medals.ts
 msgctxt "skill in a medal name"
 msgid "Jack Speed"
-msgstr "Jackspeed"
+msgstr "de la jackspeed"
 
 #: src/display/medals.ts
 msgid "Keeping Up"
@@ -1052,7 +1056,7 @@ msgstr "Lecture"
 #: src/display/medals.ts
 msgctxt "skill in a medal name"
 msgid "Reading"
-msgstr "Lecture"
+msgstr "de la lecture"
 
 #: src/display/medals.ts
 msgid "Rebirth your character"
@@ -1073,7 +1077,7 @@ msgstr "Release"
 #: src/display/medals.ts
 msgctxt "skill in a medal name"
 msgid "Release"
-msgstr "Release"
+msgstr "des release"
 
 #: src/display/medals.ts
 msgid "Rice Cooker"
@@ -1146,14 +1150,9 @@ msgstr "Vitesse"
 #: src/display/medals.ts
 msgctxt "skill in a medal name"
 msgid "Speed"
-msgstr "Vitesse"
+msgstr "de la vitesse"
 
 #: src/display/skills.ts
-msgid "Speed Jam"
-msgstr "Speed jam"
-
-#: src/display/medals.ts
-msgctxt "skill in a medal name"
 msgid "Speed Jam"
 msgstr "Speed jam"
 
@@ -1172,7 +1171,7 @@ msgstr "Endurance"
 #: src/display/medals.ts
 msgctxt "skill in a medal name"
 msgid "Stamina"
-msgstr "Endurance"
+msgstr "de l'endurance"
 
 #: src/display/medals.ts
 msgid "Steady Hands"
@@ -1205,6 +1204,11 @@ msgstr "Sudden Death"
 #: src/display/medals.ts
 msgid "Supernova"
 msgstr "Supernova"
+
+#: src/display/medals.ts
+msgctxt "skill in a medal name"
+msgid "SV"
+msgstr "des SV"
 
 #: src/skills.ts
 msgid "Synaptics drivers"
@@ -1354,6 +1358,10 @@ msgstr "J'ai fait quoi de ma journée"
 #: src/display/medals.ts
 msgid "Wildfire"
 msgstr "Feu Follet"
+
+#: src/display/medals.ts
+msgid "Wonderful"
+msgstr "Wonderful"
 
 #: src/skills.ts
 msgid "Wooden chair"

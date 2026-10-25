@@ -98,7 +98,7 @@ export const skinsRoutes = new Hono()
 		return c.json(await withAuthor(row!, toSkinDTO), 201);
 	})
 
-	.post('/icon', requireActive, dailyLimit('skin-icons', SKINS_PER_DAY), async c => {
+	.post('/icon', requireActive, dailyLimit('skin-icons', SKIN_UPLOADS_PER_DAY), async c => {
 		const body = await c.req.parseBody();
 		return c.json({ url: await saveUploadedImage(body['file']) });
 	})

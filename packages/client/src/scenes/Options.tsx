@@ -28,11 +28,13 @@ import ParallaxMode from '../components/options/ParallaxMode';
 import OsuMusicTheme from '../components/options/OsuMusicTheme';
 import ShowThumbnails from '../components/options/ShowThumbnails';
 import ShowUndownloaded from '../components/options/ShowUndownloaded';
+import ShowUnbundled from '../components/options/ShowUnbundled';
 import BackgroundDim from '../components/options/BackgroundDim';
 import MasterVolume from '../components/options/MasterVolume';
 import MusicVolume from '../components/options/MusicVolume';
 import EffectVolume from '../components/options/EffectVolume';
 import DeleteAllBeatmaps from '../components/options/DeleteAllBeatmaps';
+import OpenLibraryFolders from '../components/options/OpenLibraryFolders';
 import DownloadAllBundled from '../components/options/DownloadAllBundled';
 import DownloadAllRanked from '../components/options/DownloadAllRanked';
 import MoveInstall from '../components/options/MoveInstall';
@@ -44,6 +46,8 @@ import ManageAddons from '../components/options/ManageAddons';
 import BrowseAddons from '../components/options/BrowseAddons';
 import ManageSkins from '../components/options/ManageSkins';
 import BrowseSkins from '../components/options/BrowseSkins';
+import GameplaySkin from '../components/options/GameplaySkin';
+import EditorSkin from '../components/options/EditorSkin';
 import CursorSize from '../components/options/CursorSize';
 import ReportBug from '../components/options/ReportBug';
 
@@ -62,6 +66,7 @@ export default function Options() {
 		'GAMEPLAY',
 		'SKIN',
 		'CONTROLS',
+		'EDITOR',
 		'ADDONS',
 		'MAINTENANCE',
 	]);
@@ -73,6 +78,7 @@ export default function Options() {
 		[CATEGORY.GAMEPLAY]: t`GAMEPLAY`,
 		[CATEGORY.SKIN]: t`SKIN`,
 		[CATEGORY.CONTROLS]: t`CONTROLS`,
+		[CATEGORY.EDITOR]: t`EDITOR`,
 		[CATEGORY.ADDONS]: t`ADD-ONS`,
 		[CATEGORY.MAINTENANCE]: t`MAINTENANCE`,
 	};
@@ -182,6 +188,10 @@ export default function Options() {
 							search: t`download|downloaded|beatmap|beatmaps|hide`,
 							component: () => ShowUndownloaded,
 						},
+						{
+							search: t`download|downloaded|beatmap|beatmaps|bundled|ranked`,
+							component: () => ShowUnbundled,
+						},
 					],
 				},
 			],
@@ -240,6 +250,10 @@ export default function Options() {
 					title: t`Skinning`,
 					components: [
 						{
+							search: t`skin|skins|current|select|gameplay`,
+							component: () => GameplaySkin,
+						},
+						{
 							search: t`skin|skins|manage|installed`,
 							component: () => ManageSkins,
 						},
@@ -264,6 +278,20 @@ export default function Options() {
 						{
 							search: t`right|click|hold|time`,
 							component: () => RightClickHold,
+						},
+					],
+				},
+			],
+		},
+		{
+			name: CATEGORY.EDITOR,
+			groups: [
+				{
+					title: t`General`,
+					components: [
+						{
+							search: t`skin|skins|editor|select`,
+							component: () => EditorSkin,
 						},
 					],
 				},
@@ -300,6 +328,10 @@ export default function Options() {
 						{
 							search: t`download|beatmap|beatmaps|ranked|supporter`,
 							component: () => DownloadAllRanked,
+						},
+						{
+							search: t`open|folder|beatmap|beatmaps|maps|skins|add-ons|addons|files`,
+							component: () => OpenLibraryFolders,
 						},
 						{
 							search: t`delete|beatmap|beatmaps`,

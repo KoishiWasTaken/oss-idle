@@ -1,6 +1,6 @@
 .web {
 	position: fixed;
-	z-index: 10000;
+	z-index: var(--z-browser);
 	inset: 0;
 	width: 100vw;
 	height: 100vh;

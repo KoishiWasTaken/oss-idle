@@ -147,6 +147,8 @@ const defaults = [
 	option<boolean>()('showThumbnails', true),
 	// bundled maps not downloaded yet, listed in song select
 	option<boolean>()('showUndownloaded', true),
+	// with showUndownloaded, the ranked maps that aren't bundled too
+	option<boolean>()('showUnbundled', false),
 	option<number>()('backgroundDim', 0.8),
 	option<number>()('cursorSize', 1),
 	/** the editor's live gameplay preview beside its playfield */

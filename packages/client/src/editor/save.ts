@@ -7,11 +7,11 @@ import {
 import { extrasFile } from '@oss-idle/shared/editor/extras';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import BeatmapStore, {
-	type RuntimeMetadata,
-	type RuntimeVersionMetadata,
-	type SetRecord,
-} from '../osu/beatmap/beatmap_store';
+import BeatmapStore, { type SetRecord } from '../osu/beatmap/beatmap_store';
+import {
+	chartFile,
+	fileName,
+} from '../osu/beatmap/setFiles';
 import {
 	importFiles,
 	localSetId,
@@ -35,12 +35,6 @@ const serially = <T>(write: () => Promise<T>): Promise<T> => {
 	writing = done.catch(() => undefined);
 	return done;
 };
-
-const fileName = (name: string) => name.replace(/[\\/:*?"<>|]/g, '');
-
-/** A difficulty's .osu name, or the one osu! would give it when the store lost it. */
-const chartFile = (set: RuntimeMetadata, version: RuntimeVersionMetadata): string =>
-	version.file ?? fileName(`${set.artist} - ${set.title} (${set.creator}) [${version.version}].osu`);
 
 /** A stored set as an archive. With an edit, its chart stands in for the difficulty's
  *  own, and the other difficulties take on its set-wide metadata. */
@@ -188,10 +182,6 @@ export const addSampleFiles = (
 	}
 	return storedAs(await storeLocal(beatmap, files), file);
 });
-
-/** The set's files as stored, by their path in it (the .osu files as last saved). */
-export const setFiles = async (beatmap: LightBeatmap): Promise<Unzipped> =>
-	(await setArchive(beatmap)).files;
 
 /** `changed` files written into the set (undefined deletes one), its charts left alone. */
 export const changeSetFiles = (

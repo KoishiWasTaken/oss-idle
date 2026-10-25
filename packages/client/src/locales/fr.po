@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-24 19:27\n"
+"PO-Revision-Date: 2026-10-25 11:34\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -426,10 +426,6 @@ msgstr "Tout sauf le nom de la difficulté est commun au set : sauvegarder l'éc
 msgid "All ranked beatmaps downloaded."
 msgstr "Toutes les maps classées ont été téléchargées."
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Almost at your peak."
-msgstr "Presque à votre peak."
-
 #: src/scenes/Gameplay.tsx
 msgid "Already playing"
 msgstr "Déjà en jeu"
@@ -505,7 +501,6 @@ msgstr "Disponible"
 msgid "Average XP boost"
 msgstr "Boost d'XP moyen"
 
-#: src/components/page/Page.tsx
 #: src/components/page/pageBar.tsx
 #: src/components/songselect/BeatmapInfo.tsx
 #: src/components/Tutorial.tsx
@@ -879,6 +874,7 @@ msgstr "Cliquez pour passer"
 #: src/components/community/PlayerMenu.tsx
 #: src/components/direct/DirectLinkPanel.tsx
 #: src/components/options/DownloadAllWarning.tsx
+#: src/components/page/Page.tsx
 #: src/components/PlaylistOverlay.tsx
 #: src/editor/EditorAddonWindow.tsx
 msgid "Close"
@@ -1020,7 +1016,7 @@ msgstr "Il n'a pas été possible de prendre la main sur la partie en cours."
 msgid "Create character"
 msgstr "Créer le personnage"
 
-#: src/components/addons/ManageAddonsView.tsx
+#: src/components/addons/ManageAddonsActions.tsx
 msgid "Create new add-on"
 msgstr "Créer un nouvel add-on"
 
@@ -1039,6 +1035,10 @@ msgstr "Ctrl + molette"
 #: src/scenes/MatchSetup.tsx
 msgid "Current Players ({players}/{size})"
 msgstr "Joueurs actuels ({players}/{size})"
+
+#: src/components/options/GameplaySkin.tsx
+msgid "Current skin"
+msgstr "Skin actuel"
 
 #: src/components/options/CursorSize.tsx
 msgid "Cursor size"
@@ -1065,6 +1065,8 @@ msgstr "Index personnalisé"
 msgid "Cut"
 msgstr "Couper"
 
+#: src/components/options/EditorSkin.tsx
+#: src/components/options/GameplaySkin.tsx
 #: src/components/skins/DefaultSkinRow.tsx
 msgid "Default skin"
 msgstr "Skin par défaut"
@@ -1168,6 +1170,10 @@ msgstr "Ignorer"
 msgid "Display"
 msgstr "Affichage"
 
+#: src/components/options/ShowUnbundled.tsx
+msgid "Display non-bundled ranked beatmaps as downloadable in song select"
+msgstr "Afficher les maps classées hors maps de base comme téléchargeables dans la sélection des musiques"
+
 #: src/components/mods/ModSelect.tsx
 #: src/components/result/ResultMods.tsx
 msgid "Double"
@@ -1216,6 +1222,10 @@ msgstr "download|télécharger|beatmap|beatmaps|map|base|défaut|bundled|support
 #: src/scenes/Options.tsx
 msgid "download|beatmap|beatmaps|ranked|supporter"
 msgstr "download|télécharger|beatmap|beatmaps|map|classé|ranked|supporter"
+
+#: src/scenes/Options.tsx
+msgid "download|downloaded|beatmap|beatmaps|bundled|ranked"
+msgstr "download|downloaded|beatmap|beatmaps|bundled|ranked|télécharger|téléchargée|map|maps|base|classée"
 
 #: src/scenes/Options.tsx
 msgid "download|downloaded|beatmap|beatmaps|hide"
@@ -1280,13 +1290,21 @@ msgstr "Modifier la playlist"
 msgid "Editor"
 msgstr "Éditeur"
 
+#: src/scenes/Options.tsx
+msgid "EDITOR"
+msgstr "ÉDITEUR"
+
+#: src/components/options/EditorSkin.tsx
+msgid "Editor skin"
+msgstr "Skin de l'éditeur"
+
 #: src/components/options/EffectVolume.tsx
 msgid "Effect"
 msgstr "Effet"
 
 #: src/components/community/chat/ChatTabContents.tsx
 msgid "Emoji matching <0>:{query}</0>"
-msgstr ""
+msgstr "Emoji correspondant à <0>:{query}</0>"
 
 #: src/editor/EditorChecks.tsx
 msgid "Empty metadata: {fields}"
@@ -1360,12 +1378,12 @@ msgid "Faster playback"
 msgstr "Lecture plus rapide"
 
 #: src/scenes/Gameplay.tsx
-msgid "Fatigue"
-msgstr "Fatigue"
+msgid "Fatigued"
+msgstr "Fatigué"
 
 #: src/components/gameplay/WarmupHint.tsx
-msgid "Fatigue only kicks in if you keep pushing after getting tired, and reduces XP gains."
-msgstr "La fatigue n'arrive que si vous continuez à forcer alors que vous êtes déjà fatigué, et elle réduit les gains d'XP."
+msgid "Fatigued: you earn less XP. Play easier maps to rest."
+msgstr "Fatigué : vous gagnez moins d'XP. Jouez des maps plus faciles pour vous reposer."
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Field"
@@ -1510,6 +1528,7 @@ msgstr "Gen {generation}"
 #: src/scenes/Options.tsx
 #: src/scenes/Options.tsx
 #: src/scenes/Options.tsx
+#: src/scenes/Options.tsx
 msgid "General"
 msgstr "Général"
 
@@ -1520,10 +1539,6 @@ msgstr "GÉNÉRAL"
 #: src/components/character/RebirthView.tsx
 msgid "Generation {generation}"
 msgstr "Génération {generation}"
-
-#: src/scenes/Gameplay.tsx
-msgid "Getting tired"
-msgstr "Commence à fatiguer"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Give Host"
@@ -1745,10 +1760,6 @@ msgstr "Rejoindre cette partie nécessite un mot de passe..."
 msgid "Keep playing"
 msgstr "Continuer à jouer"
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Keep playing physically demanding maps to reach your peak."
-msgstr "Continuez à jouer des maps physiquement exigeantes pour atteindre votre peak."
-
 #: src/components/options/KeepPlaying.tsx
 msgid "Keep playing the queue when the game is closed"
 msgstr "Continuer à jouer la playlist quand le jeu est fermé"
@@ -1966,6 +1977,11 @@ msgstr "mappée par {mapper}"
 msgid "Mapper"
 msgstr "Mappeur"
 
+#: src/components/addons/AddonEditMeta.tsx
+#: src/components/skins/SkinView.tsx
+msgid "Markdown supported"
+msgstr "Markdown pris en charge"
+
 #: src/components/options/MasterVolume.tsx
 msgid "Master"
 msgstr "Principal"
@@ -2100,6 +2116,14 @@ msgstr "Lobby multijoueur"
 #: src/components/options/MusicVolume.tsx
 msgid "Music"
 msgstr "Musique"
+
+#: src/input/Controls.ts
+msgid "Music paused"
+msgstr "Musique en pause"
+
+#: src/input/Controls.ts
+msgid "Music playing"
+msgstr "Musique en lecture"
 
 #: src/editor/EditorViewOptions.tsx
 msgid "Musical"
@@ -2394,6 +2418,10 @@ msgstr "Seules les difficultés 4K peuvent être classées : ajoutez-en une d'ab
 msgid "Open"
 msgstr "Libre"
 
+#: src/components/skins/SkinDAORow.tsx
+msgid "Open folder"
+msgstr "Ouvrir le dossier"
+
 #: src/components/community/LinkMenu.tsx
 msgid "Open link"
 msgstr "Ouvrir le lien"
@@ -2402,14 +2430,32 @@ msgstr "Ouvrir le lien"
 msgid "Open oss! web"
 msgstr "Ouvrir oss! web"
 
+#: src/components/addons/ManageAddonsActions.tsx
+#: src/components/options/OpenLibraryFolders.tsx
+msgid "Open the add-ons folder"
+msgstr "Ouvrir le dossier des add-ons"
+
 #: src/editor/builtinActions.ts
 #: src/editor/EditorSoundFiles.tsx
 msgid "Open the map's folder"
 msgstr "Ouvrir le dossier de la map"
 
+#: src/components/options/OpenLibraryFolders.tsx
+msgid "Open the maps folder"
+msgstr "Ouvrir le dossier des maps"
+
+#: src/components/options/OpenLibraryFolders.tsx
+#: src/components/skins/ManageSkinsView.tsx
+msgid "Open the skins folder"
+msgstr "Ouvrir le dossier des skins"
+
 #: src/components/community/LinkMenu.tsx
 msgid "Open this link?"
 msgstr "Ouvrir ce lien ?"
+
+#: src/scenes/Options.tsx
+msgid "open|folder|beatmap|beatmaps|maps|skins|add-ons|addons|files"
+msgstr "open|folder|beatmap|beatmaps|maps|skins|add-ons|addons|files|ouvrir|dossier|map|fichiers"
 
 #: src/scenes/MainMenu.tsx
 #: src/scenes/Options.tsx
@@ -2509,6 +2555,10 @@ msgstr "Effet parallax"
 msgid "Password:"
 msgstr "Mot de passe :"
 
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Past the sweet spot. Play easier maps to come back to it."
+msgstr "Au-delà de votre peak. Jouez des maps plus faciles pour y revenir."
+
 #: src/editor/builtinActions.ts
 msgid "Paste as copied"
 msgstr "Coller tel que copié"
@@ -2556,8 +2606,8 @@ msgid "Personal best"
 msgstr "Record personnel"
 
 #: src/components/gameplay/WarmupHint.tsx
-msgid "Physical skills ({skills}) need some warmup to reach their peak. You still gain full XP independently of warmup."
-msgstr "Les compétences physiques ({skills}) ont besoin d'un échauffement pour atteindre leur peak. Vous gagnez toujours autant d'XP, échauffé ou non."
+msgid "Physically demanding maps ({skills}) move the needle right, easier maps and time off move it left. Keep it in the middle."
+msgstr "Les maps exigeantes physiquement ({skills}) poussent l'indicateur vers la droite, les maps plus faciles et les pauses le ramènent vers la gauche. Gardez-le au milieu."
 
 #: src/components/direct/DirectPanel.tsx
 msgid "Pick a beatmap to see it here."
@@ -2605,6 +2655,11 @@ msgstr "Lecture / pause"
 msgid "Play Count: {playCount} (Lv{level})"
 msgstr "Parties : {playCount} (Lv{level})"
 
+#: src/components/gameplay/WarmupHint.tsx
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Play harder maps to reach the sweet spot."
+msgstr "Jouez des maps plus difficiles pour atteindre votre peak."
+
 #: src/components/dock/DockQueue.tsx
 msgid "Play it one more time"
 msgstr "Jouer cette map une fois de plus"
@@ -2620,10 +2675,6 @@ msgstr "Jouer la prochaine"
 #: src/components/Tutorial.tsx
 msgid "Play online"
 msgstr "Jouer en ligne"
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Play physically demanding maps to warm up."
-msgstr "Jouez des maps physiquement exigeantes pour vous échauffer."
 
 #: src/scenes/Gameplay.tsx
 msgid "Play unranked"
@@ -2662,7 +2713,7 @@ msgstr "Playlist"
 
 #: src/components/dock/DockRefresh.tsx
 msgid "Playlist changed: refresh the queue"
-msgstr ""
+msgstr "Playlist modifiée : actualiser la liste"
 
 #: src/components/dock/SaveQueuePrompt.tsx
 msgid "Playlist name"
@@ -3287,6 +3338,14 @@ msgid "skin|skins|browse|catalog|install"
 msgstr "skin|skins|chercher|catalogue|installer"
 
 #: src/scenes/Options.tsx
+msgid "skin|skins|current|select|gameplay"
+msgstr "skin|skins|current|select|gameplay|actuel|choisir|jeu"
+
+#: src/scenes/Options.tsx
+msgid "skin|skins|editor|select"
+msgstr "skin|skins|editor|select|éditeur|choisir"
+
+#: src/scenes/Options.tsx
 msgid "skin|skins|manage|installed"
 msgstr "skin|skins|gerer|gérer|installer|installé"
 
@@ -3449,6 +3508,10 @@ msgstr "Échanger la colonne {column} avec la prochaine choisie"
 #: src/editor/builtinActions.ts
 msgid "Swap two columns of the selection"
 msgstr "Échanger deux colonnes de la sélection"
+
+#: src/components/gameplay/WarmupHint.tsx
+msgid "Sweet spot: your physical skills are at their best."
+msgstr "Peak : vos compétences physiques sont à leur meilleur niveau."
 
 #: src/components/addons/AddonEditMeta.tsx
 #: src/components/skins/SkinView.tsx
@@ -3927,10 +3990,6 @@ msgid "Warm-up"
 msgstr "Échauffement"
 
 #: src/scenes/Gameplay.tsx
-msgid "Warmed up"
-msgstr "Échauffé"
-
-#: src/scenes/Gameplay.tsx
 msgid "Warming up"
 msgstr "S'échauffe"
 
@@ -4063,17 +4122,9 @@ msgstr "Vous êtes joueur."
 msgid "You are a supporter."
 msgstr "Vous êtes un supporter."
 
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You are past your peak. Play easier maps to stay in optimal shape."
-msgstr "Vous avez dépassé votre peak. Jouez des maps plus faciles pour rester au meilleur de votre forme."
-
 #: src/scenes/MatchSetup.tsx
 msgid "You are the host!"
 msgstr "Vous êtes l'hôte !"
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You are tiring and your physical skills are slipping."
-msgstr "Vous fatiguez et vos compétences physiques baissent."
 
 #: src/online/multiplayer.ts
 msgid "You have become the host for this room!"
@@ -4082,10 +4133,6 @@ msgstr "Vous êtes désormais l'hôte de cette partie !"
 #: src/components/addons/ManageAddonsView.tsx
 msgid "You haven't created any add-ons yet."
 msgstr "Vous n'avez créé aucun add-on pour le moment."
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "You warm up by playing physically demanding maps. If you do this for too long though, you get tired and need to cool down in order to reach your peak again. Balance it out properly and you'll always play at your maximum skill level."
-msgstr "Vous vous échauffez en jouant des maps physiquement exigeantes. Mais si vous continuez trop longtemps, vous fatiguez et devez récupérer pour retrouver votre peak. Trouvez le bon équilibre et vous jouerez toujours à votre meilleur niveau."
 
 #: src/components/RestrictedNotice.tsx
 msgid "Your account has been <0>restricted</0>: you can't play or chat. If you think it's a mistake: <1>{email}</1>"
@@ -4122,10 +4169,6 @@ msgstr "Votre personnage continue à jouer sa playlist pendant {hours} heures ap
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Your own plays and level-ups, seen only by you."
 msgstr "Vos propres résultats et gains de niveau, vus seulement par vous."
-
-#: src/components/gameplay/WarmupHint.tsx
-msgid "Your physical skills are at their best."
-msgstr "Vos compétences physiques sont au meilleur de leur forme."
 
 #: src/components/skins/ManageSkinsView.tsx
 msgid "Your published skins"

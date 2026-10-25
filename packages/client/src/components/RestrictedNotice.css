@@ -1,6 +1,6 @@
 .restricted__warning {
 	position: absolute;
-	z-index: 9999;
+	z-index: var(--z-restricted);
 	height: 3.5rem;
 	width: 100vw;
 	background: linear-gradient(180deg, rgba(255, 0, 0, 0.753), transparent);

@@ -3,14 +3,18 @@ import { Trans } from '@lingui/react/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { faComment } from '@fortawesome/free-solid-svg-icons/faComment';
+import { faFaceSmile } from '@fortawesome/free-solid-svg-icons/faFaceSmile';
 import { faHeartPulse } from '@fortawesome/free-solid-svg-icons/faHeartPulse';
 import { faImage } from '@fortawesome/free-solid-svg-icons/faImage';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
 import { faMusic } from '@fortawesome/free-solid-svg-icons/faMusic';
+import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
+import { faRankingStar } from '@fortawesome/free-solid-svg-icons/faRankingStar';
 import { faCloudArrowDown } from '@fortawesome/free-solid-svg-icons/faCloudArrowDown';
 import { faMoon } from '@fortawesome/free-solid-svg-icons/faMoon';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons/faPenToSquare';
 import { maxPendingRequests } from '@oss-idle/shared/beatmapRequest';
+import { SUPPORTER_UPLOAD_BONUS } from '@oss-idle/shared/beatmap';
 import {
 	AWAY_HOURS,
 	SUPPORTER_AWAY_HOURS,
@@ -32,6 +36,14 @@ export default function SupporterPerks() {
 				<div className='store__perk-icon'><FontAwesomeIcon icon={faComment} /></div>
 				<h3><Trans>Golden name</Trans></h3>
 				<p><Trans>Your name shows in gold in chat, for everyone to see.</Trans></p>
+			</div>
+			<div className='store__perk'>
+				<div className='store__perk-icon'><FontAwesomeIcon icon={faFaceSmile} /></div>
+				<h3><Trans>Your own emote</Trans></h3>
+				<p><Trans>
+					Add a chat emote of your own from your settings, and share it with everyone if you
+					like.
+				</Trans></p>
 			</div>
 			<div className='store__perk'>
 				<div className='store__perk-icon'><FontAwesomeIcon icon={faHeartPulse} /></div>
@@ -79,6 +91,21 @@ export default function SupporterPerks() {
 				<p><Trans>
 					Propose up to {ph({ supporterMax: maxPendingRequests(true) })} maps for ranking at
 					once, instead of {ph({ max: maxPendingRequests(false) })}.
+				</Trans></p>
+			</div>
+			<div className='store__perk'>
+				<div className='store__perk-icon'><FontAwesomeIcon icon={faUpload} /></div>
+				<h3><Trans>More map uploads</Trans></h3>
+				<p><Trans>
+					Upload {ph({ bonus: SUPPORTER_UPLOAD_BONUS })} more new maps a month from the editor.
+				</Trans></p>
+			</div>
+			<div className='store__perk'>
+				<div className='store__perk-icon'><FontAwesomeIcon icon={faRankingStar} /></div>
+				<h3><Trans>Unranked leaderboards</Trans></h3>
+				<p><Trans>
+					Maps you upload always have a leaderboard, and playing any unranked map opens its
+					leaderboard for everyone.
 				</Trans></p>
 			</div>
 			<div className='store__perk'>
