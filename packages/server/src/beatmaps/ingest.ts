@@ -46,6 +46,7 @@ import {
 	previewPath,
 } from './storage';
 import { creditMapper } from './credit';
+import { bakeCover } from './covers';
 
 /**
  * The single runtime beatmap pipeline - replaces the old client `index-beatmaps`
@@ -367,6 +368,11 @@ export const ingestOsz = async (
 			entry, text, id, osuBeatmapId,
 		});
 	}
+
+	// 2b. Each background's card cover, beside it.
+	await Promise.all([...new Set(bgAssets.values())]
+		.filter((file): file is string => file !== undefined)
+		.map(bakeCover));
 
 	// A player's re-upload is the whole set: difficulties it no longer has go.
 	if (owner) {

@@ -1,6 +1,6 @@
 {
   "name": "@oss-idle/server",
-  "version": "1.2.6.0",
+  "version": "1.2.7.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -29,6 +29,8 @@
     "reingest:beatmaps:prod": "NODE_ENV=production tsx src/db/reingest-beatmaps.ts",
     "credit:mappers": "tsx src/db/credit-mappers.ts",
     "credit:mappers:prod": "NODE_ENV=production tsx src/db/credit-mappers.ts",
+    "bake:covers": "tsx src/db/bake-covers.ts",
+    "bake:covers:prod": "NODE_ENV=production tsx src/db/bake-covers.ts",
     "webhook:preview": "tsx src/db/webhookPreview.ts",
     "news:preview": "tsx src/news/preview.ts",
     "news:preview:prod": "NODE_ENV=production tsx src/news/preview.ts",

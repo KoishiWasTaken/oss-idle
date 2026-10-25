@@ -202,8 +202,13 @@
 	white-space: nowrap;
 }
 .opt-row__dropdown {
-	flex-shrink: 0;
-	width: 220px;
+	flex: 1 1 0;
+}
+.opt-row__dropdown .dropdown__option {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 /* off its default */

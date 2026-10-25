@@ -8,15 +8,24 @@
 	background: rgba(255, 255, 255, 0.068);
 	height: 56px;
 	opacity: 0;
-	transform: translateX(-20px);
 	width: 100%;
 	min-width: 400px;
 
-	transition: all 400ms ease;
+	transition: background 400ms ease;
 }
+/* slides in once its player is known */
 .score_entry__row.loaded {
-	opacity: 1;
-	transform: translateX(0px);
+	animation: score-entry-in 400ms ease both;
+}
+@keyframes score-entry-in {
+	from {
+		opacity: 0;
+		transform: translateX(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
 }
 .score_entry__avatar {
 	position: relative;

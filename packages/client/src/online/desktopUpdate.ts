@@ -13,9 +13,15 @@ import {
  */
 export const updateStatus = new Synced<DesktopUpdateStatus>({ state: 'idle' });
 
+// set while a download re-checks the feed: the banner keeps its progress bar
+let rechecking = false;
+
 // Subscribe before the first check so a fast result can't broadcast before we're
 // listening (the renderer drives the check, so it's always subscribed first).
-desktop()?.update.onStatus(status => void updateStatus.set(status));
+desktop()?.update.onStatus(status => {
+	if (rechecking && (status.state === 'checking' || status.state === 'available')) return;
+	void updateStatus.set(status);
+});
 
 /** Ask the app whether a newer build is available (no-op in the browser).
  *  Returns the resulting status so callers can keep retrying until the feed
@@ -30,15 +36,25 @@ export const checkForDesktopUpdate =
 	};
 
 export const downloadDesktopUpdate = async () => {
+	const app = desktop();
+	if (!app) return;
 	// Flip to the progress bar right away - the first real progress event lags, so
 	// without this the click looks like it did nothing.
 	void updateStatus.set({
 		state: 'downloading', percent: 0,
 	});
+	// the feed may have moved on since it offered the update (a newer build published):
+	// ask again, so the file downloaded and the checksum it is checked against are one build's
+	rechecking = true;
+	const offered = await app.update.check().finally(() => { rechecking = false; });
+	if (offered.state !== 'available') {
+		await updateStatus.set(offered);
+		return;
+	}
 	// installing after a failed download only buries its error under electron-updater's
 	// "No update filepath provided"
-	const status = await desktop()?.update.download();
-	if (status && status.state !== 'error') desktop()?.update.install();
+	const status = await app.update.download();
+	if (status.state !== 'error') app.update.install();
 };
 
 // Check once on launch, independent of the server/client version poll - the app

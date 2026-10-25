@@ -659,6 +659,13 @@
       "when": 1796256000000,
       "tag": "0102_loved_maps",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "5",
+      "when": 1796342400000,
+      "tag": "0103_chart_checksum",
+      "breakpoints": true
     }
   ]
 }

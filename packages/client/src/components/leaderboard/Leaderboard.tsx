@@ -1,6 +1,8 @@
 import './Leaderboard.css';
 import {
 	useEffect,
+	useLayoutEffect,
+	useRef,
 	useState,
 } from 'react';
 import {
@@ -9,6 +11,10 @@ import {
 } from '../../db/schema/score';
 import ScoreEntry from './ScoreEntry';
 import PersonalBest from './PersonalBest';
+import UpdateButton from './UpdateButton';
+import BeatmapAPI from '../../osu/beatmap/beatmap_api';
+import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { music } from '../../audio/MusicPlayer';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { ScoreDTO } from '@oss-idle/shared/score';
@@ -27,6 +33,30 @@ import Dropdown, { DropdownOption } from '../dropdown/Dropdown';
 import { i18n } from '../../i18n';
 import { Trans } from '@lingui/react/macro';
 
+type Row = { score: Score | ScoreDTO, player?: BoardPlayer };
+
+/** ms between two scores of a new board arriving, one after the other */
+const STAGGER = 45;
+const NO_ROWS: Row[] = [];
+
+/** Where each of a list's rows is, by element (the same element is the same score). */
+const tops = (list: HTMLElement | null) =>
+	new Map([...list?.children ?? []].map((el) => [el, (el as HTMLElement).offsetTop]));
+
+/** Local and Global, and the signed-in player's own country. */
+const tabOptions = (country?: string): DropdownOption<ScoreTab>[] => [
+	{
+		value: SCORE_TAB.LOCAL, label: 'Local', 
+	},
+	{
+		value: SCORE_TAB.GLOBAL, label: 'Global', 
+	},
+	...(country ? [{
+		value: SCORE_TAB.COUNTRY, 
+		label: countryName(country, i18n.locale), 
+	}] : []),
+];
+
 /**
  * Score leaderboard for the currently-selected difficulty. The category is
  * switchable between Local (from SQLite), Global, and Country (the signed-in
@@ -37,58 +67,91 @@ export default function Leaderboard() {
 	const [account] = useSynced(Account.character);
 	const [category] = useSynced(SETTINGS.leaderboard);
 	const [scoresV] = useSynced(scoresVersion);
-	const [scores, setScores] = useState<{ score: Score | ScoreDTO, player?: BoardPlayer }[]>([]);
-	const [loading, setLoading] = useState(false);
+	const [library] = useSynced(beatmapsVersion);
+	// The board on screen and which map + tab it is. A re-fetch of the same board keeps
+	// its rows: only the scores that changed come and go, the rest slide to their place.
+	const [board, setBoard] = useState<{ key?: string, scores: Row[] }>({ scores: [] });
+	const listRef = useRef<HTMLOListElement>(null);
+	const before = useRef<Map<Element, number>>(undefined);
 
 	const country = account?.country;
 
 	// The Country tab needs a signed-in country; fall back to Global without it.
 	const invalidCountryTab = category === SCORE_TAB.COUNTRY && !country;
 	const effective = invalidCountryTab ? SCORE_TAB.GLOBAL : category;
+	const key = `${beatmap?.metadata.id}:${effective}:${country}`;
+	const loading = board.key !== key;
+	const scores = loading ? NO_ROWS : board.scores;
+	const show = (rows: Row[]) => {
+		// the same board updated: where its rows are now, for them to glide from
+		if (board.key === key) before.current = tops(listRef.current);
+		setBoard({
+			key, scores: rows,
+		});
+	};
 
-	const options: DropdownOption<ScoreTab>[] = [
-		{
-			value: SCORE_TAB.LOCAL, label: 'Local', 
-		},
-		{
-			value: SCORE_TAB.GLOBAL, label: 'Global', 
-		},
-		...(country ? [{
-			value: SCORE_TAB.COUNTRY, 
-			label: countryName(country, i18n.locale), 
-		}] : []),
-	];
+	// an online board learns whether the stored chart is the server's (osu!'s update button)
+	const outdatedKey = useAsync(async () => {
+		if (!beatmap || effective === SCORE_TAB.LOCAL) return undefined;
+		return await BeatmapAPI.isOutdated(beatmap).catch(() => false) ? key : undefined;
+	}, [key, library]);
 
 	useEffect(() => {
 		if (!beatmap) return;
 
 		const id = beatmap.metadata.id;
 		if (id === undefined) {
-			setScores([]);
+			show([]);
 			return;
 		}
 		let cancelled = false;
-		setLoading(true);
 
 		const fetch = effective === SCORE_TAB.LOCAL
 			? Score.forBeatmap(id).then(local => local.map(score => ({ score })))
 			: getBeatmapScores(id, effective === SCORE_TAB.COUNTRY ? country : undefined);
 
 		fetch
-			.then((s) => !cancelled && setScores(s))
-			.catch(() => !cancelled && setScores([]))
-			.finally(() => !cancelled && setLoading(false));
+			.then((s) => !cancelled && show(s))
+			.catch(() => !cancelled && show([]));
 		return () => {
 			cancelled = true;
 		};
-	}, [beatmap, effective, country, scoresV]);
+	}, [beatmap, effective, country, scoresV, key]);
+
+	// A new board's scores arrive one after the other: each is mounted on its turn, so a
+	// map switch renders and lays out one row at a time instead of the whole board at once.
+	const [arrived, setArrived] = useState(0);
+	const total = useRef(0);
+	total.current = scores.length;
+	useEffect(() => {
+		setArrived(1);
+		const timer = setInterval(() => setArrived((n) => Math.min(n + 1, total.current)), STAGGER);
+		return () => clearInterval(timer);
+	}, [board.key]);
+	const rows = scores.slice(0, arrived);
+
+	// rows that moved (a score came in above them, or left) glide from where they were;
+	// only a board updating in place reads the layout, never a map switch
+	useLayoutEffect(() => {
+		const from = before.current;
+		if (!from) return;
+		before.current = undefined;
+		const now = tops(listRef.current);
+		for (const [el, top] of now) {
+			const was = from.get(el);
+			if (was === undefined || was === top) continue;
+			el.animate([{ translate: `0 ${was - top}px` }, { translate: '0 0' }], {
+				duration: 400, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)',
+			});
+		}
+	}, [rows]);
 
 	return (
 		<aside className="lb">
 			<Dropdown 
 				className="lb__select" 
 				value={SETTINGS.leaderboard} 
-				options={options} 
+				options={tabOptions(country)} 
 			/>
 
 			<div className="lb__body">
@@ -96,8 +159,10 @@ export default function Leaderboard() {
 					<p className="lb__empty">
 						<Trans>Select a difficulty to see its scores.</Trans>
 					</p>
+				) : outdatedKey === key ? (
+					<UpdateButton setId={beatmap.set.metadata.id} />
 				) : loading ? (
-					<p className="lb__empty">
+					<p className="lb__empty is-loading">
 						<Trans>Loading…</Trans>
 					</p>
 				) : scores.length === 0 ? (
@@ -105,8 +170,8 @@ export default function Leaderboard() {
 						<Trans>No scores yet, be the first!</Trans>
 					</p>
 				) : (
-					<ol className="lb__list">
-						{scores.map(({ score, player }, i) => (
+					<ol className="lb__list" ref={listRef}>
+						{rows.map(({ score, player }, i) => (
 							<ScoreEntry
 								key={score.id}
 								score={score}

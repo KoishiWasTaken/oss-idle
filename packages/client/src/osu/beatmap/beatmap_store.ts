@@ -33,6 +33,12 @@ import {
 	removeDiskSet,
 	updateDiskSet,
 } from './diskSets';
+import {
+	forgetThumbnails,
+	setThumbnailKey,
+	thumbnail,
+	type Thumbnail,
+} from './thumbnails';
 
 const DB_NAME = 'beatmaps';
 const DB_VERSION = 3;
@@ -507,6 +513,7 @@ export default class BeatmapStore {
 				}
 			});
 		}
+		await forgetThumbnails(metadata.id);
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
 
 		return {
@@ -517,7 +524,8 @@ export default class BeatmapStore {
 	/** Drop stored versions the live catalog no longer lists (diffs unranked
 	 *  after download), so they disappear like they never existed. Sets absent
 	 *  from the catalog entirely are kept: that's the unranked-set local
-	 *  fallback, not a diff toggle. */
+	 *  fallback, not a diff toggle. A listed version the set lacks shows as not
+	 *  downloaded, and downloading it fetches the set again. */
 	public static async pruneToManifest(manifest: Manifest): Promise<void> {
 		const listed = new Map<number, Set<number>>();
 		const index = (set: { id: number; versions: { id: number }[] } | undefined) =>
@@ -525,66 +533,65 @@ export default class BeatmapStore {
 		index(manifest.intro);
 		manifest.beatmaps.forEach(index);
 
-		const disk = await onDisk();
-		const metas = disk ? await diskAllMeta() : await withStore(await db(), 'meta', 'readonly',
+		const metas = await onDisk() ? await diskAllMeta() : await withStore(await db(), 'meta', 'readonly',
 			(s) => s.getAll(),
 		) as RuntimeMetadata[];
 
 		let changed = false;
 		for (const meta of metas) {
 			const keep = listed.get(meta.id);
-			if (!keep) continue;
-
-			// The catalog lists a version we don't hold (a re-ranked diff whose
-			// chart/audio a past prune removed, or a diff added by re-upload):
-			// downloads early-return on stored sets, so drop the whole set and let
-			// it re-download complete on next selection.
-			const stored = new Set(meta.versions.map(v => v.id));
-			if ([...keep].some(id => !stored.has(id))) {
-				await this.deleteSet(meta.id);
-				continue;
-			}
-
-			if (meta.versions.every(v => keep.has(v.id))) continue;
-
-			const dropped = meta.versions.filter(v => !keep.has(v.id));
-			meta.versions = meta.versions.filter(v => keep.has(v.id));
-			const osu = await this.charts(meta.id);
-			if (osu) {
-				for (const id of Object.keys(osu)) {
-					if (!keep.has(Number(id))) delete osu[Number(id)];
-				}
-			}
-
-			// Audio only the dropped versions used goes too (mobile storage).
-			const texts = Object.values(osu ?? {});
-			const osb = await this.getOsbText(meta.id);
-			if (osb) texts.push(osb);
-			const staleAudio = orphanedAudio(
-				dropped.map(v => normalizeName(v.audio)),
-				new Set(meta.versions.map(v => normalizeName(v.audio))),
-				texts,
-			);
-
-			if (disk) {
-				await updateDiskSet(meta, [
-					...dropped.flatMap(v => (v.file ? [v.file] : [])),
-					...staleAudio,
-				]);
-			} else {
-				const d = await db();
-				await new Promise<void>((resolve, reject) => {
-					const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
-					tx.oncomplete = () => resolve();
-					tx.onerror = () => reject(tx.error);
-					tx.objectStore('meta').put(meta);
-					if (osu) tx.objectStore('charts').put(osu, meta.id);
-					for (const name of staleAudio) tx.objectStore('files').delete(fileKey(meta.id, name));
-				});
-			}
+			if (!keep || meta.versions.every(v => keep.has(v.id))) continue;
+			await this.keepVersions(meta, keep);
 			changed = true;
 		}
 		if (changed) void beatmapsVersion.set(beatmapsVersion.get() + 1);
+	}
+
+	/** Delete one stored difficulty, or its whole set when it is the last one. */
+	public static async deleteVersion(setId: number, beatmapId: number): Promise<void> {
+		const meta = await this.meta(setId);
+		const keep = new Set(meta?.versions.map(v => v.id).filter(id => id !== beatmapId));
+		if (!meta || !keep.size) return this.deleteSet(setId);
+		await this.keepVersions(meta, keep);
+		void beatmapsVersion.set(beatmapsVersion.get() + 1);
+	}
+
+	/** Drop a set's versions not in `keep`, with the audio only they used (mobile storage). */
+	private static async keepVersions(meta: RuntimeMetadata, keep: Set<number>): Promise<void> {
+		const dropped = meta.versions.filter(v => !keep.has(v.id));
+		meta.versions = meta.versions.filter(v => keep.has(v.id));
+		const osu = await this.charts(meta.id);
+		if (osu) {
+			for (const id of Object.keys(osu)) {
+				if (!keep.has(Number(id))) delete osu[Number(id)];
+			}
+		}
+
+		const texts = Object.values(osu ?? {});
+		const osb = await this.getOsbText(meta.id);
+		if (osb) texts.push(osb);
+		const staleAudio = orphanedAudio(
+			dropped.map(v => normalizeName(v.audio)),
+			new Set(meta.versions.map(v => normalizeName(v.audio))),
+			texts,
+		);
+
+		if (await onDisk()) {
+			await updateDiskSet(meta, [
+				...dropped.flatMap(v => (v.file ? [v.file] : [])),
+				...staleAudio,
+			]);
+			return;
+		}
+		const d = await db();
+		await new Promise<void>((resolve, reject) => {
+			const tx = d.transaction(['meta', 'charts', 'files'], 'readwrite');
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+			tx.objectStore('meta').put(meta);
+			if (osu) tx.objectStore('charts').put(osu, meta.id);
+			for (const name of staleAudio) tx.objectStore('files').delete(fileKey(meta.id, name));
+		});
 	}
 
 	public static async has(setId: number): Promise<boolean> {
@@ -609,6 +616,7 @@ export default class BeatmapStore {
 				tx.objectStore('files').clear();
 			});
 		}
+		await forgetThumbnails();
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
 	}
 
@@ -639,6 +647,7 @@ export default class BeatmapStore {
 				};
 			});
 		}
+		await forgetThumbnails(setId);
 		void beatmapsVersion.set(beatmapsVersion.get() + 1);
 	}
 
@@ -786,6 +795,27 @@ export default class BeatmapStore {
 		return bg ? 
 			this.getFileUrl(beatmap.metadata.beatmapSetId, bg) : 
 			Promise.resolve(undefined);
+	}
+
+	/** The beatmap's small cover for cards, baked from its background. */
+	public static getBeatmapThumbnail(beatmap: LightBeatmap): Thumbnail | undefined {
+		const { background, runtime } = beatmap.metadata;
+		if (!background) return undefined;
+		if (!runtime) {
+			const get = async (url: string | undefined) => {
+				const res = await fetch(url!);
+				return res.ok ? res.blob() : undefined;
+			};
+			// the server's cover (`<background file>.cover.jpg`), else the full background baked here
+			return thumbnail(
+				background,
+				async () => get(await beatmap.getBackgroundUri()),
+				async () => get(`${await beatmap.getBackgroundUri()}.cover.jpg`),
+			);
+		}
+		const setId = beatmap.set.metadata.id;
+		const key = setThumbnailKey(setId, normalizeName(background));
+		return thumbnail(key, () => this.file(setId, background));
 	}
 
 }

@@ -24,6 +24,7 @@ export const addonStatusLabel = (
 const TYPE_LABELS = defineMessages({
 	[ADDON_TYPE.gameplay]: 'Gameplay',
 	[ADDON_TYPE.editor]: 'Editor',
+	[ADDON_TYPE.misc]: 'Misc',
 } satisfies Record<AddonType, string>);
 
 /** The localized label of an add-on type. */

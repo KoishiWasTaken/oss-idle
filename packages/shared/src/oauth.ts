@@ -13,13 +13,18 @@ export const parseScopes = (raw: string | undefined): Scope[] | undefined => {
 
 export const MAX_REDIRECTS = 10;
 
+/** Only http(s): a `javascript:` callback would run on the consent page. */
+export const isCallbackUrl = (url: string) =>
+	URL.canParse(url) && ['http:', 'https:'].includes(new URL(url).protocol);
+
 /** `GET /api/v2/characters?ids[]=`: up to 10 character ids, like osu!'s `/users?ids[]=`. */
 export const batchIds = z.array(z.coerce.number().int().positive()).max(10);
 
 /** A developer's OAuth application: its name and the callback URLs it may send users back to. */
 export const oauthClientBody = z.object({
 	name: z.string().trim().min(1).max(100),
-	redirect: z.array(z.url().max(512)).min(1).max(MAX_REDIRECTS),
+	redirect: z.array(z.url().max(512).refine(isCallbackUrl, 'Callback URLs must be http or https'))
+		.min(1).max(MAX_REDIRECTS),
 });
 export type OAuthClientBody = z.infer<typeof oauthClientBody>;
 

@@ -95,12 +95,16 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 			return refused(c, e);
 		}
 	})
-	// the player's own set a file's BeatmapSetID names, and where it stands
+	// the player's own set a file's BeatmapSetID names, and where it stands (a planned
+	// rank's date is secret)
 	.get('/of/:fileSetId', requireAuth, async c => {
 		try {
 			const set = await ownSetOfFile(idParam.parse(c.req.param('fileSetId')), c.get('userId'));
 			return c.json({
-				setId: set.id, status: set.status, reviewNote: set.reviewNote ?? undefined, 
+				setId: set.id,
+				status: set.status,
+				scheduled: !!set.rankedAt && set.rankedAt.getTime() > Date.now(),
+				reviewNote: set.reviewNote ?? undefined,
 			});
 		} catch (e) {
 			return refused(c, e);

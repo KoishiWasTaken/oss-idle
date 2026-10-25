@@ -10,4 +10,8 @@ const compareVersions = (a: string, b: string): number => {
 	return 0;
 };
 
+/** Whether two versions differ only in the build number (`1.2.3.x`). */
+export const sameRelease = (a: string, b: string): boolean =>
+	compareVersions(a.split('.').slice(0, 3).join('.'), b.split('.').slice(0, 3).join('.')) === 0;
+
 export default compareVersions;

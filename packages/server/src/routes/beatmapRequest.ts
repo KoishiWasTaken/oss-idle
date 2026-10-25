@@ -123,6 +123,8 @@ const listRequests = async (viewerId?: number) => {
 
 	return rows.map(row => ({
 		...row,
+		// a planned rank's date is secret until it goes live
+		rankedAt: row.rankedAt && row.rankedAt.getTime() <= Date.now() ? row.rankedAt : undefined,
 		username: row.username ?? 'unknown',
 		support: support.get(row.setId) ?? 0,
 		supported: supported.has(row.setId),

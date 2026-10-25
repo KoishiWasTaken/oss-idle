@@ -90,9 +90,10 @@ export default function AddonDocsGuide() {
 		<ul>
 			<li><strong>Gameplay</strong>, the default: it works around play, song select, the menus.</li>
 			<li><strong>Editor</strong>: it works in the map editor, through the editor API.</li>
+			<li><strong>Misc</strong>: anything else.</li>
 		</ul>
 		<p>
-			An add-on can be both. Tags are your own words on top (up to 8, lowercase), to help players
+			An add-on can have several. Tags are your own words on top (up to 8, lowercase), to help players
 			search.
 		</p>
 

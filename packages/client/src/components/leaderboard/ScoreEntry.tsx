@@ -1,21 +1,23 @@
 import ScoreMods from './ScoreMods';
 import accuracy from '@oss-idle/shared/display/accuracy';
 import './ScoreEntry.css';
-import { useState } from 'react';
+import {
+	memo,
+	useState,
+} from 'react';
 import { Score } from '../../db/schema/score';
 import Character from '../../db/schema/character';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { ScoreDTO } from '@oss-idle/shared/score';
 import { getCharacter } from '../../online/services/characters';
 import { currentSkin } from '../../osu/skin/Skin';
-import { getUser } from '../../online/services/users';
 import { recentTimeAgo } from '@oss-idle/shared/display/ago';
 import Entities from '../../entity/entities';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 import ScoreTooltip from './ScoreTooltip';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import type { BoardPlayer } from '../../online/services/scores';
+import useScorePlayer from './useScorePlayer';
 
 interface Props {
 	score: Score | ScoreDTO,
@@ -39,25 +41,12 @@ function entryAvatar(
 	return userAvatarUrl || GUEST_AVATAR_URL;
 }
 
-export default function ScoreEntry({
+function ScoreEntry({
 	score, previous, rank, player,
 }: Props) {
 	const [skin] = useSynced(currentSkin);
 
-	const fetched = useAsync(async () => {
-		if (player) return undefined;
-		return Character.isLocalId(score.characterId)
-			? await Character.get({ id: score.characterId })
-			: await getCharacter(score.characterId);
-	}, [score, player]);
-	const character = player ?? fetched;
-
-	const user = useAsync(async () => player ? undefined : character && ('userId' in character) ? 
-		getUser(character.userId) 
-		: null,
-	[character]);
-
-	const loaded = !!character && user !== null;
+	const { character, user, loaded } = useScorePlayer(score, player);
 
 	const ago = recentTimeAgo(Date.now() - score.playedAt);
 
@@ -121,3 +110,6 @@ export default function ScoreEntry({
 		</li>
 	);
 }
+
+// a score arriving on the board renders itself, not every score already there
+export default memo(ScoreEntry);

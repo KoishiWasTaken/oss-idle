@@ -42,6 +42,7 @@ import {
 } from '../components/songselect/selection';
 import UserCard from '../components/songselect/UserCard';
 import SongSelectFooter from '../components/songselect/SongSelectFooter';
+import IdleLogo from '../components/IdleLogo';
 import { modSelectOpen } from '../components/mods/modSelectOpen';
 import useKeyboardOwner from '../input/keyboardOwner';
 import CardOverlays from '../components/songselect/CardOverlays';
@@ -342,12 +343,14 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 				);
 			setItems(all);
 			// reconcile downloaded status (drives card styling) against what's actually
-			// stored (see reconcileDownloads)
+			// stored (see reconcileDownloads); a set missing a listed difficulty can be
+			// downloaded again
+			const partial = new Set(all
+				.filter(i => !i.beatmap.metadata.runtime)
+				.map(i => i.set.metadata.id));
 			const stored = new Set(all
-				.filter(i => i.beatmap.metadata.runtime)
-				.map(i => i.set.metadata.id),
-			
-			);
+				.filter(i => i.beatmap.metadata.runtime && !partial.has(i.set.metadata.id))
+				.map(i => i.set.metadata.id));
 			setDownloads((d) => reconcileDownloads(d, stored));
 			return all;
 		} catch (e) {
@@ -665,13 +668,19 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 		setMenuItem(item);
 	}, [scoreView]);
 
-	// delete the menu target's whole set from the local store (mirrors the
-	// Options "delete all" wipe, scoped to one set); the version bump reloads the
-	// carousel without the deleted cards.
+	// delete the menu target's whole set, or only its difficulty, from the local
+	// store; the version bump reloads the carousel without the deleted cards.
 	const deleteSet = useCallback((item: CarouselItem) => {
 		setMenuItem(null);
 		BeatmapStore.deleteSet(item.set.metadata.id)
 			.then(() => Log.popup(t`Beatmap deleted`))
+			.catch((e) => Log.errorPopup(String(e)));
+	}, [t]);
+
+	const deleteDifficulty = useCallback((item: CarouselItem) => {
+		setMenuItem(null);
+		BeatmapStore.deleteVersion(item.set.metadata.id, item.beatmap.metadata.id)
+			.then(() => Log.popup(t`Difficulty deleted`))
 			.catch((e) => Log.errorPopup(String(e)));
 	}, [t]);
 
@@ -798,6 +807,9 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 							online_character={online_character}
 							online_stats={online_stats}
 						/>
+						<div className="game__logo">
+							<IdleLogo size="100%" onClick={() => version && handleCardClick(version, false)} />
+						</div>
 					</div>
 				)}
 
@@ -816,7 +828,8 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 					onCloseMenu={() => setMenuItem(null)}
 					onManagePlaylists={() => { setPlaylistItem(menuItem); setMenuItem(null); }}
 					onClosePlaylists={() => setPlaylistItem(null)}
-					onDelete={() => menuItem && deleteSet(menuItem)}
+					onDeleteSet={() => menuItem && deleteSet(menuItem)}
+					onDeleteDifficulty={() => menuItem && deleteDifficulty(menuItem)}
 					onClearScores={() => menuItem && clearScores(menuItem)}
 				/>
 			</div>

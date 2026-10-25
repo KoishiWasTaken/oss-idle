@@ -1,5 +1,6 @@
 import {
 	boolean,
+	char,
 	decimal,
 	int,
 	json,
@@ -12,6 +13,7 @@ import { db } from '../client';
 import {
 	eq,
 	getTableColumns,
+	sql,
 } from 'drizzle-orm';
 
 export const beatmaps = mysqlTable('beatmap', {
@@ -33,6 +35,11 @@ export const beatmaps = mysqlTable('beatmap', {
 	// Playable length in milliseconds (matches gameplay HitObject times).
 	total_length: int().notNull(),
 	chart: longtext().notNull(),
+	// sha256 of the chart without its BOM: the game's copy is outdated when its own differs
+	checksum: char({ length: 64 }).notNull().generatedAlwaysAs(
+		sql`sha2(trim(leading convert(unhex('EFBBBF') using utf8mb4) from chart), 256)`,
+		{ mode: 'stored' },
+	),
 	plays: int().notNull().default(0),
 	// Rich per-difficulty metadata for the catalog (previously only in the client
 	// manifest). bpm is rounded; objects/rice/ln are note counts; mode is the

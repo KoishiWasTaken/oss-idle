@@ -40,20 +40,30 @@
 /*
  * Each panel rides a circular arc: its `translate` is set per-frame from JS (how
  * far the panel is pushed back toward the right edge based on its distance from
- * the vertical centre); `--pop` is the extra leftward protrusion on hover/select.
+ * the vertical centre); `--pop` is the extra leftward protrusion on hover/select,
+ * the two adding up as in osu!. A hovered or selected panel also pushes the ones
+ * above and below it away by --spread each (the hover is `data-hover`, set from JS).
  * Positive translateX = toward the right edge, negative = out toward the player.
  * The arc is not a custom property: those inherit, and a per-frame change would
  * restyle every element inside every card.
  */
 .bm-card {
-	--pop: 0px;
-	--scale: 1;
+	--spread: 19px;
+	/* how far the card runs past the screen's right edge, so the pops (up to the
+	   active card's plus a hover's) never pull its end into view, as in osu! */
+	--bleed: 200px;
+	--pop-state: 0px;
+	--pop-hover: 0px;
+	--pop: calc(var(--pop-state) + var(--pop-hover));
+	--shift-active: 0px;
+	--shift-hover: 0px;
 	position: relative;
-	width: 77%;
+	width: calc(77% + var(--bleed));
 	height: 100px;
-	/* spacing lives on the card (not a flex gap on the list) so the virtualiser's
-     fixed STRIDE holds no matter how the window is sliced - keep in sync with JS */
-	margin-bottom: 5px;
+	/* the panels overlap like osu!'s, each over the bottom of the one above; on the
+     card (not a flex gap on the list) so the virtualiser's fixed STRIDE holds no
+     matter how the window is sliced - keep in sync with JS */
+	margin-bottom: -8px;
 	border: 0;
 	border-radius: 10px 0 0 10px;
 	overflow: hidden;
@@ -64,18 +74,34 @@
 	display: flex;
 	align-items: stretch;
 	cursor: pointer;
-	transform-origin: right center;
-	transform: translateX(calc(var(--pop) + 40px)) scale(var(--scale));
+	transform: translate(
+		calc(var(--pop) + 40px + var(--bleed)),
+		calc(var(--shift-active) + var(--shift-hover))
+	);
 	transition:
 		transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
 		translate 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
 		box-shadow 0.18s ease,
 		opacity 0.18s ease,
 		filter 0.18s ease;
+	/* its own layer: the arc moves it every scrolled frame, which must not repaint the list */
+	will-change: transform, translate;
 	box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.5);
 }
-.bm-card:hover {
-	--pop: -32px;
+.bm-card[data-hover] {
+	--pop-hover: -82px;
+}
+.bm-card.is-active ~ .bm-card {
+	--shift-active: var(--spread);
+}
+.bm-card:has(~ .bm-card.is-active) {
+	--shift-active: calc(-1 * var(--spread));
+}
+.bm-card[data-hover] ~ .bm-card {
+	--shift-hover: var(--spread);
+}
+.bm-card:has(~ .bm-card[data-hover]) {
+	--shift-hover: calc(-1 * var(--spread));
 }
 
 /* not-yet-downloaded maps are dimmed hard, everything but the download hint:
@@ -86,7 +112,7 @@
 .bm-card.is-remote {
 	--dim: 0.25;
 }
-.bm-card.is-remote:hover,
+.bm-card.is-remote[data-hover],
 .bm-card.is-remote.is-active {
 	--dim: 0.85;
 }
@@ -105,7 +131,7 @@
 /* the other difficulties of the selected set stand out together with it:
    full strength, nudged out, with a pink accent - but less than the active one */
 .bm-card.is-sibling {
-	--pop: -16px;
+	--pop-state: -16px;
 	opacity: 1;
 	filter: none;
 	box-shadow:
@@ -115,17 +141,9 @@
 .bm-card.is-sibling.is-remote {
 	--dim: 0.92;
 }
-.bm-card.is-sibling:hover {
-	--pop: -34px;
-}
-
 .bm-card.is-active {
-	--pop: -36px;
-	--scale: 1.06;
+	--pop-state: -100px;
 	box-shadow: -8px 6px 26px rgba(255, 102, 171, 0.5);
-}
-.bm-card.is-active:hover {
-	--pop: -42px;
 }
 
 .bm-card__progress {
@@ -258,7 +276,7 @@
 .bm-card__xp {
 	position: absolute;
 	top: 7px;
-	right: 49px;
+	right: calc(49px + var(--bleed));
 	transform: translateX(calc(-1 * var(--pop)));
 	z-index: var(--z-card-overlay);
 	display: flex;
@@ -267,6 +285,12 @@
 		transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
 		translate 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
 		opacity 0.18s ease;
+}
+/* while the list scrolls the arc is rewritten every frame: easing each write only
+   restarts a transition per card per frame */
+.carousel.is-scrolling .bm-card,
+.carousel.is-scrolling .bm-card__xp {
+	transition-property: transform, box-shadow, opacity, filter;
 }
 .bm-card__xp-chip {
 	font-size: 0.78rem;
@@ -293,7 +317,7 @@
 /* group header row - reuses .bm-card (so it rides the arc + stride) but reads as
    a solid osu!-style bar: black, accent border, label + count, a collapse caret */
 .bm-group {
-	width: 82%;
+	width: calc(82% + var(--bleed));
 	background: #000000d7;
 	border-radius: 0px;
 	display: flex;
@@ -302,8 +326,8 @@
 	padding: 0 1.2rem;
 	color: #fff;
 }
-.bm-group:hover {
-	--pop: -16px;
+.bm-group[data-hover] {
+	--pop-hover: -16px;
 }
 .bm-group__label {
 	flex: 1;

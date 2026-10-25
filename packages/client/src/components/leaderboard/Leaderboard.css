@@ -20,6 +20,12 @@
 
 	overflow-y: auto;
 	scrollbar-width: none;
+	/* its padding (room for the rows' overflow) reaches over the carousel's side: only
+	   the board's own content takes the mouse, the rest falls through to song select */
+	pointer-events: none;
+}
+.lb__body > * {
+	pointer-events: auto;
 }
 .lb__body::-webkit-scrollbar {
 	display: none;
@@ -32,6 +38,15 @@
 	font-size: 0.9rem;
 	padding: 0 1rem;
 	line-height: 1.5;
+}
+/* only a slow load says so: a quick one goes straight to its scores */
+.lb__empty.is-loading {
+	animation: lb-loading 200ms ease 300ms both;
+}
+@keyframes lb-loading {
+	from {
+		opacity: 0;
+	}
 }
 
 .lb__list {

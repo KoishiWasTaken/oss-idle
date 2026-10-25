@@ -23,9 +23,9 @@ export const AddonKinds = ['inline', 'repo'] as const;
 export const ADDON_KIND = mapped(AddonKinds);
 export type AddonKind = ValueIn<typeof ADDON_KIND>;
 
-/** What an add-on is for: in play (the default), or in the editor (it gets the editor's
- *  API). An add-on has one or both. */
-export const AddonTypes = ['gameplay', 'editor'] as const;
+/** What an add-on is for: in play (the default), in the editor (it gets the editor's
+ *  API), or anything else. An add-on has one or more. */
+export const AddonTypes = ['gameplay', 'editor', 'misc'] as const;
 export const ADDON_TYPE = mapped(AddonTypes);
 export type AddonType = ValueIn<typeof ADDON_TYPE>;
 

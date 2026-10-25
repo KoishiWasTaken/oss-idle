@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-25 15:13\n"
+"PO-Revision-Date: 2026-10-25 20:38\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -578,6 +578,10 @@ msgstr "Map supprimée"
 msgid "Beatmap Options"
 msgstr "Options de la map"
 
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Beatmap updated"
+msgstr ""
+
 #: src/editor/EditorCompose.tsx
 msgid "Beats"
 msgstr "Battements"
@@ -747,6 +751,7 @@ msgstr "Par titre"
 #: src/components/multiplayer/PasswordPrompt.tsx
 #: src/components/page/pageBar.tsx
 #: src/components/songselect/CardContextMenu.tsx
+#: src/components/songselect/CardContextMenu.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
@@ -845,10 +850,6 @@ msgstr "Cliquez sur une médaille pour la voir · cliquez ailleurs pour continue
 #: src/components/options/DeleteAllBeatmaps.tsx
 msgid "Click again to confirm"
 msgstr "Cliquez encore pour confirmer"
-
-#: src/components/songselect/CardContextMenu.tsx
-msgid "Click again to delete"
-msgstr "Cliquez encore pour supprimer"
 
 #: src/components/songselect/UserCard.tsx
 msgid "Click here to login!"
@@ -1094,6 +1095,14 @@ msgstr "Supprimer l'add-on"
 msgid "Delete all beatmaps"
 msgstr "Supprimer toutes les maps"
 
+#: src/components/songselect/CardContextMenu.tsx
+msgid "Delete all difficulties"
+msgstr ""
+
+#: src/components/songselect/CardContextMenu.tsx
+msgid "Delete only {version}"
+msgstr ""
+
 #: src/components/OldHostPrompt.tsx
 msgid "Delete the old data"
 msgstr "Supprimer les anciennes données"
@@ -1133,6 +1142,10 @@ msgstr "Détails"
 #: src/editor/EditorBpmTools.tsx
 msgid "Detect BPM"
 msgstr "Détecter le BPM"
+
+#: src/scenes/SongSelect.tsx
+msgid "Difficulty deleted"
+msgstr ""
 
 #: src/components/mods/ModSelect.tsx
 msgid "Difficulty Increase"
@@ -2651,6 +2664,14 @@ msgstr "Placer une note, ou en retirer une"
 msgid "Placing"
 msgstr "Placement"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Planned, not loved yet"
+msgstr ""
+
+#: src/editor/EditorSubmission.tsx
+msgid "Planned, not ranked yet"
+msgstr ""
+
 #: src/components/character/LineageList.tsx
 #: src/components/community/MusicControls.tsx
 #: src/scenes/MainMenu.tsx
@@ -3882,6 +3903,10 @@ msgstr "Mettre à jour"
 msgid "Update failed ({error}). Please restart the game."
 msgstr "Échec ({error}). Merci de redémarrer le jeu."
 
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Update to latest version"
+msgstr ""
+
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/skins/BrowseSkinsView.tsx
 msgid "Updated"
@@ -3890,6 +3915,10 @@ msgstr "Mis à jour"
 #: src/editor/EditorView.tsx
 msgid "Updated online"
 msgstr "Mise à jour en ligne"
+
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Updating…"
+msgstr ""
 
 #: src/components/skills/SkillEquation.tsx
 msgid "upgrade boost"
@@ -4050,6 +4079,10 @@ msgstr "Bienvenue sur oss!idle"
 #: src/components/Onboarding.tsx
 msgid "Welcome, {username}!"
 msgstr "Bienvenue, {username} !"
+
+#: src/components/songselect/CardContextMenu.tsx
+msgid "What do you want to delete?"
+msgstr ""
 
 #: src/components/songselect/CardContextMenu.tsx
 msgid "What do you want to do with this beatmap?"

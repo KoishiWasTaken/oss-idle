@@ -22,8 +22,9 @@ type Props = {
 };
 
 /** The player's own map's way to rank: submit it (uploaded as it stands first), see it
- *  wait in the queue and withdraw it, or why it was sent back; and a ranked one, its
- *  mapper can unrank. Nothing for a map that isn't theirs online. */
+ *  wait in the queue and withdraw it, or why it was sent back; a ranked one (or one
+ *  planned to rank, out of the game until then), its mapper can unrank. Nothing for
+ *  a map that isn't theirs online. */
 export default function EditorSubmission({ session, upload }: Props) {
 	const { t } = useLingui();
 	const [changes] = useSynced(uploads);
@@ -59,9 +60,17 @@ export default function EditorSubmission({ session, upload }: Props) {
 	if (submission.status === 'ranked' || submission.status === 'loved') {
 		return (
 			<div className='editor__submission'>
-				<span className='editor__hint'>
-					{submission.status === 'loved' ? <Trans>Loved</Trans> : <Trans>Ranked</Trans>}
-				</span>
+				{submission.scheduled ? (
+					<span className='editor__hint editor__scheduled'>
+						{submission.status === 'loved'
+							? <Trans>Planned, not loved yet</Trans>
+							: <Trans>Planned, not ranked yet</Trans>}
+					</span>
+				) : (
+					<span className='editor__hint'>
+						{submission.status === 'loved' ? <Trans>Loved</Trans> : <Trans>Ranked</Trans>}
+					</span>
+				)}
 				<button className='editor__small' onClick={() => setConfirming(true)}><Trans>Unrank</Trans></button>
 				{confirming && (
 					<ConfirmMenu

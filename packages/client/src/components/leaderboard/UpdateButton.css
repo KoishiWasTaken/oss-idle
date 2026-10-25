@@ -1,0 +1,62 @@
+.lb-update {
+	position: relative;
+	display: block;
+	margin: 2.5rem 0 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #fff;
+	font: inherit;
+	cursor: pointer;
+}
+.lb-update:disabled {
+	cursor: default;
+	opacity: 0.6;
+}
+
+.lb-update__face {
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+	padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+	border: 2px solid rgba(255, 255, 255, 0.85);
+	border-radius: 3px;
+	background: rgba(0, 0, 0, 0.75);
+	font-size: 1.75rem;
+	font-weight: 300;
+	white-space: nowrap;
+}
+.lb-update__face svg {
+	width: 1.1em;
+	height: 1.1em;
+	fill: currentColor;
+}
+.lb-update:not(:disabled) > .lb-update__face:first-child {
+	animation: lb-update-face 1s linear infinite;
+}
+
+/* osu!'s pulse: a copy swells off the button and fades, the button fades back in under it */
+.lb-update__ghost {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	animation: lb-update-ghost 1s ease-out infinite;
+}
+@keyframes lb-update-ghost {
+	0%, 5% {
+		scale: 1;
+		opacity: 1;
+	}
+	55%, 100% {
+		scale: 1.5;
+		opacity: 0;
+	}
+}
+@keyframes lb-update-face {
+	5%, 20% {
+		opacity: 0;
+	}
+	35% {
+		opacity: 1;
+	}
+}

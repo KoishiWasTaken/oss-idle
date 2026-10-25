@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
+import { ph } from '@lingui/core/macro';
 import ContextMenu from '../ContextMenu';
 import { type CarouselItem } from '../BeatmapCarousel';
 import { canPlayAt } from '../../gameplay/playRate';
 
-/** The card's osu!-style right-click menu. `deleteArmed` lives here (not in the
- *  parent) so it resets to unarmed every time the menu reopens - the menu only
- *  mounts while a card is targeted.
+/** The card's osu!-style right-click menu. `deleting` lives here (not in the
+ *  parent) so it resets every time the menu reopens - the menu only mounts while
+ *  a card is targeted.
  *
  *  Entries are not numbered: the queue ones come and go with whether the map is
  *  downloaded, so any number baked into a label is wrong half the time - and
@@ -15,7 +16,8 @@ export default function CardContextMenu({
 	item, 
 	onClose, 
 	onManagePlaylists, 
-	onDelete, 
+	onDeleteSet,
+	onDeleteDifficulty,
 	onClearScores, 
 	onQueue,
 	onPlayNext,
@@ -24,15 +26,16 @@ export default function CardContextMenu({
 	item: CarouselItem;
 	onClose: () => void;
 	onManagePlaylists: () => void;
-	onDelete: () => void;
+	onDeleteSet: () => void;
+	onDeleteDifficulty: () => void;
 	onClearScores: () => void;
 	onQueue: () => void;
 	onPlayNext: () => void;
 	onEdit: () => void;
 }) {
 	const { t } = useLingui();
-	// delete needs a second click to confirm (osu!-style)
-	const [deleteArmed, setDeleteArmed] = useState(false);
+	// Delete... asks what to delete, which confirms it
+	const [deleting, setDeleting] = useState(false);
 	// only a playable map can be queued: downloaded, at a rate within reach
 	const queueOptions = item.beatmap.metadata.runtime && canPlayAt(item.beatmap.lockedRate)
 		? [
@@ -55,9 +58,34 @@ export default function CardContextMenu({
 			onClick: onEdit,
 		}]
 		: [];
+	const title = `${item.set.metadata.artist} - ${item.set.metadata.title}`;
+	if (deleting) return (
+		<ContextMenu
+			title={title}
+			sub={t`What do you want to delete?`}
+			onClose={onClose}
+			options={[
+				{
+					label: t`Delete all difficulties`,
+					color: '#e93100',
+					onClick: onDeleteSet,
+				},
+				...(item.beatmap.metadata.runtime && item.set.beatmaps.length > 1 ? [{
+					label: t`Delete only ${ph({ version: item.beatmap.metadata.version })}`,
+					color: '#e93100',
+					onClick: onDeleteDifficulty,
+				}] : []),
+				{
+					label: t`Cancel`,
+					color: '#6b6b6b',
+					onClick: onClose,
+				},
+			]}
+		/>
+	);
 	return (
 		<ContextMenu
-			title={`${item.set.metadata.artist} - ${item.set.metadata.title}`}
+			title={title}
 			sub={t`What do you want to do with this beatmap?`}
 			onClose={onClose}
 			options={[
@@ -68,13 +96,9 @@ export default function CardContextMenu({
 					onClick: onManagePlaylists, 
 				},
 				{ 
-					label: deleteArmed ? 
-						t`Click again to delete` : t`Delete...`, 
+					label: t`Delete...`, 
 					color: '#e93100', 
-					onClick: () => {
-						if (deleteArmed) onDelete();
-						else setDeleteArmed(true);
-					},
+					onClick: () => setDeleting(true),
 				},
 				{ 
 					label: t`Clear local scores`, 

@@ -47,7 +47,13 @@ export const uploadSet = async (beatmap: LightBeatmap): Promise<UploadResult> =>
 export const uploads = new Synced(0);
 
 /** The player's own set online, and where it stands. */
-export type OwnSet = { setId: number, status: BeatmapStatus, reviewNote?: string };
+export type OwnSet = {
+	setId: number,
+	status: BeatmapStatus,
+	/** ranked or loved, but not in the game yet */
+	scheduled: boolean,
+	reviewNote?: string,
+};
 
 /** The player's own set a chart's BeatmapSetID names; undefined when it names none of theirs. */
 export const ownSetOf = async (text: string): Promise<OwnSet | undefined> => {

@@ -15,6 +15,7 @@ import BeatmapStore from '../osu/beatmap/beatmap_store';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import { Score } from '../db/schema/score';
 import { ScoreXP } from '../db/schema/score_xp';
+import { flushBeatmapScores } from './services/scores';
 import { logPlayFinished } from '../logs';
 import Entities from '../entity/entities';
 import Account from './account';
@@ -769,6 +770,8 @@ export default class PlayManager {
 		const beatmap = this.known.get(token) ?? await this.findDownloaded(res.score.beatmapId);
 		if (!beatmap) return;
 
+		// a fresh board for the leaderboard the save refreshes, so the score arrives on it live
+		await flushBeatmapScores(res.score.beatmapId);
 		const score = Score.fromDTO(res.score);
 		const saved = await score.add().catch(() => score);
 		void ScoreXP.record(saved, res.gains);

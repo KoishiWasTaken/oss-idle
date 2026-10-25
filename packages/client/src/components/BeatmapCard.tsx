@@ -7,7 +7,6 @@ import {
 	useRef,
 } from 'react';
 import { Trans } from '@lingui/react/macro';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
 import {
 	difficultyColor,
 	isDarkDifficulty,
@@ -16,7 +15,7 @@ import {
 import { DownloadState } from './BeatmapCarousel';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import useFileUrl from '../osu/beatmap/useFileUrl';
+import useThumbnail from '../osu/beatmap/useThumbnail';
 import {
 	Score,
 	scoresVersion,
@@ -71,12 +70,7 @@ function BeatmapCard({
 	const stars = useStarsOf(beatmap);
 
 	const [showThumbnails] = useSynced(SETTINGS.showThumbnails);
-	const bg = useFileUrl(
-		async () => showThumbnails ? BeatmapStore.getBeatmapBackground(beatmap) : undefined,
-		// by file, not object: every library reload rebuilds the beatmaps, and a new blob
-		// URL for the same image flashes the card
-		[beatmap.set.metadata.id, beatmap.metadata.background, beatmap.metadata.runtime, showThumbnails],
-	);
+	const bg = useThumbnail(beatmap, showThumbnails);
 
 	// Grade is per-character: re-query when the live character changes (e.g. a
 	// disconnect falling back to guest, or reconnecting back to the account) so
@@ -114,13 +108,16 @@ function BeatmapCard({
 		}
 	};
 
-	const selection = useSelection();
-	const selected = selection.use(b => b);
-	const active = beatmap.is(selected);
-	const sibling = !active && set.is(selected?.set);
+	// its role, not the selection itself: a map switch re-renders the cards it changes,
+	// not every mounted one
+	const role = useSelection().use(b => (
+		beatmap.is(b) ? 'active' : set.is(b?.set) ? 'sibling' : 'other'
+	));
+	const active = role === 'active';
+	const sibling = role === 'sibling';
 
 	const dl = downloads[set.metadata.id];
-	const downloaded = dl?.status === 'done';
+	const downloaded = !!beatmap.metadata.runtime || dl?.status === 'done';
 	const downloading = dl?.status === 'downloading';
 	const color = difficultyColor(stars);
 	return (
@@ -159,7 +156,7 @@ function BeatmapCard({
 			{downloading && (
 				<span
 					className="bm-card__progress"
-					style={{ width: `${Math.round((dl?.progress ?? 0) * 100)}%` }}
+					style={{ width: `calc((100% - var(--bleed)) * ${Math.round((dl?.progress ?? 0) * 100) / 100})` }}
 				/>
 			)}
 		</div>

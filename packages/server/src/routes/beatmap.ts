@@ -55,6 +55,7 @@ import {
 	isSetLive,
 	isSetPublic,
 	listCondition,
+	liveCondition,
 	setLiveChanged,
 	listedAt,
 	liveDiffCondition,
@@ -427,6 +428,21 @@ export const beatmapsRoutes = new Hono()
 				...r.beatmap, sr: Number(r.beatmap.sr),
 			})),
 		});
+	})
+
+	// A downloadable difficulty's checksum: the game's copy is outdated when its own differs.
+	.get('/checksum/:id', async c => {
+		const [row] = await db
+			.select({ checksum: beatmaps.checksum })
+			.from(beatmaps)
+			.innerJoin(beatmapset, eq(beatmaps.setId, beatmapset.id))
+			.where(and(
+				eq(beatmaps.id, idParam.parse(c.req.param('id'))),
+				or(liveCondition, playerMapCondition),
+			))
+			.limit(1);
+		if (!row) throw new HTTPException(404, { message: 'Beatmap not found' });
+		return c.json(row);
 	})
 
 	// Single beatmap (difficulty), live-only. Keep last: catch-all `:id`.

@@ -497,6 +497,9 @@
 	padding: 4px 14px;
 	color: #ffd24a;
 }
+.editor__scheduled {
+	color: #ffd24a;
+}
 
 /* ---- command list (Ctrl+K, More) ---- */
 .editor__commands-shade {

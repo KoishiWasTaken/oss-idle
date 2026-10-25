@@ -53,6 +53,7 @@ const TEST_USERS = {
 	carousel: [user(2_147_480_017, 'e2e Quinn')],
 	bugs: [user(2_147_480_018, 'e2e Rita')],
 	downloads: [user(2_147_480_019, 'e2e Sam')],
+	library: [user(2_147_480_020, 'e2e Tara')],
 };
 
 // the dev server's Redis keys (redisKeyPrefix in packages/server/src/env.ts)

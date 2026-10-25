@@ -68,8 +68,9 @@ const schema = z.object({
 	REDIS_DB: z.coerce.number().int().min(0).default(0),
 	
 	MAP_FEED_WEBHOOK: z.string(),
-	/** Self-assigned Discord role pinged with each ranked map. */
+	/** Self-assigned Discord roles pinged with each ranked / loved map. */
 	MAP_FEED_ROLE_ID: z.string().optional(),
+	MAP_FEED_LOVED_ROLE_ID: z.string().optional(),
 	NEWS_FEED_WEBHOOK: z.string(),
 	USER_FEED_WEBHOOK: z.string(),
 	ERROR_FEED_WEBHOOK: z.string(),

@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileLines } from '@fortawesome/free-solid-svg-icons/faFileLines';
 import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import { VERSION } from '@oss-idle/shared/version';
+import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
 import { SETTINGS } from '../db/settings';
 import {
 	isWebOpen,
@@ -18,7 +19,7 @@ const openChangelog = () => {
 };
 
 /** Main menu changelog button, next to the Discord logo. After an update it also
- *  pops "oss!idle updated" once, which opens the changelog. A first run stays quiet. */
+ *  pops "oss!idle updated" once, which opens the changelog. A first run or a build bump stays quiet. */
 export default function Changelog() {
 	const { t } = useLingui();
 
@@ -28,7 +29,7 @@ export default function Changelog() {
 		const timer = window.setTimeout(() => {
 			const last = SETTINGS.lastVersion.get();
 			void SETTINGS.lastVersion.set(VERSION);
-			if (!last) return;
+			if (!last || sameRelease(last, VERSION)) return;
 			Log.popup(
 				t`oss!idle updated to v${VERSION}, see what's new`, POPUP_TYPE.good, false, openChangelog,
 			);

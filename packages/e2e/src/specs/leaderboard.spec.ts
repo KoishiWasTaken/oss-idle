@@ -4,7 +4,10 @@ import {
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import { cleanOsz } from '../support/files';
+import {
+	difficultyOf,
+	upload,
+} from '../support/uploads';
 import {
 	query,
 	testAccounts,
@@ -22,30 +25,6 @@ const supporter = (account: Account, on: boolean) => query(
 	`UPDATE user SET supporter_until = ${on ? 'NOW() + INTERVAL 1 DAY' : 'NULL'} WHERE id = ?`,
 	[account.id],
 );
-
-/** `account`'s map up, or over their set `setId`, which the file names. */
-const upload = async (
-	page: Page,
-	account: Account,
-	title: string,
-	setId?: number,
-): Promise<number> => {
-	const res = await page.request.post('/v1/beatmap/upload', {
-		multipart: {
-			file: {
-				name: 'm.osz', mimeType: 'application/octet-stream',
-				buffer: cleanOsz(title, {
-					count: 8, creator: account.name, setId, 
-				}), 
-			}, 
-		},
-	});
-	expect(res.ok()).toBe(true);
-	return (await res.json()).setId;
-};
-
-const difficultyOf = async (page: Page, setId: number): Promise<number> =>
-	(await (await page.request.get(`/v1/beatmap/set/${setId}`)).json()).diffs[0].id;
 
 const board = async (page: Page, diffId: number): Promise<Board> =>
 	(await page.request.get(`/v1/scores/beatmap/${diffId}`)).json();
@@ -105,7 +84,7 @@ test.describe('unranked leaderboards', () => {
 		expect(scores[0].pp).toBe(0);
 		expect((await game.character()).overallTotalXp).toBe(xp);
 
-		await upload(owner, ivan, title, setId);
+		await upload(owner, ivan, title, { setId });
 		expect(await board(owner, diffId)).toEqual([]);
 	});
 
@@ -122,6 +101,33 @@ test.describe('unranked leaderboards', () => {
 
 		await playThrough(await playerAs(ivan), title, setId, diffId);
 		expect((await board(owner, diffId)).map(s => s.characterId)).toEqual([ivan.characterId]);
+	});
+
+});
+
+/** Song select's board: its scores arrive one after the other, and stay doing so. */
+test.describe('song select board', () => {
+
+	test('a score saved mid-entry leaves the rest arriving in turn', async ({ game, page }) => {
+		await game.start();
+		const { set, version } = await game.installEasiest();
+		await game.playThenLeave(set.title, version.id);
+		await game.search('');
+		const rows = page.locator('.lb__list .score_entry__row');
+		await expect(rows.first()).toBeVisible({ timeout: 30_000 });
+
+		await page.locator('.bm-card.is-active ~ .bm-card[data-id]').nth(1)
+			.click({
+				position: {
+					x: 60, y: 50, 
+				}, 
+			});
+		await expect(rows.first()).toBeVisible();
+		// every board re-fetches on a score write: the scores keep arriving in turn
+		await game.finishPlay();
+		await page.waitForTimeout(100);
+		expect(await rows.count()).toBeLessThan(20);
+		await expect.poll(() => rows.count()).toBeGreaterThanOrEqual(20);
 	});
 
 });

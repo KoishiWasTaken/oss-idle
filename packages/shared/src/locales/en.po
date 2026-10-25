@@ -831,6 +831,10 @@ msgstr "Mid-play stretching + meditation"
 msgid "Million Taps"
 msgstr "Million Taps"
 
+#: src/display/addon.ts
+msgid "Misc"
+msgstr "Misc"
+
 #: src/skills.ts
 msgid "Modded actuation prediction firmware"
 msgstr "Modded actuation prediction firmware"

@@ -466,6 +466,12 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		render: () => <PlayDock />,
 	},
 	{
+		id: 'songselect',
+		label: 'Song select - widescreen shows the logo play button bottom right',
+		setup: () => void SceneManager.current.set(SCENE.SELECT),
+		render: () => <SongSelect />,
+	},
+	{
 		id: 'songselect-queue',
 		label: 'Queue carousel - as it sits over a play, with the dock',
 		// the real composition: the carousel is a page over the gameplay scene,

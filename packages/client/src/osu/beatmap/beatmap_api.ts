@@ -16,6 +16,7 @@ import BeatmapStore, {
 	SetRecord,
 	beatmapsVersion,
 } from './beatmap_store';
+import type LightBeatmap from './LightBeatmap';
 
 /** The live catalog and its metadata types, as returned by the server. */
 export type Manifest = InferResponseType<typeof rpc.v1.beatmap.catalog.$get>;
@@ -78,14 +79,16 @@ export default class BeatmapAPI {
 		return !!manifest?.beatmaps.some(s => s.loved && s.versions.some(v => v.id === beatmapId));
 	}
 
-	/** `bulk`: one of many in a row, which the server sends rate-capped. */
+	/** `bulk`: one of many in a row, which the server sends rate-capped. A set already
+	 *  stored with every listed difficulty is kept, unless `update`. */
 	public static async downloadOsz(
 		metadata: Metadata,
 		onProgress?: (progress: number) => void,
 		bulk = false,
+		update = false,
 	): Promise<SetRecord> {
 		const existing = await BeatmapStore.getSet(metadata.id);
-		if (existing) return existing;
+		if (existing && !update && metadata.versions.every(v => v.id in existing.osu)) return existing;
 
 		const release = await downloadSlot();
 		let buf: Uint8Array;
@@ -107,7 +110,38 @@ export default class BeatmapAPI {
 			unzip(buf, (err, data) => (err ? reject(err) : resolve(data)));
 		});
 
-		return await BeatmapStore.storeOsz(metadata, files);
+		return await BeatmapStore.storeOsz(metadata, files, !!existing);
+	}
+
+	/** A downloadable set: from the ranked catalog, or a player's unranked upload. */
+	public static async setMetadata(id: number): Promise<Metadata | undefined> {
+		const manifest = await this.getManifest();
+		const listed = [manifest.intro, ...manifest.beatmaps].find(s => s?.id === id);
+		if (listed) return listed;
+		const res = await rpc.v1.beatmap.unranked[':setId'].$get({ param: { setId: String(id) } });
+		return res.ok ? await res.json() : undefined;
+	}
+
+	/** Whether the server's chart differs from the stored one. */
+	public static async isOutdated(beatmap: LightBeatmap): Promise<boolean> {
+		const id = beatmap.metadata.id;
+		if (!beatmap.metadata.runtime || id < 0 || !crypto.subtle) return false;
+		const [res, text] = await Promise.all([
+			rpc.v1.beatmap.checksum[':id'].$get({ param: { id: String(id) } }),
+			BeatmapStore.getOsu(beatmap.set.metadata.id, id),
+		]);
+		if (!res.ok || text === undefined) return false;
+		const bytes = new TextEncoder().encode(text.replace(/^\uFEFF/, ''));
+		const digest = await crypto.subtle.digest('SHA-256', bytes);
+		const checksum = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+		return checksum !== (await res.json()).checksum;
+	}
+
+	/** Download a stored set again, as the server has it now. */
+	public static async update(setId: number): Promise<void> {
+		const metadata = await this.setMetadata(setId);
+		if (!metadata) throw new Error(`Set ${setId} is not available`);
+		await this.downloadOsz(metadata, undefined, false, true);
 	}
 
 	/**

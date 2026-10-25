@@ -573,6 +573,10 @@ msgstr "Beatmap deleted"
 msgid "Beatmap Options"
 msgstr "Beatmap Options"
 
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Beatmap updated"
+msgstr "Beatmap updated"
+
 #: src/editor/EditorCompose.tsx
 msgid "Beats"
 msgstr "Beats"
@@ -742,6 +746,7 @@ msgstr "By Title"
 #: src/components/multiplayer/PasswordPrompt.tsx
 #: src/components/page/pageBar.tsx
 #: src/components/songselect/CardContextMenu.tsx
+#: src/components/songselect/CardContextMenu.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
 #: src/scenes/Gameplay.tsx
@@ -840,10 +845,6 @@ msgstr "Click a medal to look at it · click elsewhere to continue"
 #: src/components/options/DeleteAllBeatmaps.tsx
 msgid "Click again to confirm"
 msgstr "Click again to confirm"
-
-#: src/components/songselect/CardContextMenu.tsx
-msgid "Click again to delete"
-msgstr "Click again to delete"
 
 #: src/components/songselect/UserCard.tsx
 msgid "Click here to login!"
@@ -1089,6 +1090,14 @@ msgstr "Delete add-on"
 msgid "Delete all beatmaps"
 msgstr "Delete all beatmaps"
 
+#: src/components/songselect/CardContextMenu.tsx
+msgid "Delete all difficulties"
+msgstr "Delete all difficulties"
+
+#: src/components/songselect/CardContextMenu.tsx
+msgid "Delete only {version}"
+msgstr "Delete only {version}"
+
 #: src/components/OldHostPrompt.tsx
 msgid "Delete the old data"
 msgstr "Delete the old data"
@@ -1128,6 +1137,10 @@ msgstr "Details"
 #: src/editor/EditorBpmTools.tsx
 msgid "Detect BPM"
 msgstr "Detect BPM"
+
+#: src/scenes/SongSelect.tsx
+msgid "Difficulty deleted"
+msgstr "Difficulty deleted"
 
 #: src/components/mods/ModSelect.tsx
 msgid "Difficulty Increase"
@@ -2646,6 +2659,14 @@ msgstr "Place a note, or remove one"
 msgid "Placing"
 msgstr "Placing"
 
+#: src/editor/EditorSubmission.tsx
+msgid "Planned, not loved yet"
+msgstr "Planned, not loved yet"
+
+#: src/editor/EditorSubmission.tsx
+msgid "Planned, not ranked yet"
+msgstr "Planned, not ranked yet"
+
 #: src/components/character/LineageList.tsx
 #: src/components/community/MusicControls.tsx
 #: src/scenes/MainMenu.tsx
@@ -3877,6 +3898,10 @@ msgstr "Update"
 msgid "Update failed ({error}). Please restart the game."
 msgstr "Update failed ({error}). Please restart the game."
 
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Update to latest version"
+msgstr "Update to latest version"
+
 #: src/components/addons/BrowseAddonsView.tsx
 #: src/components/skins/BrowseSkinsView.tsx
 msgid "Updated"
@@ -3885,6 +3910,10 @@ msgstr "Updated"
 #: src/editor/EditorView.tsx
 msgid "Updated online"
 msgstr "Updated online"
+
+#: src/components/leaderboard/UpdateButton.tsx
+msgid "Updating…"
+msgstr "Updating…"
 
 #: src/components/skills/SkillEquation.tsx
 msgid "upgrade boost"
@@ -4045,6 +4074,10 @@ msgstr "Welcome to oss!idle"
 #: src/components/Onboarding.tsx
 msgid "Welcome, {username}!"
 msgstr "Welcome, {username}!"
+
+#: src/components/songselect/CardContextMenu.tsx
+msgid "What do you want to delete?"
+msgstr "What do you want to delete?"
 
 #: src/components/songselect/CardContextMenu.tsx
 msgid "What do you want to do with this beatmap?"

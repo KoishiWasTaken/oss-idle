@@ -10,6 +10,7 @@ import {
 import Game from '../support/game';
 import {
 	cleanOsz,
+	jpeg,
 	silence,
 } from '../support/files';
 import {
@@ -190,9 +191,15 @@ test.describe('upload', () => {
 		expect(refused.status()).toBe(422);
 		expect((await refused.json()).code).toBe('notCreator');
 
-		const res = await send(page, cleanOsz(title, { creator: grace.name }));
+		const res = await send(page, cleanOsz(title, {
+			creator: grace.name, background: jpeg(1600, 900),
+		}));
 		expect(res.ok()).toBe(true);
 		const { setId, updated, ids } = await res.json();
+		// its background's small card cover, baked beside it for song select
+		const cover = await page.request.get(`/v1/beatmap/preview/${setId}/${setId}.jpg.cover.jpg`);
+		expect(cover.ok()).toBe(true);
+		expect(cover.headers()['content-type']).toBe('image/jpeg');
 		expect(updated).toBe(false);
 		expect(ids.setId).toBe(setId);
 		// the stored file carries them too
@@ -282,14 +289,28 @@ test.describe('upload', () => {
 			await expect(page.getByRole('button', { name: 'Submit for rank' })).toBeVisible();
 			expect((await unranked(page, title))[0].status).toBe('unranked');
 
-			// ranked as any other map: in the game's catalog, among the ranked ones
+			// planned: the mapper is told it isn't live yet, never when it will be
 			await page.getByRole('button', { name: 'Submit for rank' }).click();
 			await expect(page.locator('.editor__submission')).toContainText('In the ranking queue');
+			expect((await admin.request.patch(`/v1/beatmap/nomination/${online.id}`, {
+				data: {
+					status: 'ranked', rankedAt: new Date(Date.now() + 86_400_000).toISOString(),
+				},
+			})).ok()).toBe(true);
+			const planned = await (await page.request.get(`/v1/beatmap/upload/of/${online.id}`)).json();
+			expect(planned).toMatchObject({
+				status: 'ranked', scheduled: true,
+			});
+			expect(planned).not.toHaveProperty('rankedAt');
+
+			// ranked as any other map: in the game's catalog, among the ranked ones
 			expect((await admin.request.patch(`/v1/beatmap/nomination/${online.id}`, {
 				data: {
 					status: 'ranked', rankedAt: new Date().toISOString(), 
 				}, 
 			})).ok()).toBe(true);
+			expect((await (await page.request.get(`/v1/beatmap/upload/of/${online.id}`)).json()).scheduled)
+				.toBe(false);
 			const catalog = await (await admin.request.get('/v1/beatmap/catalog')).json();
 			expect(catalog.beatmaps.some((set: { id: number }) => set.id === online.id)).toBe(true);
 			const ranked = await (await admin.request.get(

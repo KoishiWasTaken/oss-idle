@@ -77,19 +77,60 @@ interface Props {
 	scrubArea?: RefObject<HTMLElement | null>
 }
 
+type Row = { el: HTMLElement, rect: DOMRect };
+
+/** the nearer of the rows around a gap (rows run top to bottom), level with either */
+const gapRow = (rows: Row[], x: number, y: number) => {
+	const above = rows.findLast(({ rect }) => rect.bottom <= y);
+	const below = rows.find(({ rect }) => rect.top >= y);
+	if (!above || !below || x < Math.min(above.rect.left, below.rect.left)) return undefined;
+	return y - above.rect.bottom <= below.rect.top - y ? above.el : below.el;
+};
+
 /**
- * a right press there scrubs: level with the carousel, the carousel shown, and
- * not on a leaderboard score
+ * the row (card or group header) at a point, or the nearer of the two around the
+ * gap it is in (a hovered or selected row spreads its neighbours apart): the gaps
+ * between rows belong to them
  */
-const scrubsAt = (
-	scroller: HTMLElement,
-	{ clientY, target }: { clientY: number, target: EventTarget | null },
+const rowAt = (
+	scroller: HTMLElement, x: number, y: number, target: EventTarget | null,
 ) => {
+	const hit = (target as HTMLElement | null)?.closest?.('.bm-card');
+	if (hit instanceof HTMLElement) return hit;
+	const rows = [...scroller.querySelectorAll<HTMLElement>('.bm-card')]
+		.map((el) => ({
+			el, rect: el.getBoundingClientRect(), 
+		}));
+	// level with a row but off it: beside the rows, not in a gap
+	const level = rows.find(({ rect }) => rect.top < y && y < rect.bottom);
+	if (level) return x >= level.rect.left ? level.el : undefined;
+	return gapRow(rows, x, y);
+};
+
+/** the right edge of the leaderboard's column: its panel, or its scores where they run past it */
+const leaderboardRight = () => Math.max(
+	document.querySelector('.lb')?.getBoundingClientRect().right ?? 0,
+	document.querySelector('.score_entry__row')?.getBoundingClientRect().right ?? 0,
+);
+
+type Press = { clientX: number, clientY: number, target: EventTarget | null };
+
+/**
+ * the carousel's side of song select: level with it and right of the leaderboard's
+ * column, the carousel shown, and off the leaderboard
+ */
+const carouselSide = (scroller: HTMLElement, press: Press) => {
 	const { top, bottom } = scroller.getBoundingClientRect();
-	return clientY >= top && clientY <= bottom
-		&& !(target as HTMLElement | null)?.closest?.('.score_entry__row')
+	return press.clientY >= top && press.clientY <= bottom
+		&& !(press.target as HTMLElement | null)
+			?.closest?.('.lb__select, .lb__list, .lb__empty, .lb__pb')
+		&& press.clientX > leaderboardRight()
 		&& getComputedStyle(scroller).pointerEvents !== 'none';
 };
+
+/** a right press there scrubs: the carousel's side, off its rows */
+const scrubsAt = (scroller: HTMLElement, press: Press) =>
+	carouselSide(scroller, press) && !rowAt(scroller, press.clientX, press.clientY, press.target);
 
 /**
  * A collapsible group header row.
@@ -123,10 +164,12 @@ const CIRCLE_RADIUS = 3;
  * Extra cards mounted above/below the viewport so a fast flick never blanks.
 */
 const OVERSCAN = 5;
-/** Card box height + bottom margin - must match the CSS (.bm-card). */
+/** Card box height + bottom margin (negative: they overlap) - must match the CSS (.bm-card). */
 const CARD_HEIGHT = 100;
-const CARD_MARGIN = 5;
+const CARD_MARGIN = -8;
 const STRIDE = CARD_HEIGHT + CARD_MARGIN;
+/** How far a hovered or selected card pushes each neighbour away - the CSS's --spread. */
+const SPREAD = 19;
 
 /** A mounted card as the arc moves it: its XP section, its centre, its last offset. */
 type Range = { start: number, end: number };
@@ -236,6 +279,12 @@ export default function BeatmapCarousel({
 	// the mounted cards as the arc draws them, found again only when they change: a
 	// query, a read-back and new strings per card per frame were the song select's stutter
 	const cardsRef = useRef<ArcCard[] | undefined>(undefined);
+	// the row the mouse is on, gaps included (data-hover), and where the mouse is
+	const hoverRef = useRef<HTMLElement | undefined>(undefined);
+	const pointerRef = useRef({
+		x: 0, y: 0, over: false, 
+	});
+	const settleRef = useRef(0);
 	const geometry = useCallback((scroller: HTMLElement) => geometryRef.current ??= {
 		padTop: padTop(), height: scroller.clientHeight,
 	}, [padTop]);
@@ -274,10 +323,18 @@ export default function BeatmapCarousel({
 		const halfHeight = height / 2;
 		if (halfHeight <= 0) return;
 		const cards = cardsRef.current ??= arcCards(scroller, rowsRef.current, shownRef.current, top);
+		let active = -1;
+		let hover = -1;
+		for (let i = 0; i < cards.length; i++) {
+			if (cards[i].el.classList.contains('is-active')) active = i;
+			if (cards[i].el === hoverRef.current) hover = i;
+		}
 		for (let i = 0; i < cards.length; i++) {
 			const card = cards[i];
-			// panel centre relative to the top of the viewport
-			const drawY = card.centre - scrollTop;
+			// panel centre relative to the top of the viewport, spread included
+			const drawY = card.centre - scrollTop
+				+ (active < 0 ? 0 : Math.sign(i - active) * SPREAD)
+				+ (hover < 0 ? 0 : Math.sign(i - hover) * SPREAD);
 			// 0 at centre, 1 at the top/bottom edges (clamped beyond)
 			const dist = Math.abs(1 - drawY / halfHeight);
 			// half pixels: finer moves nothing on screen, and each write restyles the card
@@ -397,12 +454,15 @@ export default function BeatmapCarousel({
 		animateTo(cardCentre - scroller.clientHeight / 2);
 	}, [animateTo, padTop, selection]);
 
-	// Take over the mouse wheel so scrolling is always smooth, never harsh.
+	// Take over the mouse wheel so scrolling is always smooth, never harsh - over the
+	// carousel and anywhere on its side of song select, the leaderboard keeping its own.
 	useEffect(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
+		const area = scrubArea?.current ?? scroller;
 		const onWheel = (e: WheelEvent) => {
 			if (e.ctrlKey) return; // let pinch-zoom through
+			if (!scroller.contains(e.target as Node) && !carouselSide(scroller, e)) return;
 			e.preventDefault();
 			// normalise line/page deltas to pixels
 			const unit =
@@ -410,18 +470,18 @@ export default function BeatmapCarousel({
 			const base = targetRef.current ?? posRef.current;
 			animateTo(base + e.deltaY * unit);
 		};
-		scroller.addEventListener('wheel', onWheel, { passive: false });
-		return () => scroller.removeEventListener('wheel', onWheel);
-	}, [animateTo]);
+		area.addEventListener('wheel', onWheel, { passive: false });
+		return () => area.removeEventListener('wheel', onWheel);
+	}, [animateTo, scrubArea]);
 
-	// The right mouse button does two osu!-stable gestures: *dragging* scrubs the
-	// whole list (the cursor's vertical position maps to an absolute scroll
-	// fraction), while a *click* - press and release without moving - over a card
-	// opens its contextual menu. The press is held back until it travels past a
-	// small threshold (commit to scrubbing), so neither gesture disturbs the
-	// other; the click path is the app-wide RightClick gesture below, which
-	// cancels itself on the same kind of movement. The browser context menu is
-	// suppressed globally (Controls), not here.
+	// The right mouse button does two osu!-stable gestures: *dragging* off the
+	// rows scrubs the whole list (the cursor's vertical position maps to an
+	// absolute scroll fraction), while a *click* - press and release without
+	// moving - over a card opens its contextual menu. The press is held back
+	// until it travels past a small threshold (commit to scrubbing), so neither
+	// gesture disturbs the other; the click path is the app-wide RightClick
+	// gesture below, which cancels itself on the same kind of movement. The
+	// browser context menu is suppressed globally (Controls), not here.
 	useEffect(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
@@ -459,15 +519,14 @@ export default function BeatmapCarousel({
 	}, [scrubTo, scrubArea]);
 
 	// the right-click commit (mouse right button, or touch long-press): over a
-	// card opens its contextual menu, off any card jumps the scroll there
+	// card opens its contextual menu, off the rows jumps the scroll there
 	useEffect(() => {
 		const scroller = scrollRef.current;
 		if (!scroller) return;
 		return RightClick.on(scrubArea?.current ?? scroller, (e) => {
-			const card = (e.target as HTMLElement | null)
-				?.closest?.('.bm-card[data-id]') as HTMLElement | null;
+			const card = rowAt(scroller, e.clientX, e.clientY, e.target);
 
-			if (card) {
+			if (card?.dataset.id) {
 				const id = Number(card.dataset.id);
 				const rate = card.dataset.rate ? Number(card.dataset.rate) : undefined;
 				const row = rowsRef.current.find((r) => r.type === 'card'
@@ -480,6 +539,55 @@ export default function BeatmapCarousel({
 		});
 	}, [scrubTo, onCardRightClick, scrubArea]);
 
+	const setHover = useCallback((row: HTMLElement | undefined) => {
+		if (row === hoverRef.current) return;
+		hoverRef.current?.removeAttribute('data-hover');
+		row?.setAttribute('data-hover', '');
+		hoverRef.current = row;
+		updateCurve();
+	}, [updateCurve]);
+
+	// osu!'s hover belongs to the panel and to the gaps its spread opens, so a panel
+	// never flickers in and out of hover at its edges. Mouse only. A scroll moves the
+	// rows under a still cursor: the hover is found again once it settles, as a hit
+	// test every frame would force a layout every frame.
+	const syncHover = useCallback(() => {
+		const scroller = scrollRef.current;
+		const { x, y, over } = pointerRef.current;
+		if (!scroller || !over) return;
+		setHover(rowAt(scroller, x, y, document.elementFromPoint(x, y)));
+	}, [setHover]);
+	useEffect(() => {
+		const scroller = scrollRef.current;
+		if (!scroller) return;
+		const pointer = pointerRef.current;
+		const onMove = (e: PointerEvent) => {
+			if (e.pointerType !== 'mouse') return;
+			pointer.x = e.clientX;
+			pointer.y = e.clientY;
+			pointer.over = true;
+			setHover(rowAt(scroller, e.clientX, e.clientY, e.target));
+		};
+		const onLeave = () => {
+			pointer.over = false;
+			setHover(undefined);
+		};
+		// a click in a hovered row's gap is the row's
+		const onClick = (e: MouseEvent) => {
+			if ((e.target as HTMLElement).closest('.bm-card')) return;
+			hoverRef.current?.click();
+		};
+		scroller.addEventListener('pointermove', onMove);
+		scroller.addEventListener('pointerleave', onLeave);
+		scroller.addEventListener('click', onClick);
+		return () => {
+			clearTimeout(settleRef.current);
+			scroller.removeEventListener('pointermove', onMove);
+			scroller.removeEventListener('pointerleave', onLeave);
+			scroller.removeEventListener('click', onClick);
+		};
+	}, [setHover]);
+
 	// The single scroll handler: fires for native scrolls (scrollbar, touch, keys)
 	// AND for the animation's programmatic scrollTop writes. rAF-throttled; updates
 	// the mounted window and the arc together. The *only* path that setStates the
@@ -487,13 +595,19 @@ export default function BeatmapCarousel({
 	const onScroll = useCallback(() => {
 		// the browser's own position (it clamps); read here, before any frame restyles
 		posRef.current = scrollRef.current?.scrollTop ?? 0;
+		scrollRef.current?.classList.add('is-scrolling');
+		clearTimeout(settleRef.current);
+		settleRef.current = window.setTimeout(() => {
+			scrollRef.current?.classList.remove('is-scrolling');
+			syncHover();
+		}, 80);
 		if (rafRef.current) return;
 		rafRef.current = requestAnimationFrame(() => {
 			rafRef.current = 0;
 			syncWindow();
 			updateCurve();
 		});
-	}, [syncWindow, updateCurve]);
+	}, [syncWindow, updateCurve, syncHover]);
 
 	// Re-bow the newly-mounted cards the instant the window changes (before paint),
 	// so cards scrolling into view never flash un-curved. Arc only, never setState.
@@ -549,6 +663,8 @@ export default function BeatmapCarousel({
 	);
 
 	selection.use(beatmap => {
+		// the active card spreads its neighbours: re-bow once the cards show it
+		requestAnimationFrame(() => updateCurve());
 		if (!beatmap) return;
 		centerOnActive();
 	});

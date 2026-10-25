@@ -14,7 +14,8 @@ type Props = {
 	onCloseMenu: () => void;
 	onManagePlaylists: () => void;
 	onClosePlaylists: () => void;
-	onDelete: () => void;
+	onDeleteSet: () => void;
+	onDeleteDifficulty: () => void;
 	onClearScores: () => void;
 };
 
@@ -27,7 +28,8 @@ export default function CardOverlays({
 	onCloseMenu,
 	onManagePlaylists,
 	onClosePlaylists,
-	onDelete,
+	onDeleteSet,
+	onDeleteDifficulty,
 	onClearScores,
 }: Props) {
 	return (<>
@@ -45,7 +47,8 @@ export default function CardOverlays({
 				}}
 				onEdit={() => SceneManager.set(SCENE.EDITOR, menuItem.beatmap)}
 				onManagePlaylists={onManagePlaylists}
-				onDelete={onDelete}
+				onDeleteSet={onDeleteSet}
+				onDeleteDifficulty={onDeleteDifficulty}
 				onClearScores={onClearScores}
 			/>
 		)}

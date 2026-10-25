@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm';
 import {
 	authorizeBody,
+	isCallbackUrl,
 	oauthClientBody,
 	oauthClientUpdateBody,
 	parseScopes,
@@ -78,7 +79,7 @@ const checkRequest = async (query: AuthorizationRequest) => {
 	if (!found) throw new HTTPException(400, { message: 'Unknown application' });
 	const redirects = redirectsOf(found.client);
 	const redirectUri = query.redirect_uri ?? redirects[0];
-	if (!redirects.includes(redirectUri)) {
+	if (!redirects.includes(redirectUri) || !isCallbackUrl(redirectUri)) {
 		throw new HTTPException(400, { message: 'The redirect_uri is not one of the application\'s callback URLs' });
 	}
 	const asked = parseScopes(query.scope);

@@ -8,7 +8,7 @@ import { logoPulse } from './logoPulse';
 import './IdleLogo.css';
 
 interface Props {
-	size?: number
+	size?: number | string
 	onClick?: () => void
 }
 

@@ -9,6 +9,8 @@
 	backdrop-filter: blur(3px);
 	animation: ctxmenu-in 0.16s ease both;
 	padding: 20px;
+	/* hosts like the community overlay pass clicks through */
+	pointer-events: auto;
 }
 /* portaled out of the dock, which also shows over the page overlay */
 body > .ctxmenu {

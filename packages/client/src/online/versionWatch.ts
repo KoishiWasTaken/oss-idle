@@ -1,6 +1,7 @@
 import { VERSION } from '@oss-idle/shared/version';
 import { desktop } from '@oss-idle/shared/desktop';
 import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
 import { t } from '@lingui/core/macro';
 import Socket from './socket';
 import { checkForDesktopUpdate } from './desktopUpdate';
@@ -10,17 +11,20 @@ import { checkForDesktopUpdate } from './desktopUpdate';
 // desktop installer is already published - so a reconnect carrying a newer
 // version means the update is ready to grab: web refreshes, desktop pulls it.
 // Synced dedupes on the string, so repeated reconnects don't re-announce.
+// A build bump (1.2.3.x) gets no popup.
 
 const announce = async (version: string) => {
 	if (version === VERSION) return;
+	const quiet = sameRelease(version, VERSION);
 	if (!desktop()) {
+		if (quiet) return;
 		Log.popup(
 			t`Version ${version} is available ! Refresh the page to update.`,
 			POPUP_TYPE.neutral, true);
 		return;
 	}
 	const status = await checkForDesktopUpdate();
-	if (status && status.state !== 'none' && status.state !== 'checking') {
+	if (!quiet && status && status.state !== 'none' && status.state !== 'checking') {
 		Log.popup(
 			t`Version ${version} is available ! Update in the main menu.`,
 			POPUP_TYPE.neutral, true);

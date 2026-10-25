@@ -1,7 +1,14 @@
+import { execFileSync } from 'node:child_process';
 import {
 	strToU8,
 	zipSync,
 } from 'fflate';
+
+/** A plain pink JPEG, as a map's background. */
+export const jpeg = (width: number, height: number): Buffer => execFileSync('ffmpeg', [
+	'-v', 'error', '-f', 'lavfi', '-i', `color=c=0xff66ab:s=${width}x${height}`,
+	'-frames:v', '1', '-f', 'mjpeg', 'pipe:1',
+]);
 
 /** A silent mono WAV, as a song to map on. */
 export const silence = (seconds: number): Buffer => {
@@ -51,8 +58,8 @@ export const clicks = (bpm: number, first: number, seconds: number): Buffer => {
 export const cleanOsz = (
 	title: string,
 	{
-		count = 80, creator = 'e2e', setId = -1,
-	}: { count?: number, creator?: string, setId?: number } = {},
+		count = 80, creator = 'e2e', setId = -1, background,
+	}: { count?: number, creator?: string, setId?: number, background?: Buffer } = {},
 ): Buffer => {
 	const notes = Array.from({ length: count }, (_, i) =>
 		`${64 + (i % 4) * 128},192,${i * 500},1,0,0:0:0:0:`);
@@ -64,5 +71,6 @@ export const cleanOsz = (
 			'[Difficulty]', 'CircleSize:4', '', '[Events]', '0,0,"bg.jpg",0,0', '',
 			'[TimingPoints]', '0,500,4,2,0,100,1,0', '', '[HitObjects]', ...notes, '',
 		].join('\r\n')),
+		...background && { 'bg.jpg': new Uint8Array(background) },
 	}));
 };

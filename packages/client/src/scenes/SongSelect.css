@@ -980,3 +980,19 @@
 		display: none;
 	}
 }
+
+/* osu!'s widescreen play button: the logo hanging off the bottom-right corner */
+.game__logo {
+	display: none;
+	position: absolute;
+	right: -2.7vh;
+	bottom: -4.5vh;
+	width: 22vh;
+	height: 22vh;
+}
+
+@media (min-aspect-ratio: 16/10) and (min-height: 501px) {
+	.game__logo {
+		display: block;
+	}
+}

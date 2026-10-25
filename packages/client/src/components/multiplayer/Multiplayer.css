@@ -449,6 +449,8 @@
 /* the match's map: song select's card, standing still */
 .mp .mp-map .bm-card,
 .mp .mp-map .bm-card:is(.is-active, .is-sibling, :hover) {
+	--pop: 0px;
+	--bleed: 0px;
 	width: 100%;
 	height: calc(var(--mp-u) * 9.3);
 	margin: 0;
