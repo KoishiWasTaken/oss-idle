@@ -36,6 +36,7 @@ import LinkDiscord from '../components/options/LinkDiscord';
 import ManageAddons from '../components/options/ManageAddons';
 import ManageSkins from '../components/options/ManageSkins';
 import MasterVolume from '../components/options/MasterVolume';
+import MentionPings from '../components/options/MentionPings';
 import MoveInstall from '../components/options/MoveInstall';
 import MusicVolume from '../components/options/MusicVolume';
 import OpenLibraryFolders from '../components/options/OpenLibraryFolders';
@@ -124,6 +125,10 @@ export default function Options() {
 						{
 							search: t`chat|message|private|pm|friends`,
 							component: () => PmFromAnyone,
+						},
+						{
+							search: t`chat|mention|ping|notification|sound|@`,
+							component: () => MentionPings,
 						},
 					],
 				},
