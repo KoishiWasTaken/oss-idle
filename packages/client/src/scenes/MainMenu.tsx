@@ -16,12 +16,14 @@ import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
+import sleep from '@oss-idle/shared/helpers/sleep';
 import { useParallax } from '@oss-idle/shared/hooks/useParallax';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { DISCORD_URL } from '@oss-idle/shared/links';
 import normalize from '@oss-idle/shared/math/normalize';
 import { VERSION } from '@oss-idle/shared/version';
 
+import { effects } from '../audio/EffectPlayer';
 import {
 	music,
 	PLAYER_MODE,
@@ -39,6 +41,7 @@ import { SETTINGS } from '../db/settings';
 import Entities from '../entity/entities';
 import {
 	isOptionsOpen,
+	isWebOpen,
 	menuIdle,
 } from '../globals';
 import Controls from '../input/Controls';
@@ -57,6 +60,17 @@ import Device from '../responsive/Device';
 import Background from './Background';
 import SceneManager, { SCENE } from './SceneManager';
 import useAwayHours from './useAwayHours';
+
+const EXIT_FADE_MS = 2000;
+/** the window stays up this long after the seeya ends */
+const SEEYA_TAIL_MS = 600;
+
+const menuClass = (flash: boolean, menu: Menu, exiting: boolean) => [
+	'menu',
+	flash ? 'menu--flash' : '',
+	menu === MENU.CLOSED ? '' : 'menu--open',
+	exiting ? 'menu--exiting' : '',
+].join(' ');
 
 interface Props {
 	/** play the white-flash "drop" entrance (true when arriving from the intro) */
@@ -184,12 +198,34 @@ export default function MainMenu({ flash = false }: Props) {
 
 	// Exit only works in the desktop app; the browser forbids closing its own tab.
 	const isDesktop = !!desktop();
-	const exit = () => desktop()?.quit();
+	const [exiting, setExiting] = useState(false);
+	const exit = async () => {
+		if (exiting) return;
+		setExiting(true);
+		setExitConfirm(false);
+		setMenu(MENU.CLOSED);
+		music.fadeOut(EXIT_FADE_MS);
+		const seeya = skin.data.menu.seeya;
+		const voice = seeya ? await effects.load(seeya, seeya) : undefined;
+		if (seeya && voice) effects.play(seeya);
+		document.documentElement.classList.add('exiting');
+		await Promise.all([
+			sleep(EXIT_FADE_MS),
+			voice ? sleep(voice.duration * 1000 + SEEYA_TAIL_MS) : undefined,
+		]);
+		desktop()?.quit();
+	};
+	const [webOpen] = useSynced(isWebOpen);
+	const [optionsOpen] = useSynced(isOptionsOpen);
 
 	const back = useCallback(() => {
+		if (exiting) return;
 		switch(menu) {
 			case MENU.CLOSED:
-				// TODO: exit
+				// back again confirms the exit
+				if (!isDesktop || webOpen || optionsOpen) break;
+				if (exitConfirm) void exit();
+				else setExitConfirm(true);
 				break;
 			case MENU.OPEN:
 				setMenu(MENU.CLOSED);
@@ -199,7 +235,7 @@ export default function MainMenu({ flash = false }: Props) {
 				setMenu(MENU.OPEN);
 				break;
 		}
-	}, [menu]);
+	}, [menu, webOpen, optionsOpen, exitConfirm, exiting]);
 
 	Controls.back.usePress(back);
 
@@ -314,7 +350,7 @@ export default function MainMenu({ flash = false }: Props) {
 
 	return (
 		<div
-			className={`menu ${flash ? 'menu--flash' : ''} ${menu === MENU.CLOSED ? '' : 'menu--open'}`}
+			className={menuClass(flash, menu, exiting)}
 			data-fresh={!opened}
 			data-idle={idle}
 		>
@@ -414,7 +450,7 @@ export default function MainMenu({ flash = false }: Props) {
 					onClose={() => setExitConfirm(false)}
 					options={[
 						{
-							label: t`Exit`, color: '#e93100', onClick: exit, 
+							label: t`Exit`, color: '#e93100', onClick: () => void exit(), 
 						},
 						{
 							label: t`Cancel`, color: '#6b6b6b', onClick: () => setExitConfirm(false), 
