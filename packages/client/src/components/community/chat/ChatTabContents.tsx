@@ -1,4 +1,7 @@
-import { ph } from '@lingui/core/macro';
+import {
+	ph,
+	t,
+} from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import {
 	type RefObject,
@@ -7,7 +10,10 @@ import {
 	useState,
 } from 'react';
 
-import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
+import {
+	ANNOUNCE_CHANNEL,
+	type ReplyQuote,
+} from '@oss-idle/shared/community/wire';
 import clock from '@oss-idle/shared/display/clock';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 
@@ -36,12 +42,15 @@ import {
 	mentionsMe,
 } from './mentions';
 import MentionSuggestions from './MentionSuggestions';
+import ReplyBar from './ReplyBar';
+import ReplyRef from './ReplyRef';
 import {
 	chatTabs,
 	pmContact,
 } from './state';
 import useEmojiSuggest from './useEmojiSuggest';
 import useNameComplete from './useNameComplete';
+import useReply from './useReply';
 
 /** A line as the log renders it; no `name` = a system line, coloured whole. */
 type LogLine = {
@@ -51,8 +60,10 @@ type LogLine = {
 	color?: string,
 	name?: string,
 	fromId?: number,
+	fromColor?: string,
 	link?: { label: string, path: string },
 	sender?: MenuTarget,
+	replyTo?: ReplyQuote,
 };
 
 export default function ChatTabContents({ channel, inputRef } : {
@@ -82,8 +93,9 @@ export default function ChatTabContents({ channel, inputRef } : {
 				id: l.id, at: l.at, text: '<block>',
 			};
 			return {
-				id: l.id, at: l.at, text: l.text, name: l.from.name, fromId: l.from.userId,
+				id: l.id, at: l.at, text: l.text, name: l.from.name, fromId: l.from.userId, fromColor: l.from.color,
 				color: mentionsMe(l.text) && l.from.userId !== me ? MENTION_COLOR : l.from.color,
+				replyTo: l.replyTo,
 				sender: {
 					...l.from, line: l,
 				},
@@ -91,6 +103,7 @@ export default function ChatTabContents({ channel, inputRef } : {
 		})
 		: (pms.get(contact) ?? []);
 	const names = useNameComplete(draft, setDraft, inputRef, shown);
+	const reply = useReply(shown, logRef, inputRef);
 
 	useEffect(() => {
 		const el = logRef.current;
@@ -111,15 +124,17 @@ export default function ChatTabContents({ channel, inputRef } : {
 
 	// emoji first (their list takes Tab while it's open), then player names: the @ list or Tab's cycle
 	const complete = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (!emoji.onKeyDown(e)) names.onKeyDown(e);
+		if (!emoji.onKeyDown(e) && !names.onKeyDown(e)) reply.onKeyDown(e);
 	};
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
 		const text = draft.trim();
 		if (!text || !chatTabs.get()?.includes(channel)) return;
-		if (contact === undefined) Socket.sendChat(handleCommand(text), channel);
-		else sendPm(contact, handleCommand(text));
+		if (contact === undefined) {
+			const out = reply.send(handleCommand(text));
+			Socket.sendChat(out.text, channel, out.replyTo);
+		} else sendPm(contact, handleCommand(text));
 		setDraft('');
 	};
 
@@ -138,7 +153,8 @@ export default function ChatTabContents({ channel, inputRef } : {
 
 				const { sender } = line;
 				return (
-					<div key={line.id} className="chat__line">
+					<div key={line.id} className="chat__line" data-line={line.id}>
+						<ReplyRef to={line.replyTo} reply={reply} />
 						<span className="chat__from" style={{ color: line.color }}>
 							{`${time} `}
 							<span
@@ -150,6 +166,12 @@ export default function ChatTabContents({ channel, inputRef } : {
 							>{line.name}</span>:
 						</span>
 						<ChatText text={line.text} link={line.link} senderId={line.fromId} />
+						{contact === undefined && line.fromId !== undefined && line.text !== '<deleted>' && (
+							<button
+								type="button" className="chat__reply-btn" aria-label={t`Reply`}
+								onClick={() => reply.start(line)}
+							>↪</button>
+						)}
 					</div>
 				);
 			})}
@@ -157,6 +179,12 @@ export default function ChatTabContents({ channel, inputRef } : {
 
 		{channel !== LOGS_CHANNEL && channel !== ANNOUNCE_CHANNEL && (
 			<form className="chat__compose" onSubmit={submit}>
+				<ReplyBar
+					target={reply.target}
+					onCancel={reply.cancel}
+					inputRef={inputRef}
+					draft={draft}
+				/>
 				<MentionSuggestions mention={names} inputRef={inputRef} draft={draft} />
 				{emoji.query && emoji.suggestions.length > 0 && (
 					<div className="chat__emoji">
