@@ -281,9 +281,12 @@ export const table = <C extends Columns>(
 // blob after every write and restored on boot. None of this needs touching
 // when tables are added - new schemas register themselves via table().
 
-// resolves on commit, not on the put's success: a reload in between drops it
+// resolves on commit, not on the put's success: a reload in between drops it.
+// strict: the blob is on disk before the commit points at it, so a power cut
+// keeps the previous save instead of leaving an unreadable one
 async function idbSave(bytes: Uint8Array): Promise<void> {
-	const tx = (await openSave(SAVE_DB, true)).transaction(SAVE_STORE, 'readwrite');
+	const tx = (await openSave(SAVE_DB, true))
+		.transaction(SAVE_STORE, 'readwrite', { durability: 'strict' });
 	tx.objectStore(SAVE_STORE).put(bytes, SAVE_KEY);
 	await new Promise<void>((resolve, reject) => {
 		tx.oncomplete = () => resolve();
