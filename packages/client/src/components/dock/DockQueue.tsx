@@ -1,8 +1,6 @@
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons/faArrowUp';
 import { faClone } from '@fortawesome/free-solid-svg-icons/faClone';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRepeat } from '@fortawesome/free-solid-svg-icons/faRepeat';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,7 +11,6 @@ import {
 import { useRef } from 'react';
 
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { MAX_REPEAT } from '@oss-idle/shared/queue';
 
 import PlayQueue from '../../gameplay/playQueue';
 import Marquee from '../Marquee';
@@ -21,6 +18,7 @@ import RatedVersion from '../RatedVersion';
 import DockCountdown from './DockCountdown';
 import DockCountdownBar from './DockCountdownBar';
 import DockRefresh from './DockRefresh';
+import DockRepeatCount from './DockRepeatCount';
 import useQueueDrag from './useQueueDrag';
 
 type Props = {
@@ -80,26 +78,7 @@ export default function DockQueue({ hint = false }: Props) {
 						{index === 0 && <DockCountdown />}
 						{index === 0 && <DockCountdownBar />}
 						<span className="dock__entry-actions">
-							<button
-								type="button"
-								aria-label={t`Play it one time fewer`}
-								disabled={repeat <= 1}
-								onClick={() => PlayQueue.setRepeat(index, repeat - 1)}
-							>
-								<FontAwesomeIcon icon={faMinus} />
-							</button>
-							<span className="dock__repeat dock__repeat-count">
-								<FontAwesomeIcon icon={faRepeat} />
-								{repeat}
-							</span>
-							<button
-								type="button"
-								aria-label={t`Play it one more time`}
-								disabled={repeat >= MAX_REPEAT}
-								onClick={() => PlayQueue.setRepeat(index, repeat + 1)}
-							>
-								<FontAwesomeIcon icon={faPlus} />
-							</button>
+							<DockRepeatCount index={index} repeat={repeat} played={played} />
 							<button
 								type="button"
 								aria-label={t`Duplicate`}

@@ -2743,11 +2743,11 @@ msgstr "Play Count: {playCount} (Lv{level})"
 msgid "Play harder maps to reach the sweet spot."
 msgstr "Play harder maps to reach the sweet spot."
 
-#: src/components/dock/DockQueue.tsx
+#: src/components/dock/DockRepeatCount.tsx
 msgid "Play it one more time"
 msgstr "Play it one more time"
 
-#: src/components/dock/DockQueue.tsx
+#: src/components/dock/DockRepeatCount.tsx
 msgid "Play it one time fewer"
 msgstr "Play it one time fewer"
 
@@ -3812,6 +3812,10 @@ msgstr "Time (ms)"
 #: src/components/community/CommunityBody.tsx
 msgid "Time Zone"
 msgstr "Time Zone"
+
+#: src/components/dock/DockRepeatCount.tsx
+msgid "Times to play it"
+msgstr "Times to play it"
 
 #: src/editor/actions.ts
 #: src/editor/EditorSummary.tsx
