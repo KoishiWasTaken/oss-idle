@@ -1,20 +1,22 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import { pendingActionDTO } from '@oss-idle/shared/pendingAction';
+
 import { characterDTO } from '@oss-idle/shared/character';
+import { pendingActionDTO } from '@oss-idle/shared/pendingAction';
 import {
-	Skills,
 	SKILL,
-} from '@oss-idle/shared/skills';
+	Skills,
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
 
 const character = () => ({
 	id: 1,
 	userId: 1,
 	name: 'Adri',
 	avatarUrl: 'https://example.invalid/a.png',
+	ruleset: 'mania4k',
 	generation: 1,
 	overallLevel: 42,
 	skills: Object.fromEntries(Skills.map(s => [s, {
@@ -31,32 +33,36 @@ describe('pending action', () => {
 	it('carries the skill for the two per-skill actions', () => {
 		for (const type of ['upgrade', 'prestige'] as const) {
 			const parsed = pendingActionDTO.parse({
-				type, skill: SKILL.coordination, requestedAt: 1,
+				type, ruleset: 'mania4k', skill: SKILL.coordination, requestedAt: 1,
 			});
 			expect(parsed).toEqual({
-				type, skill: SKILL.coordination, requestedAt: 1,
+				type, ruleset: 'mania4k', skill: SKILL.coordination, requestedAt: 1,
 			});
 		}
 	});
 
 	it('carries the new name for a rebirth', () => {
 		expect(pendingActionDTO.parse({
-			type: 'rebirth', name: 'Adri', requestedAt: 1,
+			type: 'rebirth', ruleset: 'mania4k', name: 'Adri', requestedAt: 1,
 		})).toEqual({
-			type: 'rebirth', name: 'Adri', requestedAt: 1,
+			type: 'rebirth', ruleset: 'mania4k', name: 'Adri', requestedAt: 1,
 		});
 	});
 
 	it('rejects an action the finalise would not know how to run', () => {
 		expect(() => pendingActionDTO.parse({
-			type: 'ascend', skill: SKILL.speed, requestedAt: 1,
+			type: 'ascend', ruleset: 'mania4k', skill: SKILL.speed, requestedAt: 1,
+		})).toThrow();
+		// bought in no ruleset, it would land in none
+		expect(() => pendingActionDTO.parse({
+			type: 'upgrade', skill: SKILL.speed, requestedAt: 1,
 		})).toThrow();
 		expect(() => pendingActionDTO.parse({
-			type: 'upgrade', skill: 'aim', requestedAt: 1,
+			type: 'upgrade', ruleset: 'taiko', skill: SKILL.speed, requestedAt: 1,
 		})).toThrow();
 		// a per-skill action without its skill is what a half-migrated row looks like
 		expect(() => pendingActionDTO.parse({
-			type: 'upgrade', requestedAt: 1,
+			type: 'upgrade', ruleset: 'mania4k', requestedAt: 1,
 		})).toThrow();
 	});
 });
@@ -70,13 +76,13 @@ describe('character DTO', () => {
 	it('carries every action the play deferred, in order', () => {
 		const actions = [
 			{
-				type: 'upgrade', skill: SKILL.stamina, requestedAt: 1,
+				type: 'upgrade', ruleset: 'mania4k', skill: SKILL.stamina, requestedAt: 1,
 			},
 			{
-				type: 'upgrade', skill: SKILL.speed, requestedAt: 2,
+				type: 'upgrade', ruleset: 'mania4k', skill: SKILL.speed, requestedAt: 2,
 			},
 			{
-				type: 'prestige', skill: SKILL.stamina, requestedAt: 3,
+				type: 'prestige', ruleset: 'mania4k', skill: SKILL.stamina, requestedAt: 3,
 			},
 		];
 		const parsed = characterDTO.parse({

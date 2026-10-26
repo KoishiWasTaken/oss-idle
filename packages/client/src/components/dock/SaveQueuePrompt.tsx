@@ -1,19 +1,20 @@
+import { useLingui } from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useLingui } from '@lingui/react/macro';
-import ContextMenu from '../ContextMenu';
-import PlayQueue from '../../gameplay/playQueue';
+
 import { Playlist } from '../../db/schema/playlist';
+import PlayQueue from '../../gameplay/playQueue';
+import ContextMenu from '../ContextMenu';
 
 type Props = {
 	onClose: () => void;
 };
 
 /** Names a playlist and fills it with the queue in its order, each map at its
- *  locked rate and repeat. */
+ *  locked rate, mods and repeat. */
 export default function SaveQueuePrompt({ onClose }: Props) {
 	const { t } = useLingui();
 	const [name, setName] = useState('');
@@ -29,7 +30,7 @@ export default function SaveQueuePrompt({ onClose }: Props) {
 		await existing?.clear();
 		const playlist = existing ?? await Playlist.create(trimmed);
 		for (const { beatmap, repeat } of entries) {
-			await playlist.addBeatmap(beatmap.metadata.id, beatmap.lockedRate, repeat);
+			await playlist.addBeatmap(beatmap.metadata.id, beatmap.lockedRate, beatmap.lockedMods, repeat);
 		}
 	};
 

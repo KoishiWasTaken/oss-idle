@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import type { AddonRender } from './addonUi';
 
 /** Where an add-on draws: its `render` runs on an element of its own, its cleanup when it goes. */

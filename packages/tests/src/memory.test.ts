@@ -1,13 +1,14 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import Memory from '@oss-idle/shared/sim/skills/memory';
-import SpeedJam from '@oss-idle/shared/sim/skills/speedjam';
-import { newStrain } from '@oss-idle/shared/sim/bots/character';
-import type { BotContext } from '@oss-idle/shared/sim/bot';
-import type RuntimeNote from '@oss-idle/shared/sim/runtimeNote';
+
+import { newStrain } from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import Memory from '@oss-idle/shared/rulesets/mania/4k/skills/memory';
+import SpeedJam from '@oss-idle/shared/rulesets/mania/4k/skills/speedjam';
+import type { BotContext } from '@oss-idle/shared/rulesets/mania/bot';
+import type RuntimeNote from '@oss-idle/shared/rulesets/mania/runtimeNote';
 
 const note = (time: number) => ({ time }) as unknown as RuntimeNote;
 

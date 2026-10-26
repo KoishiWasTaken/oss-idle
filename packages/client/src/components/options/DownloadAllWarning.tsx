@@ -1,14 +1,17 @@
 import './DownloadAllWarning.css';
-import { createPortal } from 'react-dom';
+
 import { useLingui } from '@lingui/react/macro';
+import { createPortal } from 'react-dom';
+
+import { desktop } from '@oss-idle/shared/desktop';
 import Log from '@oss-idle/shared/helpers/log';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { desktop } from '@oss-idle/shared/desktop';
-import ConfirmMenu from '../ConfirmMenu';
-import ContextMenu from '../ContextMenu';
+
 import Auth from '../../online/auth';
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
 import { downloadAll } from '../../osu/beatmap/downloadAll';
+import ConfirmMenu from '../ConfirmMenu';
+import ContextMenu from '../ContextMenu';
 
 /** The size warning before downloading every bundled or ranked beatmap. Shown to
  *  everyone, since the size is why it's a supporter perk; only supporters can go on. */

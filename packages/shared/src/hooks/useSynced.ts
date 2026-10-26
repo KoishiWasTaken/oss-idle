@@ -1,7 +1,8 @@
 import {
-	useState,
 	useEffect,
+	useState,
 } from 'react';
+
 import Synced from '../helpers/synced.js'; 
 
 export default function useSynced<T>(synced: Synced<T>): [T, T | undefined] {

@@ -1,17 +1,19 @@
+import { BeatmapDecoder } from 'osu-parsers';
+
+import {
+	type ChartDoc,
+	gridOf,
+	type TimingPoint,
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+import { noteSounds } from '@oss-idle/shared/sim/noteSounds';
+
 import { audioContext } from '../audio/audioContext';
 import { effects } from '../audio/EffectPlayer';
-import { SampleSchedule } from '../audio/SampleSchedule';
+import { prepareNoteSounds } from '../audio/hitsounds';
 import { music } from '../audio/MusicPlayer';
+import { SampleSchedule } from '../audio/SampleSchedule';
 import { Setting } from '../db/settings';
 import type { SampleEvent } from '../osu/beatmap/storyboard';
-import { prepareNoteSounds } from '../audio/hitsounds';
-import {
-	gridOf,
-	type ChartDoc,
-	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
-import { BeatmapDecoder } from 'osu-parsers';
-import { noteSounds } from '@oss-idle/shared/sim/noteSounds';
 
 /** The metronome: off, on every beat, or on every half beat too. */
 export const METRONOME = ['off', 'beats', 'halves'] as const;

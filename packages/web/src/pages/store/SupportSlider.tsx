@@ -1,5 +1,6 @@
-import { Trans } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import {
 	MAX_SUPPORT,
 	MIN_SUPPORT,
@@ -8,8 +9,9 @@ import {
 	supporterPrice,
 	supporterSaving,
 } from '@oss-idle/shared/supporter';
-import SupportDuration from './SupportDuration';
+
 import { euros } from './euros';
+import SupportDuration from './SupportDuration';
 
 /** Picks an amount; the months follow it. */
 type Props = {

@@ -1,21 +1,22 @@
-import { effects } from './EffectPlayer';
-import { audioContext } from './audioContext';
 import {
-	type HitSoundName,
-	renderHitsound,
-	type SampleSetName,
-} from './hitsoundSynth';
+	mapSampleName,
+	type NoteSound,
+} from '@oss-idle/shared/sim/noteSounds';
+
 import BeatmapStore from '../osu/beatmap/beatmap_store';
 import {
 	assetKey,
 	type SampleEvent,
 } from '../osu/beatmap/storyboard';
-import {
-	mapSampleName,
-	type NoteSound,
-} from '@oss-idle/shared/sim/noteSounds';
-import { currentSkin } from '../osu/skin/Skin';
 import type Skin from '../osu/skin/Skin';
+import { currentSkin } from '../osu/skin/Skin';
+import { audioContext } from './audioContext';
+import { effects } from './EffectPlayer';
+import {
+	type HitSoundName,
+	renderHitsound,
+	type SampleSetName,
+} from './hitsoundSynth';
 
 /**
  * Hitsounds. A note's sounds (see shared noteSounds: additions, sample sets, custom

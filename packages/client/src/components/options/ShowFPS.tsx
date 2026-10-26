@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/react/macro';
-import Checkbox from './controls/Checkbox';
+
 import { SETTINGS } from '../../db/settings';
+import Checkbox from './controls/Checkbox';
 
 export default function ShowFPS() {
 	return <Checkbox value={SETTINGS.showFps} label={

@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro';
+
 import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 type Props = {

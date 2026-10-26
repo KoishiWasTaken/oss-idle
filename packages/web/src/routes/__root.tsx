@@ -1,23 +1,24 @@
-import { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	createRootRoute,
 	Outlet,
 	useRouterState,
 } from '@tanstack/react-router';
-import Header from '../Header';
-import Footer from '../Footer';
-import RestrictedBanner from '../components/RestrictedBanner';
-import BugReplyBanner from '../components/BugReplyBanner';
+import { useEffect } from 'react';
+
 import Blackout from '../components/Blackout';
+import BugReplyBanner from '../components/BugReplyBanner';
+import RestrictedBanner from '../components/RestrictedBanner';
 import RouteProgress from '../components/RouteProgress';
-import PublicLanding from '../pages/PublicLanding';
+import Footer from '../Footer';
+import Header from '../Header';
 import {
 	useAuthLoaded,
 	useCurrentUser,
 } from '../hooks/useCurrentUser';
 import useDocumentHead from '../hooks/useDocumentHead';
 import useRouteTitle from '../hooks/useRouteTitle';
+import PublicLanding from '../pages/PublicLanding';
 import { sectionOf } from '../sections';
 
 /** Pages that use the whole window: the admin dashboard's charts. */

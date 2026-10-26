@@ -1,4 +1,4 @@
-import type { TimingPoint } from '@oss-idle/shared/editor/chart';
+import type { TimingPoint } from '@oss-idle/shared/rulesets/mania/editor/chart';
 
 /** Points listed before and after the one in effect, when a list is too long for all. */
 const BEFORE = 2;

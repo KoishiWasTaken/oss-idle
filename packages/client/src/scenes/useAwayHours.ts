@@ -3,9 +3,10 @@ import {
 	AWAY_HOURS,
 	SUPPORTER_AWAY_HOURS,
 } from '@oss-idle/shared/queue';
+
+import PlayQueue from '../gameplay/playQueue';
 import Auth from '../online/auth';
 import PlayManager from '../online/playManager';
-import PlayQueue from '../gameplay/playQueue';
 import { keepPlaying } from '../online/queuePrefs';
 
 /** How long the character keeps playing once the game is closed - none when

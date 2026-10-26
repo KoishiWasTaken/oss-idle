@@ -1,14 +1,17 @@
 import './ChatReports.css';
+
 import {
 	useEffect,
 	useState,
 } from 'react';
+
 import type { ReportReason } from '@oss-idle/shared/social';
-import Link from '../../components/Link';
+
 import {
 	getReports,
 	resolveReport,
 } from '../../api/social';
+import Link from '../../components/Link';
 
 type Reports = Awaited<ReturnType<typeof getReports>>;
 

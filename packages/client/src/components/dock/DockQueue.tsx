@@ -1,10 +1,3 @@
-import Marquee from '../Marquee';
-import RatedVersion from '../RatedVersion';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons/faArrowUp';
 import { faClone } from '@fortawesome/free-solid-svg-icons/faClone';
@@ -12,10 +5,19 @@ import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRepeat } from '@fortawesome/free-solid-svg-icons/faRepeat';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import { useRef } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { MAX_REPEAT } from '@oss-idle/shared/queue';
+
 import PlayQueue from '../../gameplay/playQueue';
+import Marquee from '../Marquee';
+import RatedVersion from '../RatedVersion';
 import DockCountdown from './DockCountdown';
 import DockCountdownBar from './DockCountdownBar';
 import DockRefresh from './DockRefresh';
@@ -56,14 +58,18 @@ export default function DockQueue({ hint = false }: Props) {
 			<ol ref={list} className="dock__list">
 				{rows.map(({ item: { beatmap, repeat = 1, played = 0 }, from }, index) => (
 					<li
-						key={`${beatmap.metadata.id}-${beatmap.lockedRate}-${from}`}
+						key={`${beatmap.metadata.id}-${beatmap.lock}-${from}`}
 						className={`dock__entry ${index === 0 ? 'is-next' : ''} ${from === dragging ? 'is-dragging' : ''}`}
 						onPointerDown={start(index)}
 					>
 						<span className="dock__num">{index + 1}</span>
 						<Marquee className="dock__entry-name">
 							{beatmap.set.metadata.artist} - {beatmap.set.metadata.title}
-							<RatedVersion version={beatmap.metadata.version} rate={beatmap.lockedRate} />
+							<RatedVersion
+								version={beatmap.metadata.version}
+								rate={beatmap.lockedRate}
+								mods={beatmap.lockedMods}
+							/>
 						</Marquee>
 						{repeat > 1 && (
 							<span className="dock__repeat">

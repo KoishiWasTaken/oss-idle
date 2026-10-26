@@ -5,6 +5,7 @@ import {
 	primaryKey,
 	timestamp,
 } from 'drizzle-orm/mysql-core';
+
 import { users } from './user';
 
 /** One account adding another as a friend. One-way: both rows = mutual. */

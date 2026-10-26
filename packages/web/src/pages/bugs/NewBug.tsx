@@ -1,25 +1,28 @@
 import './Bugs.css';
+
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import { useNavigate } from '@tanstack/react-router';
 import {
 	type FormEvent,
 	useEffect,
 	useState,
 } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import { useNavigate } from '@tanstack/react-router';
-import { VERSION } from '@oss-idle/shared/version';
-import { desktop } from '@oss-idle/shared/desktop';
+
 import {
 	BUG_SETUP_CHANNEL,
 	BUG_TEXT_MAX,
 } from '@oss-idle/shared/bugs';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { desktop } from '@oss-idle/shared/desktop';
+import { VERSION } from '@oss-idle/shared/version';
+
 import { reportBug } from '../../api/bugs';
-import { useBugImages } from './useBugImages';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import BugImagesField from './BugImagesField';
+import { useBugImages } from './useBugImages';
 
 const client = () => [
 	desktop() ? 'desktop app' : 'browser',

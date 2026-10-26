@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import Listener from '@oss-idle/shared/helpers/listener';
 
 describe('Listener', () => {

@@ -1,5 +1,6 @@
 import { t } from '@lingui/core/macro';
 import { unzip } from 'fflate';
+
 import {
 	isSkinFile,
 	normalizePath,
@@ -15,6 +16,7 @@ import {
 	SKIN_UNPACKED_MAX,
 	type SkinFile,
 } from '@oss-idle/shared/skin';
+
 import { SkinDAO } from '../../db/schema/skin';
 import { putSkinFiles } from './skinFiles';
 

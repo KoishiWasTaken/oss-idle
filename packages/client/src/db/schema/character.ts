@@ -1,66 +1,40 @@
+import { CharacterDTO } from '@oss-idle/shared/character';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
+import Synced from '@oss-idle/shared/helpers/synced';
+import { Skills } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
+import { xpGivesLevel } from '@oss-idle/shared/xp';
+
 import {
-	Column,
+	selectedDefLoaded,
+	selectedRuleset,
+} from '../../rulesets/registry';
+import {
 	DAO,
 	DB,
 	Insert,
 	integer,
-	real,
 	table,
 	text,
 } from '../dao';
-import Synced from '@oss-idle/shared/helpers/synced';
-import { CharacterDTO } from '@oss-idle/shared/character';
-import type { SkillName } from '@oss-idle/shared/skills';
-import { xpGivesLevel } from '@oss-idle/shared/sim/skills/xp';
+import {
+	type Progress,
+	progressColumns,
+	RULESET_PROGRESS,
+} from './character_ruleset';
 
-export type { SkillName } from '@oss-idle/shared/skills';
 
 export const STATUS = mapped(['IDLE']);
 export type CharacterStatus = ValueIn<typeof STATUS>;
 
-const skillColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [j, integer().default(0)]),
-) as Record<SkillName, Column<number, true>>;
-
-const xpColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}XP`, integer().default(0)]),
-) as Record<`${SkillName}XP`, Column<number, true>>;
-
-const upgradeColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}Upgrades`, integer().default(0)]),
-) as Record<`${SkillName}Upgrades`, Column<number, true>>;
-
-const overdriveColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}Overdrive`, real().default(0)]),
-) as Record<`${SkillName}Overdrive`, Column<number, true>>;
-
-const totalXpColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}TotalXp`, integer().default(0)]),
-) as Record<`${SkillName}TotalXp`, Column<number, true>>;
-
-const lifetimeXpColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}LifetimeXp`, integer().default(0)]),
-) as Record<`${SkillName}LifetimeXp`, Column<number, true>>;
-
-const prestigeColumns = Object.fromEntries(
-	makeOrderedSkills().map(s => s.name).map(j => [`${j}Prestige`, integer().default(0)]),
-) as Record<`${SkillName}Prestige`, Column<number, true>>;
-
 const t = table('character', {
 	id:          integer().primaryKey().autoincrement(),
 	name:        text(),
-	...skillColumns,
-	...xpColumns,
-	...upgradeColumns,
-	...overdriveColumns,
-	...prestigeColumns,
-	...totalXpColumns,
-	...lifetimeXpColumns,
+	// 4K's progress, from before rulesets: every other ruleset has its own table
+	...progressColumns(Skills),
 	overallTotalXp: integer().default(0),
 	overallLevel:   integer().default(0),
 	generation:  integer().default(1),
@@ -76,59 +50,87 @@ export type CharacterData = Insert<typeof t.columns>;
 
 export default class Character extends DAO(t) {
 
-	public readonly skills = makeOrderedSkills();
+	/** The picked ruleset's skills (none while it loads, on the boot's placeholder). */
+	public readonly skills = (selectedDefLoaded()?.skills ?? []).map(name => new SkillState(name));
 	public readonly status = new Synced<CharacterStatus>(STATUS.IDLE);
+	/** The picked ruleset's progress: this row for 4K, the ruleset's own row otherwise. */
+	public progress: Progress = this;
 
 	constructor(row: CharacterData) {
 		super(row);
+		this.readSkills();
+	}
 
+	private readSkills(): void {
+		const columns = this.skillColumns();
 		this.skills.forEach(skill => {
-			skill.level.set(this[skill.name]);
-			skill.xp.set(this[`${skill.name}XP`]);
-			skill.upgrades.set(this[`${skill.name}Upgrades`]);
-			skill.overdrive.set(this[`${skill.name}Overdrive`]);
-			skill.prestige.set(this[`${skill.name}Prestige`]);
+			void skill.level.set(columns[skill.name] ?? 0);
+			void skill.xp.set(columns[`${skill.name}XP`] ?? 0);
+			void skill.upgrades.set(columns[`${skill.name}Upgrades`] ?? 0);
+			void skill.overdrive.set(columns[`${skill.name}Overdrive`] ?? 0);
+			void skill.prestige.set(columns[`${skill.name}Prestige`] ?? 0);
 		});
 	}
 
+	/** Read the picked ruleset's progress off its own table, made on first use. */
+	private async readProgress(): Promise<void> {
+		const Progress = RULESET_PROGRESS[selectedRuleset.get()];
+		if (!Progress) return;
+		this.progress = await Progress.get(this.id) ?? await new Progress({ characterId: this.id }).add();
+		this.readSkills();
+	}
+
 	public async persistSkills(): Promise<void> {
+		const columns = this.skillColumns();
 		for (const skill of this.skills) {
-			this[skill.name] = skill.level.get();
-			this[`${skill.name}XP`] = skill.xp.get();
-			this[`${skill.name}Upgrades`] = skill.upgrades.get();
-			this[`${skill.name}Overdrive`] = skill.overdrive.get();
-			this[`${skill.name}Prestige`] = skill.prestige.get();
+			columns[skill.name] = skill.level.get();
+			columns[`${skill.name}XP`] = skill.xp.get();
+			columns[`${skill.name}Upgrades`] = skill.upgrades.get();
+			columns[`${skill.name}Overdrive`] = skill.overdrive.get();
+			columns[`${skill.name}Prestige`] = skill.prestige.get();
 		}
-		await this.update();
+		await this.progress.update();
 	}
 
 	/** Book a finished guest play's xp into the totals the overall level - and so
 	 *  the rebirth requirement - is derived from. Prestige never takes these back. */
-	public async addProgression(gains: readonly { skill: SkillName, gained: number }[]): Promise<void> {
+	public async addProgression(gains: readonly { skill: string, gained: number }[]): Promise<void> {
+		const columns = this.skillColumns();
 		let overall = 0;
 		for (const g of gains) {
 			const gained = Math.round(g.gained);
-			this[`${g.skill}TotalXp`] += gained;
-			this[`${g.skill}LifetimeXp`] += gained;
+			columns[`${g.skill}TotalXp`] += gained;
+			columns[`${g.skill}LifetimeXp`] += gained;
 			overall += gained;
 		}
-		this.overallTotalXp += overall;
-		this.overallLevel = xpGivesLevel(this.overallTotalXp).level;
+		this.progress.overallTotalXp += overall;
+		this.progress.overallLevel = xpGivesLevel(this.progress.overallTotalXp).level;
 		await this.persistSkills();
 	}
 
 	/** Spend a purchase's XP out of the lifetime totals, like the server route
 	 *  does, so buying upgrades costs a guest the same overall levels. */
-	public async spendXP(skill: SkillName, spent: number): Promise<void> {
+	public async spendXP(skill: string, spent: number): Promise<void> {
 		const amount = Math.round(spent);
-		this[`${skill}TotalXp`] = Math.max(0, this[`${skill}TotalXp`] - amount);
-		this.overallTotalXp = Math.max(0, this.overallTotalXp - amount);
-		this.overallLevel = xpGivesLevel(this.overallTotalXp).level;
+		const columns = this.skillColumns();
+		columns[`${skill}TotalXp`] = Math.max(0, columns[`${skill}TotalXp`] - amount);
+		this.progress.overallTotalXp = Math.max(0, this.progress.overallTotalXp - amount);
+		this.progress.overallLevel = xpGivesLevel(this.progress.overallTotalXp).level;
 		await this.persistSkills();
 	}
 
+	/** The picked ruleset's skill columns by name. */
+	private skillColumns(): Record<string, number> {
+		return this.progress as unknown as Record<string, number>;
+	}
+
+	/** Everything a skill has ever earned, prestige or not. */
+	public lifetimeXp(skill: string): number {
+		return this.skillColumns()[`${skill}LifetimeXp`] ?? 0;
+	}
+
 	public memoryForgets(): number[] {
-		return JSON.parse(this.memoryForgetAt) as number[];
+		return JSON.parse(this.progress.memoryForgetAt) as number[];
 	}
 
 	/** Read the levels back off the XP the character has kept.
@@ -141,8 +143,9 @@ export default class Character extends DAO(t) {
 		if (!this.isGuest()) return;
 
 		let moved = false;
+		const columns = this.skillColumns();
 		for (const skill of this.skills) {
-			const next = xpGivesLevel(this[`${skill.name}TotalXp`]);
+			const next = xpGivesLevel(columns[`${skill.name}TotalXp`] ?? 0);
 			const xp = Math.round(next.xp);
 			if (next.level === skill.level.get() && xp === skill.xp.get()) continue;
 			skill.level.set(next.level);
@@ -150,9 +153,9 @@ export default class Character extends DAO(t) {
 			moved = true;
 		}
 
-		const overall = xpGivesLevel(this.overallTotalXp).level;
-		if (overall !== this.overallLevel) {
-			this.overallLevel = overall;
+		const overall = xpGivesLevel(this.progress.overallTotalXp).level;
+		if (overall !== this.progress.overallLevel) {
+			this.progress.overallLevel = overall;
 			moved = true;
 		}
 
@@ -175,6 +178,7 @@ export default class Character extends DAO(t) {
 			local: 1,
 		}).add();
 		await character.makeCurrent();
+		await character.readProgress();
 		return character;
 	}
 
@@ -194,6 +198,7 @@ export default class Character extends DAO(t) {
 			'SELECT * FROM character WHERE local = 1 ORDER BY current DESC, generation DESC LIMIT 1',
 		);
 		if (!current) return await Character.newCharacter();
+		await current.readProgress();
 		await current.relevel();
 		return current;
 	}
@@ -225,9 +230,17 @@ export default class Character extends DAO(t) {
 				[`${name}LifetimeXp`, lifetimeXp],
 			]),
 		);
-		return new Character({
-			...rest, ...skillData, local: 0,
+		const Progress = RULESET_PROGRESS[dto.ruleset];
+		const character = new Character({
+			...rest, ...Progress ? {} : skillData, local: 0,
 		});
+		if (Progress) {
+			character.progress = new Progress({
+				characterId: dto.id, ...skillData, overallLevel: dto.overallLevel,
+			});
+			character.readSkills();
+		}
+		return character;
 	}
 
 	public isGuest(): boolean {

@@ -1,18 +1,20 @@
 import './Docs.css';
+
 import { useState } from 'react';
+
 import { API_URL } from '../../api/client';
 import {
 	ENDPOINTS,
 	OBJECTS,
 } from './content';
-import {
-	LANGUAGES,
-	type Language,
-} from './samples';
-import DocsToc, { type TocItem } from './DocsToc';
-import DocsGuide from './DocsGuide';
 import DocsEndpoint from './DocsEndpoint';
+import DocsGuide from './DocsGuide';
 import DocsObject from './DocsObject';
+import DocsToc, { type TocItem } from './DocsToc';
+import {
+	type Language,
+	LANGUAGES,
+} from './samples';
 import {
 	goToHeading,
 	useActiveHeading,

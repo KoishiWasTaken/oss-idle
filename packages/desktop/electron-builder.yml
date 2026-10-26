@@ -67,7 +67,9 @@ mac:
 # GUID so updates replace that install instead of adding a second one.
 nsis:
   guid: 8d51b8dd-5d30-50fd-b4ba-dc081d7af03d
-  # updates and uninstalls keep the player's maps, skins and add-ons
+  # assisted, so installer.nsh draws its own pages (one-click has only its stock progress window)
+  oneClick: false
+  # our screens; updates and uninstalls keep the player's maps, skins and add-ons
   include: installer.nsh
 
 # App icon (path is relative to this package). A single square PNG - electron-

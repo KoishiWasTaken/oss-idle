@@ -1,21 +1,24 @@
 import './Chat.css';
-import { useRef } from 'react';
+
 import { useLingui } from '@lingui/react/macro';
+import { useRef } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { isMatchChannel } from '@oss-idle/shared/multiplayer';
+
+import { isCommunityOpen } from '../../../globals';
+import useKeyboardOwner from '../../../input/keyboardOwner';
+import { contactNames } from '../../../online/privateMessages';
 import Tabs, { Tab } from '../../tabs/Tabs';
+import { showChat } from '../state';
+import ChatTabContents from './ChatTabContents';
 import {
 	activeChatTab,
 	channelPickerOpen,
 	chatTabs,
 	pmContact,
 } from './state';
-import { contactNames } from '../../../online/privateMessages';
-import { isMatchChannel } from '@oss-idle/shared/multiplayer';
-import ChatTabContents from './ChatTabContents';
 import { unreadTabs } from './unread';
-import { isCommunityOpen } from '../../../globals';
-import { showChat } from '../state';
-import useKeyboardOwner from '../../../input/keyboardOwner';
 
 export default function Chat() {
 	const { t } = useLingui();

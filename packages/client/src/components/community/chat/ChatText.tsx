@@ -1,13 +1,12 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	isWebOpen,
 	webUrl,
 } from '../../../globals';
-import {
-	emoji,
-	emojiSrc,
-} from '../../../online/emoji';
+import { emoji } from '../../../online/emoji';
 import { linkFor } from '../state';
+import ChatEmoji from './ChatEmoji';
 import { splitLinks } from './links';
 import { openChatMap } from './openMap';
 
@@ -16,12 +15,7 @@ type Split = (text: string) => ReturnType<ReturnType<typeof emoji.get>['split']>
 
 /** The text with its emoji as images. */
 const withEmoji = (split: Split, text: string, key: number) => split(text).map((part, i) =>
-	typeof part === 'string' ? part : <img
-		key={`${key}.${i}`}
-		className="chat__emoji-img"
-		src={emojiSrc(part.id)}
-		alt={`:${part.name}:`}
-	/>);
+	typeof part === 'string' ? part : <ChatEmoji key={`${key}.${i}`} emoji={part} />);
 
 /** The text with each map and web address it contains clickable. */
 const linked = (split: Split, text: string) => splitLinks(text).flatMap((part, i) => {

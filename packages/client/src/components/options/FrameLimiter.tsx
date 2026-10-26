@@ -1,12 +1,14 @@
 import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { desktop } from '@oss-idle/shared/desktop';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	type FrameLimit,
 	SETTINGS,
 } from '../../db/settings';
-import Dropdown, { type DropdownOption } from '../dropdown/Dropdown';
 import { wantsUncapped } from '../../responsive/frameLimiter';
+import Dropdown, { type DropdownOption } from '../dropdown/Dropdown';
 
 const CAPS = [30, 60, 120, 144, 165, 240, 360];
 

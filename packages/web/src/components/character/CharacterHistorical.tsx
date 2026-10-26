@@ -1,20 +1,24 @@
+import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
+
 import num from '@oss-idle/shared/display/num';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import { getCharacterMostPlayed } from '../../api/characters';
 import { coverBackground } from '../../api/maps';
 import { useShowMore } from '../../hooks/useShowMore';
-import ShowMoreLink from '../ShowMoreLink';
 import MapperLink from '../MapperLink';
+import ShowMoreLink from '../ShowMoreLink';
 
 /** The profile's Historical block: the most played beatmaps. */
-export default function CharacterHistorical({ id, countplayed }: {
+export default function CharacterHistorical({ id, ruleset, countplayed }: {
 	id: string;
+	ruleset: RulesetId;
 	countplayed?: number;
 }) {
-	const mostplayed = useShowMore(page => getCharacterMostPlayed(id, page), [id]);
+	const mostplayed = useShowMore(page => getCharacterMostPlayed(id, page, ruleset), [id, ruleset]);
 
 	return <div className='character__block character__block-skills'>
 		<div className='character__block-title'><Trans>Historical</Trans></div>

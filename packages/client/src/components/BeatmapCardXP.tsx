@@ -1,13 +1,15 @@
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
+
 import { bignum } from '@oss-idle/shared/display/num';
-import { skillName } from '@oss-idle/shared/display/skills';
+
+import { selectedDef } from '../rulesets/registry';
 import type { BeatmapXPInsight } from '../xpInsights';
 import BeatmapXPBreakdown from './BeatmapXPBreakdown';
-import { Trans } from '@lingui/react/macro';
 
 /** The card's XP section, top-right: the main skill trained on the last play
  *  and the total gained. Hover (mouse) or tap (touch) opens the per-skill
@@ -39,7 +41,7 @@ export default function BeatmapCardXP({ insight }: {
 		>
 			{insight.top && (
 				<span className="bm-card__xp-chip bm-card__xp-skill">
-					{skillName(insight.top.skill)}
+					{selectedDef().skillName(insight.top.skill)}
 					<em>{bignum(insight.top.gained)}xp</em>
 				</span>
 			)}

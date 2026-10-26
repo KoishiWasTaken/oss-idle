@@ -1,5 +1,5 @@
-import type { Bilingual } from './types';
 import { EMAIL } from '../identity';
+import type { Bilingual } from './types';
 
 export const copyright: Bilingual = {
 	en: {

@@ -3,6 +3,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import { SETTINGS } from '../db/settings';
 
 export interface RightClickEvent {

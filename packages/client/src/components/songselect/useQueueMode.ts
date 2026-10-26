@@ -1,4 +1,5 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { openPage } from '../../globals';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import type { SongSelectMode } from '../../scenes/SongSelect';

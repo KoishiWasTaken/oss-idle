@@ -1,10 +1,13 @@
 import './UpdateButton.css';
-import { useState } from 'react';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import Log from '@oss-idle/shared/helpers/log';
+
 import BeatmapAPI from '../../osu/beatmap/beatmap_api';
 
 // Phosphor's arrow-counter-clockwise

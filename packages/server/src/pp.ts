@@ -1,13 +1,14 @@
 import * as ppjs from 'rosu-pp-js';
-import {
-	RATES,
-	rateKey,
-} from '@oss-idle/shared/rate';
+
 import type { Mod } from '@oss-idle/shared/mods';
 import {
-	performanceArgs,
-	type PerformanceScore,
-} from '@oss-idle/shared/osu/performanceArgs';
+	rateKey,
+	RATES,
+} from '@oss-idle/shared/rate';
+import type {
+	PerformanceScore,
+	RulesetDef,
+} from '@oss-idle/shared/rulesets/ruleset';
 
 /**
  * Performance points for a finished play, computed from the raw `.osu` chart (or
@@ -15,13 +16,14 @@ import {
  * with the node `rosu-pp-js` build (synchronous, no wasm init).
  */
 export function calculatePP(
+	def: RulesetDef,
 	score: PerformanceScore,
 	chart: string | ppjs.Beatmap,
 	rate = 1,
 	mods: readonly Mod[] = [],
 ): number {
 	const map = typeof chart === 'string' ? new ppjs.Beatmap(chart) : chart;
-	return new ppjs.Performance(performanceArgs(score, rate, mods)).calculate(map).pp;
+	return new ppjs.Performance(def.performanceArgs(score, rate, mods)).calculate(map).pp;
 }
 
 /** The chart's star rating at a playback rate. */

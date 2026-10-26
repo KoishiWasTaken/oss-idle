@@ -1,22 +1,23 @@
 import './Balancing.css';
 
-import { useAdmin } from '../../hooks/useAdmin';
-import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
-import OsuPlot, { precise4 } from '../../components/OsuPlot';
+import { smoothNormalize } from '@oss-idle/shared/math/normalize';
 import {
 	accBasedScoreFactor,
 	factorXP,
 	lowDensityBasedNotesFactor,
 	mapXP,
 	speedBasedScoreFactor,
-} from '@oss-idle/shared/sim/bots/character';
-import { SKILL } from '@oss-idle/shared/skills';
-import Reading from '@oss-idle/shared/sim/skills/reading';
-import Speed from '@oss-idle/shared/sim/skills/speed';
-import Stamina from '@oss-idle/shared/sim/skills/stamina';
-import JackSpeed from '@oss-idle/shared/sim/skills/jackspeed';
-import Accuracy, { MIN_MAX_BAD_MS } from '@oss-idle/shared/sim/skills/accuracy';
-import { smoothNormalize } from '@oss-idle/shared/math/normalize';
+} from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import { SKILL } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import Accuracy, { MIN_MAX_BAD_MS } from '@oss-idle/shared/rulesets/mania/4k/skills/accuracy';
+import JackSpeed from '@oss-idle/shared/rulesets/mania/4k/skills/jackspeed';
+import Reading from '@oss-idle/shared/rulesets/mania/4k/skills/reading';
+import Speed from '@oss-idle/shared/rulesets/mania/4k/skills/speed';
+import Stamina from '@oss-idle/shared/rulesets/mania/4k/skills/stamina';
+import { xpForLevel } from '@oss-idle/shared/xp';
+
+import OsuPlot, { precise4 } from '../../components/OsuPlot';
+import { useAdmin } from '../../hooks/useAdmin';
 
 export default function BalancingPage() {
 	const admin = useAdmin();

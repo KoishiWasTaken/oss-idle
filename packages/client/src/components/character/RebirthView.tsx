@@ -1,23 +1,25 @@
 import { ph } from '@lingui/core/macro';
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { useState } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import {
-	REBIRTH_MIN_OVERALL_LEVEL,
-	canRebirth,
-} from '@oss-idle/shared/upgrades';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
 	REBIRTH_UNLOCKS,
 	unlocksForGeneration,
 } from '@oss-idle/shared/rebirth';
-import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
+import {
+	canRebirth,
+	REBIRTH_MIN_OVERALL_LEVEL,
+} from '@oss-idle/shared/upgrades';
+
 import Entities from '../../entity/entities';
-import { rebirth } from '../../online/services/prestige';
 import { listCharacters } from '../../online/services/lineage';
+import { rebirth } from '../../online/services/prestige';
+import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import LineageList from './LineageList';
 
 export default function RebirthView() {

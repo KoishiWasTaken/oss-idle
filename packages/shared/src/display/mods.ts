@@ -1,9 +1,9 @@
+import type { GlyphName } from '../achievements/glyphs.js';
 import {
 	__,
 	defineMessages,
 } from '../i18n/translate.js';
 import type { Mod } from '../mods.js';
-import type { GlyphName } from '../achievements/glyphs.js';
 
 const MOD_NAMES = defineMessages({
 	EZ: 'Easy',

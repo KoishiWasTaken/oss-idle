@@ -1,9 +1,10 @@
 import './Marquee.css';
+
 import {
+	type ReactNode,
 	useEffect,
 	useRef,
 	useState,
-	type ReactNode,
 } from 'react';
 
 // px per second

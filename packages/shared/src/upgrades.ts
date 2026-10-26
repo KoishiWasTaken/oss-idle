@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { Skills } from './skills.js';
+
 import {
 	xpForLevel,
 	xpToLevel,
-} from './sim/skills/xp.js';
+} from './xp.js';
 
 export const UPGRADE_LEVELS = 10;
 /** Slots on the base gear ladder, before any prestige. */
@@ -185,10 +185,11 @@ export const skillXPMultiplier = (
 ): number =>
 	upgradeXPMultiplier(upgrades, overdrive) * prestigeXPMultiplier(prestige);
 
-export const upgradeBody = z.object({ skill: z.enum(Skills) });
+/** A skill of the character's picked ruleset. */
+export const upgradeBody = z.object({ skill: z.string() });
 export type UpgradeBody = z.infer<typeof upgradeBody>;
 
 export const rollbackBody = upgradeBody.extend({ anchor: z.int().min(0).optional() });
 
-export const prestigeBody = z.object({ skill: z.enum(Skills) });
+export const prestigeBody = z.object({ skill: z.string() });
 export type PrestigeBody = z.infer<typeof prestigeBody>;

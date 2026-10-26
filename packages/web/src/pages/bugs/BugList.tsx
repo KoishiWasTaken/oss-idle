@@ -1,7 +1,9 @@
 import { useLingui } from '@lingui/react/macro';
+
 import { dateAgo } from '@oss-idle/shared/display/ago';
-import Link from '../../components/Link';
+
 import type { BugRow } from '../../api/bugs';
+import Link from '../../components/Link';
 import BugStatusPill from './BugStatusPill';
 
 /** Reports as rows; `team` adds the reporter and marks the ones awaiting a reply. */

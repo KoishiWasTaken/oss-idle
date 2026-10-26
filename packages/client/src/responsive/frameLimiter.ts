@@ -1,4 +1,5 @@
 import { desktop } from '@oss-idle/shared/desktop';
+
 import {
 	type FrameLimit,
 	SETTINGS,

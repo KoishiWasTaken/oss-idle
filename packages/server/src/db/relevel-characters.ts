@@ -15,44 +15,64 @@
  * reported and left alone - run `fix:overall` first, which is what puts the
  * totals back in step with the levels.
  *
- *   npm -w @oss-idle/server run relevel:prod -- --dry-run
+ *   npm -w @oss-idle/server run relevel:prod -- --dry-run [--ruleset mania4k]
  */
 import { eq } from 'drizzle-orm';
-import { xpGivesLevel } from '@oss-idle/shared/sim/skills/xp';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import { db } from './client';
-import { characters } from './schema/character';
+
+import { xpGivesLevel } from '@oss-idle/shared/xp';
+
 import { reindexCharacter } from '../rankings';
+import {
+	loadRulesets,
+	rulesetFromArgs,
+} from '../rulesets/registry';
+import { db } from './client';
+import {
+	characters,
+	type ProfileRow,
+	skillColumnsFor,
+	skillOf,
+} from './schema/character';
 
 const dryRun = process.argv.includes('--dry-run');
 
 const main = async () => {
-	const rows = await db.select().from(characters);
+	await loadRulesets();
+	const r = rulesetFromArgs();
+	const rows = (await db.select({
+		name: characters.name, profile: r.profile, 
+	})
+		.from(r.profile)
+		.innerJoin(characters, eq(characters.id, r.profile.id)))
+		.map(({ name, profile }) => ({
+			...profile, name, 
+		}));
 	console.log(`checking ${rows.length} characters${dryRun ? ' (dry run)' : ''}`);
 
 	let relevelled = 0;
 	let stale = 0;
 	for (const row of rows) {
-		const untotalled = Skills.filter(s => row[`${s}TotalXp`] === 0 && row[`${s}Level`] > 0);
+		const untotalled = r.def.skills.filter(s => {
+			const { totalXp, level } = skillOf(row, s);
+			return totalXp === 0 && level > 0;
+		});
 		if (untotalled.length) {
 			console.log(`  ! ${row.name} (${row.id}): no total behind ${untotalled.join(', ')} - skipped`);
 			stale++;
 			continue;
 		}
 
-		const updates = {} as Record<`${SkillName}${'Level' | 'Xp'}`
-		| `overall${'Level' | 'Xp'}`, number>;
+		const updates: Partial<ProfileRow> = {};
 		const dropped: string[] = [];
 
-		for (const skill of Skills) {
-			const next = xpGivesLevel(row[`${skill}TotalXp`]);
-			updates[`${skill}Level`] = next.level;
-			updates[`${skill}Xp`] = Math.round(next.xp);
-			if (next.level !== row[`${skill}Level`]) {
-				dropped.push(`${skill} ${row[`${skill}Level`]}->${next.level}`);
+		for (const skill of r.def.skills) {
+			const was = skillOf(row, skill);
+			const next = xpGivesLevel(was.totalXp);
+			Object.assign(updates, skillColumnsFor(skill, {
+				level: next.level, xp: Math.round(next.xp), 
+			}));
+			if (next.level !== was.level) {
+				dropped.push(`${skill} ${was.level}->${next.level}`);
 			}
 		}
 
@@ -68,9 +88,9 @@ const main = async () => {
 		);
 
 		if (!dryRun) {
-			await db.update(characters).set(updates).where(eq(characters.id, row.id));
+			await db.update(r.profile).set(updates).where(eq(r.profile.id, row.id));
 			// the skill boards rank on the level, so they have to be told
-			await reindexCharacter(row.id);
+			await reindexCharacter(r, row.id);
 		}
 		relevelled++;
 	}

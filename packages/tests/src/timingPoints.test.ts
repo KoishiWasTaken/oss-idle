@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import { countTimingPoints } from '../../server/src/beatmaps/timingPoints';
 
 describe('countTimingPoints', () => {

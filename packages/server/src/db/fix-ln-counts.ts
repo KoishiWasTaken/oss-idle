@@ -9,6 +9,7 @@
  */
 import { eq } from 'drizzle-orm';
 import * as rosu from 'rosu-pp-js';
+
 import { db } from './client';
 import { beatmaps } from './schema/beatmap';
 

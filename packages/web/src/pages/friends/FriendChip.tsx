@@ -1,7 +1,8 @@
 import {
-	GROUP_BADGE,
 	type Group,
+	GROUP_BADGE,
 } from '@oss-idle/shared/groups';
+
 import Link from '../../components/Link';
 import type { Friend } from './Friends';
 

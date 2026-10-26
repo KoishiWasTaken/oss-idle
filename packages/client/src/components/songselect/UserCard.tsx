@@ -2,21 +2,24 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
+import accuracyText from '@oss-idle/shared/display/accuracy';
+import num from '@oss-idle/shared/display/num';
+import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+import hitAccuracy from '@oss-idle/shared/rulesets/mania/hitAccuracy';
+import { countsOf } from '@oss-idle/shared/rulesets/ruleset';
+import { xpForLevel } from '@oss-idle/shared/xp';
+
 import Character from '../../db/schema/character';
+import {
+	isWebOpen,
+	webUrl,
+} from '../../globals';
+import Auth from '../../online/auth';
 import {
 	getCharacter,
 	getCharacterStats,
 } from '../../online/services/characters';
-import {
-	webUrl,
-	isWebOpen,
-} from '../../globals';
-import Auth from '../../online/auth';
-import num from '@oss-idle/shared/display/num';
-import accuracyText from '@oss-idle/shared/display/accuracy';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
-import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
-import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 import GlobalRank from './GlobalRank';
 
 /** Profile card: avatar + online stats, clicking through to oss! web
@@ -32,11 +35,12 @@ export default function UserCard({
 }) {
 	const { t } = useLingui();
 	const nextGlobal = online_character ? 
-		xpForLevel(online_character.overallLevel) 
+		xpForLevel(online_character.profile.overallLevel) 
 		: undefined;
-	const pp = num(online_character?.pp);
-	const accuracy = online_stats && accuracyText(hitAccuracy(online_stats));
-	const level = num(online_character?.overallLevel);
+	const pp = num(online_character?.profile.pp);
+	const accuracy = online_stats && accuracyText(hitAccuracy(countsOf(online_stats)));
+	const level = num(online_character?.profile.overallLevel);
+	const levelProgress = (online_character?.profile.overallXp ?? 0) / (nextGlobal || 1);
 	return (
 		<div
 			className="game__user"
@@ -68,7 +72,7 @@ export default function UserCard({
 				<div className="game__user-level-bar">
 					<div
 						className="game__user-level-bar-fill"
-						style={{ width: `${Math.min(1, (online_character?.overallXp ?? 0) / (nextGlobal || 1)) * 100}%` }}
+						style={{ width: `${Math.min(1, levelProgress) * 100}%` }}
 					/>
 				</div>
 			</div>

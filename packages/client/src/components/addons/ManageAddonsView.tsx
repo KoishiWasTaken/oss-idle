@@ -1,23 +1,21 @@
 import { ph } from '@lingui/core/macro';
 import {
-	useEffect,
-	useState,
-} from 'react';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import {
 	ADDON_KIND,
 	parseAddonTypes,
 } from '@oss-idle/shared/addon';
-import Auth from '../../online/auth';
-import {
-	Addon as InstalledAddon,
-	addonsVersion,
-} from '../../db/schema/addon';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { writeAddonFile } from '../../addons/addonFiles';
 import {
 	disableAddon,
 	enableAddon,
@@ -25,25 +23,29 @@ import {
 	remountAddon,
 	uninstallAddon,
 } from '../../addons/runtime';
-import { writeAddonFile } from '../../addons/addonFiles';
-import ManageAddonsActions from './ManageAddonsActions';
 import {
+	Addon as InstalledAddon,
+	addonsVersion,
+} from '../../db/schema/addon';
+import {
+	type Addon,
 	deleteAddon,
 	getAddon,
 	myAddons,
-	submitAddon,
-	type Addon,
 	type OwnAddon,
+	submitAddon,
 } from '../../online/addons';
-import AddonView, {
-	detailOfDTO,
-	newAddonDetail,
-	type AddonDetail,
-} from './AddonView';
-import MyAddonRow from './MyAddonRow';
-import InstalledAddonRow from './InstalledAddonRow';
+import Auth from '../../online/auth';
 import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import { useHasUpdate } from '../listing/useHasUpdate';
+import AddonView, {
+	type AddonDetail,
+	detailOfDTO,
+	newAddonDetail,
+} from './AddonView';
+import InstalledAddonRow from './InstalledAddonRow';
+import ManageAddonsActions from './ManageAddonsActions';
+import MyAddonRow from './MyAddonRow';
 
 /** What the editor is editing: a blank draft (`{}`) or an existing add-on. */
 type Editing = { addon?: OwnAddon };

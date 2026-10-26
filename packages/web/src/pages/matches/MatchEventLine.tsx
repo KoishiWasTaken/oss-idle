@@ -2,6 +2,7 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import PlayerName from './PlayerName';
 import type { HistoryEvent } from './types';
 

@@ -1,10 +1,11 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import {
 	fallback,
 	zodValidator,
 } from '@tanstack/zod-adapter';
 import { z } from 'zod';
-import { msg } from '@lingui/core/macro';
+
 import Store from '../pages/store/Store';
 
 const storeSearch = z.object({

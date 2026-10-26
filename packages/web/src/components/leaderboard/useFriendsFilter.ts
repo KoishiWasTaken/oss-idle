@@ -1,8 +1,9 @@
+import { useLingui } from '@lingui/react/macro';
 import {
 	useNavigate,
 	useSearch,
 } from '@tanstack/react-router';
-import { useLingui } from '@lingui/react/macro';
+
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { Filter } from './LeaderboardFilters';
 

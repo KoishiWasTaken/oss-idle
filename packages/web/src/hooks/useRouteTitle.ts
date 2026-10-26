@@ -1,10 +1,12 @@
+import { msg } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react';
 import {
 	type AnyRouteMatch,
 	useRouterState,
 } from '@tanstack/react-router';
-import { useLingui } from '@lingui/react';
-import { msg } from '@lingui/core/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { pageTitle } from '../globals';
 
 const closestTitle = (matches: AnyRouteMatch[]) =>

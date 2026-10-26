@@ -1,0 +1,388 @@
+.level-votes {
+	max-width: 1100px;
+}
+
+.level-votes__intro {
+	font-size: 14px;
+	margin: 0 0 4px;
+}
+
+.level-votes__scale,
+.level-votes__note {
+	font-size: 12px;
+	color: hsl(var(--hsl-l3));
+	margin: 0 0 16px;
+}
+
+.level-votes__error {
+	font-size: 13px;
+	color: hsl(0, 80%, 70%);
+	margin: 0 0 12px;
+}
+
+.level-chart {
+	background-color: hsl(var(--hsl-b5));
+	border-radius: 6px;
+	padding: 12px 16px;
+	margin-bottom: 16px;
+}
+
+.level-chart svg {
+	width: 100%;
+	display: block;
+}
+
+.level-chart__legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 14px;
+	font-size: 12px;
+	color: hsl(var(--hsl-c2));
+	margin-bottom: 6px;
+}
+
+.level-chart__legend button {
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+.level-chart__legend button.is-hidden {
+	opacity: 0.35;
+}
+
+.level-chart__legend i {
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	margin-right: 5px;
+}
+
+.level-chart__legend i.level-chart__ring {
+	border: 1.5px solid hsl(var(--hsl-c1));
+}
+
+.level-chart__legend i.level-chart__bar {
+	width: 18px;
+	height: 4px;
+	border-radius: 2px;
+	background: hsl(var(--hsl-c1), 0.35);
+	vertical-align: middle;
+}
+
+.level-chart__grid {
+	stroke: hsl(var(--hsl-b2));
+	stroke-dasharray: 2 3;
+}
+
+.level-chart__dan {
+	fill: hsl(var(--hsl-l2));
+	font-size: 11px;
+	text-anchor: middle;
+}
+
+.level-chart__label {
+	fill: hsl(var(--hsl-c2));
+	font-size: 12px;
+	text-anchor: end;
+}
+
+.level-picker {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+.level-picker__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 12px;
+	border-radius: 6px;
+	background-color: hsl(var(--hsl-b4));
+	color: hsl(var(--hsl-f1));
+}
+
+.level-picker__row input {
+	flex: 1;
+	background: none;
+	border: none;
+	outline: none;
+	padding: 12px 0;
+	font: inherit;
+	font-size: 14px;
+	color: hsl(var(--hsl-c1));
+}
+
+.level-picker__hits {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	right: 0;
+	top: calc(100% + 4px);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-height: 420px;
+	overflow-y: auto;
+	padding: 4px;
+	border-radius: 6px;
+	background-color: hsl(var(--hsl-b5));
+	box-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.5);
+	transition: opacity 0.12s ease-in-out;
+}
+
+.level-picker__hits.is-loading {
+	opacity: 0.4;
+}
+
+.level-picker__hit {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px;
+	border: none;
+	border-radius: 4px;
+	background: none;
+	color: hsl(var(--hsl-c1));
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.level-picker__hit:hover {
+	background-color: hsl(var(--hsl-b3));
+}
+
+.level-picker__empty {
+	margin: 0;
+	padding: 10px;
+	font-size: 13px;
+	color: hsl(var(--hsl-l3));
+}
+
+.level-chart__target {
+	fill: hsl(var(--hsl-h1));
+	font-size: 10px;
+	text-anchor: end;
+}
+
+.level-map__target {
+	flex: none;
+	padding: 4px 10px;
+	border-radius: 10px;
+	background-color: hsl(var(--hsl-b5));
+	color: hsl(var(--hsl-h1));
+	font-size: 12px;
+	font-weight: 600;
+}
+
+input.level-map__target--edit {
+	width: 220px;
+	border: 1px dashed hsl(var(--hsl-b2));
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	outline: none;
+}
+
+.level-votes__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.level-map {
+	background-color: hsl(var(--hsl-b4));
+	border-radius: 6px;
+	padding: 10px 14px 14px;
+}
+
+.level-map__head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.level-map__cover {
+	flex: none;
+	width: 90px;
+	height: 45px;
+	border-radius: 4px;
+	background-color: hsl(var(--hsl-b6));
+	background-position: center;
+	background-size: cover;
+}
+
+.level-map__meta {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	flex: 1;
+	color: inherit;
+}
+
+.level-map__title {
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.level-map__artist,
+.level-map__version {
+	font-size: 12px;
+	color: hsl(var(--hsl-l3));
+}
+
+.level-map__stars {
+	color: hsl(var(--hsl-h1));
+}
+
+.level-map__remove,
+.skill-vote__toggle {
+	background: none;
+	border: none;
+	padding: 4px;
+	color: hsl(var(--hsl-f1));
+	cursor: pointer;
+}
+
+.level-map__remove:hover,
+.skill-vote__toggle:hover {
+	color: hsl(var(--hsl-c1));
+}
+
+.level-map__skills {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 10px 14px;
+}
+
+.skill-vote {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: 12px;
+	border-left: 3px solid var(--skill);
+	padding-left: 8px;
+}
+
+.skill-vote.is-disabled {
+	opacity: 0.4;
+}
+
+.skill-vote__name {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	color: var(--skill);
+	font-weight: 600;
+}
+
+.skill-vote__toggle {
+	font-size: 11px;
+	padding: 0 2px;
+}
+
+.skill-vote__row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.skill-vote input {
+	width: 60px;
+	background: hsl(var(--hsl-b6));
+	border: 1px solid hsl(var(--hsl-b2));
+	border-radius: 4px;
+	color: hsl(var(--hsl-c1));
+	padding: 3px 6px;
+	font: inherit;
+	font-size: 14px;
+}
+
+.skill-vote input:disabled {
+	opacity: 0.5;
+}
+
+.skill-vote__dan {
+	color: hsl(var(--hsl-c2));
+}
+
+.skill-vote__community {
+	color: hsl(var(--hsl-l4));
+	font-size: 11px;
+}
+
+.level-map__remove.is-active {
+	color: hsl(var(--hsl-h1));
+}
+
+.level-moderation {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-bottom: 12px;
+	padding: 6px;
+	border-radius: 4px;
+	background-color: hsl(var(--hsl-b5));
+}
+
+.level-voter {
+	display: grid;
+	grid-template-columns: 160px 140px 1fr auto;
+	align-items: center;
+	gap: 12px;
+	padding: 4px 8px;
+	font-size: 12px;
+}
+
+.level-voter.is-restricted {
+	opacity: 0.5;
+}
+
+.level-voter__name {
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.level-voter__badge {
+	margin-left: 6px;
+	font-size: 10px;
+	color: hsl(0, 80%, 70%);
+}
+
+.level-voter__offset {
+	color: hsl(var(--hsl-l3));
+}
+
+.level-voter__levels {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px 10px;
+}
+
+.level-voter__actions {
+	display: flex;
+	gap: 6px;
+}
+
+.level-voter__actions button {
+	padding: 3px 8px;
+	border: none;
+	border-radius: 4px;
+	background-color: hsl(var(--hsl-b3));
+	color: hsl(var(--hsl-c1));
+	font: inherit;
+	cursor: pointer;
+}
+
+.level-voter__actions button:hover,
+.level-voter__actions button.is-confirming {
+	background-color: hsl(0, 60%, 40%);
+}

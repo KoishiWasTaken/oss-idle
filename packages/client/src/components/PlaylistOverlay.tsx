@@ -1,28 +1,32 @@
+import './PlaylistOverlay.css';
+
 import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
-import useKeyboardOwner from '../input/keyboardOwner';
-import './PlaylistOverlay.css';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
+
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { lockLabel } from '@oss-idle/shared/mods';
+
 import {
 	getPlaylistIndex,
 	Playlist,
 	playlistsVersion,
 } from '../db/schema/playlist';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { rateLabel } from '@oss-idle/shared/rate';
+import { selectedMods } from '../gameplay/playMods';
 import {
 	canPlayAt,
 	liveSpeedUpgrades,
 	selectedRate,
 } from '../gameplay/playRate';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
+import useKeyboardOwner from '../input/keyboardOwner';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
 
 type Props = {
 	/** the right-clicked difficulty the +/- buttons act on */
@@ -43,6 +47,8 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 	const [version] = useSynced(playlistsVersion);
 	const index = useAsync(() => getPlaylistIndex(), [version]);
 	const [rate] = useSynced(selectedRate);
+	const [mods] = useSynced(selectedMods);
+	const lock = lockLabel(rate, mods);
 	useSynced(liveSpeedUpgrades);
 
 	const [name, setName] = useState('');
@@ -114,9 +120,11 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 							.get(beatmapId)
 							?.filter((x) => x.id === p.id) ?? [];
 						const contains = entries.some((x) => x.rate === undefined);
-						const locked = entries
-							.flatMap((x) => x.rate === undefined ? [] : [x.rate])
-							.sort((a, b) => a - b);
+						const locked = [...new Map(entries.flatMap((x) => x.rate === undefined ? [] : [
+							[lockLabel(x.rate, x.mods), {
+								rate: x.rate, mods: x.mods,
+							}] as const,
+						])).entries()].sort(([, a], [, b]) => a.rate - b.rate);
 						const nbMaps = index.counts.get(p.id) ?? 0;
 						return (
 							<div
@@ -144,15 +152,15 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 									</span>
 								)}
 								<span className="plmgr__actions">
-									{locked.map((r) => (
+									{locked.map(([label, l]) => (
 										<button
-											key={r}
+											key={label}
 											type="button"
-											className={`plmgr__btn plmgr__btn--remove ${canPlayAt(r) ? '' : 'plmgr__btn--unreachable'}`}
-											title={t`Remove this difficulty at ${ph({ rate: rateLabel(r) })}`}
-											onClick={(e) => { e.stopPropagation(); void p.removeBeatmap(beatmapId, r); }}
+											className={`plmgr__btn plmgr__btn--remove ${canPlayAt(l.rate) ? '' : 'plmgr__btn--unreachable'}`}
+											title={t`Remove this difficulty at ${ph({ rate: label })}`}
+											onClick={(e) => { e.stopPropagation(); void p.removeBeatmap(beatmapId, l.rate, l.mods); }}
 										>
-											{rateLabel(r)}
+											{label}
 										</button>
 									))}
 									<button
@@ -179,11 +187,11 @@ export default function PlaylistOverlay({ beatmap, onClose }: Props) {
 									<button
 										type="button"
 										className="plmgr__btn plmgr__btn--add"
-										title={t`Add this difficulty locked at ${ph({ rate: rateLabel(rate) })}`}
-										disabled={locked.includes(rate)}
-										onClick={(e) => { e.stopPropagation(); void p.addBeatmap(beatmapId, rate); }}
+										title={t`Add this difficulty locked at ${ph({ rate: lock })}`}
+										disabled={locked.some(([label]) => label === lock)}
+										onClick={(e) => { e.stopPropagation(); void p.addBeatmap(beatmapId, rate, mods); }}
 									>
-										+ {rateLabel(rate)}
+										+ {lock}
 									</button>
 									<button
 										type="button"

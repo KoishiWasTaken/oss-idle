@@ -1,11 +1,11 @@
-import { effectiveLevelOf } from '../sim/skills/levelCurve.js';
+import { effectiveLevelOf } from '../xp.js';
+import HoverCard from './HoverCard.js';
+import HoverCardRow from './HoverCardRow.js';
 import {
 	levelFromTotalXp,
 	levelFromXp,
 	levelNode,
 } from './levelDisplay.js';
-import HoverCard from './HoverCard.js';
-import HoverCardRow from './HoverCardRow.js';
 
 /**
  * The level a character is shown at: their xp level plus prestige bonus levels.

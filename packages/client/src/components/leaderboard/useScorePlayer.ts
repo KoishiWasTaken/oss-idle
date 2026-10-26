@@ -1,10 +1,11 @@
-import { Score } from '../../db/schema/score';
-import Character from '../../db/schema/character';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { ScoreDTO } from '@oss-idle/shared/score';
+
+import Character from '../../db/schema/character';
+import { Score } from '../../db/schema/score';
 import { getCharacter } from '../../online/services/characters';
-import { getUser } from '../../online/services/users';
 import type { BoardPlayer } from '../../online/services/scores';
+import { getUser } from '../../online/services/users';
 
 /**
  * Who set a score: the leaderboard's player when it says, else the character

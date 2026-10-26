@@ -1,6 +1,7 @@
-import * as ppjs from 'rosu-pp-js-web';
-import BeatmapStore from './beatmap/beatmap_store';
 import { Beatmap } from 'osu-classes';
+import * as ppjs from 'rosu-pp-js-web';
+
+import BeatmapStore from './beatmap/beatmap_store';
 import rosuReady from './rosu';
 
 export { difficultyColor } from '@oss-idle/shared/display/difficulty';

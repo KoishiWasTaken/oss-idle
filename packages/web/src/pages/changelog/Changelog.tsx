@@ -1,13 +1,14 @@
 import './Changelog.css';
 
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import ShowMoreLink from '../../components/ShowMoreLink';
-import ChangelogNav from './ChangelogNav';
-import UpdateStreams from './UpdateStreams';
 import Build from './Build';
 import { BUILDS } from './builds';
+import ChangelogNav from './ChangelogNav';
 import { formatBuildDate } from './formatBuildDate';
+import UpdateStreams from './UpdateStreams';
 
 const PAGE = 20;
 

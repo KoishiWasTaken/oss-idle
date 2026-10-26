@@ -1,12 +1,13 @@
+import Markdown from '@oss-idle/shared/display/Markdown';
 import {
 	SKIN_STATUS,
 	type SkinStatus,
 } from '@oss-idle/shared/skin';
+
 import {
-	skinIconUrl,
 	type AdminSkin,
+	skinIconUrl,
 } from '../../api/skins';
-import Markdown from '@oss-idle/shared/display/Markdown';
 import { formatDate } from './formatDate';
 
 export default function SkinRow({ row, busy, onModerate }: {

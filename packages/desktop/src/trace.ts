@@ -1,7 +1,9 @@
-import { contentTracing } from 'electron';
 import fs from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
+
+import { contentTracing } from 'electron';
+
 import { STAGING } from './config';
 
 /**

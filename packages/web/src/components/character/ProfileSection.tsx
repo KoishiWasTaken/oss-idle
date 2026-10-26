@@ -1,10 +1,11 @@
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
 import {
 	type ReactNode,
 	useRef,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+
 import type { ProfileSection as Section } from '@oss-idle/shared/profile';
 
 const DRAG_TYPE = 'application/x-profile-section';

@@ -1,16 +1,17 @@
 import { ph } from '@lingui/core/macro';
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
 	deleteClient,
-	updateClient,
 	type OwnClient,
+	updateClient,
 } from '../../api/oauth';
-import OAuthDialog from './OAuthDialog';
 import OAuthClientSecret from './OAuthClientSecret';
+import OAuthDialog from './OAuthDialog';
 import {
 	callbackUrls,
 	useAction,

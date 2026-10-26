@@ -1,10 +1,11 @@
 import type { Database } from 'sql.js';
+
+import { GRADE } from '@oss-idle/shared/grade';
 import { rankValueSQL } from '@oss-idle/shared/scoreOrder';
 import {
 	xpGivesLevel,
 	xpToLevel,
-} from '@oss-idle/shared/sim/skills/xp';
-import { GRADE } from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/xp';
 
 /**
  * Schema migrations, applied in order on boot.
@@ -384,11 +385,36 @@ const playlistEntryOrder: Migration = db => {
 	db.run('DROP TABLE playlist_entry_old;');
 };
 
+/** A play's xp per skill as one JSON column, whatever the ruleset's skills: the 4K
+ *  columns are read into it once and left unread. */
+const scoreXpGains: Migration = db => {
+	const table = 'SELECT 1 FROM sqlite_master WHERE type = \'table\' AND name = \'score_xp\';';
+	if (!db.exec(table).length) return;
+	addColumn(db, 'score_xp', 'gains', 'TEXT DEFAULT \'{}\'');
+	const skills = [
+		'accuracy', 'speed', 'stamina', 'jackspeed', 'coordination', 'release',
+		'reading', 'consistency', 'concentration', 'speedjam', 'memory',
+	].filter(skill => hasColumn(db, 'score_xp', skill));
+	if (!skills.length) return;
+	const rows = db.exec(`SELECT scoreId, ${skills.join(', ')} FROM score_xp;`)[0]?.values ?? [];
+	for (const [scoreId, ...gained] of rows) {
+		const gains = Object.fromEntries(skills
+			.map((skill, i) => [skill, Number(gained[i] ?? 0)])
+			.filter(([, xp]) => (xp as number) > 0));
+		db.run('UPDATE score_xp SET gains = ? WHERE scoreId = ?;', [JSON.stringify(gains), scoreId]);
+	}
+};
+
 /** Skins are osu! skins now, their files kept in IndexedDB: the old JSON ones go. */
 const osuSkins: Migration = db => {
 	if (!hasColumn(db, 'skin', 'definition')) return;
 	db.run('DELETE FROM skin;');
 	db.run('ALTER TABLE skin DROP COLUMN definition;');
+};
+
+/** A playlist lock holds the mods picked with its rate. */
+const playlistEntryMods: Migration = db => {
+	addColumn(db, 'playlist_entry', 'mods', 'TEXT NOT NULL DEFAULT \'\'');
 };
 
 const migrations: Migration[] = [
@@ -413,6 +439,8 @@ const migrations: Migration[] = [
 	addAddonTypes,
 	playlistEntryOrder,
 	osuSkins,
+	scoreXpGains,
+	playlistEntryMods,
 ];
 
 /**

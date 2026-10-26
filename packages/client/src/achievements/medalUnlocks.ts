@@ -1,12 +1,11 @@
-import {
-	medalById,
-	medalLook,
-} from '@oss-idle/shared/achievements/catalogue';
+import { medalLook } from '@oss-idle/shared/achievements/catalogue';
 import type { MedalLook } from '@oss-idle/shared/achievements/medal';
+
 import {
 	medalDescription,
 	medalName,
-} from '@oss-idle/shared/display/medals';
+} from '../rulesets/registry';
+import { anyMedal } from '../rulesets/registry';
 
 export type MedalUnlock = {
 	id: string,
@@ -19,7 +18,7 @@ export type MedalUnlock = {
 
 /** What the unlock overlay shows for medal ids, unknown ids skipped. */
 export const medalUnlocks = (ids: readonly string[]): MedalUnlock[] => ids.flatMap(id => {
-	const medal = medalById(id);
+	const medal = anyMedal(id);
 	if (!medal) return [];
 	return [{
 		id,

@@ -2,13 +2,16 @@ import {
 	MAP_TAGS,
 	type MapTag,
 } from '@oss-idle/shared/beatmap';
+import { rulesetOf } from '@oss-idle/shared/rulesets/ids';
+
 import type { Nomination } from '../../api/maps';
+import { ENABLED_RULESETS } from '../../rulesets';
 
 type Diff = Nomination['diffs'][number];
 
 /** Per-difficulty ranked toggles: the set is scheduled as a whole, but only the
  *  ticked diffs go (or stay) ranked - the rest are invisible to the client.
- *  Non-4K diffs can never be ranked. */
+ *  A difficulty no ruleset here plays can never be ranked. */
 export default function NominationDiffs({
 	diffs, busy, live, onToggle, onTags,
 }: {
@@ -19,7 +22,7 @@ export default function NominationDiffs({
 	onTags: (beatmapId: number, tags: MapTag[]) => void;
 }) {
 	const title = (diff: Diff, locked: boolean): string => {
-		if (locked) return 'Only 4K difficulties can be ranked';
+		if (locked) return 'No ruleset here plays this difficulty';
 		if (diff.ranked) return 'Ranked — click to unrank this difficulty';
 		return 'Unranked — click to include it';
 	};
@@ -46,7 +49,8 @@ export default function NominationDiffs({
 	return (
 		<div className='nomination__diffs'>
 			{diffs.map(diff => {
-				const locked = diff.keys !== 4;
+				const ruleset = rulesetOf(diff.mode, diff.keys);
+				const locked = !ruleset || !ENABLED_RULESETS.includes(ruleset);
 				return (
 					<span key={diff.id} className={`nomination__diff-group ${diff.ranked ? 'is-ranked' : ''}`}>
 						<button

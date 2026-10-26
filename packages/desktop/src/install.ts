@@ -1,11 +1,13 @@
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+
 import {
 	app,
 	type BrowserWindow,
 	dialog,
 } from 'electron';
-import { spawn } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
+
 // eslint-disable-next-line @stylistic/max-len
 import type { DesktopMoveResult } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 

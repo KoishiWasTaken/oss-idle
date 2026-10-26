@@ -1,15 +1,17 @@
 import 'dotenv/config';
+
 import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
+
+import {
+	bakeCover,
+	COVER_SUFFIX,
+	coverName,
+} from '../beatmaps/covers';
 import {
 	PREVIEW_DIR,
 	previewPath,
 } from '../beatmaps/storage';
-import {
-	COVER_SUFFIX,
-	bakeCover,
-	coverName,
-} from '../beatmaps/covers';
 import { pool } from './client';
 
 /**

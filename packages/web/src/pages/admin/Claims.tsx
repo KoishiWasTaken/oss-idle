@@ -5,17 +5,19 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import { dateAgo } from '@oss-idle/shared/display/ago';
-import Link from '../../components/Link';
-import OutLink from '../../components/OutLink';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	acceptMapClaim,
 	listMapClaims,
-	rejectMapClaim,
 	type MapClaim,
+	rejectMapClaim,
 } from '../../api/mapRequests';
+import Link from '../../components/Link';
+import OutLink from '../../components/OutLink';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 /** Temporary: who claims to have proposed which ranked map on Discord. Accepting attributes the map to them. */
 export default function Claims() {

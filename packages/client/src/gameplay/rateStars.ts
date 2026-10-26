@@ -2,9 +2,10 @@ import Synced from '@oss-idle/shared/helpers/synced';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { versionLabel } from '@oss-idle/shared/rate';
+
 import { rpc } from '../online/client';
-import { selectedRate } from './playRate';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { selectedRate } from './playRate';
 
 /** Every difficulty's stars at the picked rate, by id; empty at x1. */
 export const rateStars = new Synced<ReadonlyMap<number, number>>(new Map());
@@ -51,9 +52,9 @@ export const useStarsOf = (beatmap: LightBeatmap): number => {
 	return atLock?.get(beatmap.metadata.id) ?? beatmap.metadata.difficulty;
 };
 
-/** A difficulty's name as shown at the picked rate, or at its locked one:
- *  Beginner x1.3. */
-export const useRatedVersion = (version: string, lockedRate?: number): string => {
+/** A difficulty's name as shown at the picked rate, or at its locked one with its
+ *  locked mods: Beginner x1.3 +HR. */
+export const useRatedVersion = (beatmap: LightBeatmap): string => {
 	const [rate] = useSynced(selectedRate);
-	return versionLabel(version, lockedRate ?? rate ?? 1);
+	return versionLabel(beatmap.metadata.version, beatmap.lockedRate ?? rate ?? 1, beatmap.lockedMods);
 };

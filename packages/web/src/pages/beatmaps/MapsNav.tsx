@@ -1,9 +1,10 @@
-import Nav from '../../components/Nav';
-import Link from '../../components/Link';
 import { useLingui } from '@lingui/react/macro';
 
+import Link from '../../components/Link';
+import Nav from '../../components/Nav';
+
 export default function MapsNav({ current }: {
-	current: 'listing' | 'requests',
+	current: 'listing' | 'requests' | 'levels',
 }) {
 	const { t } = useLingui();
 
@@ -27,6 +28,9 @@ export default function MapsNav({ current }: {
 			className={item('requests')}
 		>
 			{t`map requests`}
+		</Link>
+		<Link to='/maps/levels' className={item('levels')}>
+			{t`level calibration`}
 		</Link>
 	</Nav>);
 }

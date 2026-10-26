@@ -1,6 +1,7 @@
 import './Addons.css';
 
 import type { AddonStatus } from '@oss-idle/shared/addon';
+
 import {
 	listAddonsAdmin,
 	moderateAddon,

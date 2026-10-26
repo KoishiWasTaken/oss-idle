@@ -1,13 +1,7 @@
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import type CharacterBot from '@oss-idle/shared/sim/bots/character';
+import { type Grade } from '@oss-idle/shared/grade';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import type Skin from '../../osu/skin/Skin';
-import {
-	SKILL,
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import { skillName } from '@oss-idle/shared/display/skills';
-import { type Grade } from '@oss-idle/shared/judgement';
 
 export type Viewport = {
 	w: number,
@@ -32,9 +26,10 @@ export type PlayfieldGeometry = {
 };
 
 export type StrainHud = {
-	/** the bot whose live strain feeds the gauges */
-	bot: CharacterBot,
-	labels: Record<SkillName, string>,
+	/** what the gauges read: the live strain, by skill */
+	source: { strainsAt(now: number): Readonly<Record<string, number>> },
+	/** the gauges, top to bottom */
+	gauges: readonly { skill: string, label: string }[],
 	/** where the gauges start, past anything drawn at the left edge */
 	left?: number,
 	/** where on the warm-up bar, 0 cold to 1 exhausted */
@@ -52,6 +47,8 @@ export type DrawOptions = {
 	mobile?: boolean,
 	/** draws the per-skill strain gauges when set */
 	strain?: StrainHud,
+	/** the ruleset's debug readouts over the playfield */
+	debugStats?: (game: ManiaGame, now: number) => string[],
 	/** fired only when the live grade changes (drive a DOM grade badge from it) */
 	onGrade?: (grade: Grade) => void,
 };
@@ -126,17 +123,3 @@ export const roundRect = (
 	ctx.arcTo(x, y, x + w, y, r);
 	ctx.closePath();
 };
-
-// skills whose live strain is meaningful to watch - the rest are hidden from the
-// strain HUD (accuracy is a level constant; memory has no press strain of its own
-// - it only reduces SpeedJam's)
-export const STRAIN_HUD_HIDDEN = new Set<SkillName>([
-	SKILL.accuracy,
-	SKILL.memory,
-	SKILL.consistency,
-]);
-export const STRAIN_HUD_SKILLS = Skills.filter(s => !STRAIN_HUD_HIDDEN.has(s));
-
-/** per-skill display labels for the strain HUD, in the active locale */
-export const strainLabels = (): Record<SkillName, string> =>
-	Object.fromEntries(Skills.map(s => [s, skillName(s)])) as Record<SkillName, string>;

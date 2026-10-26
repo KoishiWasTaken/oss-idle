@@ -15,10 +15,12 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+
 import {
-	MAX_ADDON_BUNDLE,
 	type AddonBuildResult,
+	MAX_ADDON_BUNDLE,
 } from '@oss-idle/shared/addon';
+
 import {
 	isolationTargets,
 	PROBE_SCRIPT,

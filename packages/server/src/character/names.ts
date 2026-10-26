@@ -1,12 +1,14 @@
-import { HTTPException } from 'hono/http-exception';
 import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
-import { farmQuery } from '../db/stats';
-import { characters } from '../db/schema/character';
+import { HTTPException } from 'hono/http-exception';
+
 import {
 	OLD_SUFFIX,
 	usesReservedOld,
 } from '@oss-idle/shared/rebirth';
+
+import { db } from '../db/client';
+import { characters } from '../db/schema/character';
+import { farmQuery } from '../db/stats';
 
 /** The name a displaced character falls back to, osu!-style: append _old until
  *  it is free, so a lineage chains Adri -> Adri_old -> Adri_old_old. */

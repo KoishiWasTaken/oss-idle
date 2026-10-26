@@ -1,16 +1,19 @@
 import './Announce.css';
+
+import { useLingui } from '@lingui/react/macro';
 import {
-	useState,
 	type CSSProperties,
+	useState,
 } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { getLatest } from '../online/services/news';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { SETTINGS } from '../db/settings';
 import { NEWS_TAGS } from '@oss-idle/shared/news';
+
+import { SETTINGS } from '../db/settings';
 import { BASE_URL } from '../online/client';
 import { updateStatus } from '../online/desktopUpdate';
-import { useLingui } from '@lingui/react/macro';
+import { getLatest } from '../online/services/news';
 
 // one formatter for every render: making one is most of what formatting a date costs
 const DAY = new Intl.DateTimeFormat('en-US', {

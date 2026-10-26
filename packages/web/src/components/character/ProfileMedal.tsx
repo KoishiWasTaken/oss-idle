@@ -1,15 +1,19 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
 import {
-	medalLook,
 	type MedalDef,
+	medalLook,
 } from '@oss-idle/shared/achievements/catalogue';
 import {
 	medalCategoryName,
-	medalDescription,
-	medalName,
 	medalTierName,
 } from '@oss-idle/shared/display/medals';
+
+import {
+	medalDescription,
+	medalName,
+} from '../../rulesets';
 import MedalIcon from './MedalIcon';
 import MedalProgressBar from './MedalProgressBar';
 

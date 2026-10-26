@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import {
 	app,
 	BrowserWindow,
@@ -5,19 +8,10 @@ import {
 	Menu,
 	shell,
 } from 'electron';
-import fs from 'node:fs';
-import path from 'node:path';
-import {
-	DESKTOP_SCHEME,
-	IS_DEV,
-	RENDERER_URL,
-	STAGING,
-	iconPath,
-} from './config';
-import {
-	registerAppProtocol,
-	registerAppSchemePrivileges,
-} from './protocol';
+
+// eslint-disable-next-line @stylistic/max-len
+import type { DesktopPresence } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
+
 import {
 	authorizeApiRequests,
 	getToken,
@@ -25,8 +19,21 @@ import {
 	logout,
 	startLogin,
 } from './auth';
+import {
+	DESKTOP_SCHEME,
+	iconPath,
+	IS_DEV,
+	RENDERER_URL,
+	STAGING,
+} from './config';
 import { handleDeepLink } from './deeplink';
-import { recordTrace } from './trace';
+import { isAppFrame } from './frames';
+import {
+	canMoveInstall,
+	finishMove,
+	libraryRoot,
+	moveInstall,
+} from './install';
 import {
 	initLibrary,
 	listLibrary,
@@ -35,7 +42,16 @@ import {
 	revealLibrary,
 	writeLibrary,
 } from './library';
-import { isAppFrame } from './frames';
+import {
+	destroyPresence,
+	initPresence,
+	setPresence,
+} from './presence';
+import {
+	registerAppProtocol,
+	registerAppSchemePrivileges,
+} from './protocol';
+import { recordTrace } from './trace';
 import {
 	checkForUpdate,
 	downloadUpdate,
@@ -44,19 +60,6 @@ import {
 	listStreams,
 	switchStream,
 } from './update';
-import {
-	canMoveInstall,
-	finishMove,
-	libraryRoot,
-	moveInstall,
-} from './install';
-import {
-	destroyPresence,
-	initPresence,
-	setPresence,
-} from './presence';
-// eslint-disable-next-line @stylistic/max-len
-import type { DesktopPresence } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
 
 // The data folder was named after the package before the rename to oss!idle. It
 // holds the save and the session, so it moves over once, before anything opens it.

@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
 	clearOldHost,
@@ -7,6 +8,7 @@ import {
 	hasOldHostData,
 	OLD_HOST,
 } from '@oss-idle/shared/hostMove';
+
 import SceneManager, { SCENE } from '../scenes/SceneManager';
 import ConfirmMenu from './ConfirmMenu';
 

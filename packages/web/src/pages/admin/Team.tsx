@@ -1,14 +1,18 @@
 import './Medals.css';
 import './Team.css';
+
 import {
 	useCallback,
 	useEffect,
 	useState,
 } from 'react';
+
 import {
 	GROUP_BADGE,
 	GROUPS,
 } from '@oss-idle/shared/groups';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	addToGroup,
 	getTeam,
@@ -16,7 +20,6 @@ import {
 } from '../../api/team';
 import TeamGroup from './TeamGroup';
 import TeamSearch from './TeamSearch';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 /** The team: find a player to add to a group, and each group's members. */
 export default function Team() {

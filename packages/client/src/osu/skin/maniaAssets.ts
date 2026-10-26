@@ -2,23 +2,24 @@ import {
 	findImage,
 	type FoundImage,
 } from '@oss-idle/shared/osuSkin/files';
-import { versionNumber } from '@oss-idle/shared/osuSkin/ini';
 import type { Rgba } from '@oss-idle/shared/osuSkin/ini';
+import { versionNumber } from '@oss-idle/shared/osuSkin/ini';
 import {
 	columnType,
+	type ManiaConfig,
 	maniaConfig,
 	NOTE_BODY,
-	type ManiaConfig,
 } from '@oss-idle/shared/osuSkin/mania';
 import {
 	JUDGEMENT,
 	type Judgement,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/rulesets/mania/judgement';
+
 import type OsuSkin from './OsuSkin';
 import {
 	coveredSpan,
-	resident,
 	type Fit,
+	resident,
 } from './OsuSkin';
 
 /** A decoded element: its frames, and its size in stable's 768-high space (@2x halved). */

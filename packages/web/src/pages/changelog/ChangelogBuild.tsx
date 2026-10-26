@@ -1,13 +1,14 @@
 import './Changelog.css';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import Link from '../../components/Link';
-import ChangelogNav from './ChangelogNav';
-import UpdateStreams from './UpdateStreams';
 import Build from './Build';
 import { BUILDS } from './builds';
+import ChangelogNav from './ChangelogNav';
+import UpdateStreams from './UpdateStreams';
 
 /** osu-web's build page: the build with its date, then links to its neighbours. */
 export default function ChangelogBuild({ index, online }: {

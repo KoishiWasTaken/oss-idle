@@ -1,22 +1,23 @@
 /** What add-ons and skins share: an author, a catalog to browse, a deduped download count. */
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
+	type AnyColumn,
 	asc,
 	desc,
 	eq,
 	isNull,
 	like,
 	or,
-	sql,
-	type AnyColumn,
 	type SQL,
+	sql,
 } from 'drizzle-orm';
+import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
 import { db } from './db/client';
-import { users } from './db/schema/user';
 import { likeEscape } from './db/columns';
 import { addons } from './db/schema/addon';
 import { skins } from './db/schema/skin';
+import { users } from './db/schema/user';
 
 /** Map a row to its wire shape with the author's username. */
 export const withAuthor = async <R extends { authorId: number }, T>(

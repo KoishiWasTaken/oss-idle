@@ -1,7 +1,8 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
 import { z } from 'zod';
-import { msg } from '@lingui/core/macro';
+
 import Settings from '../pages/settings/Settings';
 
 const settingsSearch = z.object({

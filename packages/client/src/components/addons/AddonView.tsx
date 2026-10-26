@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
 	ADDON_KIND,
 	ADDON_TEMPLATE,
@@ -8,21 +9,22 @@ import {
 	type AddonType,
 } from '@oss-idle/shared/addon';
 import { VERSION } from '@oss-idle/shared/version';
+
 import {
-	createAddon,
-	updateAddon,
 	type Addon,
+	createAddon,
 	type OwnAddon,
+	updateAddon,
 } from '../../online/addons';
-import AddonEditMeta, { type AddonForm } from './AddonEditMeta';
-import AddonCodePane from './AddonCodePane';
-import AddonRepoPane from './AddonRepoPane';
-import AddonReadMeta from './AddonReadMeta';
-import PageBarActions from '../page/PageBarActions';
 import {
 	editorBarActions,
 	type PageAction,
 } from '../page/pageBar';
+import PageBarActions from '../page/PageBarActions';
+import AddonCodePane from './AddonCodePane';
+import AddonEditMeta, { type AddonForm } from './AddonEditMeta';
+import AddonReadMeta from './AddonReadMeta';
+import AddonRepoPane from './AddonRepoPane';
 
 /**
  * Normalised add-on info:

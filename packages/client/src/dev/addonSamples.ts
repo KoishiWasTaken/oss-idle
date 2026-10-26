@@ -3,6 +3,7 @@ import {
 	ADDON_KIND,
 	ADDON_STATUS,
 } from '@oss-idle/shared/addon';
+
 import type { OwnAddon } from '../online/addons';
 
 /** A published repo add-on whose newest build failed. */

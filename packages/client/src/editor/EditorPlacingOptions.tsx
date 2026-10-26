@@ -2,15 +2,17 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	currentPlacing,
-	placingOptions,
 	type PlacingOptions,
+	placingOptions,
 } from './placing';
 import {
-	choices,
 	type Choice,
+	choices,
 } from './viewControls';
 
 /** How a click places a note: on the nearest beat line or the one before. */

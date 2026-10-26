@@ -1,13 +1,15 @@
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { unlocksForGeneration } from '@oss-idle/shared/rebirth';
-import Entities from '../../entity/entities';
+
 import type Character from '../../db/schema/character';
+import Entities from '../../entity/entities';
 import {
 	listCharacters,
 	selectCharacter,

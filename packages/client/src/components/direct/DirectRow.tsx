@@ -1,12 +1,13 @@
+import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
+
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
-import { coverStyle } from './directState';
 import DifficultyDots from './DifficultyDots';
+import { coverStyle } from './directState';
 
 type Props = {
 	set: Metadata,

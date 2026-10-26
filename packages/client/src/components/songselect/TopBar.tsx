@@ -1,8 +1,6 @@
-import { type ReactNode } from 'react';
 import { Trans } from '@lingui/react/macro';
-import BeatmapInfo from './BeatmapInfo';
-import Dropdown from '../dropdown/Dropdown';
-import LightBeatmap from '../../osu/beatmap/LightBeatmap';
+import { type ReactNode } from 'react';
+
 import {
 	GroupOption,
 	GroupOptions,
@@ -10,6 +8,9 @@ import {
 	SortOption,
 	SortOptions,
 } from '../../db/settings';
+import LightBeatmap from '../../osu/beatmap/LightBeatmap';
+import Dropdown from '../dropdown/Dropdown';
+import BeatmapInfo from './BeatmapInfo';
 
 /** Player-facing label for a sort/group option. The option *value* stays the
  *  raw key - comparators, the persisted setting, and grouping all branch on it
@@ -27,6 +28,7 @@ function optionLabel(option: GroupOption | SortOption): ReactNode {
 		case 'By Playlist': return <Trans>By Playlist</Trans>;
 		case 'By Rank Achieved': return <Trans>By Rank Achieved</Trans>;
 		case 'By Status': return <Trans>By Status</Trans>;
+		case 'By Tag': return <Trans>By Tag</Trans>;
 		case 'By Title': return <Trans>By Title</Trans>;
 		case 'Recently Played': return <Trans>Recently Played</Trans>;
 	}

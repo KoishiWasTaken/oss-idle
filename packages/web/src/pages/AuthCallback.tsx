@@ -1,26 +1,28 @@
-import { ph } from '@lingui/core/macro';
+import './AuthCallback.css';
 
-import { useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useCurrentUser } from '../hooks/useCurrentUser';
-import { pageTitle } from '../globals';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+
 import { takeReturnPath } from '../auth';
+import AuthBackdrop from '../components/AuthBackdrop';
 import {
 	detectPlatform,
 	fetchManifest,
 	PLATFORM_LABEL,
 	resolveDownload,
 } from '../download';
-import AuthBackdrop from '../components/AuthBackdrop';
-import './AuthCallback.css';
+import { pageTitle } from '../globals';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 /** osu! → API → here. The API already set the session cookie; this page just
  * notifies the game (same-origin localStorage ping) and closes the popup. */

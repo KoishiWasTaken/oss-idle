@@ -1,4 +1,5 @@
 import { desktop } from '@oss-idle/shared/desktop';
+
 import { rpc } from './client';
 
 /** Sign out: clear the server cookie and, on desktop, drop the held Bearer token

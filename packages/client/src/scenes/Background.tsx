@@ -1,10 +1,12 @@
+import './Background.css';
+
 import { useParallax } from '@oss-idle/shared/hooks/useParallax';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { music } from '../audio/MusicPlayer';
 import { SETTINGS } from '../db/settings';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import useFileUrl from '../osu/beatmap/useFileUrl';
-import './Background.css';
 
 /** The live track's backdrop, or a given map's - a screen about one particular
  *  map (a result) says which, instead of following whatever is selected. An

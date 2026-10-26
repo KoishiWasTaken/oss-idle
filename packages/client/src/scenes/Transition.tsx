@@ -1,8 +1,10 @@
-import type { ReactNode } from 'react';
-import Synced from '@oss-idle/shared/helpers/synced';
-import sleep from '@oss-idle/shared/helpers/sleep';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 import './Transition.css';
+
+import type { ReactNode } from 'react';
+
+import sleep from '@oss-idle/shared/helpers/sleep';
+import Synced from '@oss-idle/shared/helpers/synced';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 
 const FADE_MS = 300;
 

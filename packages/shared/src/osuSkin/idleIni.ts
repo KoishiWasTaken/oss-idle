@@ -1,7 +1,7 @@
 import {
 	JUDGEMENT,
 	type Judgement,
-} from '../judgement.js';
+} from '../rulesets/mania/judgement.js';
 import {
 	iniBool,
 	iniColour,

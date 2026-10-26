@@ -1,7 +1,8 @@
 import '../../components/leaderboard/MedalProgress.css';
+
+import type { getProgressOverview } from '../../api/rankings';
 import MedalBoardTabs from '../../components/leaderboard/MedalBoardTabs';
 import MedalProgressCard from '../../components/leaderboard/MedalProgressCard';
-import type { getProgressOverview } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 /** Every medal line, with the players furthest along it. */

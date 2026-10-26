@@ -1,9 +1,10 @@
 import './RouteProgress.css';
+
+import { useRouterState } from '@tanstack/react-router';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { useRouterState } from '@tanstack/react-router';
 
 /** Thin full-width bar at the very top of the page, shown only while a route
  *  navigation is pending. The previous page stays visible until the next route's

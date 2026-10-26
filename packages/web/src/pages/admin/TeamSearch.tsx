@@ -1,21 +1,24 @@
 import '../search/Search.css';
 import './Team.css';
+
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+
 import {
+	type Group,
 	GROUP_BADGE,
 	GROUPS,
-	type Group,
 } from '@oss-idle/shared/groups';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import { searchPlayers } from '../../api/characters';
+import GroupBadge from '../../components/character/GroupBadge';
 import Link from '../../components/Link';
 import ProfilePicture from '../../components/ProfilePicture';
-import GroupBadge from '../../components/character/GroupBadge';
 
 const SHOWN = 10;
 

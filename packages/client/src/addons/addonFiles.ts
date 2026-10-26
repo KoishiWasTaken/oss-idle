@@ -1,5 +1,7 @@
 import { strToU8 } from 'fflate';
+
 import type { LibraryEntry } from '@oss-idle/shared/desktop';
+
 import type { Addon } from '../db/schema/addon';
 import {
 	entryById,

@@ -1,8 +1,10 @@
 import { t } from '@lingui/core/macro';
+
 import Synced from '@oss-idle/shared/helpers/synced';
+
 import { Setting } from '../db/settings';
-import type EditorSession from './session';
 import { BUILTIN_ACTIONS } from './builtinActions';
+import type EditorSession from './session';
 
 /** What actions can do beyond the session: the editor view's own commands. */
 export type EditorCommands = {

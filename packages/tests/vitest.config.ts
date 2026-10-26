@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'vitest/config';
 
 /** Resolve a sibling package's source dir, so tests run against current source

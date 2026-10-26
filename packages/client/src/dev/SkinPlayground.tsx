@@ -3,29 +3,32 @@ import {
 	useRef,
 	useState,
 } from 'react';
+
+import type { Grade } from '@oss-idle/shared/grade';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import { scrollSpeedToMs } from '@oss-idle/shared/osu/scroll_speed';
-import type { Grade } from '@oss-idle/shared/judgement';
+import CharacterBot from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import { makeOrderedSkills } from '@oss-idle/shared/rulesets/mania/4k/skills/factory';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { scrollSpeedToMs } from '@oss-idle/shared/rulesets/mania/scroll_speed';
+
 import GameplayRenderer from '../gameplay/gameplayRenderer';
 const SKILLED = 150;
-import { SETTINGS } from '../db/settings';
+import '../scenes/Gameplay.css';
+
 import { installedSkins } from '../db/schema/skin';
-import {
-	currentSkin,
-	currentSkinDAO,
-} from '../osu/skin/Skin';
+import { SETTINGS } from '../db/settings';
+import { makeGradePlacer } from '../gameplay/gradeBadge';
+import { skinTestChart } from '../gameplay/skinTestChart';
 import {
 	importSkin,
 	readOsk,
 } from '../osu/skin/importSkin';
+import {
+	currentSkin,
+	currentSkinDAO,
+} from '../osu/skin/Skin';
 import { pickFile } from '../pickFile';
 import { sizeCanvas } from '../sizeCanvas';
-import { skinTestChart } from '../gameplay/skinTestChart';
-import { makeGradePlacer } from '../gameplay/gradeBadge';
-import '../scenes/Gameplay.css';
 
 /** The current skin playing a generated chart full screen, looping, with a skin picker. */
 export default function SkinPlayground() {

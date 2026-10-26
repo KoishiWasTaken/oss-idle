@@ -1,7 +1,9 @@
 import './HomeButton.css';
-import type { ReactNode } from 'react';
+
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { ReactNode } from 'react';
+
 import Link from './Link';
 
 /** osu!web's giant dashboard button (btn-home), textured with our lanes. */

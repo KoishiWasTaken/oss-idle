@@ -2,22 +2,24 @@ import {
 	zip,
 	type Zippable,
 } from 'fflate';
+
 import {
 	fileType,
 	normalizePath,
 } from '@oss-idle/shared/osuSkin/files';
 import type { SkinFile } from '@oss-idle/shared/skin';
+
 import {
 	getSkin,
 	skinFileUrl,
 	type SkinWithFiles,
 } from '../../online/skins';
+import { DEFAULT_SKIN_FILES } from './defaultSkin';
 import {
 	getManifest,
 	getSkinFile,
 	putSkinFiles,
 } from './skinFiles';
-import { DEFAULT_SKIN_FILES } from './defaultSkin';
 
 const PARALLEL = 6;
 

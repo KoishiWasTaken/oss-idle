@@ -1,8 +1,8 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	createContext,
 	type ReactNode,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
 
 export type PageAction = {
 	id: string,

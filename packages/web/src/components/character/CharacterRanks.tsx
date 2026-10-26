@@ -1,12 +1,13 @@
-import { skillName } from '@oss-idle/shared/display/skills';
-import type { getCharacterStats } from '../../api/characters';
 import { Trans } from '@lingui/react/macro';
+
+import type { getCharacterStats } from '../../api/characters';
+import { rulesetDef } from '../../rulesets';
 import RankArea from './RankArea';
 
 type Stats = Awaited<ReturnType<typeof getCharacterStats>>;
 
 export function CharacterRanks({ stats }: { stats: Stats }) {
-	const skill = stats.bestSkill ? skillName(stats.bestSkill.skill) : '';
+	const skill = stats.bestSkill ? rulesetDef(stats.ruleset).skillName(stats.bestSkill.skill) : '';
 	const highest = stats.highestRanks;
 	return (
 		<div className='character__ranks'>

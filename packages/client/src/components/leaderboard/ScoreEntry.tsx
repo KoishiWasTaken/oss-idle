@@ -1,22 +1,25 @@
-import ScoreMods from './ScoreMods';
-import accuracy from '@oss-idle/shared/display/accuracy';
 import './ScoreEntry.css';
+
 import {
 	memo,
 	useState,
 } from 'react';
-import { Score } from '../../db/schema/score';
-import Character from '../../db/schema/character';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
-import { ScoreDTO } from '@oss-idle/shared/score';
-import { getCharacter } from '../../online/services/characters';
-import { currentSkin } from '../../osu/skin/Skin';
+
+import accuracy from '@oss-idle/shared/display/accuracy';
 import { recentTimeAgo } from '@oss-idle/shared/display/ago';
-import Entities from '../../entity/entities';
-import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
-import ScoreTooltip from './ScoreTooltip';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+import { ScoreDTO } from '@oss-idle/shared/score';
+
+import Character from '../../db/schema/character';
+import { Score } from '../../db/schema/score';
+import Entities from '../../entity/entities';
+import { getCharacter } from '../../online/services/characters';
 import type { BoardPlayer } from '../../online/services/scores';
+import { currentSkin } from '../../osu/skin/Skin';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import ScoreMods from './ScoreMods';
+import ScoreTooltip from './ScoreTooltip';
 import useScorePlayer from './useScorePlayer';
 
 interface Props {

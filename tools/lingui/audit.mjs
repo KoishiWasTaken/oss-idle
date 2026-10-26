@@ -4,8 +4,8 @@
 // shapes: JSX text on the same line as its tag, JSX text alone on its own line
 // (multi-line nodes, e.g. button labels), and string-literal attributes.
 
-import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const ROOTS = ['packages/client/src', 'packages/web/src'];
 

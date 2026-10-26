@@ -1,11 +1,12 @@
 import { useNavigate } from '@tanstack/react-router';
+
+import type { getSkillRanking } from '../../api/rankings';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
 import PlayerSkillLeaderboard, {
-	BOARDS,
 	type Board,
+	BOARDS,
 	type SkillSort,
 } from '../../components/leaderboard/PlayerSkillLeaderboard';
-import type { getSkillRanking } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 type Players = Awaited<ReturnType<typeof getSkillRanking>>;

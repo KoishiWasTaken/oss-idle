@@ -1,10 +1,12 @@
-import { VERSION } from '@oss-idle/shared/version';
-import { desktop } from '@oss-idle/shared/desktop';
-import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
-import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
 import { t } from '@lingui/core/macro';
-import Socket from './socket';
+
+import { desktop } from '@oss-idle/shared/desktop';
+import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
+import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+import { VERSION } from '@oss-idle/shared/version';
+
 import { checkForDesktopUpdate } from './desktopUpdate';
+import Socket from './socket';
 
 // The server pushes its version over the socket on every (re)connect. A bump
 // only ships by restarting the server, and the deploy restarts it only once the

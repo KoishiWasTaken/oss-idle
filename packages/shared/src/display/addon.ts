@@ -1,13 +1,13 @@
 import {
-	__,
-	defineMessages,
-} from '../i18n/translate.js';
-import {
 	ADDON_STATUS,
 	ADDON_TYPE,
 	type AddonStatus,
 	type AddonType,
 } from '../addon.js';
+import {
+	__,
+	defineMessages,
+} from '../i18n/translate.js';
 
 // Player-facing labels for the add-on states, kept apart from the
 // status keys the server/UI branch on (addon.ts owns those).

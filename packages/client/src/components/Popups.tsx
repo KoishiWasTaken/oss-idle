@@ -1,11 +1,13 @@
+import './Popups.css';
+
 import {
 	useCallback,
 	useEffect,
 	useState,
 } from 'react';
-import Log from '@oss-idle/shared/helpers/log';
+
 import type { Popup } from '@oss-idle/shared/helpers/log';
-import './Popups.css';
+import Log from '@oss-idle/shared/helpers/log';
 
 // how long a popup lingers before it starts sliding away
 const HOLD_MS = 4000;

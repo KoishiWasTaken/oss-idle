@@ -1,4 +1,5 @@
 import Synced from '@oss-idle/shared/helpers/synced';
+
 import type {
 	ActionContext,
 	EditorAction,

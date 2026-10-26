@@ -1,10 +1,11 @@
-import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
-import Socket from '../../../online/socket';
-import Auth from '../../../online/auth';
+import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+
 import Entities from '../../../entity/entities';
-import { blocked } from '../../../online/blocks';
 import { isCommunityOpen } from '../../../globals';
+import Auth from '../../../online/auth';
+import { blocked } from '../../../online/blocks';
+import Socket from '../../../online/socket';
 import { showChat } from '../state';
 import { plainText } from './links';
 import {

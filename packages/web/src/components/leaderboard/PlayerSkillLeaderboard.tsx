@@ -1,25 +1,23 @@
 import './PlayerLeaderboard.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
-import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
-import Link from '../Link';
-import Pager from './Pager';
-import type { getSkillRanking } from '../../api/rankings';
-import Flag from '../Flag';
-import rank from '@oss-idle/shared/display/rank';
-import { level } from '@oss-idle/shared/display/num';
-import { levelFromTotalXp } from '@oss-idle/shared/display/levelDisplay';
-import SkillLevel from '@oss-idle/shared/display/SkillLevel';
-import { Skills } from '@oss-idle/shared/skills';
-import {
-	mapped,
-	ValueIn,
-} from '@oss-idle/shared/helpers/mapped';
-import { skillName } from '@oss-idle/shared/display/skills';
+
 import { Trans } from '@lingui/react/macro';
 
-export const SkillSorts = ['overall', ...Skills] as const;
-export const SKILL_SORT = mapped(SkillSorts);
-export type SkillSort = ValueIn<typeof SKILL_SORT>;
+import { levelFromTotalXp } from '@oss-idle/shared/display/levelDisplay';
+import { level } from '@oss-idle/shared/display/num';
+import rank from '@oss-idle/shared/display/rank';
+import SkillLevel from '@oss-idle/shared/display/SkillLevel';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
+import type { getSkillRanking } from '../../api/rankings';
+import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
+import { rulesetDef } from '../../rulesets';
+import Flag from '../Flag';
+import Link from '../Link';
+import Pager from './Pager';
+
+/** 'overall', or one of the ruleset's skills. */
+export type SkillSort = string;
+const skillSorts = (): SkillSort[] => ['overall', ...rulesetDef().skills];
 
 type Players = Awaited<ReturnType<typeof getSkillRanking>>;
 type Player = Players[number];
@@ -37,23 +35,23 @@ export const BOARDS = {
 export type Board = keyof typeof BOARDS;
 
 const cell = (board: Board, player: Player, s: SkillSort) => {
-	const c = player.character;
+	const p = player.profile;
 	if (board === 'prestige') {
 		return s === 'overall'
-			? Skills.reduce((n, k) => n + c[`${k}Prestige`], 0)
-			: c[`${s}Prestige`];
+			? Object.values(p.skills).reduce((n, k) => n + k.prestige, 0)
+			: p.skills[s].prestige;
 	}
 	if (board === 'lifetime') {
-		return levelFromTotalXp(s === 'overall' ? c.overallLifetimeXp : c[`${s}LifetimeXp`]);
+		return levelFromTotalXp(s === 'overall' ? p.overallLifetimeXp : p.skills[s].lifetimeXp);
 	}
 	// what the skill holds now: the level, with its parts on hover
 	return s === 'overall'
-		? level(c.overallLevel, c.overallXp)
+		? level(p.overallLevel, p.overallXp)
 		: <SkillLevel
-			level={c[`${s}Level`]}
-			xp={c[`${s}Xp`]}
-			prestige={c[`${s}Prestige`]}
-			lifetimeXp={c[`${s}LifetimeXp`]}
+			level={p.skills[s].level}
+			xp={p.skills[s].xp}
+			prestige={p.skills[s].prestige}
+			lifetimeXp={p.skills[s].lifetimeXp}
 		/>;
 };
 
@@ -70,7 +68,7 @@ export default function PlayerSkillLeaderboard({
 	return (<div className='player__lb'>
 		<div className='player__lb_sort'>
 			<span><Trans>Sort by</Trans></span>
-			{SkillSorts.map(type => <Link
+			{skillSorts().map(type => <Link
 				key={type}
 				to={BOARDS[board]}
 				params={{ skill: type }}
@@ -78,7 +76,7 @@ export default function PlayerSkillLeaderboard({
 					...prev, page: 1, country,
 				})}
 				className={`${sort === type ? 'current' : ''}`}>
-				{skillName(type)}
+				{rulesetDef().skillName(type)}
 			</Link>)}
 		</div>
 
@@ -88,8 +86,8 @@ export default function PlayerSkillLeaderboard({
 					<tr>
 						<th></th>
 						<th></th>
-						{SkillSorts.map(s => <th key={s} className={sort === SKILL_SORT[s] ? 'current' : ''}>
-							{skillName(s)}
+						{skillSorts().map(s => <th key={s} className={sort === s ? 'current' : ''}>
+							{rulesetDef().skillName(s)}
 						</th>)}
 					</tr>
 				</thead>
@@ -103,7 +101,7 @@ export default function PlayerSkillLeaderboard({
 							<Flag country={player.user.country} />
 							<Link to='/c/$id' params={{ id: String(player.character.id) }}>{player.character.name}</Link>
 						</div></td>
-						{SkillSorts.map(s => <td key={s} className={sort === SKILL_SORT[s] ? 'current' : 'dimmed'}>
+						{skillSorts().map(s => <td key={s} className={sort === s ? 'current' : 'dimmed'}>
 							{cell(board, player, s)}
 						</td>)}
 					</tr>)}

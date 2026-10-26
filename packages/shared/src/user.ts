@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { GROUPS } from './groups.js';
 
 export const userDTO = z.object({

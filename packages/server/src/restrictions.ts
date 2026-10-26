@@ -1,5 +1,3 @@
-import type Stripe from 'stripe';
-import { logOff } from './queue';
 import {
 	and,
 	desc,
@@ -8,40 +6,43 @@ import {
 	isNotNull,
 	isNull,
 } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/mysql-core';
+import type Stripe from 'stripe';
+
+import { isModerator } from '@oss-idle/shared/groups';
+import type {
+	Sanction,
+	Standing,
+} from '@oss-idle/shared/standing';
+
 import { db } from './db/client';
-import { users } from './db/schema/user';
+import { accountHistory } from './db/schema/account_history';
 import { characters } from './db/schema/character';
-import { best } from './db/schema/best';
-import { firstPlace } from './db/schema/first_place';
 import { supporterOrders } from './db/schema/supporter_order';
-import {
-	reindexCharacterEverywhere,
-	unindexCharacter,
-} from './rankings';
-import { recomputeFirstPlace } from './scores';
+import { users } from './db/schema/user';
+import { groupsOf } from './groups';
 import {
 	abortPlay,
 	playState,
 } from './play';
-import { leave } from './ws/presence';
+import { logOff } from './queue';
+import {
+	reindexCharacterEverywhere,
+	unindexCharacter,
+} from './rankings';
+import { enabledRulesets } from './rulesets/registry';
+import { recomputeFirstPlace } from './scores';
 import {
 	cancelSubscriptions,
 	idOf,
 } from './stripe';
-import { accountHistory } from './db/schema/account_history';
 import {
 	moderationOf,
 	setBanned,
 	timeoutUser,
 	untimeoutUser,
 } from './ws/chat';
-import type {
-	Sanction,
-	Standing,
-} from '@oss-idle/shared/standing';
-import { alias } from 'drizzle-orm/mysql-core';
-import { isModerator } from '@oss-idle/shared/groups';
-import { groupsOf } from './groups';
+import { leave } from './ws/presence';
 
 /** A restricted account exists only for itself and the moderators. */
 export const visibleTo = async (
@@ -84,10 +85,10 @@ export const takeOffline = async (ids: number[]): Promise<number[]> => {
 		await unindexCharacter(id);
 	}
 	if (!ids.length) return [];
-	return (await db
+	return (await Promise.all(enabledRulesets().map(async ({ firstPlace }) => (await db
 		.select({ beatmapId: firstPlace.beatmapId })
 		.from(firstPlace)
-		.where(inArray(firstPlace.characterId, ids))).map(r => r.beatmapId);
+		.where(inArray(firstPlace.characterId, ids))).map(r => r.beatmapId)))).flat();
 };
 
 /** osu!'s restricted mode: the account can't play or chat, and drops off every ranking,
@@ -117,11 +118,13 @@ export const unrestrict = async (userId: number): Promise<void> => {
 	const ids = await characterIds(userId);
 	for (const id of ids) await reindexCharacterEverywhere(id);
 	if (!ids.length) return;
-	const maps = await db
-		.selectDistinct({ beatmapId: best.beatmapId })
-		.from(best)
-		.where(inArray(best.characterId, ids));
-	for (const { beatmapId } of maps) await recomputeFirstPlace(beatmapId);
+	for (const { best } of enabledRulesets()) {
+		const maps = await db
+			.selectDistinct({ beatmapId: best.beatmapId })
+			.from(best)
+			.where(inArray(best.characterId, ids));
+		for (const { beatmapId } of maps) await recomputeFirstPlace(beatmapId);
+	}
 };
 
 const actor = alias(users, 'actor');

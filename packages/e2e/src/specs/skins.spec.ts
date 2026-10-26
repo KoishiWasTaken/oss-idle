@@ -2,17 +2,18 @@ import {
 	strToU8,
 	zipSync,
 } from 'fflate';
+
+import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
+import { silence } from '../support/files';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import { silence } from '../support/files';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 // a 1x1 white PNG
 const PIXEL = Buffer.from(

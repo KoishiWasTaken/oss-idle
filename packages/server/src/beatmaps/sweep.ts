@@ -5,16 +5,22 @@ import {
 	lte,
 	sql,
 } from 'drizzle-orm';
+
 import { APPROVED_STATUSES } from '@oss-idle/shared/beatmap';
+
 import { db } from '../db/client';
 import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
+import { recordCurators } from '../medals';
+import { enabledRulesets } from '../rulesets/registry';
+import type { ServerRuleset } from '../rulesets/ruleset';
 import { announceRanked } from './announce';
 import {
+	diffsOf,
 	flushCatalogInvalidate,
 	invalidateCatalog,
+	withStatus,
 } from './catalog';
-import { recordCurators } from '../medals';
 
 /**
  * Announce scheduled maps whose rank time has passed. Runs on the periodic
@@ -23,34 +29,50 @@ import { recordCurators } from '../medals';
  * flipping `announced` false->true, so exactly one worker fires the webhook.
  */
 export const sweepRankedMaps = async (): Promise<void> => {
+	let wentLive = false;
+	for (const r of enabledRulesets()) wentLive = await announceDue(r) || wentLive;
+
+	// Tell connected clients the catalog grew, so song select refetches it.
+	if (wentLive) await invalidateCatalog();
+	else await flushCatalogInvalidate();
+};
+
+/** Announce a ruleset's maps that just went live there; whether any did. */
+const announceDue = async (r: ServerRuleset): Promise<boolean> => {
+	const { setStatus } = r;
 	const due = await db
-		.select()
+		.select({
+			set: beatmapset, status: setStatus.status, 
+		})
 		.from(beatmapset)
+		.innerJoin(...withStatus(r))
 		.where(and(
-			inArray(beatmapset.status, [...APPROVED_STATUSES]),
-			eq(beatmapset.announced, false),
-			lte(beatmapset.rankedAt, sql`now()`),
+			inArray(setStatus.status, [...APPROVED_STATUSES]),
+			eq(setStatus.announced, false),
+			lte(setStatus.rankedAt, sql`now()`),
 		));
 
 	let wentLive = false;
-	for (const set of due) {
+	for (const { set, status } of due) {
 		const [claim] = await db
-			.update(beatmapset)
+			.update(setStatus)
 			.set({ announced: true })
-			.where(and(eq(beatmapset.id, set.id), eq(beatmapset.announced, false)));
+			.where(and(eq(setStatus.setId, set.id), eq(setStatus.announced, false)));
 		if (!claim.affectedRows) continue;
 		wentLive = true;
-		await recordCurators(set.osuId);
+		await recordCurators(r, set.osuId);
 
 		const diffs = await db
 			.select({
 				version: beatmaps.version, sr: beatmaps.sr, background: beatmaps.background,
 			})
 			.from(beatmaps)
-			.where(and(eq(beatmaps.setId, set.id), eq(beatmaps.ranked, true)));
+			.where(and(
+				eq(beatmaps.setId, set.id), eq(beatmaps.ranked, true), diffsOf(r),
+			));
 
 		await announceRanked({
-			loved: set.status === 'loved',
+			loved: status === 'loved',
 			id: set.id,
 			osuId: set.osuId,
 			background: diffs.find(d => d.background)?.background,
@@ -62,8 +84,5 @@ export const sweepRankedMaps = async (): Promise<void> => {
 			})),
 		});
 	}
-
-	// Tell connected clients the catalog grew, so song select refetches it.
-	if (wentLive) await invalidateCatalog();
-	else await flushCatalogInvalidate();
+	return wentLive;
 };

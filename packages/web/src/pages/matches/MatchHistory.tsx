@@ -1,7 +1,9 @@
 import './MatchHistory.css';
+
 import { Trans } from '@lingui/react/macro';
-import MatchGame from './MatchGame';
+
 import MatchEventLine from './MatchEventLine';
+import MatchGame from './MatchGame';
 import type {
 	HistoryEvent,
 	MatchHistoryData,

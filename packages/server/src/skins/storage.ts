@@ -7,11 +7,13 @@ import {
 	writeFile,
 } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import AdmZip from 'adm-zip';
 import {
 	inArray,
 	sql,
 } from 'drizzle-orm';
+
 import {
 	isSkinFile,
 	normalizePath,
@@ -22,6 +24,7 @@ import {
 	SKIN_FILES_MAX,
 	SKIN_UNPACKED_MAX,
 } from '@oss-idle/shared/skin';
+
 import { db } from '../db/client';
 import { skinFiles } from '../db/schema/skin';
 

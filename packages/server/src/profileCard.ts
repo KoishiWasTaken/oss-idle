@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
 import { Resvg } from '@resvg/resvg-js';
+
 import { countryName } from '@oss-idle/shared/display/country';
 import {
-	GROUP_BADGE,
 	type Group,
+	GROUP_BADGE,
 } from '@oss-idle/shared/groups';
 
 const asset = (path: string) => new URL(`../../${path}`, import.meta.url);

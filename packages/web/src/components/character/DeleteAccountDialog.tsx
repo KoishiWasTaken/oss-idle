@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { getUser } from '../../api/users';
+
 import { deleteAccount } from '../../api/accounts';
+import { getUser } from '../../api/users';
 import ConfirmDialog from './ConfirmDialog';
 
 /** Admin: delete an account for good, on its owner's request. Typing the osu! username again

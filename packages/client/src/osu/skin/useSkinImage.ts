@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import type Skin from './Skin';
 
 /** One of a skin's images by its key, as a URL once read (`read` reads it the first time). */

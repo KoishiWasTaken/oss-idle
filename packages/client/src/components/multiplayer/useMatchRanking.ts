@@ -1,9 +1,10 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import type { ScoreDTO } from '@oss-idle/shared/score';
 import type {
 	LastRound,
 	RoundScore,
 } from '@oss-idle/shared/multiplayer';
+import type { ScoreDTO } from '@oss-idle/shared/score';
+
 import Multiplayer from '../../online/multiplayer';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import useLiveScores from './useLiveScores';

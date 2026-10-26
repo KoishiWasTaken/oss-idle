@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro';
+
 import Link from '../Link';
 
 /** Switches the medal rankings between medals held and how far along each line. */

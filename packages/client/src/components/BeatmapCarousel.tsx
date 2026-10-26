@@ -1,3 +1,9 @@
+import './BeatmapCarousel.css';
+
+import {
+	Plural,
+	Trans,
+} from '@lingui/react/macro';
 import {
 	type RefObject,
 	useCallback,
@@ -6,19 +12,16 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import {
-	Trans,
-	Plural,
-} from '@lingui/react/macro';
-import './BeatmapCarousel.css';
-import BeatmapCard from './BeatmapCard';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { useSelection } from './songselect/selection';
-import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import RightClick from '../input/RightClick';
-import type { BeatmapXPInsight } from '../xpInsights';
+
 import type { MapTag } from '@oss-idle/shared/beatmap';
+
 import type { PlaylistSlot } from '../db/schema/playlist';
+import RightClick from '../input/RightClick';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import type { BeatmapXPInsight } from '../xpInsights';
+import BeatmapCard from './BeatmapCard';
+import { useSelection } from './songselect/selection';
 
 export type DownloadStatus = 'idle' | 'downloading' | 'done';
 
@@ -36,6 +39,8 @@ export type CarouselItem = {
 	ranked?: boolean,
 	/** in the catalog as loved: no pp */
 	loved?: boolean,
+	/** its set ships in the bundled pack */
+	bundled?: boolean,
 	/** By Playlist: which copy of the difficulty in the playlist */
 	entry?: PlaylistSlot,
 };
@@ -173,7 +178,24 @@ const SPREAD = 19;
 
 /** A mounted card as the arc moves it: its XP section, its centre, its last offset. */
 type Range = { start: number, end: number };
-type ArcCard = { el: HTMLElement, xp: HTMLElement | null, centre: number, bow: number };
+type Spreader = 'active' | 'hover';
+type ArcCard = {
+	el: HTMLElement, xp: HTMLElement | null, centre: number, bow: number,
+	/** -1 above the active / hovered row, 1 below, 0 neither: data-active-side, data-hover-side */
+	sides: Record<Spreader, number>,
+};
+
+const sideOf = (el: HTMLElement, by: Spreader) => {
+	const side = el.getAttribute(`data-${by}-side`);
+	return side === 'above' ? -1 : side === 'below' ? 1 : 0;
+};
+
+function setSide(card: ArcCard, by: Spreader, side: number) {
+	if (card.sides[by] === side) return;
+	card.sides[by] = side;
+	if (side) card.el.setAttribute(`data-${by}-side`, side < 0 ? 'above' : 'below');
+	else card.el.removeAttribute(`data-${by}-side`);
+}
 
 /** The cards of `rows[start, end)` as mounted, placed by the STRIDE grid: reading their
  *  offsets forced a layout each time the window moved. */
@@ -191,6 +213,9 @@ function arcCards(
 			xp: el.querySelector<HTMLElement>('.bm-card__xp'),
 			centre: top + i * STRIDE + CARD_HEIGHT / 2,
 			bow: parseFloat(el.style.translate) || 0,
+			sides: {
+				active: sideOf(el, 'active'), hover: sideOf(el, 'hover'),
+			},
 		});
 	}
 	return cards;
@@ -331,10 +356,12 @@ export default function BeatmapCarousel({
 		}
 		for (let i = 0; i < cards.length; i++) {
 			const card = cards[i];
+			const activeSide = active < 0 ? 0 : Math.sign(i - active);
+			const hoverSide = hover < 0 ? 0 : Math.sign(i - hover);
+			setSide(card, 'active', activeSide);
+			setSide(card, 'hover', hoverSide);
 			// panel centre relative to the top of the viewport, spread included
-			const drawY = card.centre - scrollTop
-				+ (active < 0 ? 0 : Math.sign(i - active) * SPREAD)
-				+ (hover < 0 ? 0 : Math.sign(i - hover) * SPREAD);
+			const drawY = card.centre - scrollTop + (activeSide + hoverSide) * SPREAD;
 			// 0 at centre, 1 at the top/bottom edges (clamped beyond)
 			const dist = Math.abs(1 - drawY / halfHeight);
 			// half pixels: finer moves nothing on screen, and each write restyles the card
@@ -528,9 +555,8 @@ export default function BeatmapCarousel({
 
 			if (card?.dataset.id) {
 				const id = Number(card.dataset.id);
-				const rate = card.dataset.rate ? Number(card.dataset.rate) : undefined;
 				const row = rowsRef.current.find((r) => r.type === 'card'
-					&& r.item.beatmap.is(id) && r.item.beatmap.lockedRate === rate);
+					&& r.item.beatmap.is(id) && r.item.beatmap.lock === card.dataset.lock);
 
 				if (row?.type === 'card') onCardRightClick(row.item);
 				return;
@@ -593,8 +619,9 @@ export default function BeatmapCarousel({
 	// the mounted window and the arc together. The *only* path that setStates the
 	// window, so the animation loop can never feed back on itself.
 	const onScroll = useCallback(() => {
-		// the browser's own position (it clamps); read here, before any frame restyles
-		posRef.current = scrollRef.current?.scrollTop ?? 0;
+		// the browser's own position (it clamps); a glide's is already in posRef, and
+		// reading it after React mounted the next cards forced a style + layout pass
+		if (targetRef.current === null) posRef.current = scrollRef.current?.scrollTop ?? 0;
 		scrollRef.current?.classList.add('is-scrolling');
 		clearTimeout(settleRef.current);
 		settleRef.current = window.setTimeout(() => {
@@ -688,7 +715,7 @@ export default function BeatmapCarousel({
 							onToggle={() => toggleGroup(row.key)}
 						/>
 						: <BeatmapCard
-							key={`c:${row.item.beatmap.metadata.id}:${row.item.beatmap.lockedRate ?? ''}`
+							key={`c:${row.item.beatmap.metadata.id}:${row.item.beatmap.lock}`
 								+ `:${row.item.entry?.id ?? ''}`}
 							beatmap={row.item.beatmap}
 							set={row.item.set}

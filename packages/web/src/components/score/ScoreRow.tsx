@@ -1,14 +1,17 @@
-import type { InferResponseType } from 'hono/client';
-import { rpc } from '../../api/client';
 import './ScoreRow.css';
-import { dateAgo } from '@oss-idle/shared/display/ago';
+
+import type { InferResponseType } from 'hono/client';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
+import { dateAgo } from '@oss-idle/shared/display/ago';
 import num from '@oss-idle/shared/display/num';
-import ScoreLink from './ScoreLink';
-import Grade from './Grade';
-import ScoreMods from './ScoreMods';
+
+import { rpc } from '../../api/client';
 import Flag from '../Flag';
 import Link from '../Link';
+import Grade from './Grade';
+import ScoreLink from './ScoreLink';
+import ScoreMods from './ScoreMods';
 
 type Score = InferResponseType<(typeof rpc.v1.scores[':id'])['$get'], 200>;
 type Beatmap = Pick<InferResponseType<(typeof rpc.v1.beatmap[':id'])['$get'], 200>, 'title' | 'artist' | 'version'>;

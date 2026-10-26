@@ -4,6 +4,7 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import type { ModerateBody } from '../../api/chat';
 import { SILENCE_LENGTHS } from '../../components/character/silenceLengths';
 

@@ -2,11 +2,13 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import {
 	difficultyColor,
 	difficultyTextColor,
 	starsText,
 } from '@oss-idle/shared/display/difficulty';
+
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
 import { coverStyle } from './directState';
 

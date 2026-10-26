@@ -1,13 +1,15 @@
 import '../Docs.css';
+
 import { useState } from 'react';
+
 import Link from '../../../components/Link';
 import DocsToc, { type TocItem } from '../DocsToc';
 import {
 	goToHeading,
 	useActiveHeading,
 } from '../useActiveHeading';
-import AddonDocsGuide from './AddonDocsGuide';
 import AddonDocsEditor from './AddonDocsEditor';
+import AddonDocsGuide from './AddonDocsGuide';
 import AddonDocsGuidelines from './AddonDocsGuidelines';
 
 const item = (id: string, title: string, children?: TocItem[]): TocItem => ({

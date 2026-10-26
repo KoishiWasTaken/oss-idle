@@ -1,6 +1,8 @@
 import { useLingui } from '@lingui/react/macro';
+import { Suspense } from 'react';
+
 import LightBeatmap from '../../osu/beatmap/LightBeatmap';
-import StrainDebug from '../../scenes/StrainDebug';
+import { StrainDebug } from '../../scenes/lazy';
 import XpMultiplierToggle from './XpMultiplierToggle';
 
 type Props = {
@@ -27,11 +29,13 @@ export default function SongSelectDebug({
 		</button>
 		<XpMultiplierToggle />
 		{beatmap && (
-			<StrainDebug
-				beatmapInfo={beatmap}
-				onClose={onClose}
-				onPlay={() => onPlay(beatmap)}
-			/>
+			<Suspense fallback={null}>
+				<StrainDebug
+					beatmapInfo={beatmap}
+					onClose={onClose}
+					onPlay={() => onPlay(beatmap)}
+				/>
+			</Suspense>
 		)}
 	</>);
 }

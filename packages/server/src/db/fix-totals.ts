@@ -6,16 +6,20 @@
  * next better play took off a best they never had: counts went below zero. They
  * are recomputed from the scores now; this fixes the rows written before.
  *
- *   npm -w @oss-idle/server run fix:totals:prod -- --dry-run
+ *   npm -w @oss-idle/server run fix:totals:prod -- --dry-run [--ruleset mania4k]
  */
 import { eq } from 'drizzle-orm';
+
+import { reindexCharacter } from '../rankings';
+import {
+	loadRulesets,
+	rulesetFromArgs,
+} from '../rulesets/registry';
 import { db } from './client';
 import {
-	character_totals,
-	refreshCharacterTotals,
 	type CharacterTotalsRow,
+	refreshCharacterTotals,
 } from './schema/character_totals';
-import { reindexCharacter } from '../rankings';
 
 const dryRun = process.argv.includes('--dry-run');
 
@@ -27,7 +31,11 @@ const changes = (before: CharacterTotalsRow, after: CharacterTotalsRow): string[
 		.map(k => `${k} ${before[k]} -> ${after[k]}`);
 
 const main = async () => {
-	const ids = (await db.select({ id: character_totals.id }).from(character_totals)).map(r => r.id);
+	await loadRulesets();
+	const r = rulesetFromArgs();
+	const { totals: character_totals } = r;
+	const ids = (await db.select({ id: character_totals.id }).from(character_totals))
+		.map(row => row.id);
 	console.log(`checking ${ids.length} characters${dryRun ? ' (dry run)' : ''}`);
 
 	let fixed = 0;
@@ -38,7 +46,7 @@ const main = async () => {
 				const read = async () => (await tx.select().from(character_totals)
 					.where(eq(character_totals.id, id)).limit(1))[0];
 				const before = await read();
-				await refreshCharacterTotals(id, tx);
+				await refreshCharacterTotals(r, id, tx);
 				diff = changes(before, await read());
 				if (dryRun) throw new DryRun();
 			});
@@ -48,7 +56,7 @@ const main = async () => {
 		if (!diff.length) continue;
 		fixed++;
 		console.log(`  ${id}: ${diff.join(', ')}`);
-		if (!dryRun) await reindexCharacter(id);
+		if (!dryRun) await reindexCharacter(r, id);
 	}
 
 	console.log(`\n${fixed} of ${ids.length} characters ${dryRun ? 'would change' : 'fixed'}`);

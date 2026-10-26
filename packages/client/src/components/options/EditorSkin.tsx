@@ -2,10 +2,12 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Dropdown from '../dropdown/Dropdown';
+
 import { installedSkins } from '../../db/schema/skin';
 import { SETTINGS } from '../../db/settings';
+import Dropdown from '../dropdown/Dropdown';
 
 export default function EditorSkin() {
 	const { t } = useLingui();

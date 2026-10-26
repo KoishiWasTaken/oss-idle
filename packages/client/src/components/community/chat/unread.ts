@@ -1,14 +1,15 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
-import Socket from '../../../online/socket';
+import Synced from '@oss-idle/shared/helpers/synced';
+
+import { isCommunityOpen } from '../../../globals';
+import {
+	logLines,
+	LOGS_CHANNEL,
+} from '../../../logs';
 import Auth from '../../../online/auth';
 import { blocked } from '../../../online/blocks';
-import { isCommunityOpen } from '../../../globals';
+import Socket from '../../../online/socket';
 import { showChat } from '../state';
-import {
-	LOGS_CHANNEL,
-	logLines,
-} from '../../../logs';
 import {
 	activeChatTab,
 	chatTabs,

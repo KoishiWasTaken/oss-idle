@@ -1,12 +1,13 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import Link from '../../components/Link';
-import ChangelogEntry from './ChangelogEntry';
 import {
 	type Build as BuildData,
 	type Entry,
 } from './builds';
+import ChangelogEntry from './ChangelogEntry';
 import { formatBuildDate } from './formatBuildDate';
 
 function VersionNav({ build, icon }: { build: BuildData | undefined; icon: typeof faChevronLeft }) {

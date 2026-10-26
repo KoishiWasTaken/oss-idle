@@ -3,28 +3,30 @@ import {
 	count,
 	desc,
 	eq,
+	isNull,
 	or,
 	sql,
-	isNull,
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
-import {
-	cardColumns,
-	playerCards,
-} from './playerCards';
-import { db } from './db/client';
-import {
-	getUserById,
-	users,
-} from './db/schema/user';
-import { characters } from './db/schema/character';
-import { userFollows } from './db/schema/user_follow';
-import { userBlocks } from './db/schema/user_block';
+
 import type {
 	ReportBody,
 	SocialSettings,
 } from '@oss-idle/shared/social';
+
+import { db } from './db/client';
+import { characters } from './db/schema/character';
+import {
+	getUserById,
+	users,
+} from './db/schema/user';
+import { userBlocks } from './db/schema/user_block';
+import { userFollows } from './db/schema/user_follow';
 import { userReports } from './db/schema/user_report';
+import {
+	cardColumns,
+	playerCards,
+} from './playerCards';
 
 /** Friends are per account: a rebirth or a character switch keeps them. Shown
  *  through each account's current character. */

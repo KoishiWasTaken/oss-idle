@@ -1,7 +1,9 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
 import { repoCommitUrl } from '@oss-idle/shared/addon';
 import Markdown from '@oss-idle/shared/display/Markdown';
+
 import { addonIconUrl } from '../../online/addons';
 import ListingIcon from '../listing/ListingIcon';
 import type { AddonDetail } from './AddonView';

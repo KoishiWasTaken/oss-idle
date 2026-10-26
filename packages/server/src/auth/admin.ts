@@ -1,12 +1,14 @@
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
+
 import {
 	type Group,
 	isAdmin,
 	isModerator,
 } from '@oss-idle/shared/groups';
-import { requireAuth } from './middleware';
+
 import { groupsOf } from '../groups';
+import { requireAuth } from './middleware';
 
 const requireGroups = (allowed: (groups: Group[]) => boolean) =>
 	createMiddleware<{ Variables: { userId: number } }>(async (c, next) => {

@@ -8,37 +8,51 @@ import {
 	isNull,
 	type SQL,
 } from 'drizzle-orm';
+
 import {
+	type BeatmapStatus,
 	INTRO_SET_ID,
 	isApproved,
 	monthlyQuota,
-	type BeatmapStatus,
 } from '@oss-idle/shared/beatmap';
+import { OSU_MODE } from '@oss-idle/shared/rulesets/ids';
 import {
-	OWN_ID_FROM,
-	fileIdsOf,
-	parseChart,
 	type Chart,
-} from '@oss-idle/shared/editor/chart';
+	fileIdsOf,
+	OWN_ID_FROM,
+	parseChart,
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 import {
 	checkChart,
 	type CheckId,
-} from '@oss-idle/shared/editor/checks';
+} from '@oss-idle/shared/rulesets/mania/editor/checks';
+
 import { db } from '../db/client';
+import { beatmaps } from '../db/schema/beatmap';
 import {
 	beatmapset,
 	type BeatmapsetRow,
 } from '../db/schema/beatmapset';
 import { users } from '../db/schema/user';
 import { fetchBeatmapset } from '../osu/api';
+import { enabledRulesets } from '../rulesets/registry';
+import type { ServerRuleset } from '../rulesets/ruleset';
 import {
 	purgeBeatmapScores,
 	repriceBeatmapScores,
 } from '../scores';
 import { isSupporter } from '../supporter';
-import { liveCondition } from './catalog';
+import {
+	diffsOf,
+	liveCondition,
+	withStatus,
+} from './catalog';
 import { creditMapper } from './credit';
-import { beatmaps } from '../db/schema/beatmap';
+import {
+	statusesOf,
+	statusIn,
+	writeStatus,
+} from './setStatus';
 import { wipeUnrankedScores } from './unrankedBoard';
 
 const MB = 1024 * 1024;
@@ -74,8 +88,9 @@ export class UploadRefused extends Error {
 /** A mania difficulty of an upload. */
 export type UploadChart = { file: string, text: string, chart: Chart };
 
-/** Refuse an .osz too big unpacked, without mania difficulties, or with a difficulty
- *  the editor's map checks find an error in; returns its mania difficulties. */
+/** Refuse an .osz too big unpacked, without mania difficulties, or with a mania difficulty
+ *  the editor's map checks find an error in; returns its mania difficulties. Its other
+ *  rulesets' difficulties go through as they are. */
 export const gateUpload = (buffer: Buffer): UploadChart[] => {
 	let zip: AdmZip;
 	try {
@@ -97,7 +112,7 @@ export const gateUpload = (buffer: Buffer): UploadChart[] => {
 			.map(entry => ({
 				file: entry.entryName, text: entry.getData().toString('utf8'),
 			}))
-			.filter(({ text }) => /^Mode:\s*3\s*$/m.test(text))
+			.filter(({ text }) => Number(/^Mode:\s*(\d+)\s*$/m.exec(text)?.[1] ?? 0) === OSU_MODE.mania)
 			.map(({ file, text }) => ({
 				file, text, chart: parseChart(text),
 			}));
@@ -140,6 +155,22 @@ export const gateUpload = (buffer: Buffer): UploadChart[] => {
 const countSets = async (where: SQL | undefined) =>
 	(await db.select({ sets: count() }).from(beatmapset).where(where))[0].sets;
 
+/** The player's sets ranked in any ruleset. */
+const countRanked = async (userId: number) => {
+	const sets = new Set<number>();
+	for (const r of enabledRulesets()) {
+		const rows = await db.select({ id: beatmapset.id }).from(beatmapset).innerJoin(...withStatus(r))
+			.where(and(
+				eq(beatmapset.ownerUserId, userId),
+				liveCondition(r),
+				eq(r.setStatus.status, 'ranked'),
+				isNull(beatmapset.deletedAt),
+			));
+		for (const { id } of rows) sets.add(id);
+	}
+	return sets.size;
+};
+
 /** Refuse a new map once the player has uploaded this month's fill. Taking one down
  *  gives no slot back; updating a map takes none. */
 export const checkQuota = async (userId: number): Promise<void> => {
@@ -149,7 +180,7 @@ export const checkQuota = async (userId: number): Promise<void> => {
 	const [uploaded, ranked, supporter] = await Promise.all([
 		// what they put up, not the osu! maps credited to them
 		countSets(and(mine, isNotNull(beatmapset.uploadedAt), gte(beatmapset.createdAt, monthStart))),
-		countSets(and(mine, liveCondition, eq(beatmapset.status, 'ranked'), isNull(beatmapset.deletedAt))),
+		countRanked(userId),
 		isSupporter(userId),
 	]);
 	const quota = monthlyQuota(ranked, supporter);
@@ -220,10 +251,13 @@ export const uploadTarget = async (
 			throw new UploadRefused('Not one of your maps', 'notYours');
 		}
 		if (known.deletedAt) return { setId: known.id };
-		if (isApproved(known.status)) {
-			throw new UploadRefused(`This map is ${known.status}: unrank it to change it`, known.status);
+		// ranked or queued in any ruleset, its files are that ruleset's to keep
+		for (const [, { status }] of await statusesOf(known.id)) {
+			if (isApproved(status)) {
+				throw new UploadRefused(`This map is ${status}: unrank it to change it`, status);
+			}
+			if (status === 'pending') throw new UploadRefused('This map is in the ranking queue', 'locked');
 		}
-		if (known.status === 'pending') throw new UploadRefused('This map is in the ranking queue', 'locked');
 		return { setId: known.id };
 	}
 	if (fileSetId !== undefined && fileSetId < OWN_ID_FROM) {
@@ -244,12 +278,17 @@ export const uploadTarget = async (
 /** What a status change clears: leaving unranked deletes the unranked leaderboard's
  *  scores, moving between ranked and loved reprices their pp, and unranking wipes
  *  all progression earned on its difficulties. */
-export const clearForStatus = async (existing: BeatmapsetRow, status: BeatmapStatus) => {
-	if (existing.status === 'unranked' && status !== 'unranked') await wipeUnrankedScores(existing.id);
-	if (!isApproved(existing.status) || status === existing.status) return;
+export const clearForStatus = async (
+	r: ServerRuleset,
+	setId: number,
+	was: BeatmapStatus,
+	status: BeatmapStatus,
+) => {
+	if (was === 'unranked' && status !== 'unranked') await wipeUnrankedScores(setId, [r]);
+	if (!isApproved(was) || status === was) return;
 	const diffs = await db.select({ id: beatmaps.id })
 		.from(beatmaps)
-		.where(eq(beatmaps.setId, existing.id));
+		.where(and(eq(beatmaps.setId, setId), diffsOf(r)));
 	for (const diff of diffs) {
 		if (isApproved(status)) await repriceBeatmapScores(diff.id, status === 'loved');
 		else await purgeBeatmapScores(diff.id);
@@ -258,44 +297,46 @@ export const clearForStatus = async (existing: BeatmapsetRow, status: BeatmapSta
 
 /** The mapper unranks their own approved map: it is theirs to change or take down
  *  again, every score and progression earned on it goes, and only the team ranks it back. */
-export const unrankOwn = async (setId: number, userId: number) => {
+export const unrankOwn = async (r: ServerRuleset, setId: number, userId: number) => {
 	const set = await ownSet(setId, userId);
-	if (!isApproved(set.status)) throw new UploadRefused('This map is not ranked', 'notRanked');
-	await db.update(beatmapset)
-		.set({
-			status: 'unranked', rankedAt: null, reviewNote: null, uploadedAt: new Date(),
-		})
-		.where(eq(beatmapset.id, set.id));
-	await clearForStatus(set, 'unranked');
+	const was = (await statusIn(r, set.id))?.status ?? 'pending';
+	if (!isApproved(was)) throw new UploadRefused('This map is not ranked', 'notRanked');
+	await writeStatus(r, set.id, {
+		status: 'unranked', rankedAt: null, reviewNote: null,
+	});
+	await db.update(beatmapset).set({ uploadedAt: new Date() }).where(eq(beatmapset.id, set.id));
+	await clearForStatus(r, set.id, was, 'unranked');
 };
 
 /** The player's own unranked set `setId`; refused when it isn't theirs or is no longer unranked. */
-export const ownUnrankedSet = async (setId: number, userId: number) => {
+export const ownUnrankedSet = async (r: ServerRuleset, setId: number, userId: number) => {
 	const set = await ownSet(setId, userId);
-	if (set.status !== 'unranked') throw new UploadRefused('This map is in the ranking queue', 'locked');
+	if ((await statusIn(r, set.id))?.status !== 'unranked') {
+		throw new UploadRefused('This map is in the ranking queue', 'locked');
+	}
 	return set;
 };
 
-/** Put the player's unranked set in the ranking queue: it needs a 4K difficulty (the
- *  only ones that rank), and its unranked leaderboard goes. */
-export const submitForRank = async (setId: number, userId: number) => {
-	const set = await ownUnrankedSet(setId, userId);
-	const [fourK] = await db.select({ id: beatmaps.id }).from(beatmaps)
-		.where(and(eq(beatmaps.setId, set.id), eq(beatmaps.keys, 4))).limit(1);
-	if (!fourK) throw new UploadRefused('Only 4K difficulties can be ranked', 'no4k');
-	await wipeUnrankedScores(set.id);
-	await db.update(beatmapset)
-		.set({
-			status: 'pending', submittedAt: new Date(), reviewNote: null, 
-		})
-		.where(eq(beatmapset.id, set.id));
+/** Put the player's unranked set in a ruleset's ranking queue: it needs a difficulty that
+ *  ruleset plays, and its unranked leaderboard goes. */
+export const submitForRank = async (r: ServerRuleset, setId: number, userId: number) => {
+	const set = await ownUnrankedSet(r, setId, userId);
+	const [played] = await db.select({ id: beatmaps.id }).from(beatmaps)
+		.where(and(eq(beatmaps.setId, set.id), diffsOf(r))).limit(1);
+	if (!played) throw new UploadRefused('This map has no difficulty this ruleset plays', 'no4k');
+	await wipeUnrankedScores(set.id, [r]);
+	await writeStatus(r, set.id, {
+		status: 'pending', submittedAt: new Date(), reviewNote: null,
+	});
 };
 
-/** Take the player's set back out of the queue, before it is ranked. */
-export const withdrawFromRank = async (setId: number, userId: number) => {
+/** Take the player's set back out of a ruleset's queue, before it is ranked. */
+export const withdrawFromRank = async (r: ServerRuleset, setId: number, userId: number) => {
 	const set = await ownSet(setId, userId);
-	if (set.status !== 'pending') throw new UploadRefused('This map is not in the ranking queue', 'notQueued');
+	if ((await statusIn(r, set.id))?.status !== 'pending') {
+		throw new UploadRefused('This map is not in the ranking queue', 'notQueued');
+	}
 	// a map the team queued is theirs to rank or send back, not its mapper's to take
 	if (set.uploadedAt === null) throw new UploadRefused('Not one of your uploads', 'notYours');
-	await db.update(beatmapset).set({ status: 'unranked' }).where(eq(beatmapset.id, set.id));
+	await writeStatus(r, set.id, { status: 'unranked' });
 };

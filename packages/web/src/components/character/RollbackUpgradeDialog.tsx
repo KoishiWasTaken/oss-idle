@@ -1,21 +1,16 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
 import { faRotateLeft } from '@fortawesome/free-solid-svg-icons';
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import {
-	skillName,
-	upgradeLabel,
-} from '@oss-idle/shared/display/skills';
 import { revertUpgrade } from '@oss-idle/shared/upgrades';
+
 import {
 	getCharacter,
 	rollbackUpgrade,
 } from '../../api/characters';
+import { rulesetDef } from '../../rulesets';
 import ConfirmDialog from './ConfirmDialog';
 
 /** Admin: undo a skill's last upgrade, for a player who bought one by mistake. */
@@ -27,21 +22,24 @@ export default function RollbackUpgradeDialog({ characterId, name, onDone, onClo
 }) {
 	const { t } = useLingui();
 	const character = useAsync(() => getCharacter(characterId), [characterId]);
-	const [skill, setSkill] = useState<SkillName>();
+	const [skill, setSkill] = useState<string>();
 	const [anchor, setAnchor] = useState<number>();
 
-	const state = (s: SkillName) => character && {
-		level: character[`${s}Level`],
-		xp: character[`${s}Xp`],
-		upgrades: character[`${s}Upgrades`],
-		overdrive: character[`${s}Overdrive`],
-		prestige: character[`${s}Prestige`],
+	const state = (s: string) => {
+		const skill = character?.profile.skills[s];
+		return skill && {
+			level: skill.level,
+			xp: skill.xp,
+			upgrades: skill.upgrades,
+			overdrive: skill.overdrive,
+			prestige: skill.prestige,
+		};
 	};
-	const upgraded = Skills.filter(s => (state(s)?.upgrades ?? 0) > 0);
+	const upgraded = rulesetDef().skills.filter(s => (state(s)?.upgrades ?? 0) > 0);
 	const now = skill && state(skill);
 	const prev = now && anchor !== undefined && revertUpgrade(now, anchor);
 
-	const pickSkill = (s: SkillName) => {
+	const pickSkill = (s: string) => {
 		setSkill(s);
 		setAnchor(state(s)?.level);
 	};
@@ -65,7 +63,7 @@ export default function RollbackUpgradeDialog({ characterId, name, onDone, onClo
 				type='button'
 				className={s === skill ? 'current' : undefined}
 				onClick={() => pickSkill(s)}
-			>{skillName(s)}</button>)}
+			>{rulesetDef().skillName(s)}</button>)}
 		</div>
 		{now && <>
 			<div className='report-dialog__label'>{t`XP level right after the upgrade was bought`}</div>
@@ -80,7 +78,7 @@ export default function RollbackUpgradeDialog({ characterId, name, onDone, onClo
 			/>
 		</>}
 		{skill && now && prev && <div className='report-dialog__label'>
-			{upgradeLabel(skill, now.upgrades)} → {upgradeLabel(skill, prev.upgrades)}
+			{rulesetDef().upgradeLabel(skill, now.upgrades)} → {rulesetDef().upgradeLabel(skill, prev.upgrades)}
 			{' · '}
 			{t`XP Lv${ph({ level: now.level })} → XP Lv${ph({ nextLevel: prev.level })}`}
 		</div>}

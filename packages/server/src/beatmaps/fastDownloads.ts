@@ -1,14 +1,15 @@
-import type { Context } from 'hono';
 import { eq } from 'drizzle-orm';
+import type { Context } from 'hono';
+
+import { sessionUserId } from '../auth/middleware';
 import { db } from '../db/client';
 import {
 	supporterActive,
 	users,
 } from '../db/schema/user';
-import { sessionUserId } from '../auth/middleware';
+import { redisKeyPrefix } from '../env';
 import { ipKey } from '../rateLimit';
 import { redis } from '../redis';
-import { redisKeyPrefix } from '../env';
 
 /** Sets a non-supporter downloads at full speed a day; the rest still download, slower. */
 export const FAST_DOWNLOADS_PER_DAY = 100;

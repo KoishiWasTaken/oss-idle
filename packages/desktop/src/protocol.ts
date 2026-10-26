@@ -1,6 +1,8 @@
-import { protocol } from 'electron';
-import path from 'node:path';
 import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { protocol } from 'electron';
+
 import {
 	APP_HOST,
 	APP_SCHEME,

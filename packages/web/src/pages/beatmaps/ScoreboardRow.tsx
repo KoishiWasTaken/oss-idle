@@ -1,12 +1,13 @@
-import num from '@oss-idle/shared/display/num';
 import accuracy from '@oss-idle/shared/display/accuracy';
 import { dateAgo } from '@oss-idle/shared/display/ago';
-import Link from '../../components/Link';
-import Flag from '../../components/Flag';
-import ScoreLink from '../../components/score/ScoreLink';
-import Grade from '../../components/score/Grade';
-import ScoreMods from '../../components/score/ScoreMods';
+import num from '@oss-idle/shared/display/num';
+
 import type { BoardRow } from '../../api/maps';
+import Flag from '../../components/Flag';
+import Link from '../../components/Link';
+import Grade from '../../components/score/Grade';
+import ScoreLink from '../../components/score/ScoreLink';
+import ScoreMods from '../../components/score/ScoreMods';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
 /** One line of the map's score table. */

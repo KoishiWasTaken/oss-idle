@@ -1,8 +1,9 @@
-import {
-	parseMods,
-	type Mod,
-} from '@oss-idle/shared/mods';
 import { MOD_LOOK } from '@oss-idle/shared/display/mods';
+import {
+	type Mod,
+	parseMods,
+} from '@oss-idle/shared/mods';
+
 import RateBadge from './RateBadge';
 
 /** A score's mods, then its rate. Nothing for a plain play. Raw score rows carry

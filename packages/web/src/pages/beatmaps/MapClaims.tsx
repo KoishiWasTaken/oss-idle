@@ -1,21 +1,22 @@
-import { ph } from '@lingui/core/macro';
 import './MapRequests.css';
 import './MapClaims.css';
 
-import {
-	useEffect,
-	useState,
-} from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import Link from '../../components/Link';
-import OutLink from '../../components/OutLink';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import {
 	getMapClaims,
 	saveMapClaims,
 } from '../../api/mapRequests';
+import Link from '../../components/Link';
+import OutLink from '../../components/OutLink';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 type ClaimList = Awaited<ReturnType<typeof getMapClaims>>;

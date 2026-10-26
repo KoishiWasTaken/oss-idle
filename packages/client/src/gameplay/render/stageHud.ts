@@ -1,8 +1,10 @@
 import { i18n } from '@lingui/core';
-import { JUDGEMENT } from '@oss-idle/shared/judgement';
+
+import { JUDGEMENT } from '@oss-idle/shared/rulesets/mania/judgement';
+
 import type { Font } from '../../osu/skin/maniaAssets';
-import { frameAt } from './stageLayout';
 import type { StageFrame } from './stage';
+import { frameAt } from './stageLayout';
 
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 const easeIn = (t: number) => t * t;

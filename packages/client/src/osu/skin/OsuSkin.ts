@@ -1,21 +1,21 @@
 import {
 	findFrames,
 	findSound,
-	normalizePath,
 	type FoundImage,
+	normalizePath,
 	type SkinIndex,
 } from '@oss-idle/shared/osuSkin/files';
+import {
+	emptyIdleIni,
+	type IdleIni,
+	parseIdleIni,
+} from '@oss-idle/shared/osuSkin/idleIni';
 import {
 	decodeIni,
 	emptyIni,
 	parseSkinIni,
 	type SkinIni,
 } from '@oss-idle/shared/osuSkin/ini';
-import {
-	emptyIdleIni,
-	parseIdleIni,
-	type IdleIni,
-} from '@oss-idle/shared/osuSkin/idleIni';
 
 /** Bigger images cost memory and GPU uploads for nothing a screen can show. */
 const MAX_SIDE = 4096;

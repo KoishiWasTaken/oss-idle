@@ -1,32 +1,38 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	asc,
 	eq,
-	isNull,
 	isNotNull,
+	isNull,
 	ne,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
-import { db } from '../db/client';
-import {
-	beatmapClaims,
-	beatmapRequests,
-	beatmapRequestVotes,
-} from '../db/schema/beatmap_request';
-import { beatmapset } from '../db/schema/beatmapset';
-import { users } from '../db/schema/user';
-import { requireAuth } from '../auth/middleware';
+
 import { requireActive } from '../auth/active';
 import { requireAdmin } from '../auth/admin';
-import { liveCondition } from '../beatmaps/catalog';
+import { requireAuth } from '../auth/middleware';
+import {
+	liveCondition,
+	withStatus,
+} from '../beatmaps/catalog';
+import { db } from '../db/client';
+import { beatmapClaims } from '../db/schema/beatmap_request';
+import { beatmapset } from '../db/schema/beatmapset';
+import { users } from '../db/schema/user';
 import { pushMedals } from '../medals';
+import { enabledRulesets } from '../rulesets/registry';
+import { rulesetFor } from '../rulesets/registry';
 import {
 	idParam,
 	valid,
 } from '../validate';
+
+/** Claims are for the 4K maps ranked before the queue existed: no other ruleset had any. */
+const claimed = () => rulesetFor('mania4k');
 
 // ponytail: temporary, for maps proposed on Discord before the queue existed - drop with beatmap_claim once settled.
 
@@ -43,11 +49,12 @@ const unclaimedSets = () => db
 		creator: beatmapset.creator,
 	})
 	.from(beatmapset)
-	.leftJoin(beatmapRequests, eq(beatmapRequests.setId, beatmapset.osuId))
+	.innerJoin(...withStatus(claimed()))
+	.leftJoin(claimed().requests, eq(claimed().requests.setId, beatmapset.osuId))
 	.where(and(
-		liveCondition,
+		liveCondition(claimed()),
 		isNotNull(beatmapset.osuId),
-		isNull(beatmapRequests.setId),
+		isNull(claimed().requests.setId),
 		ne(beatmapset.id, INTRO_SET_ID),
 	))
 	.orderBy(asc(beatmapset.artist), asc(beatmapset.title));
@@ -87,7 +94,7 @@ export const beatmapClaimRoutes = new Hono()
 			characterId: users.currentCharacter,
 			registeredAt: users.createdAt,
 			createdAt: beatmapClaims.createdAt,
-			rankedAt: beatmapset.rankedAt,
+			rankedAt: claimed().setStatus.rankedAt,
 			osuId: beatmapset.osuId,
 			artist: beatmapset.artist,
 			title: beatmapset.title,
@@ -95,6 +102,7 @@ export const beatmapClaimRoutes = new Hono()
 		})
 		.from(beatmapClaims)
 		.innerJoin(beatmapset, eq(beatmapset.id, beatmapClaims.setId))
+		.leftJoin(...withStatus(claimed()))
 		.leftJoin(users, eq(users.id, beatmapClaims.userId))
 		.orderBy(asc(beatmapset.artist), asc(beatmapset.title), asc(beatmapClaims.createdAt))))
 
@@ -113,7 +121,7 @@ export const beatmapClaimRoutes = new Hono()
 
 		// Requests are keyed by osu! set id; the claim by ours.
 		await db.transaction(async tx => {
-			await tx.insert(beatmapRequests).values({
+			await tx.insert(claimed().requests).values({
 				setId: osuId,
 				userId,
 				...meta,
@@ -121,7 +129,7 @@ export const beatmapClaimRoutes = new Hono()
 				resolvedAt: new Date(),
 				resolvedBy: c.get('userId'),
 			});
-			await tx.insert(beatmapRequestVotes).values({
+			await tx.insert(claimed().requestVotes).values({
 				setId: osuId, userId,
 			});
 			await tx.delete(beatmapClaims).where(eq(beatmapClaims.setId, setId));
@@ -129,7 +137,9 @@ export const beatmapClaimRoutes = new Hono()
 		const [claimer] = await db.select({ characterId: users.currentCharacter })
 			.from(users)
 			.where(eq(users.id, userId));
-		if (claimer?.characterId) await pushMedals(claimer.characterId);
+		if (claimer?.characterId) {
+			for (const r of enabledRulesets()) await pushMedals(r, claimer.characterId);
+		}
 		return c.json({ ok: true });
 	})
 

@@ -1,11 +1,12 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import { emojiMatcher } from '@oss-idle/shared/community/emoji';
+import Synced from '@oss-idle/shared/helpers/synced';
+
+import { isCommunityOpen } from '../globals';
 import {
 	apiUrl,
 	rpc,
 } from './client';
 import Socket from './socket';
-import { isCommunityOpen } from '../globals';
 
 /** The chat's emoji. Changed on the web: re-read when the server says so, and whenever the overlay opens. */
 export const emoji = new Synced(emojiMatcher([]));

@@ -1,14 +1,16 @@
+import './BeatmapXPBreakdown.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Trans } from '@lingui/react/macro';
-import { skillName } from '@oss-idle/shared/display/skills';
+
 import { bignum } from '@oss-idle/shared/display/num';
-import type { SkillName } from '@oss-idle/shared/skills';
+
+import { selectedDef } from '../rulesets/registry';
 import type { BeatmapXPInsight } from '../xpInsights';
-import './BeatmapXPBreakdown.css';
 
 /** The per-skill XP breakdown panel, anchored to the card's XP badge. Rendered
  *  in a body portal so the card's overflow/transform can't clip it. Closes on
@@ -52,7 +54,7 @@ export default function BeatmapXPBreakdown({ insight, anchor, onClose }: {
 			<div className="xp-breakdown__title"><Trans>XP gained</Trans></div>
 			{rows.map(([skill, gained]) => (
 				<div key={skill} className="xp-breakdown__row">
-					<span>{skillName(skill as SkillName)}</span>
+					<span>{selectedDef().skillName(skill)}</span>
 					<em>+{bignum(gained)}xp</em>
 				</div>
 			))}

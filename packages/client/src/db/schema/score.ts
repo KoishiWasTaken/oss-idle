@@ -1,6 +1,21 @@
-import { ScoreDTO } from '@oss-idle/shared/score';
-import Memory from '@oss-idle/shared/sim/skills/memory';
+import { Grade } from '@oss-idle/shared/grade';
 import Synced from '@oss-idle/shared/helpers/synced';
+import {
+	type Mod,
+	modsKey,
+	parseMods,
+} from '@oss-idle/shared/mods';
+import {
+	Judgement,
+	Judgements,
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import { recall } from '@oss-idle/shared/rulesets/mania/memoryRecall';
+import { ScoreDTO } from '@oss-idle/shared/score';
+import {
+	betterScore,
+	rankValueSQL,
+} from '@oss-idle/shared/scoreOrder';
+
 import {
 	boolean,
 	Column,
@@ -11,26 +26,12 @@ import {
 	table,
 	text,
 } from '../dao';
-import {
-	betterScore,
-	rankValueSQL,
-} from '@oss-idle/shared/scoreOrder';
 import { ScoreBest } from './score_best';
 import { ScoreBestPP } from './score_best_pp';
 import {
 	ScoreXP,
 	xpGainsVersion,
 } from './score_xp';
-import {
-	modsKey,
-	parseMods,
-	type Mod,
-} from '@oss-idle/shared/mods';
-import {
-	Grade,
-	Judgement,
-	Judgements,
-} from '@oss-idle/shared/judgement';
 
 const judgementColumns = Object.fromEntries(
 	Judgements.map(j => [j, integer()]),
@@ -100,7 +101,7 @@ export class Score extends DAO(t) {
 	static fromDTO(dto: ScoreDTO): Score {
 		const { judgements, ...rest } = dto;
 		return new Score({
-			...rest, ...judgements, onlineId: dto.id, id: undefined, 
+			...rest, ...judgements as Record<Judgement, number>, onlineId: dto.id, id: undefined, 
 		});
 	}
 
@@ -208,7 +209,7 @@ export class Score extends DAO(t) {
 				[characterId, beatmapId, since],
 			);
 			const playedAt = (res[0]?.values ?? []).map(r => r[0] as number);
-			return Memory.recall(playedAt, forgetAt.filter(t => t >= since));
+			return recall(playedAt, forgetAt.filter(t => t >= since));
 		});
 	}
 }

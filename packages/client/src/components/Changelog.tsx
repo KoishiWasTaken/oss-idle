@@ -1,11 +1,14 @@
 import './Changelog.css';
-import { useEffect } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faFileLines } from '@fortawesome/free-solid-svg-icons/faFileLines';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import { useEffect } from 'react';
+
+import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
 import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import { VERSION } from '@oss-idle/shared/version';
-import { sameRelease } from '@oss-idle/shared/helpers/compareVersions';
+
 import { SETTINGS } from '../db/settings';
 import {
 	isWebOpen,

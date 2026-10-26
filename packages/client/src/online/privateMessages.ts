@@ -1,10 +1,8 @@
-import Synced from '@oss-idle/shared/helpers/synced';
-import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import type { PrivateMessage as Message } from '@oss-idle/shared/community/wire';
-import Socket from './socket';
-import Auth from './auth';
-import { rpc } from './client';
-import PrivateMessage from '../db/schema/private_message';
+import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+import Synced from '@oss-idle/shared/helpers/synced';
+
+import { plainText } from '../components/community/chat/links';
 import {
 	activeChatTab,
 	chatTabs,
@@ -12,8 +10,11 @@ import {
 	pmTab,
 } from '../components/community/chat/state';
 import { showChat } from '../components/community/state';
+import PrivateMessage from '../db/schema/private_message';
 import { isCommunityOpen } from '../globals';
-import { plainText } from '../components/community/chat/links';
+import Auth from './auth';
+import { rpc } from './client';
+import Socket from './socket';
 
 /** A conversation line, as the chat renders it. */
 export type PmLine = {

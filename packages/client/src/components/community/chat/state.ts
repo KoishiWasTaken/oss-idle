@@ -1,8 +1,9 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import {
 	ANNOUNCE_CHANNEL,
 	DEFAULT_CHANNEL,
 } from '@oss-idle/shared/community/wire';
+import Synced from '@oss-idle/shared/helpers/synced';
+
 import { LOGS_CHANNEL } from '../../../logs';
 
 /** The open chat tabs: channels, plus one `pm:<userId>` tab per conversation. */

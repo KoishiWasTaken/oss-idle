@@ -1,13 +1,16 @@
 import './CommunityHeader.css';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { countryName } from '@oss-idle/shared/display/country';
-import Dropdown from '../dropdown/Dropdown';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import Account from '../../online/account';
 import Socket from '../../online/socket';
+import Dropdown from '../dropdown/Dropdown';
 import MusicControls from './MusicControls';
 import {
 	activeFilter,

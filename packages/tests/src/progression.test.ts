@@ -1,24 +1,23 @@
+import { i18n } from '@lingui/core';
 import {
 	beforeAll,
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import { i18n } from '@lingui/core';
-import {
-	effectiveLevelOf,
-	mapLevel,
-} from '@oss-idle/shared/sim/skills/levelCurve';
-import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
+
 import {
 	REBIRTH_UNLOCKS,
 	unlocksForGeneration,
 	usesReservedOld,
 } from '@oss-idle/shared/rebirth';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import type Skill from '@oss-idle/shared/sim/skills/skill';
-import { upgradeLabel } from '@oss-idle/shared/display/skills';
-import { UPGRADE } from '@oss-idle/shared/skills';
+import { upgradeLabel } from '@oss-idle/shared/rulesets/mania/4k/display';
+import { UPGRADE } from '@oss-idle/shared/rulesets/mania/4k/display';
+import { makeOrderedSkills } from '@oss-idle/shared/rulesets/mania/4k/skills/factory';
+import { mapLevel } from '@oss-idle/shared/rulesets/mania/4k/skills/levelCurve';
+import type Skill from '@oss-idle/shared/rulesets/mania/4k/skills/skill';
+import { effectiveLevelOf } from '@oss-idle/shared/xp';
+import { xpForLevel } from '@oss-idle/shared/xp';
 
 describe('level → skill mapping', () => {
 	it('is the identity up to 90', () => {

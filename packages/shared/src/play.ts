@@ -1,9 +1,13 @@
 import { z } from 'zod';
-import { rateSchema } from './rate.js';
+
+import { Grades } from './grade.js';
 import { modsSchema } from './mods.js';
-import { Grades } from './judgement.js';
-import { Skills } from './skills.js';
+import { rateSchema } from './rate.js';
+import { RULESET_IDS } from './rulesets/ids.js';
 import { scoreDTO } from './score.js';
+
+/** The silence before a play's first note: every play's timeline starts here. */
+export const LEAD_IN_MS = 2000;
 
 /**
  * The play protocol. Ranked plays are server-authoritative end to end and ride
@@ -15,18 +19,11 @@ import { scoreDTO } from './score.js';
  * are pushed to every one of the character's sockets.
  */
 
-/** One replayed input as it streams to the client - mirrors the sim's
- *  `ReplayOffset`. */
-export const replayOffsetDTO = z.object({
-	id: z.string(),
-	tail: z.literal(true).optional(),
-	offset: z.number().optional(),
-});
-
 /** A slice of the replay stream: the offsets revealed so far, the resume
- *  cursor, and whether every offset has been delivered. */
+ *  cursor, and whether every offset has been delivered. An offset is the play's
+ *  ruleset's own: only that ruleset's client reads one. */
 const offsetChunk = {
-	offsets: z.array(replayOffsetDTO),
+	offsets: z.array(z.unknown()),
 	next: z.number().int().min(0),
 	done: z.boolean(),
 };
@@ -37,6 +34,8 @@ const offsetChunk = {
 export const playStartResultDTO = z.discriminatedUnion('status', [
 	z.object({
 		status: z.literal('ranked'),
+		/** the map's ruleset: it plays the replay back */
+		ruleset: z.enum(RULESET_IDS),
 		/** joined the play already in progress (spectate) instead of starting */
 		joined: z.boolean(),
 		token: z.string(),
@@ -104,7 +103,8 @@ export type PlayState = z.infer<typeof playStateDTO>;
 
 /** A skill's level/xp before and after the play - the sim's `SkillProgress`. */
 export const skillGainDTO = z.object({
-	skill: z.enum(Skills),
+	/** one of the play's ruleset's skills */
+	skill: z.string(),
 	gained: z.number(),
 	fromLevel: z.number().int(),
 	fromXp: z.number(),

@@ -1,5 +1,7 @@
 import './ContextMenu.css';
+
 import type { RefObject } from 'react';
+
 import useKeyboardOwner from '../input/keyboardOwner';
 
 export interface ContextMenuOption {

@@ -1,10 +1,10 @@
-import type { Bilingual } from './types';
 import {
 	EMAIL,
 	MEDIATOR,
 	PUBLISHER,
 	SITE,
 } from '../identity';
+import type { Bilingual } from './types';
 
 export const terms: Bilingual = {
 	en: {

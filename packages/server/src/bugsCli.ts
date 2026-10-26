@@ -1,9 +1,11 @@
 import 'dotenv/config';
+
 import {
 	BUG_STATUS,
 	type BugStatus,
 } from '@oss-idle/shared/bugs';
 import { OWNER_ID } from '@oss-idle/shared/groups';
+
 import {
 	addBugMessage,
 	allBugs,

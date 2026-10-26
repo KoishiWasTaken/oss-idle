@@ -1,7 +1,8 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import { desktop } from '@oss-idle/shared/desktop';
-import { ScoreDTO } from '@oss-idle/shared/score';
+import Synced from '@oss-idle/shared/helpers/synced';
 import type { PlayDeltas } from '@oss-idle/shared/play';
+import { ScoreDTO } from '@oss-idle/shared/score';
+
 import { Score } from './db/schema/score';
 import { devTools } from './dev/devTools';
 

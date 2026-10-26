@@ -1,18 +1,21 @@
-import { ph } from '@lingui/core/macro';
 import './DesktopUpdate.css';
+
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
+	type ReactNode,
 	useEffect,
 	useState,
-	type ReactNode,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { STAGING } from '../dev/devTools';
 import {
 	checkForDesktopUpdate,
 	downloadDesktopUpdate,
 	updateStatus,
 } from '../online/desktopUpdate';
-import { STAGING } from '../dev/devTools';
 
 const STAGING_CHECK_MS = 30_000;
 

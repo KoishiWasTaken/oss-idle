@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { getGeneralStats } from '../../api/stats';
 import Changelog from '../../pages/changelog/Changelog';
 

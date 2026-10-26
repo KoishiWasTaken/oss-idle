@@ -1,26 +1,26 @@
 
 import '@oss-idle/shared/osu/controlPointPatch'; // O(1) groupAt - SV-heavy maps decode in ms, not seconds
+
 import type { Beatmap } from 'osu-classes';
+
+import { type Mod } from '@oss-idle/shared/mods';
+import CharacterBot, { Strains } from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import { modXp } from '@oss-idle/shared/rulesets/mania/4k/modXp';
 import {
-	ManiaGame,
+	type SkillName,
+	Skills,
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
+import { makeOrderedSkills } from '@oss-idle/shared/rulesets/mania/4k/skills/factory';
+import {
 	type HitRecord,
-} from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot, { Strains } from '@oss-idle/shared/sim/bots/character';
+	ManiaGame,
+} from '@oss-idle/shared/rulesets/mania/maniaGame';
 import {
-	ScoreState,
 	judge,
 	maniaWindows,
-} from '@oss-idle/shared/sim/scoring';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import {
-	modXp,
-	type Mod,
-} from '@oss-idle/shared/mods';
-import { xpScore } from '@oss-idle/shared/sim/xpScore';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
+	ScoreState,
+} from '@oss-idle/shared/rulesets/mania/scoring';
+import { xpScore } from '@oss-idle/shared/rulesets/mania/xpScore';
 
 /**
  * Load a hand-picked `.osu` chart and run the authoritative simulation against a

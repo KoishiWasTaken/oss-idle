@@ -1,31 +1,33 @@
-import Synced from '@oss-idle/shared/helpers/synced';
+import { t } from '@lingui/core/macro';
+
 import type { ClientMessage } from '@oss-idle/shared/community/wire';
+import Log from '@oss-idle/shared/helpers/log';
+import Synced from '@oss-idle/shared/helpers/synced';
+import { modsKey } from '@oss-idle/shared/mods';
 import {
 	isMatchChannel,
 	LOBBY_CHANNEL,
-	matchChannel,
 	type Match,
+	matchChannel,
 	type PlayerSlot,
 	type RoundScore,
 } from '@oss-idle/shared/multiplayer';
-import Socket from './socket';
-import { restrictedMessage } from './play';
-import Log from '@oss-idle/shared/helpers/log';
-import { t } from '@lingui/core/macro';
+
 import { music } from '../audio/MusicPlayer';
-import PlayManager from './playManager';
-import Entities from '../entity/entities';
-import PlayQueue from '../gameplay/playQueue';
-import { beatmapsVersion } from '../osu/beatmap/beatmap_store';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
-import { launchPlay } from '../scenes/launchPlay';
-import { selectedRate } from '../gameplay/playRate';
-import { selectedMods } from '../gameplay/playMods';
-import { modsKey } from '@oss-idle/shared/mods';
 import {
 	activeChatTab,
 	chatTabs,
 } from '../components/community/chat/state';
+import Entities from '../entity/entities';
+import { selectedMods } from '../gameplay/playMods';
+import PlayQueue from '../gameplay/playQueue';
+import { selectedRate } from '../gameplay/playRate';
+import { beatmapsVersion } from '../osu/beatmap/beatmap_store';
+import { launchPlay } from '../scenes/launchPlay';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import { restrictedMessage } from './play';
+import PlayManager from './playManager';
+import Socket from './socket';
 
 type JoinReason = 'full' | 'password' | 'gone' | 'playing' | 'restricted';
 

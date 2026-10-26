@@ -1,22 +1,24 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import type { Match } from '@oss-idle/shared/multiplayer';
-import BeatmapCard from '../BeatmapCard';
-import type { DownloadState } from '../BeatmapCarousel';
-import BeatmapAPI from '../../osu/beatmap/beatmap_api';
-import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
-import { findCard } from '../../osu/beatmap/findCard';
+
 import { music } from '../../audio/MusicPlayer';
-import Auth from '../../online/auth';
 import {
 	isWebOpen,
 	webUrl,
 } from '../../globals';
+import Auth from '../../online/auth';
+import BeatmapAPI from '../../osu/beatmap/beatmap_api';
+import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
+import { findCard } from '../../osu/beatmap/findCard';
+import BeatmapCard from '../BeatmapCard';
+import type { DownloadState } from '../BeatmapCarousel';
 
 /** The match's map; a player without it clicks it to download, or to open its page
  *  on the site when it isn't bundled and they have no oss!supporter tag. */

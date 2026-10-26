@@ -1,12 +1,13 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import {
 	and,
 	desc,
 	eq,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
+
 import {
 	authorizeBody,
 	isCallbackUrl,
@@ -15,21 +16,22 @@ import {
 	parseScopes,
 	type Scope,
 } from '@oss-idle/shared/oauth';
+
+import { requireActive } from '../auth/active';
+import { requireAuth } from '../auth/middleware';
 import { db } from '../db/client';
+import { characters } from '../db/schema/character';
 import {
 	oauthClients,
 	oauthTokens,
 } from '../db/schema/oauth';
-import { characters } from '../db/schema/character';
 import { users } from '../db/schema/user';
-import { requireAuth } from '../auth/middleware';
-import { requireActive } from '../auth/active';
-import { dailyLimit } from '../rateLimit';
 import {
 	createCode,
 	randomSecret,
 	redirectsOf,
 } from '../oauth';
+import { dailyLimit } from '../rateLimit';
 import {
 	idParam,
 	valid,

@@ -1,8 +1,9 @@
 import { useContext } from 'react';
 import { createPortal } from 'react-dom';
+
 import {
-	PageBarSlot,
 	type PageAction,
+	PageBarSlot,
 } from './pageBar';
 import PageBarButton from './PageBarButton';
 

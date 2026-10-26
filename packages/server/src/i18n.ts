@@ -1,13 +1,14 @@
-import type { MiddlewareHandler } from 'hono';
 import {
-	i18n,
 	type I18n,
+	i18n,
 } from '@lingui/core';
+import type { MiddlewareHandler } from 'hono';
+
+import { DEFAULT_LOCALE } from '@oss-idle/shared/i18n/locales';
 import {
 	createI18n,
 	loadAndActivate,
 } from '@oss-idle/shared/i18n/runtime';
-import { DEFAULT_LOCALE } from '@oss-idle/shared/i18n/locales';
 
 declare module 'hono' {
 	interface ContextVariableMap {

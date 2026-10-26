@@ -1,6 +1,8 @@
 import { Trans } from '@lingui/react/macro';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import type { SkillGain } from '@oss-idle/shared/play';
+
 import Entities from '../../entity/entities';
 import SkillXPBar from '../SkillXPBar';
 
@@ -22,8 +24,8 @@ const MIN_BUDGET_MS = 1200;
  *  note. Renders nothing for a failed play or one that awards no XP. */
 export default function SkillProgression({ failed, progression, gains }: {
 	failed?: boolean;
-	progression?: SkillProgress[];
-	gains: SkillProgress[];
+	progression?: SkillGain[];
+	gains: SkillGain[];
 }) {
 	const [character] = useSynced(Entities.character);
 
@@ -45,7 +47,7 @@ export default function SkillProgression({ failed, progression, gains }: {
 					delay={delay}
 					budgetMs={Math.max(MIN_BUDGET_MS, TOTAL_MS - delay - ENTER_MS)}
 					prestige={character.skills.find(s => s.name === p.skill)?.prestige.get()}
-					lifetimeXp={character[`${p.skill}LifetimeXp`]}
+					lifetimeXp={character.lifetimeXp(p.skill)}
 				/>;
 			})}
 		</div>

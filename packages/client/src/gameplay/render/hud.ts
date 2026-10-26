@@ -1,23 +1,16 @@
-import Reading from '@oss-idle/shared/sim/skills/reading';
-import Speed from '@oss-idle/shared/sim/skills/speed';
-import num from '@oss-idle/shared/display/num';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import { type Grade } from '@oss-idle/shared/judgement';
-import { MAX_HP } from '@oss-idle/shared/sim/scoring';
 import { BAR_ZONES } from '@oss-idle/shared/fatigue';
+import { type Grade } from '@oss-idle/shared/grade';
+import { MAX_HP } from '@oss-idle/shared/rulesets/mania/scoring';
+
 import { drawHitErrorBar } from '../hitError';
 import {
-	roundRect,
-	STRAIN_HUD_SKILLS,
 	type Frame,
+	roundRect,
 	type StrainHud,
 	type Viewport,
 } from './frame';
-import { makeStageHud } from './stageHud';
 import type { StageFrame } from './stage';
+import { makeStageHud } from './stageHud';
 
 const HP_EASE_MS = 200;
 
@@ -147,10 +140,11 @@ type Size = Pick<Viewport, 'w' | 'h'>;
 const strainStep = (vp: Size) => vp.w < 700 ? 30 : 26;
 const strainTop = (vp: Size) => Math.max(150, vp.h * 0.24);
 
-/** the warm-up bar with its label and state, for a hover area over the canvas */
-export const warmupGaugeBox = (vp: Size, left = 16) => ({
+/** the warm-up bar with its label and state below `gauges` strain gauges, for a hover
+ *  area over the canvas */
+export const warmupGaugeBox = (vp: Size, gauges: number, left = 16) => ({
 	left,
-	top: strainTop(vp) + STRAIN_HUD_SKILLS.length * strainStep(vp),
+	top: strainTop(vp) + gauges * strainStep(vp),
 	width: GAUGE_W,
 	height: 32,
 });
@@ -161,18 +155,19 @@ export const warmupGaugeBox = (vp: Size, left = 16) => ({
 const drawStrainMeters = (
 	f: Frame,
 	strain: StrainHud,
-	display: Record<SkillName, number>,
+	display: Record<string, number>,
 ) => {
 	const { ctx, now, vp } = f;
-	const strains = strain.bot.strainsAt(now);
+	const strains = strain.source.strainsAt(now);
 	const bx = strain.left ?? 16;
 	const step = strainStep(vp);
 	const by0 = strainTop(vp);
 	ctx.font = '600 11px "Exo 2", sans-serif';
-	STRAIN_HUD_SKILLS.forEach((skill, i) => {
-		const v = display[skill] += (strains[skill] - display[skill]) * 0.2;
+	strain.gauges.forEach(({ skill, label }, i) => {
+		const was = display[skill] ?? 0;
+		const v = display[skill] = was + ((strains[skill] ?? 0) - was) * 0.2;
 		// calm green → stressed red
-		drawGauge(f, strain.labels[skill], v, `hsl(${120 - v * 120}, 85%, 55%)`, bx, by0 + i * step);
+		drawGauge(f, label, v, `hsl(${120 - v * 120}, 85%, 55%)`, bx, by0 + i * step);
 	});
 	if (strain.warmupBar === undefined) return;
 	drawWarmupGauge(
@@ -181,33 +176,22 @@ const drawStrainMeters = (
 		strain.warmupState ?? '',
 		strain.warmupBar,
 		bx,
-		by0 + STRAIN_HUD_SKILLS.length * step + 12,
+		by0 + strain.gauges.length * step + 12,
 		strain.warmupTrend,
 	);
 };
 
 // debug-only telemetry over the playfield (nps, visible notes, transitions, ...)
 const drawDebugStats = (f: Frame, cxField: number) => {
-	const { ctx, game, now, vp } = f;
+	const { ctx, game, now, vp, opts } = f;
 	ctx.fillStyle = '#fff';
 	ctx.font = '800 23px "Exo 2", sans-serif';
 	ctx.textAlign = 'center';
 	ctx.fillText(`${game.npsAt(now)}nps`, cxField, vp.h * 0.32);
 	ctx.fillText(`${game.visibleNotesAt(now).length}v`, cxField, vp.h * 0.28);
-	ctx.fillText(`${Reading.countTransitions(
-		new Map(),
-		game.visibleNotesAt(now))}t`,
-	cxField,
-	vp.h * 0.36,
-	);
-	ctx.fillText(
-		`${num(Speed.weightedGroups(
-			new Map(),
-			game.recentNotes(now),
-		), 2)}g`,
-		cxField,
-		vp.h * 0.39,
-	);
+	(opts.debugStats?.(game, now) ?? []).forEach((line, i) => {
+		ctx.fillText(line, cxField, vp.h * (0.36 + i * 0.03));
+	});
 	ctx.textAlign = 'left';
 	ctx.fillText(
 		`x${Math.round(game.scroll.getSpeedAt(now) * 100) / 100}`,
@@ -223,8 +207,7 @@ const drawDebugStats = (f: Frame, cxField: number) => {
  * caller, fed via `opts.onGrade` only when the grade changes.
  */
 export const makeHud = () => {
-	const strainDisplay =
-		Object.fromEntries(Skills.map(s => [s, 0])) as Record<SkillName, number>;
+	const strainDisplay: Record<string, number> = {};
 	const stageHud = makeStageHud();
 	// filled in every frame rather than made anew
 	let errorBar: Parameters<typeof drawHitErrorBar>[2] | undefined;

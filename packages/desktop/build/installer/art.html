@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- Source of the installer's page bitmaps (720x420, one per page; the update window is 460x150): node build/installer/render.mjs -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "Exo 2"; src: url(../../../client/public/fonts/Exo2-Light.otf); font-weight: 300; }
+@font-face { font-family: "Exo 2"; src: url(../../../client/public/fonts/Exo2-Regular.otf); font-weight: 400; }
+@font-face { font-family: "Exo 2"; src: url(../../../client/public/fonts/Exo2-Bold.otf); font-weight: 700; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { width: 720px; height: 420px; overflow: hidden; background: #000; font-family: "Exo 2", sans-serif; color: #f6f0f5; }
+.win { position: relative; width: 720px; height: 420px; overflow: hidden; }
+.win::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
+.bg { position: absolute; inset: 0; background: url(bg.jpg) center / cover; }
+.scrim { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(20,10,18,0.55), rgba(10,5,9,0.92)); }
+.x { position: absolute; top: 16px; right: 16px; width: 12px; height: 12px; color: rgba(246,240,245,0.55); }
+.min { position: absolute; top: 21px; right: 44px; width: 12px; height: 1.3px; background: rgba(246,240,245,0.55); }
+.content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
+.logo { width: 92px; height: 92px; margin-top: 46px; }
+.word { margin-top: 18px; font-weight: 300; font-size: 44px; line-height: 1.2; letter-spacing: 0.11em; color: rgb(189,247,255); }
+.btn { margin-top: 26px; padding: 12px 54px; border-radius: 50px; background: linear-gradient(135deg, #ff66aa, #e83884);
+	font-weight: 700; font-size: 19px; letter-spacing: 0.5px; color: #fff; box-shadow: 0 4px 15px rgba(255,102,170,0.3); }
+.line { margin-top: 18px; height: 18px; width: 560px; }
+.bar { margin-top: 30px; width: 380px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); }
+.check { margin-top: 18px; font-size: 13px; color: rgba(246,240,245,0.75); display: flex; align-items: center; gap: 8px; }
+.check span { width: 14px; height: 14px; border-radius: 3px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+.on span { background: #ff66aa; }
+.off span { box-shadow: inset 0 0 0 1.3px rgba(246,240,245,0.55); }
+.fine { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 12px; color: rgba(246,240,245,0.45); }
+.small .win { width: 460px; height: 150px; }
+.upd .logo { position: absolute; left: 25px; top: 47px; width: 56px; height: 56px; margin: 0; }
+.upd .word { position: absolute; left: 100px; top: 36px; margin: 0; font-size: 26px; }
+.upd .bar { position: absolute; left: 100px; top: 82px; width: 334px; margin: 0; }
+.upd .note { position: absolute; left: 100px; top: 94px; font-size: 12px; color: rgba(246,240,245,0.55); }
+</style>
+</head>
+<body>
+<div class="win">
+	<div class="bg"></div><div class="scrim"></div>
+	<div class="page welcome ready-on ready-off min" data-hot="minimize"></div>
+	<svg class="page welcome ready-on ready-off x" data-hot="close" viewBox="0 0 12 12"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.3"/></svg>
+	<div class="content">
+		<img class="page welcome installing ready-on ready-off logo" src="../../../client/public/idle-logo.png">
+		<div class="page welcome word">welcome</div>
+		<div class="page installing word">installing</div>
+		<div class="page ready-on ready-off word">ready</div>
+		<div class="page welcome btn" data-hot="install">Install</div>
+		<div class="page welcome line" data-hot="path"></div>
+		<div class="page installing bar" data-hot="bar"></div>
+		<div class="page ready-on ready-off btn" data-hot="play">Play</div>
+		<div class="page ready-on check on" data-hot="shortcut"><span>✓</span>Desktop shortcut</div>
+		<div class="page ready-off check off"><span></span>Desktop shortcut</div>
+	</div>
+	<div class="page updating upd">
+		<img class="logo" src="../../../client/public/idle-logo.png">
+		<div class="word">updating</div>
+		<div class="bar" data-hot="bar"></div>
+		<div class="note">The game restarts on its own</div>
+	</div>
+	<div class="page welcome installing ready-on ready-off fine">This game is an unofficial, fanmade version of osu!stable and is not affiliated with osu.ppy.sh</div>
+</div>
+<pre id="hot"></pre>
+<script>
+	const page = location.hash.slice(1);
+	document.body.classList.toggle('small', page === 'updating');
+	for (const el of document.querySelectorAll('.page:not(.' + page + ')')) el.style.display = 'none';
+	document.fonts.ready.then(() => {
+		const hot = {};
+		for (const el of document.querySelectorAll('[data-hot]')) {
+			if (!el.getClientRects().length) continue;
+			const r = el.getBoundingClientRect();
+			hot[el.dataset.hot] = [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)];
+		}
+		document.getElementById('hot').textContent = JSON.stringify(hot);
+	});
+</script>
+</body>
+</html>

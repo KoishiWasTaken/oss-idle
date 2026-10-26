@@ -1,7 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
+
+import type { getGlobalRanking } from '../../api/rankings';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
 import PlayerLeaderboard, { type ScoreSort } from '../../components/leaderboard/PlayerLeaderboard';
-import type { getGlobalRanking } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 type Players = Awaited<ReturnType<typeof getGlobalRanking>>;

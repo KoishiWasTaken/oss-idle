@@ -127,6 +127,10 @@ msgstr "{n} players"
 msgid "{name} becomes {name}_old"
 msgstr "{name} becomes {name}_old"
 
+#: src/scenes/Editor.tsx
+msgid "{name} becomes this difficulty's background"
+msgstr "{name} becomes this difficulty's background"
+
 #: src/components/character/RebirthView.tsx
 msgid "{name} keeps its name"
 msgstr "{name} keeps its name"
@@ -660,6 +664,10 @@ msgstr "Built from"
 msgid "Built from a git repository"
 msgstr "Built from a git repository"
 
+#: src/osu/beatmap/grouping.ts
+msgid "Bundled"
+msgstr "Bundled"
+
 #: src/components/Tutorial.tsx
 msgid "Bundled maps are listed in <0>song select</0>:<1> double-click</1> a map to download it, then <2>single-click</2> to start playing."
 msgstr "Bundled maps are listed in <0>song select</0>:<1> double-click</1> a map to download it, then <2>single-click</2> to start playing."
@@ -693,6 +701,10 @@ msgstr "by {author}"
 #: src/components/addons/AddonReadMeta.tsx
 msgid "by {author} for game version {version}"
 msgstr "by {author} for game version {version}"
+
+#: src/components/community/chat/ChatEmoji.tsx
+msgid "by {name}"
+msgstr "by {name}"
 
 #: src/components/songselect/TopBar.tsx
 msgid "By Artist"
@@ -733,6 +745,10 @@ msgstr "By snap"
 #: src/components/songselect/TopBar.tsx
 msgid "By Status"
 msgstr "By Status"
+
+#: src/components/songselect/TopBar.tsx
+msgid "By Tag"
+msgstr "By Tag"
 
 #: src/components/songselect/TopBar.tsx
 msgid "By Title"
@@ -966,7 +982,7 @@ msgstr "Could not open this map in the editor"
 msgid "Could not save"
 msgstr "Could not save"
 
-#: src/scenes/MainMenu.tsx
+#: src/editor/newMap.ts
 msgid "Could not start a map on {name}"
 msgstr "Could not start a map on {name}"
 
@@ -975,11 +991,11 @@ msgstr "Could not start a map on {name}"
 msgid "Could not start the next map - the queue is paused"
 msgstr "Could not start the next map - the queue is paused"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Could not submit it for rank"
 msgstr "Could not submit it for rank"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Could not unrank it"
 msgstr "Could not unrank it"
 
@@ -987,7 +1003,7 @@ msgstr "Could not unrank it"
 msgid "Could not upload: {error}"
 msgstr "Could not upload: {error}"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Could not withdraw it"
 msgstr "Could not withdraw it"
 
@@ -1336,7 +1352,7 @@ msgstr "Every bundled beatmap is already downloaded."
 msgid "Every ranked beatmap is already downloaded."
 msgstr "Every ranked beatmap is already downloaded."
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Every score and all the progression players earned on it are deleted for good, and only the team can rank it again."
 msgstr "Every score and all the progression players earned on it are deleted for good, and only the team can rank it again."
 
@@ -1373,7 +1389,7 @@ msgstr "FAILED"
 msgid "Fast"
 msgstr "Fast"
 
-#: src/editor/EditorCompose.tsx
+#: src/editor/EditorSpeed.tsx
 msgid "Faster"
 msgstr "Faster"
 
@@ -1686,8 +1702,8 @@ msgid "Imported {title}"
 msgstr "Imported {title}"
 
 #: src/osu/beatmap/oszImport.ts
-msgid "Imported {title}, but it has no 4K mania difficulty to play"
-msgstr "Imported {title}, but it has no 4K mania difficulty to play"
+msgid "Imported {title}, but it has no {rulesets} difficulty to play"
+msgstr "Imported {title}, but it has no {rulesets} difficulty to play"
 
 #: src/osu/beatmap/oszImport.ts
 msgid "Importing {name}..."
@@ -1697,7 +1713,7 @@ msgstr "Importing {name}..."
 msgid "In the menus"
 msgstr "In the menus"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "In the ranking queue"
 msgstr "In the ranking queue"
 
@@ -1870,11 +1886,13 @@ msgstr "Live note offset"
 msgid "Live note offset (ms)"
 msgstr "Live note offset (ms)"
 
-#: src/editor/EditorCompose.tsx
+#: src/editor/builtinActions.ts
+#: src/editor/EditorViewOptions.tsx
 msgid "Live preview"
 msgstr "Live preview"
 
 #: src/editor/EditorShortcuts.tsx
+#: src/osu/beatmap/grouping.ts
 msgid "LN"
 msgstr "LN"
 
@@ -1915,7 +1933,7 @@ msgid "Loop"
 msgstr "Loop"
 
 #: src/components/direct/DirectFilters.tsx
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 #: src/osu/beatmap/grouping.ts
 msgid "Loved"
 msgstr "Loved"
@@ -2053,6 +2071,10 @@ msgstr "Mirror the whole map"
 msgid "Mixed"
 msgstr "Mixed"
 
+#: src/components/songselect/SongSelectFooter.tsx
+msgid "Mode"
+msgstr "Mode"
+
 #: src/components/dock/DockModsButton.tsx
 msgid "mods"
 msgstr "mods"
@@ -2180,13 +2202,17 @@ msgstr "New character name"
 
 #: src/editor/EditorDifficulty.tsx
 #: src/editor/EditorView.tsx
-#: src/scenes/MainMenu.tsx
+#: src/editor/newMap.ts
 msgid "New difficulty"
 msgstr "New difficulty"
 
 #: src/scenes/Lobby.tsx
 msgid "New Game"
 msgstr "New Game"
+
+#: src/editor/EditorNewMap.tsx
+msgid "New map"
+msgstr "New map"
 
 #: src/scenes/Direct.tsx
 msgid "New Releases"
@@ -2221,6 +2247,10 @@ msgstr "Next song"
 #: src/editor/builtinActions.ts
 msgid "Next tool"
 msgstr "Next tool"
+
+#: src/editor/EditorRulesetSubmission.tsx
+msgid "No {ruleset} difficulty of it is online yet: upload one first"
+msgstr "No {ruleset} difficulty of it is online yet: upload one first"
 
 #: src/components/addons/BrowseAddonsView.tsx
 msgid "No add-ons found."
@@ -2327,6 +2357,10 @@ msgstr "None (the sample set's)"
 msgid "Normal"
 msgstr "Normal"
 
+#: src/editor/builtinActions.ts
+msgid "Normal playback speed"
+msgstr "Normal playback speed"
+
 #: src/components/addons/AddonCodeCheck.tsx
 msgid "Not allowed: add-ons may not run code players cannot read in them"
 msgstr "Not allowed: add-ons may not run code players cannot read in them"
@@ -2396,11 +2430,6 @@ msgid "Now playing"
 msgstr "Now playing"
 
 #: src/editor/EditorCompose.tsx
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorLiveMapping.tsx
-#: src/editor/EditorViewOptions.tsx
 msgid "Off"
 msgstr "Off"
 
@@ -2412,18 +2441,6 @@ msgstr "Offset in ms, like -15"
 msgid "Offset the whole map"
 msgstr "Offset the whole map"
 
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorCompose.tsx
-#: src/editor/EditorLiveMapping.tsx
-#: src/editor/EditorViewOptions.tsx
-msgid "On"
-msgstr "On"
-
-#: src/components/skills/SkillsView.tsx
-msgid "On top of these, each play's XP changes depending on mods (EZ x{ez} on every skill, HR x{hr} on Accuracy) and drops when you replay the same map many times in a day due to mindblock (except Speed, Stamina, Jack Speed and Memory)."
-msgstr "On top of these, each play's XP changes depending on mods (EZ x{ez} on every skill, HR x{hr} on Accuracy) and drops when you replay the same map many times in a day due to mindblock (except Speed, Stamina, Jack Speed and Memory)."
-
 #: src/components/Onboarding.tsx
 msgid "Online characters always start fresh: Guest progress stays local, so the leaderboards stay fair."
 msgstr "Online characters always start fresh: Guest progress stays local, so the leaderboards stay fair."
@@ -2431,10 +2448,6 @@ msgstr "Online characters always start fresh: Guest progress stays local, so the
 #: src/components/community/CommunityControls.tsx
 msgid "Online users"
 msgstr "Online users"
-
-#: src/editor/EditorSubmission.tsx
-msgid "Only 4K difficulties can be ranked: add one first"
-msgstr "Only 4K difficulties can be ranked: add one first"
 
 #: src/components/multiplayer/SlotLabel.tsx
 msgid "Open"
@@ -2659,11 +2672,11 @@ msgstr "Place a note, or remove one"
 msgid "Placing"
 msgstr "Placing"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Planned, not loved yet"
 msgstr "Planned, not loved yet"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Planned, not ranked yet"
 msgstr "Planned, not ranked yet"
 
@@ -2718,7 +2731,7 @@ msgstr "Play unranked ?"
 msgid "Playback"
 msgstr "Playback"
 
-#: src/editor/EditorCompose.tsx
+#: src/editor/EditorSpeed.tsx
 msgid "Playback speed"
 msgstr "Playback speed"
 
@@ -2799,6 +2812,10 @@ msgstr "Previous"
 msgid "Previous beat line"
 msgstr "Previous beat line"
 
+#: src/components/community/chat/ChatEmoji.tsx
+msgid "private"
+msgstr "private"
+
 #: src/components/Onboarding.tsx
 msgid "Profile picture<0/>Defaults to your osu! avatar"
 msgstr "Profile picture<0/>Defaults to your osu! avatar"
@@ -2854,7 +2871,7 @@ msgid "rank: {best} - {worst}"
 msgstr "rank: {best} - {worst}"
 
 #: src/components/direct/DirectFilters.tsx
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 #: src/osu/beatmap/grouping.ts
 msgid "Ranked"
 msgstr "Ranked"
@@ -2965,6 +2982,7 @@ msgid "Renderer"
 msgstr "Renderer"
 
 #: src/editor/EditorSoundFiles.tsx
+#: src/scenes/Editor.tsx
 msgid "Replace"
 msgstr "Replace"
 
@@ -2975,6 +2993,10 @@ msgstr "Replace from a folder"
 #: src/components/skins/SkinView.tsx
 msgid "Replace from an .osk"
 msgstr "Replace from an .osk"
+
+#: src/scenes/Editor.tsx
+msgid "Replace the background?"
+msgstr "Replace the background?"
 
 #: src/components/community/PlayerMenu.tsx
 msgid "Report"
@@ -3010,6 +3032,7 @@ msgid "Requires XP Lv{required}"
 msgstr "Requires XP Lv{required}"
 
 #: src/editor/EditorKeyRow.tsx
+#: src/editor/EditorSpeed.tsx
 msgid "Reset"
 msgstr "Reset"
 
@@ -3020,10 +3043,6 @@ msgstr "Reset a skill for a permanent level bonus"
 #: src/editor/builtinActions.ts
 msgid "Reset every shortcut to its default"
 msgstr "Reset every shortcut to its default"
-
-#: src/components/character/PrestigeRow.tsx
-msgid "Resets every learned map"
-msgstr "Resets every learned map"
 
 #: src/editor/builtinActions.ts
 msgid "Resnap the selection, or everything"
@@ -3168,8 +3187,8 @@ msgid "Select a difficulty to see its scores."
 msgstr "Select a difficulty to see its scores."
 
 #: src/editor/EditorShortcuts.tsx
-msgid "Select a note and move the selection, or a box (Ctrl adds)"
-msgstr "Select a note and move the selection, or a box (Ctrl adds)"
+msgid "Select a note and move the selection onto the snap (Shift keeps its offset), or a box (Ctrl adds)"
+msgstr "Select a note and move the selection onto the snap (Shift keeps its offset), or a box (Ctrl adds)"
 
 #: src/components/PlaylistOverlay.tsx
 msgid "Select a playlist or create a new one here..."
@@ -3215,7 +3234,7 @@ msgstr "Selecting a song"
 msgid "Send Report"
 msgstr "Send Report"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Sent back: {note}"
 msgstr "Sent back: {note}"
 
@@ -3395,7 +3414,7 @@ msgstr "Skip"
 msgid "Skip to the next map"
 msgstr "Skip to the next map"
 
-#: src/editor/EditorCompose.tsx
+#: src/editor/EditorSpeed.tsx
 msgid "Slower"
 msgstr "Slower"
 
@@ -3491,6 +3510,10 @@ msgstr "Start Game"
 msgid "Start Game!"
 msgstr "Start Game!"
 
+#: src/editor/EditorNewMap.tsx
+msgid "Start mapping"
+msgstr "Start mapping"
+
 #: src/scenes/Character.tsx
 msgid "Start over with a new character that unlocks new features"
 msgstr "Start over with a new character that unlocks new features"
@@ -3515,7 +3538,7 @@ msgstr "Strain debug"
 msgid "Submit"
 msgstr "Submit"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Submit for rank"
 msgstr "Submit for rank"
 
@@ -3523,7 +3546,7 @@ msgstr "Submit for rank"
 msgid "Submitted {ranked}"
 msgstr "Submitted {ranked}"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Submitted for rank"
 msgstr "Submitted for rank"
 
@@ -3536,6 +3559,7 @@ msgid "Support the game to access cool features!"
 msgstr "Support the game to access cool features!"
 
 #: src/editor/EditorSummary.tsx
+#: src/osu/beatmap/grouping.ts
 msgid "SV"
 msgstr "SV"
 
@@ -3677,6 +3701,10 @@ msgstr "There are no matches available."
 #: src/osu/skin/importSkin.ts
 msgid "There are no skin files in there"
 msgstr "There are no skin files in there"
+
+#: src/scenes/Gameplay.tsx
+msgid "This difficulty can't be played here."
+msgstr "This difficulty can't be played here."
 
 #: src/scenes/Gameplay.tsx
 msgid "This difficulty failed to load."
@@ -3829,6 +3857,10 @@ msgstr "ui|scale|scaling|zoom|size"
 msgid "Unable to load \"{skin}\""
 msgstr "Unable to load \"{skin}\""
 
+#: src/osu/beatmap/grouping.ts
+msgid "Uncategorized"
+msgstr "Uncategorized"
+
 #: src/editor/builtinActions.ts
 msgid "Undo"
 msgstr "Undo"
@@ -3851,15 +3883,15 @@ msgstr "Unlocked: {unlocks}"
 msgid "Unplayed"
 msgstr "Unplayed"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Unrank"
 msgstr "Unrank"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Unrank it"
 msgstr "Unrank it"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Unrank your map?"
 msgstr "Unrank your map?"
 
@@ -3868,7 +3900,7 @@ msgstr "Unrank your map?"
 msgid "Unranked"
 msgstr "Unranked"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Unranked: it is yours to change or take down"
 msgstr "Unranked: it is yours to change or take down"
 
@@ -4119,7 +4151,7 @@ msgstr "Win Condition:"
 msgid "WINNER"
 msgstr "WINNER"
 
-#: src/editor/EditorSubmission.tsx
+#: src/editor/EditorRulesetSubmission.tsx
 msgid "Withdraw"
 msgstr "Withdraw"
 
@@ -4236,10 +4268,6 @@ msgstr "Your published skins"
 msgid "Your save, settings and session came along. Delete everything the old address still keeps in this browser, downloaded beatmaps included?"
 msgstr "Your save, settings and session came along. Delete everything the old address still keeps in this browser, downloaded beatmaps included?"
 
-#: src/editor/EditorShortcuts.tsx
-msgid "Zoom"
-msgstr "Zoom"
-
 #: src/editor/builtinActions.ts
 msgid "Zoom in"
 msgstr "Zoom in"
@@ -4247,3 +4275,7 @@ msgstr "Zoom in"
 #: src/editor/builtinActions.ts
 msgid "Zoom out"
 msgstr "Zoom out"
+
+#: src/editor/EditorShortcuts.tsx
+msgid "Zoom over the columns, change the beat snap elsewhere"
+msgstr "Zoom over the columns, change the beat snap elsewhere"

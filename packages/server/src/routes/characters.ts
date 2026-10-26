@@ -1,5 +1,3 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	asc,
@@ -8,60 +6,17 @@ import {
 	like,
 	sql,
 } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../db/client';
-import {
-	type CharacterRow,
-	characters,
-	getCharacterById,
-	resolveAvatarUrl,
-	resolveBannerUrl,
-} from '../db/schema/character';
-import {
-	getUserById,
-	supporterActive,
-	users,
-} from '../db/schema/user';
-import { getCharacterTotals } from '../db/schema/character_totals';
-import {
-	bestSkillRank,
-	countryRank,
-	globalRank,
-	ppTopPercent,
-} from '../rankings';
-import {
-	getMostPlayed,
-	getTotalPlayed,
-} from '../db/schema/beatmaps_played';
-import { getBestPP } from '../db/schema/best_pp';
-import {
-	getFirstPlaces,
-	getNbFirstPlaces,
-} from '../db/schema/first_place';
-import { getRecentCharacterScores } from '../db/schema/score';
-import { getFormerNames } from '../db/schema/name_history';
-import { getMedals } from '../db/schema/character_medal';
-import {
-	medalHolders,
-	medalProgress,
-} from '../medals';
-import { supportLevel } from '@oss-idle/shared/supporter';
-import { profileOrder } from '@oss-idle/shared/profile';
-import { userPageOf } from '../userPage';
-import {
-	groupsByUser,
-	groupsOf,
-} from '../groups';
+import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
+
+import { profileOrder } from '@oss-idle/shared/profile';
+import { supportLevel } from '@oss-idle/shared/supporter';
 import { rollbackBody } from '@oss-idle/shared/upgrades';
+
 import { requireAdmin } from '../auth/admin';
-import { performUpgradeRevert } from '../character/actions';
-import { pushCharacter } from '../character/push';
-import { isPlaying } from '../play';
 import { sessionUserId } from '../auth/middleware';
-import { visibleTo } from '../restrictions';
-import { likeEscape } from '../db/columns';
-import { renderProfileCard } from '../profileCard';
 import {
 	countCurated,
 	getCurated,
@@ -70,6 +25,59 @@ import {
 	countMapped,
 	getMapped,
 } from '../beatmaps/mapped';
+import { performUpgradeRevert } from '../character/actions';
+import { pushCharacter } from '../character/push';
+import { db } from '../db/client';
+import { likeEscape } from '../db/columns';
+import {
+	getMostPlayed,
+	getTotalPlayed,
+} from '../db/schema/beatmaps_played';
+import { getBestPP } from '../db/schema/best_pp';
+import {
+	type CharacterRow,
+	characters,
+	getCharacterById,
+	profileDTO,
+	profileOf,
+	resolveAvatarUrl,
+	resolveBannerUrl,
+} from '../db/schema/character';
+import { getMedals } from '../db/schema/character_medal';
+import { getCharacterTotals } from '../db/schema/character_totals';
+import {
+	getFirstPlaces,
+	getNbFirstPlaces,
+} from '../db/schema/first_place';
+import { getFormerNames } from '../db/schema/name_history';
+import { getRecentCharacterScores } from '../db/schema/score';
+import {
+	getUserById,
+	supporterActive,
+	users,
+} from '../db/schema/user';
+import {
+	groupsByUser,
+	groupsOf,
+} from '../groups';
+import {
+	medalHolders,
+	medalProgress,
+} from '../medals';
+import { isPlaying } from '../play';
+import { renderProfileCard } from '../profileCard';
+import {
+	bestSkillRank,
+	countryRank,
+	globalRank,
+	ppTopPercent,
+} from '../rankings';
+import { visibleTo } from '../restrictions';
+import {
+	rulesetParam,
+	rulesetQuery,
+} from '../rulesets/request';
+import { userPageOf } from '../userPage';
 import {
 	idParam,
 	valid,
@@ -121,15 +129,23 @@ export const charactersRoutes = new Hono()
 	})
 	.use('/:id', loadCharacter)
 	.use('/:id/*', loadCharacter)
-	.get('/:id', async c => {
+	.get('/:id', rulesetParam, async c => {
 		const row = c.get('character');
 		const user = await getUserById(row.userId);
 
 		const formerNames = (await getFormerNames(row.id)).filter(n => n !== row.name);
 
+		const r = rulesetQuery(c, row);
+		const profile = await profileOf(r, row.id);
 		const { userPage, ...rest } = row;
 		return c.json({
+			// clients from before rulesets read the profile's columns flat
+			...profile,
 			...rest,
+			ruleset: r.def.id,
+			/** the ruleset the character plays, which `ruleset` shows unless asked for another */
+			picked: row.ruleset,
+			profile: profileDTO(profile, r.def),
 			userPage: await userPageOf(userPage),
 			profileOrder: profileOrder(row.profileOrder ?? undefined),
 			avatarUrl: resolveAvatarUrl(row.avatarUrl, user?.avatarUrl),
@@ -145,14 +161,16 @@ export const charactersRoutes = new Hono()
 	})
 
 	// The medals a character holds, newest first, and its progress toward the rest.
-	.get('/:id/medals', async c => {
+	.get('/:id/medals', rulesetParam, async c => {
 		const character = c.get('character');
+		const r = rulesetQuery(c, character);
 		const [held, progress, holders] = await Promise.all([
-			getMedals(character.id),
-			medalProgress(character),
-			medalHolders(),
+			getMedals(r, character.id),
+			medalProgress(r, character),
+			medalHolders(r),
 		]);
 		return c.json({
+			ruleset: r.def.id,
 			held: held.map(m => ({
 				id: m.medalId, unlockedAt: m.unlockedAt.getTime(),
 			})),
@@ -162,28 +180,33 @@ export const charactersRoutes = new Hono()
 	})
 
 	// Derived profile statistics: aggregates, grade/judgement totals and ranks.
-	.get('/:id/stats', async c => {
+	.get('/:id/stats', rulesetParam, async c => {
 		const character = c.get('character');
+		const r = rulesetQuery(c, character);
 		const user = await getUserById(character.userId);
-		const totals = await getCharacterTotals(character.id);
+		const [totals, profile] = await Promise.all([
+			getCharacterTotals(r, character.id),
+			profileOf(r, character.id),
+		]);
 
 		const [globalRk, countryRk, scoreRk, overallRk, bestSkill, topPercent] = await Promise.all([
-			globalRank('pp', character.id),
-			countryRank('pp', user.country, character.id),
-			globalRank('score', character.id),
-			globalRank('overall', character.id),
-			bestSkillRank(character.id),
-			ppTopPercent(character.id),
+			globalRank(r, 'pp', character.id),
+			countryRank(r, 'pp', user.country, character.id),
+			globalRank(r, 'score', character.id),
+			globalRank(r, 'overall', character.id),
+			bestSkillRank(r, character.id),
+			ppTopPercent(r, character.id),
 		]);
 
 		const stats = {
-			pp: Number(character.pp),
+			ruleset: r.def.id,
+			pp: Number(profile.pp),
 			totalHits: totals.hits,
 			globalRank: globalRk,
 			/** the share of players with pp at or above this rank, 0..1 (osu!'s global_rank_percent) */
 			globalRankPercent: topPercent === undefined ? undefined : topPercent / 100,
-			rankHistory: character.rankHistory?.ranks ?? [],
-			highestRanks: character.rankHistory?.highest ?? {},
+			rankHistory: profile.rankHistory?.ranks ?? [],
+			highestRanks: profile.rankHistory?.highest ?? {},
 			countryRank: countryRk,
 			scoreRank: scoreRk,
 			overallRank: overallRk,
@@ -194,13 +217,15 @@ export const charactersRoutes = new Hono()
 		return c.json(stats);
 	})
 	// The image a shared profile link unfurls into (nginx points og:image here).
-	.get('/:id/card.png', async c => {
+	.get('/:id/card.png', rulesetParam, async c => {
 		const character = c.get('character');
+		const r = rulesetQuery(c, character);
 		const user = await getUserById(character.userId);
-		const [totals, globalRk, countryRk, groups] = await Promise.all([
-			getCharacterTotals(character.id),
-			globalRank('pp', character.id),
-			countryRank('pp', user.country, character.id),
+		const [totals, profile, globalRk, countryRk, groups] = await Promise.all([
+			getCharacterTotals(r, character.id),
+			profileOf(r, character.id),
+			globalRank(r, 'pp', character.id),
+			countryRank(r, 'pp', user.country, character.id),
 			groupsOf(character.userId),
 		]);
 		const png = await renderProfileCard({
@@ -212,69 +237,70 @@ export const charactersRoutes = new Hono()
 			groups,
 			globalRank: globalRk,
 			countryRank: countryRk,
-			pp: Number(character.pp),
+			pp: Number(profile.pp),
 			playCount: totals.playCount,
 		});
 		c.header('Content-Type', 'image/png');
 		c.header('Cache-Control', 'public, max-age=3600');
 		return c.body(new Uint8Array(png));
 	})
-	.get('/:id/mostplayed/:page', async c => {
-		const { id } = c.get('character');
+	.get('/:id/mostplayed/:page', rulesetParam, async c => {
+		const character = c.get('character');
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getMostPlayed(id, page));
+		return c.json(await getMostPlayed(rulesetQuery(c, character), character.id, page));
 	})
-	.get('/:id/countplayed', async c => {
-		const { id } = c.get('character');
-		return c.json(await getTotalPlayed(id));
+	.get('/:id/countplayed', rulesetParam, async c => {
+		const character = c.get('character');
+		return c.json(await getTotalPlayed(rulesetQuery(c, character), character.id));
 	})
-	.get('/:id/bestpp/:page', async c => {
-		const { id } = c.get('character');
+	.get('/:id/bestpp/:page', rulesetParam, async c => {
+		const character = c.get('character');
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getBestPP(id, page));
+		return c.json(await getBestPP(rulesetQuery(c, character), character.id, page));
 	})
-	.get('/:id/countfirstplaces', async c => {
-		const { id } = c.get('character');
-		return c.json(await getNbFirstPlaces(id));
+	.get('/:id/countfirstplaces', rulesetParam, async c => {
+		const character = c.get('character');
+		return c.json(await getNbFirstPlaces(rulesetQuery(c, character), character.id));
 	})
-	.get('/:id/firstplaces/:page', async c => {
-		const { id } = c.get('character');
+	.get('/:id/firstplaces/:page', rulesetParam, async c => {
+		const character = c.get('character');
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getFirstPlaces(id, page));
+		return c.json(await getFirstPlaces(rulesetQuery(c, character), character.id, page));
 	})
-	.get('/:id/recent/:page', async c => {
-		const { id } = c.get('character');
+	.get('/:id/recent/:page', rulesetParam, async c => {
+		const character = c.get('character');
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getRecentCharacterScores(id, page));
+		return c.json(await getRecentCharacterScores(rulesetQuery(c, character), character.id, page));
 	})
 	// Ranked maps the character's account proposed.
-	.get('/:id/countrankedmaps', async c => {
+	.get('/:id/countrankedmaps', rulesetParam, async c => {
 		const character = c.get('character');
-		return c.json(await countCurated(character.userId));
+		return c.json(await countCurated(rulesetQuery(c, character), character.userId));
 	})
-	.get('/:id/rankedmaps/:page', async c => {
+	.get('/:id/rankedmaps/:page', rulesetParam, async c => {
 		const character = c.get('character');
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getCurated(character.userId, page));
+		return c.json(await getCurated(rulesetQuery(c, character), character.userId, page));
 	})
 	// The account's own maps: ranked or loved ones they mapped, or their unranked uploads.
-	.get('/:id/countmapped/:status', async c => {
+	.get('/:id/countmapped/:status', rulesetParam, async c => {
 		const character = c.get('character');
 		const status = mappedStatus.parse(c.req.param('status'));
-		return c.json(await countMapped(character.userId, status));
+		return c.json(await countMapped(rulesetQuery(c, character), character.userId, status));
 	})
-	.get('/:id/mapped/:status/:page', async c => {
+	.get('/:id/mapped/:status/:page', rulesetParam, async c => {
 		const character = c.get('character');
 		const status = mappedStatus.parse(c.req.param('status'));
 		const page = idParam.parse(c.req.param('page'));
-		return c.json(await getMapped(character.userId, status, page));
+		return c.json(await getMapped(rulesetQuery(c, character), character.userId, status, page));
 	})
 	// Admin: undo a skill's last upgrade - a misclick that bought one too many.
 	.post('/:id/upgrade/rollback', requireAdmin, valid('json', rollbackBody), async c => {
-		const { id } = c.get('character');
+		const character = c.get('character');
+		const { id } = character;
 		if (await isPlaying(id)) throw new HTTPException(409, { message: 'A play is in progress' });
 		const { skill, anchor } = c.req.valid('json');
-		await performUpgradeRevert(id, skill, anchor);
+		await performUpgradeRevert(rulesetQuery(c, character), id, skill, anchor);
 		await pushCharacter(id);
 		return c.json({ ok: true });
 	})

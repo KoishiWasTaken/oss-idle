@@ -1,8 +1,8 @@
 import { Setting } from '../db/settings';
 import {
 	DEFAULT_VISUALS,
-	withDefaults,
 	type VisualOptions,
+	withDefaults,
 } from './visualOptions';
 
 /** How the player has the field and the song behind it drawn (View tab). */

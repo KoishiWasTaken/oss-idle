@@ -1,12 +1,14 @@
 import {
 	GRADE,
-	JUDGEMENT,
 	type Grade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/grade';
 import {
-	ColorSchema,
+	JUDGEMENT,
+	type Judgement,
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import {
 	type Color,
+	ColorSchema,
 } from '@oss-idle/shared/types/color';
 
 /** How oss!idle's own UI shows a judgement: the result screen, tooltips, the hit-error bar. */

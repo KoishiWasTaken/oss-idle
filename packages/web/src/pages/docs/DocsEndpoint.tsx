@@ -1,8 +1,8 @@
 import type { Endpoint } from './content';
-import type { Language } from './samples';
-import DocsSample from './DocsSample';
 import DocsParams from './DocsParams';
+import DocsSample from './DocsSample';
 import DocsScope from './DocsScope';
+import type { Language } from './samples';
 
 /** One endpoint, laid out like a Scribe page: badges, examples on the right, parameters, response. */
 export default function DocsEndpoint({ endpoint: e, api, language }: {

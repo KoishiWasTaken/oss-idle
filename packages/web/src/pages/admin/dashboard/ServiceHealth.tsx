@@ -1,11 +1,11 @@
 import type { AdminMetrics } from '../../../api/admin';
-import Panel from './Panel';
-import StatusStrip from './StatusStrip';
 import {
 	clock,
 	ms,
 	pct,
 } from './format';
+import Panel from './Panel';
+import StatusStrip from './StatusStrip';
 
 type Props = { metrics: AdminMetrics };
 

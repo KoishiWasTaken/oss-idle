@@ -43,17 +43,20 @@
 	animation: lb-update-ghost 1s ease-out infinite;
 }
 @keyframes lb-update-ghost {
-	0%, 5% {
+	0%,
+	5% {
 		scale: 1;
 		opacity: 1;
 	}
-	55%, 100% {
+	55%,
+	100% {
 		scale: 1.5;
 		opacity: 0;
 	}
 }
 @keyframes lb-update-face {
-	5%, 20% {
+	5%,
+	20% {
 		opacity: 0;
 	}
 	35% {

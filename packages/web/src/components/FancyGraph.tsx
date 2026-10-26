@@ -1,10 +1,10 @@
 import './FancyGraph.css';
 
-import { useMemo } from 'react';
 import {
 	curveMonotoneX,
 	line,
 } from 'd3-shape';
+import { useMemo } from 'react';
 
 type Point = { x: number; y: number };
 

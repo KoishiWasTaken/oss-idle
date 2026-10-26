@@ -1,27 +1,28 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
-	BASE_MAX_UPGRADES,
-	GEAR_TIER_LEVELS,
-	PRESTIGE_XP_BONUS,
-	REBIRTH_MIN_OVERALL_LEVEL,
-	UPGRADE_LEVELS,
-	UPGRADE_XP_BONUS,
 	applyPrestige,
 	applyUpgrade,
+	BASE_MAX_UPGRADES,
 	canPrestige,
 	canRebirth,
 	canUpgrade,
+	GEAR_TIER_LEVELS,
 	maxUpgrades,
-	upgradeCost,
 	overdriveMultiplier,
+	PRESTIGE_XP_BONUS,
 	prestigeMinLevel,
 	prestigeXPMultiplier,
+	REBIRTH_MIN_OVERALL_LEVEL,
 	revertUpgrade,
 	skillXPMultiplier,
+	UPGRADE_LEVELS,
+	UPGRADE_XP_BONUS,
+	upgradeCost,
 	upgradeMinLevel,
 	upgradeMinSpend,
 	upgradeXPMultiplier,
@@ -29,7 +30,7 @@ import {
 import {
 	xpForLevel,
 	xpToLevel,
-} from '@oss-idle/shared/sim/skills/xp';
+} from '@oss-idle/shared/xp';
 
 const fresh = {
 	upgrades: 0, overdrive: 0, prestige: 0,

@@ -1,20 +1,23 @@
 import './Tutorial.css';
-import {
-	useEffect,
-	type ReactNode,
-} from 'react';
-import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
-import Synced from '@oss-idle/shared/helpers/synced';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Auth from '../online/auth';
-import Account from '../online/account';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
-import { SETTINGS } from '../db/settings';
-import { isMobile } from '../globals';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	type ReactNode,
+	useEffect,
+} from 'react';
+
+import Synced from '@oss-idle/shared/helpers/synced';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { SETTINGS } from '../db/settings';
+import { isMobile } from '../globals';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
+import Account from '../online/account';
+import Auth from '../online/auth';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
 
 const APPEAR_DELAY_MS = 1200;
 

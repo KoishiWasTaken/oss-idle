@@ -2,7 +2,9 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import type { Parallax } from '@oss-idle/shared/hooks/useParallax';
+
 import { sizeCanvas } from '../sizeCanvas';
 
 interface Triangle {

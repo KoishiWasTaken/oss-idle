@@ -1,14 +1,16 @@
 import {
-	useRef,
-	useState,
-} from 'react';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useRef,
+	useState,
+} from 'react';
+
 import Log from '@oss-idle/shared/helpers/log';
-import Button from './controls/Button';
+
 import BeatmapStore from '../../osu/beatmap/beatmap_store';
+import Button from './controls/Button';
 
 /** How long the "are you sure" arming lasts before reverting. */
 const CONFIRM_MS = 3000;

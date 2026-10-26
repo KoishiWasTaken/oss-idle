@@ -1,8 +1,9 @@
 import { versionLabel } from '@oss-idle/shared/rate';
+
 import { selectedRate } from '../gameplay/playRate';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import SceneManager, { SCENE } from './SceneManager';
 import type { TestPlay } from './Gameplay';
+import SceneManager, { SCENE } from './SceneManager';
 import {
 	LoadingPanel,
 	Transition,
@@ -32,7 +33,9 @@ export function launchPlay(beatmap: LightBeatmap, debug = false, test?: TestPlay
 	const transition = Transition.begin(
 		<LoadingPanel 
 			title={`${beatmap.set.metadata.artist} - ${beatmap.set.metadata.title}`} 
-			sub={versionLabel(beatmap.metadata.version, beatmap.lockedRate ?? selectedRate.get())} 
+			sub={versionLabel(
+				beatmap.metadata.version, beatmap.lockedRate ?? selectedRate.get(), beatmap.lockedMods,
+			)} 
 		/>,
 	);
 	// swap to gameplay only once the cover is fully opaque - otherwise the scene

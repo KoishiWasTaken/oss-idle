@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
-import Prism from 'prismjs';
 import 'prism-themes/themes/prism-vsc-dark-plus.css';
+
+import Prism from 'prismjs';
+import { useMemo } from 'react';
+
 import {
 	type DiffLine,
 	diffLines,

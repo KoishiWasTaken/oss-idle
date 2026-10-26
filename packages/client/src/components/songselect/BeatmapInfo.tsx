@@ -1,21 +1,23 @@
 import { ph } from '@lingui/core/macro';
-import { starsText } from '@oss-idle/shared/display/difficulty';
 import { Trans } from '@lingui/react/macro';
-import { bpm } from '@oss-idle/shared/display/num';
+
+import { starsText } from '@oss-idle/shared/display/difficulty';
 import { length } from '@oss-idle/shared/display/length';
-import LightBeatmap from '../../osu/beatmap/LightBeatmap';
-import Leaderboard from '../leaderboard/Leaderboard';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { bpm } from '@oss-idle/shared/display/num';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { selectedRate } from '../../gameplay/playRate';
-import { starsAt } from '../../osu/difficulty';
-import { getMemoryPlays } from '../../online/services/characters';
 import {
 	rateStars,
 	starsAtRate,
 	starsOf,
 	useRatedVersion,
 } from '../../gameplay/rateStars';
+import { getMemoryPlays } from '../../online/services/characters';
+import LightBeatmap from '../../osu/beatmap/LightBeatmap';
+import { starsAt } from '../../osu/difficulty';
+import Leaderboard from '../leaderboard/Leaderboard';
 
 /** The selected difficulty's details and its scores - the top bar's left and
  *  right halves. Drawn only by the scene: over a running play, neither belongs
@@ -44,7 +46,7 @@ export default function BeatmapInfo({
 		() => getMemoryPlays(version.metadata.id).catch(() => undefined),
 		[version.metadata.id],
 	);
-	const shownVersion = useRatedVersion(version.metadata.version, version.lockedRate);
+	const shownVersion = useRatedVersion(version);
 	// pre-formatted so the <Trans> placeholders read by name (e.g. {totalLength})
 	// in the catalog instead of positional {0}. A rate changes all three.
 	const totalLength = length(version.metadata.total_length / 1000 / rate);

@@ -1,8 +1,10 @@
+import './playground.css';
+
 import {
 	useLayoutEffect,
 	useState,
 } from 'react';
-import './playground.css';
+
 import { PLAYGROUND_CASES } from './playgroundCases';
 
 /**

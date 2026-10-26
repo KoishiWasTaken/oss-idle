@@ -1,16 +1,19 @@
 import 'dotenv/config';
+
 import {
-	readFileSync,
 	readdirSync,
+	readFileSync,
 } from 'node:fs';
 import {
 	dirname,
 	join,
 } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
-import { pool } from './client';
+
 import { ingestOsz } from '../beatmaps/ingest';
+import { pool } from './client';
 
 /**
  * One-off: ingest the standard-mode intro set (circles!) - the single map the

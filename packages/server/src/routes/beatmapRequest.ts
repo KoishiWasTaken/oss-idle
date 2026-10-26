@@ -1,5 +1,3 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	count,
@@ -7,39 +5,43 @@ import {
 	inArray,
 	isNull,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
+import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
 import {
 	beatmapRequestBody,
 	beatmapRequestPatch,
 	maxPendingRequests,
 	parseBeatmapsetId,
 } from '@oss-idle/shared/beatmapRequest';
-import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
 import { isAdmin } from '@oss-idle/shared/groups';
-import { groupsOf } from '../groups';
-import { isSupporter } from '../supporter';
-import { db } from '../db/client';
-import {
-	beatmapRequests,
-	beatmapRequestVotes,
-} from '../db/schema/beatmap_request';
-import { beatmapset } from '../db/schema/beatmapset';
-import { users } from '../db/schema/user';
+import { rulesetOf } from '@oss-idle/shared/rulesets/ids';
+
+import { requireActive } from '../auth/active';
+import { requireAdmin } from '../auth/admin';
 import {
 	requireAuth,
 	sessionUserId,
 } from '../auth/middleware';
-import { requireAdmin } from '../auth/admin';
-import { requireActive } from '../auth/active';
+import { ingestOsz } from '../beatmaps/ingest';
+import { downloadOsz } from '../beatmaps/mirror';
+import { db } from '../db/client';
+import { beatmapset } from '../db/schema/beatmapset';
+import { users } from '../db/schema/user';
 import {
 	getManiaSet,
 	searchManiaSets,
 } from '../db/stats';
+import { groupsOf } from '../groups';
 import {
 	fetchBeatmapset,
 	SchedulerError,
 } from '../osu/api';
-import { downloadOsz } from '../beatmaps/mirror';
-import { ingestOsz } from '../beatmaps/ingest';
+import { enabledRulesets } from '../rulesets/registry';
+import { rulesetQuery } from '../rulesets/request';
+import type { ServerRuleset } from '../rulesets/ruleset';
+import { isSupporter } from '../supporter';
 import {
 	idParam,
 	valid,
@@ -49,8 +51,8 @@ import {
 /** Metadata for a set nobody has requested yet: the stats mirror first (free,
  *  local), then osu! itself for anything it doesn't carry - which is also what
  *  proves the set exists and has a 4K mania difficulty. */
-const resolveSet = async (setId: number) => {
-	const local = await getManiaSet(setId);
+const resolveSet = async (r: ServerRuleset, setId: number) => {
+	const local = await getManiaSet(r, setId);
 	if (local) return local;
 
 	let set;
@@ -64,18 +66,19 @@ const resolveSet = async (setId: number) => {
 	}
 	if (!set) throw new HTTPException(404, { message: 'No beatmapset with that id' });
 
-	const playable = (set.beatmaps ?? []).filter(b => b.mode_int === 3 && Math.round(b.cs) === 4);
-	if (!playable.length) {
+	const diffs = (set.beatmaps ?? [])
+		.filter(b => rulesetOf(b.mode_int, Math.round(b.cs)) === r.def.id);
+	if (!diffs.length) {
 		throw new HTTPException(400, { message: 'Only osu!mania 4K maps can be ranked in oss!idle' });
 	}
 
-	const srs = playable.map(b => b.difficulty_rating);
+	const srs = diffs.map(b => b.difficulty_rating);
 	return {
 		setId,
 		artist: set.artist,
 		title: set.title,
 		creator: set.creator,
-		diffs: playable.length,
+		diffs: diffs.length,
 		srMin: Math.min(...srs),
 		srMax: Math.max(...srs),
 	};
@@ -83,42 +86,43 @@ const resolveSet = async (setId: number) => {
 
 /** Every request, with its backer count, the requester, and - once ingested -
  *  the nomination state of the matching set. */
-const listRequests = async (viewerId?: number) => {
+const listRequests = async (r: ServerRuleset, viewerId?: number) => {
 	const rows = await db
 		.select({
-			setId: beatmapRequests.setId,
-			userId: beatmapRequests.userId,
-			artist: beatmapRequests.artist,
-			title: beatmapRequests.title,
-			creator: beatmapRequests.creator,
-			status: beatmapRequests.status,
-			note: beatmapRequests.note,
-			createdAt: beatmapRequests.createdAt,
-			resolvedAt: beatmapRequests.resolvedAt,
+			setId: r.requests.setId,
+			userId: r.requests.userId,
+			artist: r.requests.artist,
+			title: r.requests.title,
+			creator: r.requests.creator,
+			status: r.requests.status,
+			note: r.requests.note,
+			createdAt: r.requests.createdAt,
+			resolvedAt: r.requests.resolvedAt,
 			username: users.username,
 			avatarUrl: users.avatarUrl,
-			setStatus: beatmapset.status,
-			rankedAt: beatmapset.rankedAt,
+			setStatus: r.setStatus.status,
+			rankedAt: r.setStatus.rankedAt,
 		})
-		.from(beatmapRequests)
-		.leftJoin(users, eq(users.id, beatmapRequests.userId))
+		.from(r.requests)
+		.leftJoin(users, eq(users.id, r.requests.userId))
 		.leftJoin(beatmapset, and(
-			eq(beatmapset.osuId, beatmapRequests.setId),
+			eq(beatmapset.osuId, r.requests.setId),
 			isNull(beatmapset.deletedAt),
-		));
+		))
+		.leftJoin(r.setStatus, eq(r.setStatus.setId, beatmapset.id));
 
 	const tallies = await db
 		.select({
-			setId: beatmapRequestVotes.setId, support: count(),
+			setId: r.requestVotes.setId, support: count(),
 		})
-		.from(beatmapRequestVotes)
-		.groupBy(beatmapRequestVotes.setId);
+		.from(r.requestVotes)
+		.groupBy(r.requestVotes.setId);
 	const support = new Map(tallies.map(t => [t.setId, t.support]));
 
 	const mine = viewerId === undefined ? [] : await db
-		.select({ setId: beatmapRequestVotes.setId })
-		.from(beatmapRequestVotes)
-		.where(eq(beatmapRequestVotes.userId, viewerId));
+		.select({ setId: r.requestVotes.setId })
+		.from(r.requestVotes)
+		.where(eq(r.requestVotes.userId, viewerId));
 	const supported = new Set(mine.map(v => v.setId));
 
 	return rows.map(row => ({
@@ -134,12 +138,15 @@ const listRequests = async (viewerId?: number) => {
 /** Mark every open request for a set as accepted - called the moment its `.osz`
  *  lands, whether it came from the mirror or an admin upload. */
 export const acceptRequestsForSet = async (setId: number, adminId?: number): Promise<void> => {
-	await db
-		.update(beatmapRequests)
-		.set({
-			status: 'accepted', resolvedAt: new Date(), resolvedBy: adminId,
-		})
-		.where(and(eq(beatmapRequests.setId, setId), eq(beatmapRequests.status, 'pending')));
+	// the set lands in every ruleset's queue, so each ruleset's request is answered
+	for (const { requests } of enabledRulesets()) {
+		await db
+			.update(requests)
+			.set({
+				status: 'accepted', resolvedAt: new Date(), resolvedBy: adminId,
+			})
+			.where(and(eq(requests.setId, setId), eq(requests.status, 'pending')));
+	}
 };
 
 /**
@@ -148,16 +155,17 @@ export const acceptRequestsForSet = async (setId: number, adminId?: number): Pro
  * admin-only and feed straight into the nomination queue.
  */
 export const beatmapRequestRoutes = new Hono()
-	.get('/', async c => c.json(await listRequests(await sessionUserId(c))))
+	.get('/', async c => c.json(await listRequests(rulesetQuery(c), await sessionUserId(c))))
 
 	// Autocomplete over the ranked/loved mirror, so players pick a real 4K map.
 	.get('/search', async c => {
 		const q = c.req.query('q') ?? '';
 		if (q.trim().length < 2) return c.json([] as Awaited<ReturnType<typeof searchManiaSets>>);
-		return c.json(await searchManiaSets(q));
+		return c.json(await searchManiaSets(rulesetQuery(c), q));
 	})
 
 	.post('/', requireActive, valid('json', beatmapRequestBody), async c => {
+		const r = rulesetQuery(c);
 		const userId = c.get('userId');
 		const setId = parseBeatmapsetId(c.req.valid('json').map);
 		if (!setId || setId === INTRO_SET_ID) {
@@ -165,9 +173,9 @@ export const beatmapRequestRoutes = new Hono()
 		}
 
 		const [existing] = await db
-			.select({ status: beatmapRequests.status })
-			.from(beatmapRequests)
-			.where(eq(beatmapRequests.setId, setId))
+			.select({ status: r.requests.status })
+			.from(r.requests)
+			.where(eq(r.requests.setId, setId))
 			.limit(1);
 		if (existing) {
 			throw new HTTPException(409, {
@@ -178,8 +186,9 @@ export const beatmapRequestRoutes = new Hono()
 		}
 
 		const [ingested] = await db
-			.select({ status: beatmapset.status })
+			.select({ status: r.setStatus.status })
 			.from(beatmapset)
+			.innerJoin(r.setStatus, eq(r.setStatus.setId, beatmapset.id))
 			.where(and(eq(beatmapset.osuId, setId), isNull(beatmapset.deletedAt)))
 			.limit(1);
 		if (ingested) {
@@ -192,15 +201,15 @@ export const beatmapRequestRoutes = new Hono()
 
 		const [open] = await db
 			.select({ pending: count() })
-			.from(beatmapRequests)
-			.where(and(eq(beatmapRequests.userId, userId), eq(beatmapRequests.status, 'pending')));
+			.from(r.requests)
+			.where(and(eq(r.requests.userId, userId), eq(r.requests.status, 'pending')));
 		const max = maxPendingRequests(await isSupporter(userId));
 		if (open.pending >= max) {
 			throw new HTTPException(429, { message: `You already have ${max} requests waiting - wait for one to be resolved` });
 		}
 
-		const set = await resolveSet(setId);
-		await db.insert(beatmapRequests).values({
+		const set = await resolveSet(r, setId);
+		await db.insert(r.requests).values({
 			setId,
 			userId,
 			artist: set.artist,
@@ -208,7 +217,7 @@ export const beatmapRequestRoutes = new Hono()
 			creator: set.creator,
 		});
 		// The requester backs their own map, so the count reads as people wanting it.
-		await db.insert(beatmapRequestVotes).values({
+		await db.insert(r.requestVotes).values({
 			setId, userId,
 		});
 
@@ -219,13 +228,14 @@ export const beatmapRequestRoutes = new Hono()
 
 	// Back a request (or take the backing away). Only while it's still open.
 	.post('/:setId/support', requireActive, async c => {
+		const r = rulesetQuery(c);
 		const setId = idParam.parse(c.req.param('setId'));
 		const userId = c.get('userId');
 
 		const [request] = await db
-			.select({ status: beatmapRequests.status })
-			.from(beatmapRequests)
-			.where(eq(beatmapRequests.setId, setId))
+			.select({ status: r.requests.status })
+			.from(r.requests)
+			.where(eq(r.requests.setId, setId))
 			.limit(1);
 		if (!request) throw new HTTPException(404, { message: 'No such request' });
 		if (request.status !== 'pending') {
@@ -233,11 +243,11 @@ export const beatmapRequestRoutes = new Hono()
 		}
 
 		const [deleted] = await db
-			.delete(beatmapRequestVotes)
-			.where(and(eq(beatmapRequestVotes.setId, setId), eq(beatmapRequestVotes.userId, userId)));
+			.delete(r.requestVotes)
+			.where(and(eq(r.requestVotes.setId, setId), eq(r.requestVotes.userId, userId)));
 
 		if (!deleted.affectedRows) {
-			await db.insert(beatmapRequestVotes).values({
+			await db.insert(r.requestVotes).values({
 				setId, userId,
 			});
 		}
@@ -246,18 +256,19 @@ export const beatmapRequestRoutes = new Hono()
 
 	// Admin: accept or reject, with a reason players can read.
 	.patch('/:setId', requireAdmin, valid('json', beatmapRequestPatch), async c => {
+		const r = rulesetQuery(c);
 		const setId = idParam.parse(c.req.param('setId'));
 		const body = c.req.valid('json');
 
 		const [res] = await db
-			.update(beatmapRequests)
+			.update(r.requests)
 			.set({
 				status: body.status,
 				note: body.note ?? null,
 				resolvedAt: body.status === 'pending' ? null : new Date(),
 				resolvedBy: body.status === 'pending' ? null : c.get('userId'),
 			})
-			.where(eq(beatmapRequests.setId, setId));
+			.where(eq(r.requests.setId, setId));
 		if (!res.affectedRows) throw new HTTPException(404, { message: 'No such request' });
 
 		return c.json({ ok: true });
@@ -266,12 +277,13 @@ export const beatmapRequestRoutes = new Hono()
 	// Admin: pull the .osz from the mirror and run it through the normal ingest,
 	// so an accepted request lands in the nomination queue in one click.
 	.post('/:setId/ingest', requireAdmin, async c => {
+		const r = rulesetQuery(c);
 		const setId = idParam.parse(c.req.param('setId'));
 
 		const [request] = await db
-			.select({ setId: beatmapRequests.setId })
-			.from(beatmapRequests)
-			.where(eq(beatmapRequests.setId, setId))
+			.select({ setId: r.requests.setId })
+			.from(r.requests)
+			.where(eq(r.requests.setId, setId))
 			.limit(1);
 		if (!request) throw new HTTPException(404, { message: 'No such request' });
 
@@ -286,39 +298,40 @@ export const beatmapRequestRoutes = new Hono()
 
 	// The requester can withdraw an open request; an admin can drop any of them.
 	.delete('/:setId', requireAuth, async c => {
+		const r = rulesetQuery(c);
 		const setId = idParam.parse(c.req.param('setId'));
 		const userId = c.get('userId');
 
 		const [request] = await db
 			.select({
-				userId: beatmapRequests.userId, status: beatmapRequests.status,
+				userId: r.requests.userId, status: r.requests.status,
 			})
-			.from(beatmapRequests)
-			.where(eq(beatmapRequests.setId, setId))
+			.from(r.requests)
+			.where(eq(r.requests.setId, setId))
 			.limit(1);
 		if (!request) throw new HTTPException(404, { message: 'No such request' });
 
 		const own = request.userId === userId && request.status === 'pending';
 		if (!own && !isAdmin(await groupsOf(userId))) throw new HTTPException(403, { message: 'Forbidden' });
 
-		await db.delete(beatmapRequestVotes).where(eq(beatmapRequestVotes.setId, setId));
-		await db.delete(beatmapRequests).where(eq(beatmapRequests.setId, setId));
+		await db.delete(r.requestVotes).where(eq(r.requestVotes.setId, setId));
+		await db.delete(r.requests).where(eq(r.requests.setId, setId));
 		return c.json({ ok: true });
 	})
 ;
 
 /** Who asked for each of these osu! sets, for the nomination queue's own listing. */
-export const requestersForSets = async (setIds: number[]) => {
+export const requestersForSets = async (r: ServerRuleset, setIds: number[]) => {
 	if (!setIds.length) return new Map<number, { userId: number; username: string }>();
 	const rows = await db
 		.select({
-			setId: beatmapRequests.setId,
-			userId: beatmapRequests.userId,
+			setId: r.requests.setId,
+			userId: r.requests.userId,
 			username: users.username,
 		})
-		.from(beatmapRequests)
-		.leftJoin(users, eq(users.id, beatmapRequests.userId))
-		.where(inArray(beatmapRequests.setId, setIds));
+		.from(r.requests)
+		.leftJoin(users, eq(users.id, r.requests.userId))
+		.where(inArray(r.requests.setId, setIds));
 
 	return new Map(rows.map(row => [row.setId, {
 		userId: row.userId, username: row.username ?? 'unknown',

@@ -1,10 +1,12 @@
 import './Settings.css';
+
 import { Trans } from '@lingui/react/macro';
+
 import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
-import TitleSettings from './TitleSettings';
 import EmojiSettings from './EmojiSettings';
-import OAuthSettings from './OAuthSettings';
 import ItchSettings, { type ItchClaim } from './ItchSettings';
+import OAuthSettings from './OAuthSettings';
+import TitleSettings from './TitleSettings';
 
 /** osu!web's account settings: one section per row, its name on the left. */
 export default function Settings({ itch }: { itch?: ItchClaim }) {

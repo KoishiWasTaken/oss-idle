@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { faForwardStep } from '@fortawesome/free-solid-svg-icons/faForwardStep';
-import { faTv } from '@fortawesome/free-solid-svg-icons/faTv';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
 import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons/faFloppyDisk';
-import PlayManager from '../../online/playManager';
+import { faForwardStep } from '@fortawesome/free-solid-svg-icons/faForwardStep';
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
+import { faTv } from '@fortawesome/free-solid-svg-icons/faTv';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import PlayQueue from '../../gameplay/playQueue';
+import PlayManager from '../../online/playManager';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import {
 	enterScreensaver,

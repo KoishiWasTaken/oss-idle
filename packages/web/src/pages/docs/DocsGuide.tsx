@@ -1,7 +1,8 @@
 import { SCOPES } from '@oss-idle/shared/oauth';
+
 import Link from '../../components/Link';
-import DocsSample from './DocsSample';
 import DocsParams from './DocsParams';
+import DocsSample from './DocsSample';
 import DocsScope from './DocsScope';
 import {
 	highlight,

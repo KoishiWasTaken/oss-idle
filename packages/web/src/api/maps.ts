@@ -1,18 +1,20 @@
 import {
+	type BeatmapStatus,
+	MAP_LINK_CHANNEL,
+	type MapCover,
+	mapCoverUrl,
+	mapDownloadLink,
+	type MapTag,
+} from '@oss-idle/shared/beatmap';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
+import {
 	apiUrl,
 	json,
 	rpc,
 	unwrap,
 	withAuth,
 } from './client';
-import {
-	MAP_LINK_CHANNEL,
-	mapCoverUrl,
-	mapDownloadLink,
-	type BeatmapStatus,
-	type MapCover,
-	type MapTag,
-} from '@oss-idle/shared/beatmap';
 
 /** How long an open game has to answer before the desktop app is asked instead. */
 const ANSWER_WAIT = 300;
@@ -43,8 +45,13 @@ export const coverBackground = (set: MapCover, size: 'list' | 'card' | 'cover') 
 export const getRecentMaps = () =>
 	unwrap(rpc.v1.beatmap.recent.$get());
 
-/** Which maps the listing shows, and a name to look for in their title, artist or mapper. */
-export type MapFilter = { status?: 'ranked' | 'loved' | 'unranked' | 'any', q?: string };
+/** Which maps the listing shows (in which ruleset), and a name to look for in their title,
+ *  artist or mapper. */
+export type MapFilter = {
+	ruleset?: RulesetId,
+	status?: 'ranked' | 'loved' | 'unranked' | 'any',
+	q?: string,
+};
 
 export const getAllMaps = (dir?: 'asc' | 'desc', filter: MapFilter = {}, page?: number) =>
 	unwrap(rpc.v1.beatmap.all[':dir'].$get({
@@ -119,8 +126,11 @@ export const deleteNomination = (setId: number) =>
 	unwrap(rpc.v1.beatmap.nomination[':setId'].$delete({ param: { setId: String(setId) } }));
 
 /** Public: a set and its live difficulties, easiest first. */
-export const getMapset = (id: number | string) =>
-	unwrap(rpc.v1.beatmap.set[':id'].$get({ param: { id: String(id) } }));
+/** A set's page in `ruleset`, else in the first ruleset it has live difficulties in. */
+export const getMapset = (id: number | string, ruleset?: RulesetId) =>
+	unwrap(rpc.v1.beatmap.set[':id'].$get({
+		param: { id: String(id) }, query: { ruleset },
+	}));
 
 export type Mapset = Awaited<ReturnType<typeof getMapset>>;
 export type MapDiff = Mapset['diffs'][number];

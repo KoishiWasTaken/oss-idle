@@ -1,14 +1,15 @@
 import type { Page } from '@playwright/test';
+
+import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * osu!'s lobby and match setup, between two signed-in test accounts: one hosts,
@@ -176,7 +177,10 @@ test.describe('multiplayer', () => {
 	test('each player plays at their own rate, and whoever is done waits for the round', async ({
 		playerAs,
 	}) => {
-		await query('UPDATE `character` SET speed_upgrades = 10 WHERE id = ?', [alice.characterId]);
+		await query(
+			'INSERT INTO mania4k_character (id, speed_upgrades) VALUES (?, 10) ON DUPLICATE KEY UPDATE speed_upgrades = 10',
+			[alice.characterId],
+		);
 		const players = await gather(playerAs);
 		const { a, b, host, guest } = players;
 		await a.evaluate(() => window.__idle!.setSetting('rate', 1.5));

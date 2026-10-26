@@ -2,30 +2,32 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { versionLabel } from '@oss-idle/shared/rate';
-import { playLabel } from '@oss-idle/shared/mods';
-import type { ScoreDTO } from '@oss-idle/shared/score';
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import { effectiveLevelOf } from '@oss-idle/shared/sim/skills/levelCurve';
+import { useState } from 'react';
+
 import { LEVEL_COLOUR_MIN } from '@oss-idle/shared/display/levelDisplay';
-import { skillName } from '@oss-idle/shared/display/skills';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Entities from '../../entity/entities';
+import { playLabel } from '@oss-idle/shared/mods';
+import type { SkillGain } from '@oss-idle/shared/play';
+import { versionLabel } from '@oss-idle/shared/rate';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import type { ScoreDTO } from '@oss-idle/shared/score';
+import { effectiveLevelOf } from '@oss-idle/shared/xp';
+
 import { music } from '../../audio/MusicPlayer';
+import { playShutter } from '../../audio/shutter';
 import type { Score } from '../../db/schema/score';
+import Entities from '../../entity/entities';
+import { message } from '../../globals';
 import type LightBeatmap from '../../osu/beatmap/LightBeatmap';
-import usePlayers from '../multiplayer/usePlayers';
+import { currentSkin } from '../../osu/skin/Skin';
+import { selectedDef } from '../../rulesets/registry';
 import type { Ranking } from '../multiplayer/useMatchRanking';
+import usePlayers from '../multiplayer/usePlayers';
 import {
 	drawScoreCard,
 	toPng,
 } from './scoreCard';
 import SharePreview from './SharePreview';
-import { playShutter } from '../../audio/shutter';
-import { message } from '../../globals';
-import { currentSkin } from '../../osu/skin/Skin';
-import { useState } from 'react';
 
 type Props = {
 	score: Score | ScoreDTO,
@@ -35,7 +37,7 @@ type Props = {
 	playerName: string,
 	playedAt: string,
 	judges: { label: string, count: number, color: string }[],
-	gains: SkillProgress[],
+	gains: SkillGain[],
 	failed?: boolean,
 	ranking?: Ranking,
 	/** a loved map: no pp to show */
@@ -43,7 +45,7 @@ type Props = {
 };
 
 /** The level a gain reached, as its result screen bar ends on it. */
-const levelLabel = (p: SkillProgress, prestige = 0): string => {
+const levelLabel = (p: SkillGain, prestige = 0): string => {
 	const shown = effectiveLevelOf(p.toLevel, p.toXp, prestige);
 	const whole = Math.floor(shown);
 	const part = Math.floor((shown - whole) * 100);
@@ -101,7 +103,7 @@ export default function ShareScoreButton({
 				game, skin: currentSkin.get(),
 			},
 			gains: gains.map(g => ({
-				name: skillName(g.skill),
+				name: selectedDef().skillName(g.skill),
 				level: levelLabel(g, character.skills.find(s => s.name === g.skill)?.prestige.get()),
 				levels: g.toLevel - g.fromLevel,
 				gained: g.gained,

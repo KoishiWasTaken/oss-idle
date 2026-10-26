@@ -2,23 +2,23 @@
 import './CharacterPage.css';
 import './CharacterPreview.css';
 
+import { Trans } from '@lingui/react/macro';
+
+import { countryName } from '@oss-idle/shared/display/country';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import type {
 	getCharacter,
 	getCharacterStats,
 } from '../../api/characters';
 import { getUser } from '../../api/users';
+import { CharacterRanks } from '../../components/character/CharacterRanks';
+import { SkillBar } from '../../components/character/SkillBar';
 import Flag from '../../components/Flag';
 import ProfilePicture from '../../components/ProfilePicture';
-import CharacterTotals from './CharacterTotals';
-import CharacterFigures from './CharacterFigures';
-import { SkillBar } from '../../components/character/SkillBar';
-import { CharacterRanks } from '../../components/character/CharacterRanks';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { extractSkills } from '@oss-idle/shared/osu/level';
-import { SkillName } from '@oss-idle/shared/skills';
-import { Trans } from '@lingui/react/macro';
-import { countryName } from '@oss-idle/shared/display/country';
 import { i18n } from '../../i18n';
+import CharacterFigures from './CharacterFigures';
+import CharacterTotals from './CharacterTotals';
 
 
 type Character = Awaited<ReturnType<typeof getCharacter>>;
@@ -38,7 +38,7 @@ export default function CharacterPreview({ character, stats }: {
 	stats: Stats;
 }) {
 	const user = useAsync(() => getUser(character.userId), [character]);
-	const skills = Object.entries(extractSkills(character));
+	const skills = Object.entries(character.profile.skills);
 
 	return (
 		<main className='preview'>
@@ -73,16 +73,17 @@ export default function CharacterPreview({ character, stats }: {
 					<div className='character__block-title'><Trans>Skills</Trans></div>
 					<div className='main-skill'>
 						<SkillBar
-							skill={'overall' as SkillName}
+							ruleset={character.ruleset}
+							skill={'overall'}
 							progress={{
-								level: character.overallLevel, xp: character.overallXp,
-								lifetimeXp: character.overallLifetimeXp,
+								level: character.profile.overallLevel, xp: character.profile.overallXp,
+								lifetimeXp: character.profile.overallLifetimeXp,
 							}}
 						/>
 					</div>
 					<ul className='skills'>
 						{skills.map(([skill, progress]) => (
-							<SkillBar key={skill} skill={skill as SkillName} progress={progress} />
+							<SkillBar key={skill} ruleset={character.ruleset} skill={skill} progress={progress} />
 						))}
 					</ul>
 				</div>

@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { supporterThanks } from '../../server/src/supporterThanks';
 
 const base = {

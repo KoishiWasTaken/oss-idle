@@ -1,7 +1,7 @@
 import {
 	LEGACY_SAVE_DB,
-	SAVE_DB,
 	readSave,
+	SAVE_DB,
 } from './save.js';
 
 /** The host oss!idle left. Old links and old desktop builds still reach it. */

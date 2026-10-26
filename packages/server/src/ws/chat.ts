@@ -1,38 +1,42 @@
+import { randomUUID } from 'node:crypto';
+
+import { eq } from 'drizzle-orm';
+
+import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
 import {
 	ANNOUNCE_CHANNEL,
+	type ChatLine,
 	DEFAULT_CHANNEL,
 	LEGACY_DEFAULT_CHANNEL,
 	MAX_CHAT_LENGTH,
 	TEAM_CHANNEL,
-	type ChatLine,
 } from '@oss-idle/shared/community/wire';
-import { count } from '../metrics';
 import {
 	type Group,
 	GROUP_BADGE,
 	isAdmin,
 } from '@oss-idle/shared/groups';
+import { LOBBY_CHANNEL } from '@oss-idle/shared/multiplayer';
+
+import { db } from '../db/client';
+import { characters } from '../db/schema/character';
+import { isRestricted } from '../db/schema/user';
+import { redisKeyPrefix } from '../env';
 import {
 	groupsOf,
 	teamCharacters,
 } from '../groups';
-import { isSupporter } from '../supporter';
-import { randomUUID } from 'node:crypto';
-import { eq } from 'drizzle-orm';
-import { redis } from '../redis';
-import { redisKeyPrefix } from '../env';
-import { db } from '../db/client';
-import { characters } from '../db/schema/character';
-import { isRestricted } from '../db/schema/user';
-import { hub } from './hub';
-import { LOBBY_CHANNEL } from '@oss-idle/shared/multiplayer';
-import { channelMembers } from './multiplayer';
 import { pushMedals } from '../medals';
-import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
+import { count } from '../metrics';
+import { redis } from '../redis';
+import { enabledRulesets } from '../rulesets/registry';
+import { isSupporter } from '../supporter';
+import { hub } from './hub';
 import {
 	BOT_COLOR,
 	botLine,
 } from './makiseBot';
+import { channelMembers } from './multiplayer';
 
 /**
  * The chat relay + its moderation surface. Messages fan out over the socket and
@@ -222,7 +226,9 @@ export const handleChat = async (
 
 	await store(channel, line);
 	void redis.sadd(CHATTED_KEY, String(from.characterId))
-		.then(added => added ? pushMedals(from.characterId) : undefined)
+		.then(async added => {
+			if (added) for (const r of enabledRulesets()) await pushMedals(r, from.characterId);
+		})
 		.catch(e => console.error('[chat] medals failed for', from.characterId, e));
 	relay(line, members);
 

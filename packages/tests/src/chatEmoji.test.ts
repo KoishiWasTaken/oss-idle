@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import { emojiMatcher } from '@oss-idle/shared/community/emoji';
 
 const sob = {

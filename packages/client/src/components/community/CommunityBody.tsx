@@ -1,21 +1,24 @@
 import './CommunityBody.css';
+
 import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import Account from '../../online/account';
-import Socket from '../../online/socket';
 import { friends } from '../../online/friends';
-import {
-	TAB,
-	type Tab,
-	sortCharacters,
-} from './tabs';
+import Socket from '../../online/socket';
+import Tabs, { type Tab as TabItem } from '../tabs/Tabs';
+import PlayerGrid from './PlayerGrid';
 import {
 	activeFilter,
 	activeTab,
 	searchQuery,
 } from './state';
-import Tabs, { type Tab as TabItem } from '../tabs/Tabs';
-import PlayerGrid from './PlayerGrid';
+import {
+	sortCharacters,
+	TAB,
+	type Tab,
+} from './tabs';
 import WorldMap from './WorldMap';
 
 /** The tab bar + the roster body (player grid or world map). */

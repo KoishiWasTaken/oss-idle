@@ -1,8 +1,9 @@
 import { Trans } from '@lingui/react/macro';
 import type { ReactNode } from 'react';
-import useShiftHeld from '@oss-idle/shared/hooks/useShiftHeld';
+
 import HoverCard from '@oss-idle/shared/display/HoverCard';
 import { overdriveText } from '@oss-idle/shared/display/overdrive';
+import useShiftHeld from '@oss-idle/shared/hooks/useShiftHeld';
 import type { UpgradePurchase } from '@oss-idle/shared/upgrades';
 
 /** Overdrive gain, then the buy button over its progress bar. Every slot keeps

@@ -1,26 +1,27 @@
 import {
-	eachSnapLine,
-	multiplierOf,
 	type Chart,
 	type ChartDoc,
+	eachSnapLine,
+	multiplierOf,
 	type Note,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+import { soundNamesOf } from '@oss-idle/shared/rulesets/mania/editor/hitsounds';
+
 import type { Context2D } from '../gameplay/render/frame';
+import { fillBody } from '../gameplay/render/stageNotes';
 import type {
 	ManiaAssets,
 	Sprite,
 } from '../osu/skin/maniaAssets';
-import { fillBody } from '../gameplay/render/stageNotes';
-import { soundNamesOf } from '@oss-idle/shared/editor/hitsounds';
-import type SongVisuals from './songVisuals';
-import type EditorPreview from './preview';
-import type { FieldOptions } from './visualOptions';
 import {
+	type EditorSkins,
 	fieldColumns,
 	stageSpan,
-	type EditorSkins,
 } from './editorSkins';
+import type EditorPreview from './preview';
+import type SongVisuals from './songVisuals';
+import type { FieldOptions } from './visualOptions';
 
 const SNAP_COLORS: Record<number, string> = {
 	1: '#ffffff',
@@ -97,6 +98,9 @@ export const yAt = (g: FieldGeometry, zoom: number, now: number, time: number) =
 export const timeAt = (g: FieldGeometry, zoom: number, now: number, y: number) =>
 	now + (g.lineY - y) / zoom;
 
+/** A BPM point, or an SV point with `sv`, by its time. */
+export type HoveredPoint = { time: number, sv: boolean };
+
 /** What the pointer is doing on top of the chart. */
 export type Overlay = {
 	/** the note a click would place: snapped, stretched to a long note while dragging */
@@ -107,6 +111,8 @@ export type Overlay = {
 	box?: { from: number, ahead: number, left: number, right: number },
 	/** the selection where a drag would drop it */
 	moving?: Note[],
+	/** the point hovered in its list, lit across the field */
+	point?: HoveredPoint,
 };
 
 type Drawn = Pick<Note, 'time' | 'column' | 'end'>;
@@ -208,6 +214,7 @@ export default class EditorPainter {
 		this.drawLane(g, state.doc.scroll, SV_LANE);
 		this.drawLane(g, state.doc.timing, BPM_LANE);
 		this.drawBookmarks(g);
+		this.drawHoveredPoint(g, overlay.point);
 
 		// only the visible stretch: a long note may reach in from before it
 		const { notes, longest } = this.sorted();
@@ -425,6 +432,19 @@ export default class EditorPainter {
 	}
 
 	/** One kind of timing point as ticks right of the field, labelled where there is room. */
+	/** A bar across the columns and the lane at a hovered point. */
+	private drawHoveredPoint(g: FieldGeometry, point: HoveredPoint | undefined): void {
+		if (!point || point.time < this.from || point.time > this.to) return;
+		const { ctx } = this;
+		const y = Math.round(this.y(g, point.time));
+		const width = g.keys * g.columnWidth + 4 + MARKER_WIDTH;
+		ctx.fillStyle = (point.sv ? SV_LANE : BPM_LANE).color;
+		ctx.globalAlpha = 0.25;
+		ctx.fillRect(g.x0, y - 5, width, 12);
+		ctx.globalAlpha = 1;
+		ctx.fillRect(g.x0, y - 1, width, 4);
+	}
+
 	private drawLane(g: FieldGeometry, points: TimingPoint[], lane: Lane): void {
 		const { ctx } = this;
 		const left = g.x0 + g.keys * g.columnWidth + 4;

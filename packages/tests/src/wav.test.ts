@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { unwrapWav } from '../../client/src/audio/wav';
 
 // 50 ms of a 440 Hz sine at 8 kHz stereo, encoded by ffmpeg

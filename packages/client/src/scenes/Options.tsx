@@ -1,55 +1,58 @@
-import PitchFollowsRate from '../components/options/PitchFollowsRate';
+import './Options.css';
+
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import './Options.css';
-import { isOptionsOpen } from '../globals';
-import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
+
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
-import SignIn from '../components/options/SignIn';
-import PmFromAnyone from '../components/options/PmFromAnyone';
-import LinkDiscord from '../components/options/LinkDiscord';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import Language from '../components/options/Language';
-import ShowFPS from '../components/options/ShowFPS';
-import FrameLimiter from '../components/options/FrameLimiter';
-import Fullscreen from '../components/options/Fullscreen';
-import UIScaling from '../components/options/UIScaling';
-import ParallaxMode from '../components/options/ParallaxMode';
-import OsuMusicTheme from '../components/options/OsuMusicTheme';
-import ShowThumbnails from '../components/options/ShowThumbnails';
-import ShowUndownloaded from '../components/options/ShowUndownloaded';
-import ShowUnbundled from '../components/options/ShowUnbundled';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import AutopilotDelay from '../components/options/AutopilotDelay';
+import AutopilotMode from '../components/options/AutopilotMode';
 import BackgroundDim from '../components/options/BackgroundDim';
-import MasterVolume from '../components/options/MasterVolume';
-import MusicVolume from '../components/options/MusicVolume';
-import EffectVolume from '../components/options/EffectVolume';
+import BrowseAddons from '../components/options/BrowseAddons';
+import BrowseSkins from '../components/options/BrowseSkins';
+import CursorSize from '../components/options/CursorSize';
 import DeleteAllBeatmaps from '../components/options/DeleteAllBeatmaps';
-import OpenLibraryFolders from '../components/options/OpenLibraryFolders';
 import DownloadAllBundled from '../components/options/DownloadAllBundled';
 import DownloadAllRanked from '../components/options/DownloadAllRanked';
-import MoveInstall from '../components/options/MoveInstall';
-import AutopilotDelay from '../components/options/AutopilotDelay';
-import KeepPlaying from '../components/options/KeepPlaying';
-import AutopilotMode from '../components/options/AutopilotMode';
-import RightClickHold from '../components/options/RightClickHold';
-import ManageAddons from '../components/options/ManageAddons';
-import BrowseAddons from '../components/options/BrowseAddons';
-import ManageSkins from '../components/options/ManageSkins';
-import BrowseSkins from '../components/options/BrowseSkins';
-import GameplaySkin from '../components/options/GameplaySkin';
 import EditorSkin from '../components/options/EditorSkin';
-import CursorSize from '../components/options/CursorSize';
+import EffectVolume from '../components/options/EffectVolume';
+import FrameLimiter from '../components/options/FrameLimiter';
+import Fullscreen from '../components/options/Fullscreen';
+import GameplaySkin from '../components/options/GameplaySkin';
+import KeepPlaying from '../components/options/KeepPlaying';
+import Language from '../components/options/Language';
+import LinkDiscord from '../components/options/LinkDiscord';
+import ManageAddons from '../components/options/ManageAddons';
+import ManageSkins from '../components/options/ManageSkins';
+import MasterVolume from '../components/options/MasterVolume';
+import MoveInstall from '../components/options/MoveInstall';
+import MusicVolume from '../components/options/MusicVolume';
+import OpenLibraryFolders from '../components/options/OpenLibraryFolders';
+import OsuMusicTheme from '../components/options/OsuMusicTheme';
+import ParallaxMode from '../components/options/ParallaxMode';
+import PitchFollowsRate from '../components/options/PitchFollowsRate';
+import PmFromAnyone from '../components/options/PmFromAnyone';
 import ReportBug from '../components/options/ReportBug';
+import RightClickHold from '../components/options/RightClickHold';
+import ShowFPS from '../components/options/ShowFPS';
+import ShowThumbnails from '../components/options/ShowThumbnails';
+import ShowUnbundled from '../components/options/ShowUnbundled';
+import ShowUndownloaded from '../components/options/ShowUndownloaded';
+import SignIn from '../components/options/SignIn';
+import UIScaling from '../components/options/UIScaling';
+import { isOptionsOpen } from '../globals';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 
 /** A consumer component rendered inside a group. */
 type OptComponent = () => JSX.Element;

@@ -1,26 +1,27 @@
 import './PublicLanding.css';
 
-import {
-	useEffect,
-	useState,
-} from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons';
-import type { NewsDTO } from '@oss-idle/shared/news';
-
-import { Asset } from '../router';
-import { loginWithOsu } from '../auth';
-import { listNews } from '../api/news';
-import Link from '../components/Link';
-import NewsCard, { articleToCard } from '../components/NewsCard';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { getGeneralStats } from '../api/stats';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import Footer from '../Footer';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
+import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { DISCORD_URL } from '@oss-idle/shared/links';
+import type { NewsDTO } from '@oss-idle/shared/news';
+
+import { listNews } from '../api/news';
+import { getGeneralStats } from '../api/stats';
+import { loginWithOsu } from '../auth';
+import Link from '../components/Link';
+import NewsCard, { articleToCard } from '../components/NewsCard';
+import Footer from '../Footer';
+import { Asset } from '../router';
 
 function formatCount(n: number): string {
 	return n.toLocaleString('en-US');

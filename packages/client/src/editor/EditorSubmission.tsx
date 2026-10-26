@@ -1,18 +1,8 @@
-import { useState } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { message } from '../globals';
-import ConfirmMenu from '../components/ConfirmMenu';
-import {
-	ownSetOf,
-	rankAction,
-	uploads,
-} from './upload';
+import { rulesetLabel } from '@oss-idle/shared/rulesets/display';
+import { rulesetOf } from '@oss-idle/shared/rulesets/ids';
+
+import { ENABLED_RULESETS } from '../rulesets/enabled';
+import EditorRulesetSubmission from './EditorRulesetSubmission';
 import type EditorSession from './session';
 
 type Props = {
@@ -21,82 +11,20 @@ type Props = {
 	upload: () => Promise<boolean>,
 };
 
-/** The player's own map's way to rank: submit it (uploaded as it stands first), see it
- *  wait in the queue and withdraw it, or why it was sent back; a ranked one (or one
- *  planned to rank, out of the game until then), its mapper can unrank. Nothing for
- *  a map that isn't theirs online. */
+/** The set's way to rank in each ruleset it has difficulties for: each ruleset ranks it on
+ *  its own, so each gets its own row (named once there are several). */
 export default function EditorSubmission({ session, upload }: Props) {
-	const { t } = useLingui();
-	const [changes] = useSynced(uploads);
-	const [confirming, setConfirming] = useState(false);
-	const submission = useAsync(() => ownSetOf(session.text()), [session.beatmap, changes]);
-	if (!submission) return null;
-	const { setId } = submission;
-
-	const submit = async () => {
-		if (!await upload()) return;
-		const refused = await rankAction(setId, 'submit');
-		message.set(refused === 'no4k'
-			? t`Only 4K difficulties can be ranked: add one first`
-			: refused ? t`Could not submit it for rank` : t`Submitted for rank`);
-	};
-	const withdraw = async () => {
-		if (await rankAction(setId, 'withdraw')) message.set(t`Could not withdraw it`);
-	};
-	const unrank = async () => {
-		message.set(await rankAction(setId, 'unrank')
-			? t`Could not unrank it`
-			: t`Unranked: it is yours to change or take down`);
-	};
-
-	if (submission.status === 'pending') {
-		return (
-			<div className='editor__submission'>
-				<span className='editor__hint'><Trans>In the ranking queue</Trans></span>
-				<button className='editor__small' onClick={() => void withdraw()}><Trans>Withdraw</Trans></button>
-			</div>
-		);
+	const rulesets = ENABLED_RULESETS.filter(id => session.beatmap.set.beatmaps
+		.some(b => rulesetOf(b.metadata.mode, b.metadata.keys) === id));
+	if (rulesets.length < 2) {
+		// a set none of them plays still gets the first's row: the server says why it can't rank
+		const [only = ENABLED_RULESETS[0]] = rulesets;
+		return <EditorRulesetSubmission session={session} upload={upload} ruleset={only} />;
 	}
-	if (submission.status === 'ranked' || submission.status === 'loved') {
-		return (
-			<div className='editor__submission'>
-				{submission.scheduled ? (
-					<span className='editor__hint editor__scheduled'>
-						{submission.status === 'loved'
-							? <Trans>Planned, not loved yet</Trans>
-							: <Trans>Planned, not ranked yet</Trans>}
-					</span>
-				) : (
-					<span className='editor__hint'>
-						{submission.status === 'loved' ? <Trans>Loved</Trans> : <Trans>Ranked</Trans>}
-					</span>
-				)}
-				<button className='editor__small' onClick={() => setConfirming(true)}><Trans>Unrank</Trans></button>
-				{confirming && (
-					<ConfirmMenu
-						title={t`Unrank your map?`}
-						sub={
-							t`Every score and all the progression players earned on it are deleted for good, and only the team can rank it again.`
-						}
-						confirmLabel={t`Unrank it`}
-						onConfirm={() => void unrank()}
-						onClose={() => setConfirming(false)}
-					/>
-				)}
-			</div>
-		);
-	}
-	if (submission.status !== 'unranked') return null;
-	return (
-		<>
-			<button className='editor__action' onClick={() => void submit()}>
-				<Trans>Submit for rank</Trans>
-			</button>
-			{submission.reviewNote && (
-				<span className='editor__hint editor__review'>
-					<Trans>Sent back: {ph({ note: submission.reviewNote })}</Trans>
-				</span>
-			)}
-		</>
-	);
+	return rulesets.map(ruleset => (
+		<div key={ruleset} className='editor__ruleset-submission'>
+			<span className='editor__ruleset'>{rulesetLabel(ruleset)}</span>
+			<EditorRulesetSubmission session={session} upload={upload} ruleset={ruleset} />
+		</div>
+	));
 }

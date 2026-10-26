@@ -7,6 +7,7 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { users } from './user';
 
 /** A developer's application on the public API. */

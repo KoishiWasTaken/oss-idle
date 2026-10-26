@@ -1,4 +1,5 @@
 import { osuSetUrl } from '@oss-idle/shared/beatmap';
+
 import type { Nomination } from '../../api/maps';
 import Link from '../../components/Link';
 

@@ -1,8 +1,10 @@
 import 'dotenv/config';
+
 import {
 	desc,
 	eq,
 } from 'drizzle-orm';
+
 import { db } from '../db/client';
 import { news } from '../db/schema/news';
 import { users } from '../db/schema/user';

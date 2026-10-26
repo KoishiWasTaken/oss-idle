@@ -1,6 +1,6 @@
-import { starsAtRates } from '../pp';
+import '@oss-idle/shared/osu/controlPointPatch';
+
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import {
 	existsSync,
 	mkdirSync,
@@ -8,45 +8,57 @@ import {
 	writeFileSync,
 } from 'node:fs';
 import { extname } from 'node:path';
+import { promisify } from 'node:util';
+
 import AdmZip from 'adm-zip';
-import '@oss-idle/shared/osu/controlPointPatch';
-import { BeatmapDecoder } from 'osu-parsers';
-import type {
-	Beatmap,
-	BeatmapMetadataSection,
-} from 'osu-classes';
-import { ManiaRuleset } from 'osu-mania-stable';
-import * as rosu from 'rosu-pp-js';
-import {
-	INTRO_SET_ID,
-	isApproved,
-} from '@oss-idle/shared/beatmap';
-import { timingColumns } from './timingPoints';
-import {
-	OWN_ID_FROM,
-	fileIdsOf,
-	withFileIds,
-} from '@oss-idle/shared/editor/chart';
 import {
 	and,
 	eq,
 	isNull,
 	notInArray,
 } from 'drizzle-orm';
+import type {
+	Beatmap,
+	BeatmapMetadataSection,
+} from 'osu-classes';
+import { ManiaRuleset } from 'osu-mania-stable';
+import { BeatmapDecoder } from 'osu-parsers';
+import * as rosu from 'rosu-pp-js';
+
+import {
+	INTRO_SET_ID,
+	isApproved,
+} from '@oss-idle/shared/beatmap';
+import { rulesetOf } from '@oss-idle/shared/rulesets/ids';
+import {
+	fileIdsOf,
+	OWN_ID_FROM,
+	withFileIds,
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import { db } from '../db/client';
 import {
 	beatmaps,
 	type NewBeatmapRow,
 } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
+import { starsAtRates } from '../pp';
+import { KNOWN_MODES } from '../rulesets/enabled';
+import { enabledRulesets } from '../rulesets/registry';
+import { bakeCover } from './covers';
+import { creditMapper } from './credit';
+import {
+	seedStatus,
+	statusesOf,
+	writeStatus,
+} from './setStatus';
 import {
 	BEATMAP_DIR,
-	PREVIEW_DIR,
 	oszPath,
+	PREVIEW_DIR,
 	previewPath,
 } from './storage';
-import { creditMapper } from './credit';
-import { bakeCover } from './covers';
+import { timingColumns } from './timingPoints';
 
 /**
  * The single runtime beatmap pipeline - replaces the old client `index-beatmaps`
@@ -118,17 +130,13 @@ const upsertSet = async (metas: BeatmapMetadataSection[], allowRanked: boolean) 
 	const osuSetId = metas.map(m => osuId(m.beatmapSetId)).find(id => id !== undefined);
 	const meta = metas[0];
 	const existing = await findSet(osuSetId, meta);
-	const ranked = !!existing && isApproved(existing.status);
+	const ranked = !!existing && (await statusesOf(existing.id)).some(([, s]) => isApproved(s.status));
 	if (ranked && !allowRanked) throw new Error('Beatmap set is already ranked');
 
 	// The intro must be live to be served, but it's never "nominated" - rank it
 	// on first ingest (announced so the sweep skips it). Everything else lands as
-	// pending. Re-ingest preserves status/rankedAt/announced either way.
-	const intro = osuSetId === INTRO_SET_ID
-		? {
-			id: INTRO_SET_ID, status: 'ranked' as const, rankedAt: new Date(), announced: true,
-		}
-		: {};
+	// pending in every ruleset. Re-ingest preserves status/rankedAt/announced either way.
+	const isIntro = osuSetId === INTRO_SET_ID;
 	const setMeta = {
 		artist: meta.artist, title: meta.title, creator: meta.creator,
 	};
@@ -140,9 +148,12 @@ const upsertSet = async (metas: BeatmapMetadataSection[], allowRanked: boolean) 
 		}).where(eq(beatmapset.id, setId));
 	} else {
 		[{ id: setId }] = await db.insert(beatmapset).values({
-			...setMeta, osuId: osuSetId, ...intro,
+			...setMeta, osuId: osuSetId, ...isIntro ? { id: INTRO_SET_ID } : {},
 		}).$returningId();
 	}
+	await seedStatus(setId, isIntro ? {
+		status: 'ranked', rankedAt: new Date(), announced: true,
+	} : {});
 	return {
 		setId, osuSetId, ranked,
 	};
@@ -150,24 +161,27 @@ const upsertSet = async (metas: BeatmapMetadataSection[], allowRanked: boolean) 
 
 /** A player's own upload: a new `unranked` set they own (linked to `osuSetId`, osu!'s
  *  set it comes from, when they mapped it there), or `setId`, one the route has
- *  checked is theirs to replace. */
-export type Owner = { userId: number, setId?: number, osuSetId?: number };
+ *  checked is theirs to replace. No `userId`: a mapper without an account. */
+export type Owner = { userId?: number, setId?: number, osuSetId?: number };
 
 /** Creates or updates a player's own set: unranked, and theirs to manage from now on. */
 const ownSet = async (metas: BeatmapMetadataSection[], owner: Owner) => {
 	const { artist, title, creator } = metas[0];
 	const fields = {
-		artist, title, creator, status: 'unranked' as const, uploadedAt: new Date(), deletedAt: null,
+		artist, title, creator, uploadedAt: new Date(), deletedAt: null,
 	};
 	if (owner.setId === undefined) {
 		const [{ id }] = await db.insert(beatmapset).values({
 			...fields, ownerUserId: owner.userId, osuId: owner.osuSetId,
 		}).$returningId();
+		await seedStatus(id, { status: 'unranked' });
 		return {
 			setId: id, osuSetId: owner.osuSetId, ranked: false,
 		};
 	}
 	await db.update(beatmapset).set(fields).where(eq(beatmapset.id, owner.setId));
+	// uploadTarget refused a set ranked or queued in any ruleset: it is unranked in all of them
+	for (const r of enabledRulesets()) await writeStatus(r, owner.setId, { status: 'unranked' });
 	const [set] = await db.select({ osuId: beatmapset.osuId }).from(beatmapset)
 		.where(eq(beatmapset.id, owner.setId)).limit(1);
 	return {
@@ -216,7 +230,7 @@ const chartStats = (text: string, decoded: Beatmap) => {
 
 /** Writes one difficulty. A ranked set's own difficulties are left as they are. */
 const upsertBeatmap = async (
-	row: Omit<NewBeatmapRow, 'id'>,
+	row: Omit<NewBeatmapRow, 'id'> & { mode: number },
 	setRanked: boolean,
 	used: Set<number>,
 	{ ownId, player }: { ownId?: number, player: boolean },
@@ -227,9 +241,9 @@ const upsertBeatmap = async (
 	if (id === undefined || used.has(id)) {
 		[{ id }] = await db.insert(beatmaps).values({
 			...row,
-			// Only 4K is playable - anything else lands (and stays) unranked. The
-			// intro is standard-mode and must be live, so it's exempt.
-			ranked: row.keys === 4 || row.setId === INTRO_SET_ID,
+			// A diff no ruleset plays lands (and stays) unranked. The intro is
+			// standard-mode and must be live, so it's exempt.
+			ranked: rulesetOf(row.mode, row.keys) !== undefined || row.setId === INTRO_SET_ID,
 		}).$returningId();
 	} else if (setRanked) {
 		await db.update(beatmaps)
@@ -262,9 +276,9 @@ export const ingestOsz = async (
 			const text = entry.getData().toString('utf8');
 			let decoded;
 			try { decoded = decoder.decodeFromString(text); } catch { return []; }
-			// mania-only, except the standard-mode intro set (never a player's)
+			// a mode some ruleset plays, and the standard-mode intro set (never a player's)
 			const isIntro = !owner && decoded.metadata.beatmapSetId === INTRO_SET_ID;
-			if (decoded.originalMode !== 3 && !isIntro) return [];
+			if (!KNOWN_MODES.has(decoded.originalMode) && !isIntro) return [];
 			return [{
 				entry, text, decoded,
 			}];

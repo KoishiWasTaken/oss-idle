@@ -1,12 +1,13 @@
-import {
-	useRef,
-	useState,
-} from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+import {
+	useRef,
+	useState,
+} from 'react';
+
 import type { BpmGuess } from './bpmDetect';
 import { detectSongBpm } from './detectSongBpm';
 import type EditorSession from './session';

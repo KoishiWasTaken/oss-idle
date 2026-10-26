@@ -1,15 +1,18 @@
+import './VolumeOverlay.css';
+
 import {
 	useRef,
 	useState,
 } from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
-import Controls from '../input/Controls';
-import useSmoothNumber from '../animations/useSmoothNumber';
-import './VolumeOverlay.css';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import clamp from '@oss-idle/shared/math/clamp';
+
+import useSmoothNumber from '../animations/useSmoothNumber';
 import { SETTINGS } from '../db/settings';
 import { isVolumeVisible } from '../globals';
-import clamp from '@oss-idle/shared/math/clamp';
+import Controls from '../input/Controls';
 
 type Channel = 'main' | 'music' | 'effects';
 

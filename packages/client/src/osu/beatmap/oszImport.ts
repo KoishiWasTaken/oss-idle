@@ -1,3 +1,4 @@
+import { i18n } from '@lingui/core';
 import {
 	ph,
 	t,
@@ -8,19 +9,23 @@ import {
 } from 'fflate';
 import { BeatmapDecoder } from 'osu-parsers';
 import * as ppjs from 'rosu-pp-js-web';
+
+import { unwrapArchive } from '@oss-idle/shared/osuSkin/files';
+import { rulesetLabel } from '@oss-idle/shared/rulesets/display';
+
+import { music } from '../../audio/MusicPlayer';
+import { SETTINGS } from '../../db/settings';
 import { message } from '../../globals';
+import { pickFile } from '../../pickFile';
+import { ENABLED_RULESETS } from '../../rulesets/enabled';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import rosuReady from '../rosu';
 import BeatmapStore, {
 	type SetRecord,
 	type StoreMetadata,
 } from './beatmap_store';
-import { isChart } from './setFiles';
 import LightBeatmapSet from './LightBeatmapSet';
-import { pickFile } from '../../pickFile';
-import { unwrapArchive } from '@oss-idle/shared/osuSkin/files';
-import { music } from '../../audio/MusicPlayer';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
-import { SETTINGS } from '../../db/settings';
+import { isChart } from './setFiles';
 
 /** FNV-1a, 31 bits: stable across sessions, unlike any random id. */
 const hash = (text: string): number => {
@@ -83,14 +88,20 @@ export const localMetadata = async (files: Unzipped, setId?: number): Promise<St
 export const importFiles = async (files: Unzipped, setId?: number): Promise<SetRecord> =>
 	BeatmapStore.storeOsz(await localMetadata(files, setId), files, true);
 
+/** What this build plays, as a player reads it: "4K", or "4K or 7K". */
+const playedLabels = () =>
+	new Intl.ListFormat(i18n.locale, { type: 'disjunction' })
+		.format(ENABLED_RULESETS.map(rulesetLabel));
+
 const importFile = async (file: File): Promise<SetRecord | undefined> => {
 	message.set(t`Importing ${ph({ name: file.name })}...`);
 	try {
 		const set = await importOsz(new Uint8Array(await file.arrayBuffer()));
 		const { title } = set.metadata;
+		const rulesets = playedLabels();
 		message.set(LightBeatmapSet.fromMetadata(set.metadata).getPlayableBeatmaps().length
 			? t`Imported ${ph({ title })}`
-			: t`Imported ${ph({ title })}, but it has no 4K mania difficulty to play`);
+			: t`Imported ${ph({ title })}, but it has no ${ph({ rulesets })} difficulty to play`);
 		return set;
 	} catch (e) {
 		console.error('[oszImport] import failed', e);
@@ -98,7 +109,7 @@ const importFile = async (file: File): Promise<SetRecord | undefined> => {
 	}
 };
 
-/** A set's easiest 4K mania difficulty. */
+/** A set's easiest difficulty this build plays. */
 export const easiestPlayable = (set: SetRecord) =>
 	LightBeatmapSet.fromMetadata(set.metadata).getPlayableBeatmaps()
 		.sort((a, b) => a.metadata.difficulty - b.metadata.difficulty)[0];

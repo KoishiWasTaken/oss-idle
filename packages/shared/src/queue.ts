@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import {
 	mapped,
 	type ValueIn,
 } from './helpers/mapped.js';
-import { rateSchema } from './rate.js';
 import { modsSchema } from './mods.js';
+import { rateSchema } from './rate.js';
 
 /**
  * The play queue lives on the server, one per character, and the server chains
@@ -39,6 +40,8 @@ export const queueEntryDTO = z.object({
 	beatmapId: z.number().int(),
 	/** a playlist's locked rate; otherwise the character's own rate */
 	rate: rateSchema.optional(),
+	/** the mods locked with that rate; otherwise the character's own mods */
+	mods: modsSchema.optional(),
 	/** plays in a row before it goes to the back */
 	repeat: z.number().int().min(1).max(MAX_REPEAT).optional(),
 	/** how many of the run have started */
@@ -179,7 +182,8 @@ export const queueServerMessages = [
 ] as const;
 
 export const sameEntry = (a: QueueEntry, b: QueueEntry) =>
-	a.beatmapId === b.beatmapId && a.rate === b.rate;
+	a.beatmapId === b.beatmapId && a.rate === b.rate
+	&& (a.mods ?? []).join() === (b.mods ?? []).join();
 
 type Repeats = Pick<QueueEntry, 'repeat' | 'played'>;
 

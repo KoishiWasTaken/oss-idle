@@ -1,9 +1,10 @@
 import Synced from '@oss-idle/shared/helpers/synced';
-import LightBeatmap from '../../osu/beatmap/LightBeatmap';
+
 import {
 	music,
 	PLAYER_MODE,
 } from '../../audio/MusicPlayer';
+import LightBeatmap from '../../osu/beatmap/LightBeatmap';
 
 /**
  * Who owns the audio while song select is mounted.

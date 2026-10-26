@@ -35,8 +35,13 @@ export default class LightBeatmapSet {
 	}
 
 	
+	/** The difficulties the picked ruleset plays. */
+	public getPickedBeatmaps(): LightBeatmap[] {
+		return this.beatmaps.filter(b => b.inPickedRuleset());
+	}
+
 	public getCarouselItems(): CarouselItem[] {
-		return this.getPlayableBeatmaps().map(beatmap => ({
+		return this.getPickedBeatmaps().map(beatmap => ({
 			set: this, beatmap, 
 		}));
 	};

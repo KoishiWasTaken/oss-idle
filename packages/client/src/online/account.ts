@@ -1,14 +1,21 @@
-import Synced from '@oss-idle/shared/helpers/synced';
+import type { CharacterDTO } from '@oss-idle/shared/character';
+import { desktop } from '@oss-idle/shared/desktop';
 import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
 import sleep from '@oss-idle/shared/helpers/sleep';
-import type { CharacterDTO } from '@oss-idle/shared/character';
-import { rpc } from './client';
-import Auth from './auth';
+import Synced from '@oss-idle/shared/helpers/synced';
+
+import Character from '../db/schema/character';
+import { SETTINGS } from '../db/settings';
 import Entities from '../entity/entities';
 import { isWebOpen } from '../globals';
-import Character from '../db/schema/character';
+import {
+	loadRuleset,
+	played,
+	selectedRuleset,
+} from '../rulesets/registry';
+import Auth from './auth';
+import { rpc } from './client';
 import { projectPending } from './projectPending';
-import { desktop } from '@oss-idle/shared/desktop';
 
 /** Give a single validation attempt this long before declaring us offline. */
 const VALIDATE_TIMEOUT_MS = 15_000;
@@ -67,6 +74,10 @@ export default class Account {
 			Account.character, 
 			Account.resolved,
 		], async ([dto, resolved]) => {
+			// the character's ruleset loads before anything shows the character in it
+			const ruleset = played(dto?.ruleset ?? SETTINGS.guestRuleset.get());
+			await loadRuleset(ruleset);
+			void selectedRuleset.set(ruleset);
 			if (dto) {
 				const character = Character.fromDTO(dto);
 				// what a running play has deferred is already bought - show it that

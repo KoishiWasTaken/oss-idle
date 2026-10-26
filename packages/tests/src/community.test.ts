@@ -1,21 +1,22 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import {
-	clientMessage,
-	serverMessage,
-	chatLineDTO,
-	knowsLegacyChannel,
-} from '@oss-idle/shared/community/wire';
-import { presenceEntryDTO } from '@oss-idle/shared/community/presence';
-import { Skills } from '@oss-idle/shared/skills';
+
 import {
 	firstPlaceMessage,
 	isSkillLevelMilestone,
 	skillLevelMessage,
 } from '@oss-idle/shared/community/announcements';
+import { presenceEntryDTO } from '@oss-idle/shared/community/presence';
+import {
+	chatLineDTO,
+	clientMessage,
+	knowsLegacyChannel,
+	serverMessage,
+} from '@oss-idle/shared/community/wire';
+import { Skills } from '@oss-idle/shared/rulesets/mania/4k/skills';
 
 describe('clients from before the rename', () => {
 	it('know the default channel by its old name up to 1.0.1.0', () => {
@@ -150,11 +151,12 @@ describe('community wire contract', () => {
 				name: 'someone',
 				avatarUrl: 'https://example.invalid/a.png',
 				country: 'FR',
+				ruleset: 'mania4k' as const,
 				generation: 1,
 				overallLevel: 88,
 				skills,
 				pendingActions: [{
-					type: 'upgrade' as const, skill: 'accuracy' as const, requestedAt: 1_700_000_000_000,
+					type: 'upgrade' as const, ruleset: 'mania4k' as const, skill: 'accuracy', requestedAt: 1_700_000_000_000,
 				}],
 			},
 		};
@@ -207,6 +209,7 @@ describe('play wire contract', () => {
 			type: 'play:start' as const,
 			result: {
 				status: 'ranked' as const,
+				ruleset: 'mania4k' as const,
 				joined: false,
 				token: 't',
 				beatmapId: 42,

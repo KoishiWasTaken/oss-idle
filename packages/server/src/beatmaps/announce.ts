@@ -1,14 +1,15 @@
 import {
+	type MapCover,
+	mapCoverUrl,
+} from '@oss-idle/shared/beatmap';
+
+import { publish } from '../discord/publish';
+import {
 	apiBaseUrl,
 	clientUrl,
 	env,
 	isProd,
 } from '../env';
-import { publish } from '../discord/publish';
-import {
-	mapCoverUrl,
-	type MapCover,
-} from '@oss-idle/shared/beatmap';
 
 export type AnnounceSet = MapCover & {
 	loved: boolean;

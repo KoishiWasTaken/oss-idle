@@ -1,15 +1,17 @@
 import './Bugs.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
-import Link from '../../components/Link';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+
 import {
 	type BugRow,
 	myBugs,
 } from '../../api/bugs';
+import Link from '../../components/Link';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import BugList from './BugList';
 
 /** The player's own bug reports. */

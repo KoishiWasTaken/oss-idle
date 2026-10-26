@@ -1,5 +1,6 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
 import type { Addon as InstalledAddon } from '../../db/schema/addon';
 import { addonIconUrl } from '../../online/addons';
 import ListingIcon from '../listing/ListingIcon';

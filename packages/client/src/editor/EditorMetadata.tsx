@@ -2,11 +2,13 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
 	backgroundOf,
 	type Metadata,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import { pickFile } from '../pickFile';
 import EditorField from './EditorField';
 import type EditorSession from './session';

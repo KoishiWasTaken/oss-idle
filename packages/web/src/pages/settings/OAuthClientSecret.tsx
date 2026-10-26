@@ -1,11 +1,12 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
-	resetClientSecret,
 	type OwnClient,
+	resetClientSecret,
 } from '../../api/oauth';
 
 /** An application's client id and secret: the secret hidden until asked for, and its reset. */

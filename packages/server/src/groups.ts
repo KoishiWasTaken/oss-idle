@@ -5,18 +5,20 @@ import {
 	inArray,
 	or,
 } from 'drizzle-orm';
+
 import {
 	type Group,
 	GROUPS,
 	OWNER_ID,
 } from '@oss-idle/shared/groups';
+
 import { db } from './db/client';
-import { userGroups } from './db/schema/user_group';
-import { users } from './db/schema/user';
 import {
 	characters,
 	resolveAvatarUrl,
 } from './db/schema/character';
+import { users } from './db/schema/user';
+import { userGroups } from './db/schema/user_group';
 
 /** Each account's groups; the owner is always an admin. */
 export const groupsByUser = async (userIds: readonly number[]): Promise<Map<number, Group[]>> => {

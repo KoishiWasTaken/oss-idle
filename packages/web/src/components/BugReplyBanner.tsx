@@ -1,16 +1,17 @@
 import {
-	useEffect,
-	useState,
-} from 'react';
-import { useRouterState } from '@tanstack/react-router';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useRouterState } from '@tanstack/react-router';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import { unreadBugs } from '../api/bugs';
-import NotificationBanner from './NotificationBanner';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import Link from './Link';
+import NotificationBanner from './NotificationBanner';
 
 type Unread = Awaited<ReturnType<typeof unreadBugs>>;
 

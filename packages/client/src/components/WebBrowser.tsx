@@ -1,19 +1,21 @@
 import './WebBrowser.css';
 
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { copyText } from '../clipboard';
 import {
 	isWebOpen,
 	SITE_URL,
 	webUrl,
 } from '../globals';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { useLingui } from '@lingui/react/macro';
-import { copyText } from '../clipboard';
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
 
 /** The page's address as someone else can open it. */
 const shareUrl = (path: string): string => `${SITE_URL}${path}`;

@@ -1,27 +1,29 @@
-import { visualOptions } from './visualSetting';
 import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { SETTINGS } from '../db/settings';
 import {
 	currentEditorSkin,
 	currentSkin,
 } from '../osu/skin/Skin';
-import { SETTINGS } from '../db/settings';
 import {
 	fieldGeometry,
 	timeAt,
 } from './painter';
-import EditorPointer, { type PointerAt } from './pointer';
 import PlayfieldLink, { sideField } from './playfieldLink';
+import EditorPointer, { type PointerAt } from './pointer';
 import type EditorSession from './session';
+import { visualOptions } from './visualSetting';
 
 const SHIFT_STEPS = 4;
 
 /** The chart under edit, drawn by its own worker (see playfieldWorker) and driven by the
  *  mouse (see EditorPointer); the wheel moves along the beat lines (shift: several),
- *  ctrl + wheel zooms. */
+ *  ctrl + wheel zooms over the columns and goes through the snaps anywhere else. */
 export default function EditorPlayfield({ session }: { session: EditorSession }) {
 	const hostRef = useRef<HTMLDivElement>(null);
 	const linkRef = useRef<PlayfieldLink>(undefined);
@@ -78,7 +80,7 @@ export default function EditorPlayfield({ session }: { session: EditorSession })
 			};
 		};
 		// where the mouse last was, for a drag the wheel scrolls under it
-		let last: { clientX: number, clientY: number } | undefined;
+		let last: { clientX: number, clientY: number, shiftKey: boolean } | undefined;
 		const showPointer = () => link.overlay(pointer.overlay());
 
 		const onDown = (e: MouseEvent) => {
@@ -88,13 +90,13 @@ export default function EditorPlayfield({ session }: { session: EditorSession })
 			pointer.down(at, e.button, e.ctrlKey || e.metaKey, g.noteHeight / session.zoom);
 			showPointer();
 		};
-		const move = (e: { clientX: number, clientY: number }) => {
+		const move = (e: { clientX: number, clientY: number, shiftKey: boolean }) => {
 			const at = pointed(e);
-			return !!at && pointer.move(at);
+			return !!at && pointer.move(at, e.shiftKey);
 		};
 		const onMove = (e: MouseEvent) => {
 			last = {
-				clientX: e.clientX, clientY: e.clientY,
+				clientX: e.clientX, clientY: e.clientY, shiftKey: e.shiftKey,
 			};
 			move(e);
 			showPointer();
@@ -110,9 +112,13 @@ export default function EditorPlayfield({ session }: { session: EditorSession })
 		const onWheel = (e: WheelEvent) => {
 			// alt + wheel is the volume
 			if (e.altKey) return;
+			const over = e.target === canvas;
+			if (!over && !e.ctrlKey) return;
 			e.preventDefault();
-			if (e.ctrlKey) session.zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15);
-			else session.step(e.deltaY > 0 ? 1 : -1, e.shiftKey ? SHIFT_STEPS : 1);
+			const up = e.deltaY < 0;
+			if (!e.ctrlKey) session.step(e.deltaY > 0 ? 1 : -1, e.shiftKey ? SHIFT_STEPS : 1);
+			else if (over && pointed(e)?.inside) session.zoomBy(up ? 1.15 : 1 / 1.15);
+			else session.cycleDivisor(up ? 1 : -1);
 			// the chart moved under a still mouse: a drag follows it
 			if (last) move(last);
 			showPointer();
@@ -127,21 +133,23 @@ export default function EditorPlayfield({ session }: { session: EditorSession })
 		};
 		frame = requestAnimationFrame(follow);
 
+		void session.hoveredPoint.sync(showPointer);
 		host.addEventListener('mousedown', onDown);
 		window.addEventListener('mousemove', onMove);
 		window.addEventListener('mouseup', onUp);
 		host.addEventListener('mouseleave', onLeave);
-		host.addEventListener('wheel', onWheel, { passive: false });
+		window.addEventListener('wheel', onWheel, { passive: false });
 		return () => {
 			observer.disconnect();
 			cancelAnimationFrame(frame);
+			session.hoveredPoint.desync(showPointer);
 			session.revision.desync(sync);
 			for (const setting of settings) setting.desync(sync);
 			host.removeEventListener('mousedown', onDown);
 			window.removeEventListener('mousemove', onMove);
 			window.removeEventListener('mouseup', onUp);
 			host.removeEventListener('mouseleave', onLeave);
-			host.removeEventListener('wheel', onWheel);
+			window.removeEventListener('wheel', onWheel);
 			link.dispose();
 			linkRef.current = undefined;
 			canvas.remove();

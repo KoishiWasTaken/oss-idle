@@ -1,4 +1,5 @@
 import type { Messages } from '@lingui/core';
+
 import type { Locale } from './locales.js';
 
 /**

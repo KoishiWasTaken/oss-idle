@@ -1,14 +1,16 @@
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
+import path from 'node:path';
+
 import {
 	app,
 	safeStorage,
 	session,
 	shell,
 } from 'electron';
-import path from 'node:path';
-import fs from 'node:fs';
-import http from 'node:http';
-import type { AddressInfo } from 'node:net';
-import { randomUUID } from 'node:crypto';
+
 import {
 	API_BASE,
 	DESKTOP_SCHEME,

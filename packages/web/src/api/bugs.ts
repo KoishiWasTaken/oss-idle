@@ -3,6 +3,7 @@ import type {
 	BugReportBody,
 	BugStatus,
 } from '@oss-idle/shared/bugs';
+
 import {
 	apiUrl,
 	json,

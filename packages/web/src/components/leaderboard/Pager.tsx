@@ -1,5 +1,7 @@
 import './Pager.css';
+
 import { useLingui } from '@lingui/react/macro';
+
 import Link from '../Link';
 
 /** Previous / next links for a paged leaderboard. Keeps the other search params. */

@@ -1,29 +1,31 @@
 import {
 	strFromU8,
 	strToU8,
-	zipSync,
 	type Unzipped,
+	zipSync,
 } from 'fflate';
-import { extrasFile } from '@oss-idle/shared/editor/extras';
+
+import {
+	fileIdsOf,
+	type Metadata,
+	parseChart,
+	withBackground,
+	withFileIds,
+	withSetMetadata,
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+import { extrasFile } from '@oss-idle/shared/rulesets/mania/editor/extras';
+
+import BeatmapStore, { type SetRecord } from '../osu/beatmap/beatmap_store';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
 import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import BeatmapStore, { type SetRecord } from '../osu/beatmap/beatmap_store';
-import {
-	chartFile,
-	fileName,
-} from '../osu/beatmap/setFiles';
 import {
 	importFiles,
 	localSetId,
 } from '../osu/beatmap/oszImport';
 import {
-	fileIdsOf,
-	parseChart,
-	withBackground,
-	withFileIds,
-	withSetMetadata,
-	type Metadata,
-} from '@oss-idle/shared/editor/chart';
+	chartFile,
+	fileName,
+} from '../osu/beatmap/setFiles';
 import { newChart } from './newChart';
 
 let writing: Promise<unknown> = Promise.resolve();
@@ -207,16 +209,32 @@ export const removeSetFile = (
 	return storedAs(await storeLocal(beatmap, files), file);
 });
 
-/** `image` added to the set as every difficulty's background; returns the difficulty
- *  as it is now stored, and the image's name in the set. */
+/** A name for `data` in the set: `name`, else numbered when another file has it. */
+const freeName = (files: Unzipped, name: string, data: Uint8Array): string => {
+	const same = (other?: Uint8Array) =>
+		other?.length === data.length && other.every((byte, i) => byte === data[i]);
+	const dot = name.lastIndexOf('.');
+	let free = name;
+	for (let n = 2; files[free] && !same(files[free]); n++) {
+		free = `${name.slice(0, dot)} ${n}${name.slice(dot)}`;
+	}
+	return free;
+};
+
+/** `image` added to the set as every difficulty's background, or only `beatmap`'s; returns
+ *  the difficulty as it is now stored, and the image's name in the set. */
 export const setBackgroundImage = (
 	beatmap: LightBeatmap,
 	image: File,
+	onlyThis = false,
 ): Promise<{ beatmap: LightBeatmap, name: string }> => serially(async () => {
 	const { files, file } = await setArchive(beatmap);
-	const name = fileName(image.name);
-	files[name] = new Uint8Array(await image.arrayBuffer());
-	for (const chart of Object.keys(files).filter(n => n.toLowerCase().endsWith('.osu'))) {
+	const data = new Uint8Array(await image.arrayBuffer());
+	// another difficulty's background of the same name stays its own
+	const name = onlyThis ? freeName(files, fileName(image.name), data) : fileName(image.name);
+	files[name] = data;
+	const charts = onlyThis ? [file] : Object.keys(files).filter(n => n.toLowerCase().endsWith('.osu'));
+	for (const chart of charts) {
 		files[chart] = strToU8(withBackground(strFromU8(files[chart]), name));
 	}
 	return {

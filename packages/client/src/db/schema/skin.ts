@@ -1,5 +1,15 @@
-import type { SkinStatus } from '@oss-idle/shared/skin';
+import {
+	ph,
+	t,
+} from '@lingui/core/macro';
+
+import Log from '@oss-idle/shared/helpers/log';
 import Synced from '@oss-idle/shared/helpers/synced';
+import type { SkinStatus } from '@oss-idle/shared/skin';
+
+import type { Skin as SkinDTO } from '../../online/skins';
+import { currentSkinDAO } from '../../osu/skin/Skin';
+import { deleteSkinFiles } from '../../osu/skin/skinFiles';
 import {
 	boolean,
 	DAO,
@@ -7,15 +17,7 @@ import {
 	table,
 	text,
 } from '../dao';
-import { currentSkinDAO } from '../../osu/skin/Skin';
 import { SETTINGS } from '../settings';
-import { deleteSkinFiles } from '../../osu/skin/skinFiles';
-import Log from '@oss-idle/shared/helpers/log';
-import {
-	ph,
-	t,
-} from '@lingui/core/macro';
-import type { Skin as SkinDTO } from '../../online/skins';
 
 const skin = table('skin', {
 	id:          integer().primaryKey(),

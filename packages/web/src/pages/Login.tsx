@@ -1,13 +1,16 @@
 import './Login.css';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { loginWithOsu } from '../auth';
-import { Asset } from '../router';
+
 import { getGeneralStats } from '../api/stats';
+import { loginWithOsu } from '../auth';
 import AuthBackdrop from '../components/AuthBackdrop';
+import { Asset } from '../router';
 
 const count = (n = 0) => n.toLocaleString('en-US');
 

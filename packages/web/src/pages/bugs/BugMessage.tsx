@@ -2,11 +2,13 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import { dateAgo } from '@oss-idle/shared/display/ago';
-import Link from '../../components/Link';
+
 import type { Bug } from '../../api/bugs';
-import BugStatusPill from './BugStatusPill';
+import Link from '../../components/Link';
 import BugImages from './BugImages';
+import BugStatusPill from './BugStatusPill';
 
 export default function BugMessage({ message }: { message: Bug['messages'][number] }) {
 	const { t } = useLingui();

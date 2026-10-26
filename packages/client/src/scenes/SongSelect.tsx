@@ -1,12 +1,11 @@
-import {
-	rateStars,
-	starsOf,
-} from '../gameplay/rateStars';
-import {
-	canPlayAt,
-	liveSpeedUpgrades,
-} from '../gameplay/playRate';
+import './SongSelect.css';
+
 import { ph } from '@lingui/core/macro';
+import {
+	Plural,
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useCallback,
 	useEffect,
@@ -14,93 +13,95 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import {
-	Trans,
-	Plural,
-	useLingui,
-} from '@lingui/react/macro';
+
+import { Grades } from '@oss-idle/shared/grade';
+import Log from '@oss-idle/shared/helpers/log';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { music } from '../audio/MusicPlayer';
 import BeatmapCarousel, {
 	type CarouselItem,
 	type CarouselRow,
 	type DownloadState,
 } from '../components/BeatmapCarousel';
-import {
-	groupsOf,
-	itemStatus,
-	EMPTY_HISTORY,
-	EMPTY_PLAYLISTS,
-	type Group,
-	type PlaylistsByBeatmap,
-} from '../osu/beatmap/grouping';
-import TopBar from '../components/songselect/TopBar';
-import SongSelectBackdrop from '../components/songselect/SongSelectBackdrop';
-import useSongSelectAudio from '../components/songselect/useSongSelectAudio';
-import useQueueMode from '../components/songselect/useQueueMode';
+import IdleLogo from '../components/IdleLogo';
+import { modSelectOpen } from '../components/mods/modSelectOpen';
+import CardOverlays from '../components/songselect/CardOverlays';
+import { playFromList } from '../components/songselect/listPlay';
 import {
 	queueSelection,
 	SelectionContext,
 } from '../components/songselect/selection';
-import UserCard from '../components/songselect/UserCard';
+import SongSelectBackdrop from '../components/songselect/SongSelectBackdrop';
+import SongSelectDebug from '../components/songselect/SongSelectDebug';
 import SongSelectFooter from '../components/songselect/SongSelectFooter';
-import IdleLogo from '../components/IdleLogo';
-import { modSelectOpen } from '../components/mods/modSelectOpen';
-import useKeyboardOwner from '../input/keyboardOwner';
-import CardOverlays from '../components/songselect/CardOverlays';
-import { playFromList } from '../components/songselect/listPlay';
-import { matchesSearch } from '../osu/beatmap/beatmapSearch';
-import Entities from '../entity/entities';
-import { music } from '../audio/MusicPlayer';
-import BeatmapAPI, {
-	Metadata,
-	isListed,
-} from '../osu/beatmap/beatmap_api';
-import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import './SongSelect.css';
-import BeatmapStore, { beatmapsVersion } from '../osu/beatmap/beatmap_store';
-import Controls from '../input/Controls';
-import SceneManager, { SCENE } from './SceneManager';
-import Multiplayer from '../online/multiplayer';
-import {
-	debugMode,
-	openPage,
-} from '../globals';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import {
-	getCharacter,
-	getCharacterStats,
-} from '../online/services/characters';
-import { Grades } from '@oss-idle/shared/judgement';
-import {
-	Score,
-	scoresVersion,
-} from '../db/schema/score';
-import {
-	SETTINGS,
-	type GroupOption,
-	type SortOption,
-} from '../db/settings';
+import TopBar from '../components/songselect/TopBar';
+import useQueueMode from '../components/songselect/useQueueMode';
+import UserCard from '../components/songselect/UserCard';
+import useSongSelectAudio from '../components/songselect/useSongSelectAudio';
 import Character from '../db/schema/character';
 import {
 	getPlaylistIndex,
 	playlistsVersion,
 } from '../db/schema/playlist';
-import SongSelectDebug from '../components/songselect/SongSelectDebug';
-import PlayQueue, { fillQueue } from '../gameplay/playQueue';
-import Log from '@oss-idle/shared/helpers/log';
-import { launchPlay } from './launchPlay';
+import {
+	Score,
+	scoresVersion,
+} from '../db/schema/score';
 import { xpGainsVersion } from '../db/schema/score_xp';
-import { getXPInsights } from '../xpInsights';
+import {
+	type GroupOption,
+	SETTINGS,
+	type SortOption,
+} from '../db/settings';
+import Entities from '../entity/entities';
+import PlayQueue, { fillQueue } from '../gameplay/playQueue';
+import {
+	canPlayAt,
+	liveSpeedUpgrades,
+} from '../gameplay/playRate';
+import {
+	rateStars,
+	starsOf,
+} from '../gameplay/rateStars';
+import {
+	debugMode,
+	openPage,
+} from '../globals';
+import Controls from '../input/Controls';
+import useKeyboardOwner from '../input/keyboardOwner';
+import Multiplayer from '../online/multiplayer';
+import {
+	getCharacter,
+	getCharacterStats,
+} from '../online/services/characters';
+import BeatmapAPI, {
+	isListed,
+	Metadata,
+} from '../osu/beatmap/beatmap_api';
+import BeatmapStore, { beatmapsVersion } from '../osu/beatmap/beatmap_store';
+import { matchesSearch } from '../osu/beatmap/beatmapSearch';
+import {
+	EMPTY_HISTORY,
+	EMPTY_PLAYLISTS,
+	type Group,
+	groupsOf,
+	itemStatus,
+	type PlaylistsByBeatmap,
+} from '../osu/beatmap/grouping';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import { selectedRuleset } from '../rulesets/registry';
 import {
 	UNLOCKS,
 	XP_INSIGHT_TIER,
 } from '../unlocks';
+import { getXPInsights } from '../xpInsights';
+import { launchPlay } from './launchPlay';
+import SceneManager, { SCENE } from './SceneManager';
+import { STRAIN_DEBUG_KEY } from './strainDebugKey';
 
-/** Dev-only: the diff id the strain debug overlay is open on, stashed in
- *  sessionStorage so a full dev-server reload (a skill edit forces one) reopens
- *  it instead of dropping back to the intro. See SceneManager's boot. */
-export const STRAIN_DEBUG_KEY = 'strain-debug-diff';
 
 /** The group a play was launched from, kept across the gameplay scene so that
  *  returning to song select reopens that group - not just the first group the
@@ -208,7 +209,7 @@ function buildCarouselRows(
 				group: g, items: [], 
 			});
 			bucket.items.push(g.entry ? {
-				...item, beatmap: item.beatmap.at(g.rate), entry: g.entry,
+				...item, beatmap: item.beatmap.at(g.rate, g.mods), entry: g.entry,
 			} : item);
 		}
 	}
@@ -288,12 +289,13 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	const [scrollSpeed] = useSynced(SETTINGS.scrollspeed);
 	const [library] = useSynced(beatmapsVersion);
 	const [character] = useSynced(Entities.character);
+	const [ruleset] = useSynced(selectedRuleset);
 	const online_character = useAsync(async () => character.isGuest() ? undefined
-		: getCharacter(character.id)
-	, [character]);
+		: getCharacter(character.id, ruleset)
+	, [character, ruleset]);
 	const online_stats = useAsync(async () => character.isGuest() ? undefined
-		: getCharacterStats(character.id)
-	, [character]);
+		: getCharacterStats(character.id, ruleset)
+	, [character, ruleset]);
 	const [debug] = useSynced(debugMode);
 	const { t } = useLingui(); // for strings outside JSX text (attrs, toasts, menu)
 
@@ -330,6 +332,9 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 			const loved = new Set(manifest.beatmaps
 				.filter(m => m.loved)
 				.flatMap(m => m.versions.map(v => v.id)));
+			const bundled = new Set(manifest.beatmaps
+				.filter(m => m.bundled)
+				.flatMap(m => m.versions.map(v => v.id)));
 			const all = Array.from(sets
 				.values())
 				.map(item => ({
@@ -337,6 +342,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 					tags: tags.get(item.beatmap.metadata.id),
 					ranked: tags.has(item.beatmap.metadata.id),
 					loved: loved.has(item.beatmap.metadata.id),
+					bundled: bundled.has(item.beatmap.metadata.id),
 				}))
 				.sort((a, b) =>
 					a.beatmap.metadata.difficulty - b.beatmap.metadata.difficulty,
@@ -365,7 +371,9 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 	// the carousel reflects deletions without a full reload.
 	const [showUndownloaded] = useSynced(SETTINGS.showUndownloaded);
 	const [showUnbundled] = useSynced(SETTINGS.showUnbundled);
-	useEffect(() => { void loadLibrary(); }, [loadLibrary, library, showUndownloaded, showUnbundled]);
+	useEffect(() => {
+		void loadLibrary();
+	}, [loadLibrary, library, showUndownloaded, showUnbundled, ruleset]);
 
 	useKeyboardOwner(searchRef, { active: !debugBeatmap });
 
@@ -536,7 +544,7 @@ export default function SongSelect({ mode = 'launch' }: Props) {
 
 	// entered with the intro still playing: move on to a map of the list
 	useEffect(() => {
-		if (selection.get()?.isPlayable() === false) random();
+		if (selection.get()?.inPickedRuleset() === false) random();
 	}, [random]);
 
 	// osu!'s F3: the selected card's menu

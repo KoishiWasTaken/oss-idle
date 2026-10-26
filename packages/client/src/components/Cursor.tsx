@@ -4,9 +4,11 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
-import { isWebOpen } from '../globals';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { SETTINGS } from '../db/settings';
+import { isWebOpen } from '../globals';
 
 const TRAIL = 30;
 

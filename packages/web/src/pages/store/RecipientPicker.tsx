@@ -1,10 +1,11 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import ProfilePicture from '../../components/ProfilePicture';
+import { useState } from 'react';
+
 import { findRecipient } from '../../api/store';
+import ProfilePicture from '../../components/ProfilePicture';
 
 export type Recipient = {
 	userId: number;

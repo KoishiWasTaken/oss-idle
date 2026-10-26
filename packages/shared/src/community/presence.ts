@@ -1,13 +1,14 @@
 import { z } from 'zod';
-import {
-	mapped,
-	values,
-	type ValueIn,
-} from '../helpers/mapped.js';
+
 import {
 	characterDTO,
 	characterStatsDTO,
 } from '../character.js';
+import {
+	mapped,
+	type ValueIn,
+	values,
+} from '../helpers/mapped.js';
 
 export const STATUS = mapped(['idle', 'afk', 'playing']);
 export type Status = ValueIn<typeof STATUS>;

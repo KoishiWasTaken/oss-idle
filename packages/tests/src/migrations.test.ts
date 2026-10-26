@@ -1,18 +1,21 @@
-import {
-	beforeAll,
-	describe,
-	it,
-	expect,
-} from 'vitest';
+import { createRequire } from 'node:module';
+
 import type {
 	Database,
 	SqlJsStatic,
 } from 'sql.js';
 import initSqlJs from 'sql.js';
-import { createRequire } from 'node:module';
+import {
+	beforeAll,
+	describe,
+	expect,
+	it,
+} from 'vitest';
+
+import { Skills } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import { xpToLevel } from '@oss-idle/shared/xp';
+
 import { migrate } from '@oss-idle/client/db/migrations';
-import { Skills } from '@oss-idle/shared/skills';
-import { xpToLevel } from '@oss-idle/shared/sim/skills/xp';
 
 const require = createRequire(import.meta.url);
 
@@ -63,7 +66,7 @@ const database = (live = false): Database => {
 	db.run(live ? `CREATE TABLE playlist_entry (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		playlistId INTEGER NOT NULL, beatmapId INTEGER NOT NULL, rate REAL NOT NULL DEFAULT 0,
-		position INTEGER NOT NULL, repeat INTEGER NOT NULL DEFAULT 1
+		position INTEGER NOT NULL, repeat INTEGER NOT NULL DEFAULT 1, mods TEXT NOT NULL DEFAULT ''
 	);` : `CREATE TABLE playlist_entry (
 		playlistId INTEGER NOT NULL, beatmapId INTEGER NOT NULL,
 		PRIMARY KEY (playlistId, beatmapId)
@@ -188,5 +191,24 @@ describe('client database migrations', () => {
 			WHERE playlistId = 1 AND beatmapId = 10`)).toBe(3);
 		expect(one(db, `SELECT COUNT(*) FROM sqlite_master
 			WHERE type = 'index' AND name = 'idx_playlist_entry_beatmap'`)).toBe(1);
+	});
+
+	it('moves each play\'s 4K gains into the per-skill JSON every ruleset writes', () => {
+		const db = oldDatabase();
+		db.run(`CREATE TABLE score_xp (
+			scoreId INTEGER PRIMARY KEY, characterId INTEGER, beatmapId INTEGER, playedAt INTEGER,
+			${Skills.map(s => `${s} REAL DEFAULT 0`).join(', ')}
+		);`);
+		db.run(`INSERT INTO score_xp (scoreId, characterId, beatmapId, playedAt, accuracy, speedjam)
+			VALUES (1, 5, 10, 100, 120.5, 30), (2, 5, 11, 200, 0, 0);`);
+
+		migrate(db);
+
+		const gains = (id: number) =>
+			JSON.parse(String(one(db, `SELECT gains FROM score_xp WHERE scoreId = ${id}`)));
+		expect(gains(1)).toEqual({
+			accuracy: 120.5, speedjam: 30, 
+		});
+		expect(gains(2)).toEqual({});
 	});
 });

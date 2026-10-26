@@ -1,14 +1,17 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
 import { checkoutBody } from '@oss-idle/shared/supporter';
-import { requireAuth } from '../auth/middleware';
+
 import { requireAdmin } from '../auth/admin';
+import { claimStateNonce } from '../auth/handoff';
 import {
 	signLinkState,
 	verifyLinkState,
 } from '../auth/jwt';
-import { claimStateNonce } from '../auth/handoff';
+import { requireAuth } from '../auth/middleware';
+import { warn } from '../discord/error';
 import {
 	clientUrl,
 	env,
@@ -18,7 +21,6 @@ import {
 	fetchItchUserId,
 	itchAuthorizeUrl,
 } from '../itch';
-import { warn } from '../discord/error';
 import {
 	adminOrders,
 	checkout,

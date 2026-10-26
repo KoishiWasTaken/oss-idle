@@ -5,31 +5,32 @@ import {
 	inArray,
 	sql,
 } from 'drizzle-orm';
+
+import { type Grade } from '@oss-idle/shared/grade';
+import { isAdmin } from '@oss-idle/shared/groups';
 import type {
 	MatchEvent,
 	RoundScore,
 } from '@oss-idle/shared/multiplayer';
-import { isAdmin } from '@oss-idle/shared/groups';
-import { groupsOf } from './groups';
-import {
-	Judgements,
-	type Grade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import { db } from './db/client';
-import {
-	matchEvents,
-	matches,
-	matchGames,
-	matchGameScores,
-} from './db/schema/match';
-import { characters } from './db/schema/character';
-import { users } from './db/schema/user';
 import {
 	beatmapListColumns,
 	beatmaps,
 } from './db/schema/beatmap';
 import { beatmapset } from './db/schema/beatmapset';
+import { characters } from './db/schema/character';
+import {
+	matches,
+	matchEvents,
+	matchGames,
+} from './db/schema/match';
+import { judgementsOf } from './db/schema/score';
+import { users } from './db/schema/user';
+import { groupsOf } from './groups';
+import { ENABLED_RULESETS } from './rulesets/enabled';
+import { rulesetFor } from './rulesets/registry';
 
 /**
  * A multiplayer match's history in MySQL, the page "Match history available
@@ -69,10 +70,11 @@ export const closeMatch = (matchId: number): void => {
 export const startGame = async (
 	matchId: number,
 	beatmapId: number,
+	ruleset: RulesetId,
 ): Promise<number | undefined> => {
 	try {
 		const [row] = await db.insert(matchGames).values({
-			matchId, beatmapId,
+			matchId, beatmapId, ruleset,
 		});
 		recordEvent(matchId, 'game', undefined, row.insertId);
 		return row.insertId;
@@ -84,17 +86,18 @@ export const startGame = async (
 
 export type GameScoreDetail = {
 	grade: Grade,
-	judgements: Record<Judgement, number>,
+	judgements: Record<string, number>,
 };
 
 export const endGame = (
 	gameId: number,
+	ruleset: RulesetId,
 	players: { final: RoundScore, detail: GameScoreDetail }[],
 ): void => {
 	void (async () => {
 		await db.update(matchGames).set({ endedAt: new Date() }).where(eq(matchGames.id, gameId));
 		if (!players.length) return;
-		await db.insert(matchGameScores).values(players.map(({ final, detail }) => ({
+		await db.insert(rulesetFor(ruleset).matchScores).values(players.map(({ final, detail }) => ({
 			gameId,
 			characterId: final.characterId,
 			score: Math.round(final.score),
@@ -146,10 +149,16 @@ const games = async (matchId: number) => {
 		.innerJoin(beatmaps, eq(beatmaps.id, matchGames.beatmapId))
 		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
 		.where(eq(matchGames.matchId, matchId));
-	const scores = rows.length ? await db
-		.select()
-		.from(matchGameScores)
-		.where(inArray(matchGameScores.gameId, rows.map(r => r.game.id))) : [];
+	// each game's scores are in its ruleset's table; a ruleset not played here has none
+	const scores = (await Promise.all(ENABLED_RULESETS.map(async id => {
+		const ids = rows.filter(r => r.game.ruleset === id).map(r => r.game.id);
+		if (!ids.length) return [];
+		const r = rulesetFor(id);
+		return (await db.select().from(r.matchScores).where(inArray(r.matchScores.gameId, ids)))
+			.map(s => ({
+				...s, judgements: judgementsOf(s as never, r.def),
+			}));
+	}))).flat();
 	return {
 		rows, scores,
 	};
@@ -185,6 +194,7 @@ export const matchHistory = async (matchId: number, userId?: number) => {
 				at: e.at.getTime(),
 				player: e.characterId === null ? undefined : who.get(e.characterId),
 				game: game && {
+					ruleset: game.game.ruleset,
 					beatmap: game.beatmap,
 					startedAt: game.game.startedAt.getTime(),
 					endedAt: game.game.endedAt?.getTime(),
@@ -198,7 +208,7 @@ export const matchHistory = async (matchId: number, userId?: number) => {
 							accuracy: Number(s.accuracy),
 							failed: s.failed,
 							grade: s.grade,
-							judgements: Object.fromEntries(Judgements.map(j => [j, s[j]])) as Record<Judgement, number>,
+							judgements: s.judgements,
 						})),
 				},
 			};

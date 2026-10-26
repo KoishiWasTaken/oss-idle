@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
 import { useLingui } from '@lingui/react/macro';
+import { useMemo } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
-import LightBeatmapSet from '../../osu/beatmap/LightBeatmapSet';
 import { matchesSearch } from '../../osu/beatmap/beatmapSearch';
+import LightBeatmapSet from '../../osu/beatmap/LightBeatmapSet';
 import PageBarActions from '../page/PageBarActions';
 import DirectFilters from './DirectFilters';
-import DirectRow from './DirectRow';
 import DirectPanel from './DirectPanel';
-import useDirectSets from './useDirectSets';
+import DirectRow from './DirectRow';
 import {
 	directDownloads,
 	directSearch,
@@ -20,6 +21,7 @@ import {
 	preview,
 	showDownloaded,
 } from './directState';
+import useDirectSets from './useDirectSets';
 
 export type DirectSort = 'new' | 'played';
 

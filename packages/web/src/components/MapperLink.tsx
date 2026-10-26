@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+
 import { osuUserUrl } from '@oss-idle/shared/osu/profile';
+
 import OutLink from './OutLink';
 
 /** A map's mapper, linked to their osu! profile once the set is credited to them. */

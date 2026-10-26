@@ -1,48 +1,50 @@
 import { eq } from 'drizzle-orm';
+
+import { cleanMods } from '@oss-idle/shared/mods';
 import {
+	applyQueueEdit,
 	AUTOPILOT_MODE,
 	AWAY_HOURS,
 	nextStart,
-	rotateQueue,
-	SUPPORTER_AWAY_HOURS,
-	applyQueueEdit,
 	type QueueEdit,
 	type QueueEntry,
-	type QueueSource,
 	type QueuePrefs,
+	type QueueSource,
 	type QueueState,
+	rotateQueue,
+	SUPPORTER_AWAY_HOURS,
 } from '@oss-idle/shared/queue';
+
 import { db } from './db/client';
 import {
+	type CharacterRow,
 	characters,
 	getCharacterById,
-	type CharacterRow,
 } from './db/schema/character';
 import {
-	users,
 	type UserRow,
+	users,
 } from './db/schema/user';
-import {
-	redis,
-	withLock,
-} from './redis';
 import { redisKeyPrefix } from './env';
-import { hub } from './ws/hub';
-import {
-	areOnline,
-	leave,
-	presenceCount,
-	touch,
-} from './ws/presence';
 import {
 	abortPlay,
 	isPlaying,
 	playState,
 	startPlay,
 } from './play';
+import {
+	redis,
+	withLock,
+} from './redis';
 import { isSupporter } from './supporter';
-import { cleanMods } from '@oss-idle/shared/mods';
+import { hub } from './ws/hub';
 import { ownMatch } from './ws/multiplayer';
+import {
+	areOnline,
+	leave,
+	presenceCount,
+	touch,
+} from './ws/presence';
 
 /**
  * The character's play queue, chained by the server whether a game is open or
@@ -369,7 +371,7 @@ const tryHead = async (
 		return 'done';
 	}
 	const result = await startPlay(row, head.beatmapId, {
-		rate: head.rate ?? row.playRate, mods: row.playMods ?? [],
+		rate: head.rate ?? row.playRate, mods: head.mods ?? row.playMods ?? [],
 	});
 	switch (result.status) {
 		case 'ranked':
@@ -405,7 +407,7 @@ const retry = async (id: number, row: CharacterRow, again: QueueEntry): Promise<
 	// a round's fail is the match's business
 	if (await ownMatch(id)) return true;
 	const result = await startPlay(row, again.beatmapId, {
-		rate: again.rate ?? row.playRate, mods: row.playMods ?? [],
+		rate: again.rate ?? row.playRate, mods: again.mods ?? row.playMods ?? [],
 	});
 	return result.status === 'ranked';
 };

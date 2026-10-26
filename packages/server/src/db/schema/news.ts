@@ -6,10 +6,12 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import type {
 	NewsDTO,
 	NewsTag,
 } from '@oss-idle/shared/news';
+
 import { users } from './user';
 
 export const news = mysqlTable('news', {

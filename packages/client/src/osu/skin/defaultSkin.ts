@@ -1,4 +1,5 @@
 import { normalizePath } from '@oss-idle/shared/osuSkin/files';
+
 import type { SkinSource } from './OsuSkin';
 
 /** The default skin's files (packages/client/src/osu/skin/default), by their own names. */

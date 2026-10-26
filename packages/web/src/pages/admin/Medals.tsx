@@ -1,22 +1,26 @@
 import './Medals.css';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
-	MedalCategories,
-	MEDAL_LINES,
 	medalById,
+	MedalCategories,
 	medalLook,
-	MEDALS,
 } from '@oss-idle/shared/achievements/catalogue';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
+import { rulesetDef } from '../../rulesets';
+
+const catalogue = rulesetDef().medals;
 import { MedalTiers } from '@oss-idle/shared/achievements/medal';
-import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
-import {
-	medalCategoryName,
-	medalDescription,
-	medalName,
-} from '@oss-idle/shared/display/medals';
 import { dateAgo } from '@oss-idle/shared/display/ago';
+import { medalCategoryName } from '@oss-idle/shared/display/medals';
+import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
+
 import { getAdminMedals } from '../../api/admin';
 import MedalIcon from '../../components/character/MedalIcon';
+import {
+	medalDescription,
+	medalName,
+} from '../../rulesets';
 import MedalRecapRow from './MedalRecapRow';
 
 /** The full medal recap: what each one is, its rule, who holds and who qualifies. */
@@ -27,7 +31,7 @@ export default function Medals() {
 
 	return <main className='admin-medals'>
 		<p className='admin-medals__meta'>
-			{MEDALS.length} medals · counted over {recap.players} characters who have played,
+			{catalogue.medals.length} medals · counted over {recap.players} characters who have played,
 			{' '}{dateAgo(recap.computedAt)} (cached 10 min) ·{' '}
 			{MedalTiers.map(t => `${t} +${MEDAL_XP_BONUS[t] * 100}%`).join(' · ')}
 		</p>
@@ -42,9 +46,9 @@ export default function Medals() {
 					<th></th><th>Medal</th><th>Tier</th><th>XP</th><th>Description</th>
 					<th>Rule</th><th>Held</th><th>Qualify</th>
 				</tr></thead>
-				{MEDAL_LINES[category].map(line => <tbody key={line[0]}>
+				{catalogue.lines[category].map(line => <tbody key={line[0]}>
 					{line.flatMap(id => {
-						const medal = medalById(id);
+						const medal = medalById(catalogue, id);
 						const row = stats.get(id);
 						if (!medal || !row) return [];
 						return [<MedalRecapRow

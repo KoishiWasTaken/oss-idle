@@ -1,17 +1,20 @@
 import './ProfileBanner.css';
-import {
-	useRef,
-	useState,
-} from 'react';
-import {
-	removeBanner,
-	uploadBanner,
-} from '../../api/users';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useRef,
+	useState,
+} from 'react';
+
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
+import {
+	removeBanner,
+	uploadBanner,
+} from '../../api/users';
 
 type Props = {
 	characterId: number;

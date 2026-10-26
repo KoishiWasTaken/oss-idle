@@ -1,5 +1,5 @@
 import { hc } from 'hono/client';
-import type { AppType } from '@oss-idle/server';
+
 import {
 	edgeList,
 	failoverFetch,
@@ -8,6 +8,8 @@ import {
 	pickApiBase,
 	withAuth,
 } from '@oss-idle/shared/apiBase';
+
+import type { AppType } from '@oss-idle/server';
 
 export {
 	json, unwrap, withAuth,

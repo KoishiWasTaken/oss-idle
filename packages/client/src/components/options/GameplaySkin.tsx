@@ -2,11 +2,13 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Dropdown from '../dropdown/Dropdown';
+
 import { installedSkins } from '../../db/schema/skin';
 import { currentSkinDAO } from '../../osu/skin/Skin';
+import Dropdown from '../dropdown/Dropdown';
 
 /** The enabled skin's id (0: the default skin); picking one enables it. */
 const gameplaySkin = new Synced(0);

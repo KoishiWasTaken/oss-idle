@@ -1,5 +1,7 @@
 import { Beatmap } from 'osu-classes';
+
 import Synced from '@oss-idle/shared/helpers/synced';
+
 import calculateSR from '../osu/difficulty';
 
 export default class RuntimeBeatmap {

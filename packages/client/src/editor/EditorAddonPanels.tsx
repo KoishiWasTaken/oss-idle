@@ -1,4 +1,5 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { addonPanels } from './addonUi';
 import EditorAddonMount from './EditorAddonMount';
 

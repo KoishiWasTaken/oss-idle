@@ -1,6 +1,7 @@
-import Editor from 'react-simple-code-editor';
-import Prism from 'prismjs';
 import 'prism-themes/themes/prism-vsc-dark-plus.css';
+
+import Prism from 'prismjs';
+import Editor from 'react-simple-code-editor';
 
 type Props = {
 	value: string,

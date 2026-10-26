@@ -1,13 +1,14 @@
+import type { GlyphName } from '@oss-idle/shared/achievements/glyphs';
 import type { PresenceEntry } from '@oss-idle/shared/community/presence';
 import type {
 	Match,
 	MatchSlot,
 } from '@oss-idle/shared/multiplayer';
-import type { GlyphName } from '@oss-idle/shared/achievements/glyphs';
-import Glyph from './Glyph';
-import SlotLabel from './SlotLabel';
+
 import Multiplayer from '../../online/multiplayer';
 import { menuFor } from '../community/state';
+import Glyph from './Glyph';
+import SlotLabel from './SlotLabel';
 
 const status = (slot: MatchSlot): string => {
 	if (slot.state !== 'player') return slot.state;

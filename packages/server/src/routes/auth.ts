@@ -1,38 +1,29 @@
 import {
-	type Context,
-	Hono,
-} from 'hono';
-import { count } from '../metrics';
-import {
-	getCookie,
-	setCookie,
-	deleteCookie,
-} from 'hono/cookie';
-import { HTTPException } from 'hono/http-exception';
-import { z } from 'zod';
-import {
 	and,
 	eq,
 	ne,
 } from 'drizzle-orm';
-import { groupsOf } from '../groups';
-import { db } from '../db/client';
 import {
-	users,
-	toUserDTO,
-	getUserById,
-} from '../db/schema/user';
+	type Context,
+	Hono,
+} from 'hono';
 import {
-	clientUrl,
-	cookieSecure,
-	isProd,
-	SESSION_COOKIE_DOMAIN,
-} from '../env';
+	deleteCookie,
+	getCookie,
+	setCookie,
+} from 'hono/cookie';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
+
 import {
-	authorizeUrl,
-	exchangeCode,
-	fetchOsuUser,
-} from '../auth/osu';
+	discordAuthorizeUrl,
+	fetchDiscordId,
+} from '../auth/discord';
+import {
+	claimStateNonce,
+	storeHandoff,
+	takeHandoff,
+} from '../auth/handoff';
 import {
 	type DesktopReturn,
 	signLinkState,
@@ -42,21 +33,31 @@ import {
 	verifyState,
 } from '../auth/jwt';
 import {
-	discordAuthorizeUrl,
-	fetchDiscordId,
-} from '../auth/discord';
-import { pushCharacter } from '../character/push';
-import { env } from '../env';
-import {
 	requireAuth,
-	sessionUserId,
 	SESSION_COOKIE,
+	sessionUserId,
 } from '../auth/middleware';
 import {
-	storeHandoff,
-	takeHandoff,
-	claimStateNonce,
-} from '../auth/handoff';
+	authorizeUrl,
+	exchangeCode,
+	fetchOsuUser,
+} from '../auth/osu';
+import { pushCharacter } from '../character/push';
+import { db } from '../db/client';
+import {
+	getUserById,
+	toUserDTO,
+	users,
+} from '../db/schema/user';
+import {
+	clientUrl,
+	cookieSecure,
+	isProd,
+	SESSION_COOKIE_DOMAIN,
+} from '../env';
+import { env } from '../env';
+import { groupsOf } from '../groups';
+import { count } from '../metrics';
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days, seconds
 

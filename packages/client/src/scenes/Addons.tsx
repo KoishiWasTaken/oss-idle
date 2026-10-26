@@ -1,12 +1,14 @@
 import '../components/addons/addons.css';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { openPage } from '../globals';
-import Page from '../components/page/Page';
-import ManageAddonsView from '../components/addons/ManageAddonsView';
+
 import BrowseAddonsView from '../components/addons/BrowseAddonsView';
+import ManageAddonsView from '../components/addons/ManageAddonsView';
+import Page from '../components/page/Page';
+import { openPage } from '../globals';
 
 export type AddonsView = 'manage' | 'browse';
 

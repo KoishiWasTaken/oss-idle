@@ -1,123 +1,126 @@
-import RatedVersion from '../components/RatedVersion';
-import { rateOfPlay } from '../gameplay/playRate';
-import { modsOfPlay } from '../gameplay/playMods';
-import { retriesOnFail } from '@oss-idle/shared/mods';
-import type { MedalBatch } from '@oss-idle/shared/play';
 import './Gameplay.css';
-import {
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	type ReactNode,
-} from 'react';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { Beatmap } from 'osu-classes';
+import { BeatmapDecoder } from 'osu-parsers';
 import {
-	LEAD_IN_MS,
-	ManiaGame,
-} from '@oss-idle/shared/sim/maniaGame';
-import { tiredSkills } from '@oss-idle/shared/fatigue';
-import CharacterBot, { type SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import type { Bot } from '@oss-idle/shared/sim/bot';
-import { DEBUG_BOT_LEVEL } from '../gameplay/strainDebug';
-import ReplayBot from '@oss-idle/shared/sim/bots/replay';
+	type ReactNode,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
+
+import { type Grade } from '@oss-idle/shared/grade';
+import sleep from '@oss-idle/shared/helpers/sleep';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { retriesOnFail } from '@oss-idle/shared/mods';
+import type {
+	MedalBatch,
+	SkillGain,
+} from '@oss-idle/shared/play';
+import { LEAD_IN_MS } from '@oss-idle/shared/play';
+import { hasUnlock } from '@oss-idle/shared/rebirth';
+import type { Bot } from '@oss-idle/shared/rulesets/mania/bot';
+import ReplayBot from '@oss-idle/shared/rulesets/mania/bots/replay';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { scrollSpeedToMs } from '@oss-idle/shared/rulesets/mania/scroll_speed';
 import {
-	abortPlaySession,
-	fetchPlayResult,
-	PlayResultError,
-	finishPlaySession,
-	skipPlaySession,
-	startPlaySession,
-	restrictedMessage,
-	inMatchMessage,
-	type PlayContext,
-} from '../online/play';
+	type PlayEffect,
+	type PlayEvent,
+	playReducer,
+	type PlayScoring,
+	type PlayState,
+	startPlay,
+} from '@oss-idle/shared/sim/playLifecycle';
+
+import { effects } from '../audio/EffectPlayer';
+import {
+	makeComboBreakSound,
+	preloadSamples,
+	prepareNoteSounds,
+	scheduleHitsound,
+	type SoundResolver,
+	stopScheduledHitsounds,
+} from '../audio/hitsounds';
+import {
+	music,
+	PLAYER_MODE,
+} from '../audio/MusicPlayer';
+import { SampleSchedule } from '../audio/SampleSchedule';
+import ContextMenu from '../components/ContextMenu';
+import SkipToEndButton from '../components/gameplay/SkipToEndButton';
+import WarmupHint from '../components/gameplay/WarmupHint';
+import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
+import RoundWaiting from '../components/multiplayer/RoundWaiting';
+import { scoreboardEdge } from '../components/multiplayer/scoreboardEdge';
+import RatedVersion from '../components/RatedVersion';
+import Character from '../db/schema/character';
+import { Score } from '../db/schema/score';
+import { ScoreXP } from '../db/schema/score_xp';
+import { SETTINGS } from '../db/settings';
+import Entities from '../entity/entities';
+import GameplayRenderer, {
+	type PlayfieldGeometry,
+	type StrainHud,
+} from '../gameplay/gameplayRenderer';
+import { makeGradePlacer } from '../gameplay/gradeBadge';
+import { publishPlayfieldEdge } from '../gameplay/playfieldEdge';
+import { modsOfPlay } from '../gameplay/playMods';
+import { rateOfPlay } from '../gameplay/playRate';
+import {
+	type WarmupStage,
+	warmupStage,
+} from '../gameplay/warmupStage';
+import { debugMode } from '../globals';
+import Controls from '../input/Controls';
+import { logPlayFinished } from '../logs';
 import Account from '../online/account';
 import {
 	abortLocalPlay,
 	currentLocalPlay,
 	finishLocalPlay,
 	localPlayResult,
-	startLocalPlay,
 	type LocalStart,
+	startLocalPlay,
 } from '../online/localPlay';
-import Socket from '../online/socket';
+import Multiplayer from '../online/multiplayer';
+import {
+	abortPlaySession,
+	fetchPlayResult,
+	finishPlaySession,
+	inMatchMessage,
+	type PlayContext,
+	PlayResultError,
+	restrictedMessage,
+	skipPlaySession,
+	startPlaySession,
+} from '../online/play';
 import PlayManager from '../online/playManager';
-import ContextMenu from '../components/ContextMenu';
-import Entities from '../entity/entities';
-import Character from '../db/schema/character';
-import { hasUnlock } from '@oss-idle/shared/rebirth';
-import {
-	playReducer,
-	startPlay,
-	type PlayEffect,
-	type PlayEvent,
-	type PlayScoring,
-	type PlayState,
-} from '@oss-idle/shared/sim/playLifecycle';
-import { Score } from '../db/schema/score';
-import { ScoreXP } from '../db/schema/score_xp';
-import { logPlayFinished } from '../logs';
-import Memory from '@oss-idle/shared/sim/skills/memory';
-import { Beatmap } from 'osu-classes';
-import { BeatmapDecoder } from 'osu-parsers';
-import calculatePP from '../osu/pp';
-import {
-	music,
-	PLAYER_MODE,
-} from '../audio/MusicPlayer';
-import {
-	makeComboBreakSound,
-	preloadSamples,
-	prepareNoteSounds,
-	scheduleHitsound,
-	stopScheduledHitsounds,
-	type SoundResolver,
-} from '../audio/hitsounds';
-import { SampleSchedule } from '../audio/SampleSchedule';
-import { effects } from '../audio/EffectPlayer';
-import { loadStoryboardAssets } from '../osu/beatmap/storyboard';
+import Socket from '../online/socket';
 import BeatmapStore from '../osu/beatmap/beatmap_store';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import Multiplayer from '../online/multiplayer';
-import RoundWaiting from '../components/multiplayer/RoundWaiting';
-import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
-import { scoreboardEdge } from '../components/multiplayer/scoreboardEdge';
+import { loadStoryboardAssets } from '../osu/beatmap/storyboard';
+import calculatePP from '../osu/pp';
+import { currentSkin } from '../osu/skin/Skin';
+import { maniaOffsets } from '../rulesets/mania/wire';
+import {
+	chartDef,
+	loadPlayer,
+} from '../rulesets/registry';
+import type {
+	ManiaPlayer,
+	PlayBot,
+} from '../rulesets/ruleset';
+import { sizeCanvas } from '../sizeCanvas';
 import SceneManager, { SCENE } from './SceneManager';
 import {
-	Transition,
 	DialogPanel,
+	Transition,
 } from './Transition';
-import Controls from '../input/Controls';
-import { debugMode } from '../globals';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import SkipToEndButton from '../components/gameplay/SkipToEndButton';
-import WarmupHint from '../components/gameplay/WarmupHint';
-import {
-	warmupStage,
-	type WarmupStage,
-} from '../gameplay/warmupStage';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import { skillName } from '@oss-idle/shared/display/skills';
-import { type Grade } from '@oss-idle/shared/judgement';
-import { currentSkin } from '../osu/skin/Skin';
-import { SETTINGS } from '../db/settings';
-import { scrollSpeedToMs } from '@oss-idle/shared/osu/scroll_speed';
-import sleep from '@oss-idle/shared/helpers/sleep';
-import { publishPlayfieldEdge } from '../gameplay/playfieldEdge';
-import GameplayRenderer, {
-	type PlayfieldGeometry,
-	type StrainHud,
-} from '../gameplay/gameplayRenderer';
-import { sizeCanvas } from '../sizeCanvas';
-import { makeGradePlacer } from '../gameplay/gradeBadge';
 
 /** A play of a chart open in the editor: the character plays it from `start`,
  *  like a debug play (no-fail, never saved), then the editor takes over again. */
@@ -138,6 +141,8 @@ type InnerProps = {
 	play: PlayContext,
 	/** prior plays of this map by the live character - seeds the memory skill */
 	timesPlayed: number,
+	/** how the map's ruleset plays here */
+	player: ManiaPlayer,
 	transition: Transition,
 	test?: TestPlay,
 };
@@ -146,11 +151,13 @@ type InnerProps = {
 /** how far ahead hitsounds are queued onto the audio clock. Must exceed the
  *  background timer-throttle floor (~1s) so a blurred tab still queues the next
  *  chunk before the previous one runs out - that's what keeps sound going. */
-/** The character's skills as tired as the play has them. */
-const playedSkills = (character: Character, play: PlayContext) =>
+/** How tired the play has the character, when it does. */
+const tirednessOf = (play: PlayContext) =>
 	play.mode !== 'debug' && play.fatigue !== undefined
-		? tiredSkills(character.skills, play.fatigue, play.warmup ?? 1)
-		: character.skills;
+		? {
+			fatigue: play.fatigue, warmup: play.warmup ?? 1,
+		}
+		: undefined;
 
 const HITSOUND_LOOKAHEAD_MS = 1500;
 /** keep the scheduler ticking off the rAF loop so it runs while the tab is
@@ -171,11 +178,34 @@ const RESULT_POLL_MS = 200;
  *  never finishes is a frozen screen with nothing on it. */
 const BOOT_TIMEOUT_MS = 30_000;
 
+type Refusal = 'load' | 'empty' | 'ruleset';
+
+/** What a play needs before it starts - its chart, and the player of its ruleset (its
+ *  skills and their strain load with it) - or why it can't. */
+const loadPlayable = async (
+	beatmapInfo: LightBeatmap,
+	test?: TestPlay,
+): Promise<{ chart: Beatmap, player: ManiaPlayer } | { refused: Refusal }> => {
+	let chart: Beatmap;
+	try {
+		chart = await playChart(beatmapInfo, test);
+	} catch (e) {
+		console.error('[gameplay] beatmap load failed', e);
+		return { refused: 'load' };
+	}
+	if (chart.hitObjects.length === 0) return { refused: 'empty' };
+	const player = await loadPlayer(beatmapInfo.metadata.mode, beatmapInfo.metadata.keys);
+	return player ? {
+		chart, player,
+	} : { refused: 'ruleset' };
+};
+
 function GameplayInner({
 	beatmapInfo, 
 	beatmap, 
 	play,
 	timesPlayed, 
+	player,
 	transition, 
 	test,
 }: InnerProps) {
@@ -213,13 +243,8 @@ function GameplayInner({
 	const botRef = useRef<Bot | null>(null);
 	// source of the strain HUD's per-skill values - the playing bot when the play
 	// is simulated locally, or a display-only side analysis for ranked replays
-	const strainBotRef = useRef<CharacterBot | null>(null);
-	const skillLabels = useMemo(
-		() => Object.fromEntries(Skills.map(s => 
-			[s, skillName(s)],
-		)) as Record<SkillName, string>,
-		[i18n],
-	);
+	const strainBotRef = useRef<PlayBot | null>(null);
+	const gauges = useMemo(() => player.strainGauges(), [i18n, player]);
 	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
 	const warmupState = useMemo(() => {
 		const labels: Record<WarmupStage, string> = {
@@ -295,15 +320,16 @@ function GameplayInner({
 	// always stay in lock-step (HMR preserves both refs → seamless resume)
 	const ensureGame = () => {
 		if (gameRef.current !== null || botRef.current !== null || !character) return;
-		// seed the memory skill with this character's prior plays of the map before
-		// any CharacterBot analyzes it (the side strain bot reads the same skills).
-		character.skills.find(s => s instanceof Memory)?.timesPlayed.set(timesPlayed);
 		// ranked play replays the server's exact offsets; guest / unranked play is
 		// simulated locally from the character's skills; debug play uses the same
 		// fixed-level bot as the strain debug view.
-		botRef.current = play.mode === 'debug'
-			? new CharacterBot(test ? character.skills : makeOrderedSkills(DEBUG_BOT_LEVEL))
-			: new ReplayBot(play.offsets);
+		let debugBot: PlayBot | undefined;
+		if (play.mode === 'debug') {
+			debugBot = test ? player.bot(character.skills, timesPlayed) : player.debugBot();
+			botRef.current = debugBot;
+		} else {
+			botRef.current = new ReplayBot(play.offsets);
+		}
 		// scroll speed is a purely visual preference (applied below via pxPerUnit);
 		// the bot's reading window must stay scroll-speed-independent so the same map
 		// scores identically regardless of the player's chosen speed (and matches the
@@ -318,13 +344,13 @@ function GameplayInner({
 		const local = owned && play.mode !== 'ranked'
 			? currentLocalPlay()
 			: undefined;
-		if (botRef.current instanceof CharacterBot) {
-			strainBotRef.current = botRef.current;
+		if (debugBot) {
+			strainBotRef.current = debugBot;
 		} else if (local?.token === (owned ? play.token : '')) {
 			// the play being watched *is* this analysis - no approximation needed
 			strainBotRef.current = local.bot;
 		} else {
-			strainBotRef.current = new CharacterBot(playedSkills(character, play));
+			strainBotRef.current = player.bot(character.skills, timesPlayed, tirednessOf(play));
 			new ManiaGame(beatmap, strainBotRef.current, {
 				divine, rate, mods, playOn,
 			});
@@ -359,7 +385,7 @@ function GameplayInner({
 	/** this client's own score, shown when nobody else owns the result */
 	const localScoreRef = useRef<Score | undefined>(undefined);
 	/** the authoritative result, once the server has one */
-	const serverScoreRef = useRef<{ score: Score, gains?: SkillProgress[] } | undefined>(undefined);
+	const serverScoreRef = useRef<{ score: Score, gains?: SkillGain[] } | undefined>(undefined);
 	/** medals the server awarded with this play's result, for the result screen */
 	const medalsRef = useRef<MedalBatch>();
 	/** the play's token, which only a ranked play has */
@@ -399,7 +425,8 @@ function GameplayInner({
 			});
 			return;
 		}
-		const pp = await calculatePP(game.score, beatmap, rate, mods).catch((e) => {
+		const def = chartDef(beatmapInfo.metadata.mode, beatmapInfo.metadata.keys);
+		const pp = await calculatePP(def, game.score, beatmap, rate, mods).catch((e) => {
 			console.warn('[score] pp failed, finishing without it', e);
 			return 0;
 		});
@@ -701,7 +728,7 @@ function GameplayInner({
 			// the play
 			if (done && lifecycleRef.current.phase !== 'awaiting-replay') return;
 			if (msg.offsets.length) {
-				gameRef.current?.appendReplay(bot.addOffsets(msg.offsets));
+				gameRef.current?.appendReplay(bot.addOffsets(maniaOffsets(msg.offsets)));
 			}
 			cursor = msg.next;
 			offsetCursorRef.current = cursor;
@@ -1002,8 +1029,8 @@ function GameplayInner({
 		const strain = (): StrainHud | undefined =>
 			strainBotRef.current
 				? {
-					bot: strainBotRef.current,
-					labels: skillLabels,
+					source: strainBotRef.current,
+					gauges,
 					...play.mode !== 'debug' ? {
 						warmupBar: play.warmupBar, warmupLabel, warmupState,
 						warmupTrend: play.mode === 'ranked' ? play.warmupTrend : undefined,
@@ -1032,6 +1059,7 @@ function GameplayInner({
 				debug,
 				mobile,
 				strain: strain(),
+				debugStats: player.debugStats,
 				onGrade: setGrade,
 			});
 			field = g;
@@ -1120,7 +1148,9 @@ function GameplayInner({
 			<video ref={videoRef} className="play__video" muted playsInline />
 			<div ref={dimRef} className="play__dim" />
 			<canvas ref={canvasRef} className="play__canvas" />
-			{owned && play.warmupBar !== undefined && <WarmupHint bar={play.warmupBar} />}
+			{owned && play.warmupBar !== undefined && (
+				<WarmupHint bar={play.warmupBar} gauges={gauges.length} />
+			)}
 			{!done && <div ref={gradeRef} className='play__grade'>{skin.grade(grade)}</div>}
 			{done && play.mode === 'ranked' && (
 				<div className="play__loading">
@@ -1248,7 +1278,8 @@ export default function Gameplay({
 	const [boot, setBoot] = useState<{ 
 		beatmap: Beatmap;
 		play: PlayContext;
-		timesPlayed: number 
+		timesPlayed: number;
+		player: ManiaPlayer;
 	} | null>(null);
 	// run the boot once; the ref survives HMR effect re-runs so a hot reload never
 	// re-loads (and never mints a second server play session).
@@ -1322,24 +1353,24 @@ export default function Gameplay({
 		// debug and test plays are purely local: no character validation, no server session
 		const localOnly = debugPlay || !!test;
 
+		const refusals: Record<Refusal, string> = {
+			load: t`This difficulty failed to load.`,
+			empty: t`This difficulty has no notes to play.`,
+			ruleset: t`This difficulty can't be played here.`,
+		};
+
 		void (async () => {
-			let live: Beatmap;
-			try {
-				live = await playChart(beatmapInfo, test);
-			} catch (e) {
-				console.error('[gameplay] beatmap load failed', e);
-				await fail(t`This difficulty failed to load.`);
+			const playable = await loadPlayable(beatmapInfo, test);
+			if ('refused' in playable) {
+				await fail(refusals[playable.refused]);
 				return;
 			}
-			if (live.hitObjects.length === 0) {
-				await fail(t`This difficulty has no notes to play.`);
-				return;
-			}
+			const { chart: live, player } = playable;
 
 			if (localOnly) {
 				done();
 				setBoot({
-					beatmap: live, play: { mode: 'debug' }, timesPlayed: 0, 
+					beatmap: live, play: { mode: 'debug' }, timesPlayed: 0, player,
 				});
 				return;
 			}
@@ -1348,7 +1379,9 @@ export default function Gameplay({
 			// not be mis-scored. During server downtime this waits rather than guessing.
 			await Account.ready();
 			const character = Entities.character.get();
-			let session = await startPlaySession(character, live.metadata.beatmapId, beatmapInfo.lockedRate);
+			let session = await startPlaySession(
+				character, live.metadata.beatmapId, beatmapInfo.lockedRate, beatmapInfo.lockedMods,
+			);
 
 			// start-or-join can hand back a play on a *different* map (quit without
 			// abort, then launched another) - its replay wouldn't match this chart.
@@ -1376,7 +1409,9 @@ export default function Gameplay({
 					return;
 				}
 				await abortPlaySession(session.token);
-				session = await startPlaySession(character, live.metadata.beatmapId, beatmapInfo.lockedRate);
+				session = await startPlaySession(
+					character, live.metadata.beatmapId, beatmapInfo.lockedRate, beatmapInfo.lockedMods,
+				);
 				if (session.mode === 'ranked' && session.beatmapId !== live.metadata.beatmapId) {
 					await fail(t`Couldn't take over the running play.`);
 					return;
@@ -1427,12 +1462,12 @@ export default function Gameplay({
 			const timesPlayed = await Score.countPlays(
 				character.id, 
 				live.metadata.beatmapId,
-				character.memoryResetAt,
+				character.progress.memoryResetAt,
 				character.memoryForgets(),
 			);
 			done();
 			setBoot({
-				beatmap: live, play, timesPlayed, 
+				beatmap: live, play, timesPlayed, player,
 			});
 		})();
 	}, [beatmapInfo, transition, debugPlay, test, t]);
@@ -1444,6 +1479,7 @@ export default function Gameplay({
 		beatmap={boot.beatmap}
 		play={boot.play} 
 		timesPlayed={boot.timesPlayed} 
+		player={boot.player}
 		transition={transition} 
 		test={test}
 	/>;

@@ -1,7 +1,7 @@
 import type { AdminMetrics } from '../../../api/admin';
+import { num } from './format';
 import Panel from './Panel';
 import TimeChart from './TimeChart';
-import { num } from './format';
 
 type Props = { metrics: AdminMetrics };
 

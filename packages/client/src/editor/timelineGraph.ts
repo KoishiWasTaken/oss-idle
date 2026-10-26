@@ -2,7 +2,7 @@ import {
 	multiplierOf,
 	type Note,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 
 /** How loud the song is across `buckets` slices of `length` ms, 0 to 1 (RMS, scaled to the loudest). */
 export const volumeOf = (

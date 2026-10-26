@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import AuthError from '../../pages/AuthError';
 
 export const Route = createFileRoute('/auth/error')({

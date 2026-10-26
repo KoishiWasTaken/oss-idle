@@ -3,23 +3,24 @@ import type {
 	Metadata,
 	Note,
 	TimingPoint,
-} from '@oss-idle/shared/editor/chart';
-import {
-	registerAction,
-	type EditorCommands,
-} from './actions';
-import {
-	addonPanels,
-	addonTabs,
-	addonWindows,
-	addTo,
-	type AddonRender,
-} from './addonUi';
-import type EditorSession from './session';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import type {
 	Disposer,
 	Owned,
-} from './editorHost';
+} from '../addons/owned';
+import {
+	type EditorCommands,
+	registerAction,
+} from './actions';
+import {
+	addonPanels,
+	type AddonRender,
+	addonTabs,
+	addonWindows,
+	addTo,
+} from './addonUi';
+import type EditorSession from './session';
 
 /** A change to the chart, made as one undoable edit. */
 export type ChartChange = Partial<Pick<ChartDoc, 'notes' | 'timing' | 'scroll' | 'bookmarks'>> & {

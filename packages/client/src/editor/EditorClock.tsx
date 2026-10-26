@@ -1,16 +1,17 @@
-import {
-	useEffect,
-	useRef,
-	type MouseEvent,
-} from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+import {
+	type MouseEvent,
+	useEffect,
+	useRef,
+} from 'react';
+
 import { clock } from './clock';
-import type EditorSession from './session';
 import EditorTimelineGraph from './EditorTimelineGraph';
+import type EditorSession from './session';
 
 /** How often the time is shown again. */
 const TICK_MS = 50;

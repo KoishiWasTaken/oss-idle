@@ -4,6 +4,7 @@ import {
 	primaryKey,
 	timestamp,
 } from 'drizzle-orm/mysql-core';
+
 import { users } from './user';
 
 /** One account blocking another. Stops private messages, both ways; the

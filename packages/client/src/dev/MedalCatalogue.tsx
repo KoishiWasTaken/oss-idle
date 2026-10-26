@@ -1,22 +1,22 @@
-import {
-	MedalCategories,
-	MEDALS,
-} from '@oss-idle/shared/achievements/catalogue';
-import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
-import { medalTierName } from '@oss-idle/shared/display/medals';
-import MedalBadge from '../components/medals/MedalBadge';
-import { medalSamples } from './medalSamples';
 import '../components/medals/medals.css';
+
+import { MedalCategories } from '@oss-idle/shared/achievements/catalogue';
+import { medalTierName } from '@oss-idle/shared/display/medals';
+import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
+
+import MedalBadge from '../components/medals/MedalBadge';
+import { selectedDef } from '../rulesets/registry';
+import { medalSamples } from './medalSamples';
 
 /** Playground-only sheet of every medal, for reviewing the list. */
 export default function MedalCatalogue() {
 	const samples = medalSamples();
 	return <div className="medal-catalogue">
 		{MedalCategories.map(category => <section key={category}>
-			<h2>{category} ({MEDALS.filter(m => m.category === category).length})</h2>
+			<h2>{category} ({selectedDef().medals.medals.filter(m => m.category === category).length})</h2>
 			<div className="medal-catalogue__grid">
 				{samples
-					.filter((_, i) => MEDALS[i].category === category)
+					.filter((_, i) => selectedDef().medals.medals[i].category === category)
 					.map(medal => <div key={medal.id} className={`medal-catalogue__item tier-${medal.look.tier}`}>
 						<MedalBadge look={medal.look} />
 						<div>

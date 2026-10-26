@@ -1,6 +1,7 @@
-import type { Note } from '@oss-idle/shared/editor/chart';
+import type { Note } from '@oss-idle/shared/rulesets/mania/editor/chart';
+import { scrollSpeedToMs } from '@oss-idle/shared/rulesets/mania/scroll_speed';
+
 import { SETTINGS } from '../db/settings';
-import { scrollSpeedToMs } from '@oss-idle/shared/osu/scroll_speed';
 import type Skin from '../osu/skin/Skin';
 import type { EditorSkins } from './editorSkins';
 import type { Overlay } from './painter';

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+
 import { sessionUserId } from '../auth/middleware';
 import { matchHistory } from '../matchHistory';
 import { idParam } from '../validate';

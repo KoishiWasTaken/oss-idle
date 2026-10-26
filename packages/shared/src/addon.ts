@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { VERSION } from './version.js';
-import { ADDON_DOCS_URL } from './links.js';
+
 import {
 	mapped,
 	type ValueIn,
 } from './helpers/mapped.js';
+import { ADDON_DOCS_URL } from './links.js';
+import { VERSION } from './version.js';
 
 /**
  * An add-on is born `unpublished` (a private draft owned by its author); its author

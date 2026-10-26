@@ -1,4 +1,5 @@
 import type { Rgba } from '@oss-idle/shared/osuSkin/ini';
+
 import type {
 	ManiaAssets,
 	Sprite,

@@ -1,18 +1,27 @@
 import type { AdminMetrics } from '../../../api/admin';
-import Panel from './Panel';
-import TimeChart from './TimeChart';
 import {
+	bytes,
+	dayClock,
 	ms,
 	num,
 } from './format';
+import Panel from './Panel';
+import TimeChart from './TimeChart';
 
 type Props = { metrics: AdminMetrics };
 
 const gauge = (values: number[]) => values.map(v => (v ? v : undefined));
 
-/** The API server itself: load, memory, the event loop, Redis and MySQL. Highest each 5 minutes. */
+const diskNote = (disk: NonNullable<AdminMetrics['disk']>) => {
+	const note = `${bytes(disk.free)} free of ${bytes(disk.total)}`;
+	if (disk.freePerDay === undefined) return note;
+	return `${note} · ${disk.freePerDay > 0 ? '-' : '+'}${bytes(Math.abs(disk.freePerDay))}/day`;
+};
+
+/** The API server itself: load, memory, the event loop, Redis, MySQL and its disk. */
 export default function SystemLoad({ metrics }: Props) {
 	const s = metrics.system;
+	const disk = metrics.disk;
 	const chart = {
 		start: metrics.start, bucketMs: metrics.bucketMs, height: 130,
 	};
@@ -78,6 +87,20 @@ export default function SystemLoad({ metrics }: Props) {
 						},
 					]}
 				/>
+				{disk && <TimeChart
+					start={disk.start}
+					bucketMs={disk.bucketMs}
+					height={130}
+					title='Disk used, 30 days'
+					note={diskNote(disk)}
+					format={bytes}
+					floor={disk.total}
+					tickMs={disk.used.length > 72 ? 7 * 86_400_000 : 6 * 3_600_000}
+					time={dayClock}
+					series={[{
+						label: 'Used', slot: 1, values: gauge(disk.used),
+					}]}
+				/>}
 			</div>
 		</Panel>
 	);

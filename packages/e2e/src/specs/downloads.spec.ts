@@ -1,14 +1,14 @@
 import {
-	expect,
-	test,
-} from '../support/fixtures';
-import {
+	type Account,
 	query,
 	REDIS_PREFIX,
 	redisClient,
 	testAccounts,
-	type Account,
 } from '../support/accounts';
+import {
+	expect,
+	test,
+} from '../support/fixtures';
 
 /** A non-supporter's sets past the day's 100 full-speed ones still download, slower. */
 test.describe('daily full-speed downloads', () => {

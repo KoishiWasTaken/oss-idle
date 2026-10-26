@@ -1,10 +1,13 @@
 import './MusicControls.css';
+
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { music } from '../../audio/MusicPlayer';
 
 /**

@@ -1,18 +1,20 @@
 import {
-	useRef,
-	useState,
-} from 'react';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useRef,
+	useState,
+} from 'react';
+
+import { useAction } from '@oss-idle/shared/hooks/useAction';
 import { USER_PAGE_MAX } from '@oss-idle/shared/profile';
+
 import {
 	previewUserPage,
 	saveUserPage,
 } from '../../api/characters';
 import BBCodeToolbar from './BBCodeToolbar';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 export type UserPageContent = Awaited<ReturnType<typeof saveUserPage>>['userPage'];
 

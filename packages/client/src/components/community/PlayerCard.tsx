@@ -1,22 +1,24 @@
 import './PlayerCard.css';
+
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { countryName } from '@oss-idle/shared/display/country';
-import { statusName } from '@oss-idle/shared/display/community';
+
+import type { PresenceEntry } from '@oss-idle/shared/community/presence';
 import accuracyText from '@oss-idle/shared/display/accuracy';
+import { statusName } from '@oss-idle/shared/display/community';
+import { countryName } from '@oss-idle/shared/display/country';
 import {
 	isFirst,
 	rankTier,
 	rankTierGradient,
 } from '@oss-idle/shared/display/rankTier';
-import type { PresenceEntry } from '@oss-idle/shared/community/presence';
 
 /**
  * One online character, osu!stable user-panel style: avatar, name and a

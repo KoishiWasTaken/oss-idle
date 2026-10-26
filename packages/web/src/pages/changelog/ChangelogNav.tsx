@@ -1,8 +1,9 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLingui } from '@lingui/react/macro';
-import Nav from '../../components/Nav';
+
 import Link from '../../components/Link';
+import Nav from '../../components/Nav';
 
 /** osu-web's breadcrumb header links: listing › the build. */
 export default function ChangelogNav({ version }: { version?: string }) {

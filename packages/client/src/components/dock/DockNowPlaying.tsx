@@ -1,11 +1,12 @@
-import Marquee from '../Marquee';
-import RatedVersion from '../RatedVersion';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 import accuracy from '@oss-idle/shared/display/accuracy';
 import { length } from '@oss-idle/shared/display/length';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { playLabel } from '@oss-idle/shared/mods';
+
 import PlayManager from '../../online/playManager';
 import { currentSkin } from '../../osu/skin/Skin';
+import Marquee from '../Marquee';
+import RatedVersion from '../RatedVersion';
 import useTick from './useTick';
 
 /** What the character is playing right now: the map, how it is going, how far. */

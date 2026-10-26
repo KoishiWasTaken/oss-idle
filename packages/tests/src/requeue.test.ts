@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { requeue } from '../../client/src/gameplay/requeue';
 
 type E = { id: string, played?: number };

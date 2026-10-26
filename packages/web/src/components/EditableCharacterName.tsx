@@ -1,12 +1,14 @@
 import './EditableCharacterName.css';
-import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faPen } from '@fortawesome/free-solid-svg-icons';
-import { renameCharacter } from '../api/users';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
+import { renameCharacter } from '../api/users';
 
 type Props = {
 	characterId: number;

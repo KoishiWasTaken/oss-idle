@@ -1,7 +1,8 @@
 import { i18n } from '@lingui/core';
-import { loadAndActivate } from '@oss-idle/shared/i18n/runtime';
+
 import { sharedCatalog } from '@oss-idle/shared/i18n/catalogs';
 import type { Locale } from '@oss-idle/shared/i18n/locales';
+import { loadAndActivate } from '@oss-idle/shared/i18n/runtime';
 
 /**
  * Load this locale's catalogs and activate them on the shared `i18n` singleton:

@@ -1,22 +1,23 @@
 import './Header.css';
 
-import {
-	useEffect,
-	useState,
-} from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 import { faBars } from '@fortawesome/free-solid-svg-icons/faBars';
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import {
+	useEffect,
+	useState,
+} from 'react';
 
+import { DISCORD_URL } from '@oss-idle/shared/links';
+
+import HeaderPlayfields from './components/HeaderPlayfields';
 import Link from './components/Link';
 import OutLink from './components/OutLink';
-import { useLingui } from '@lingui/react/macro';
 import HeaderLinks from './HeaderLinks';
-import HeaderPlayfields from './components/HeaderPlayfields';
 import UserMenu from './UserMenu';
-import { DISCORD_URL } from '@oss-idle/shared/links';
 
 export default function Header() {
 	const { t } = useLingui();

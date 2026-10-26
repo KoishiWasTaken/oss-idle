@@ -3,6 +3,7 @@ import {
 	ipcRenderer,
 	webFrame,
 } from 'electron';
+
 // shared is ESM and this preload compiles to CommonJS; the resolution-mode hint
 // lets the type-only import resolve without making the whole package ESM (an
 // ESM preload has extra Electron caveats we don't need on the auth path).

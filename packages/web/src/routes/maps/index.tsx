@@ -1,10 +1,13 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import {
-	zodValidator,
 	fallback,
+	zodValidator,
 } from '@tanstack/zod-adapter';
 import { z } from 'zod';
-import { msg } from '@lingui/core/macro';
+
+import { RULESET_IDS } from '@oss-idle/shared/rulesets/ids';
+
 import {
 	getAllMaps,
 	getPopularMaps,
@@ -12,6 +15,7 @@ import {
 import RankedMaps from '../../pages/beatmaps/RankedMaps';
 
 const mapsSearch = z.object({
+	ruleset: z.enum(RULESET_IDS).optional().catch(undefined),
 	sort: fallback(z.enum(['date', 'plays']), 'date').default('date'),
 	dir: fallback(z.enum(['asc', 'desc']), 'desc').default('desc'),
 	status: fallback(z.enum(['ranked', 'loved', 'unranked', 'any']), 'ranked').default('ranked'),
@@ -23,18 +27,18 @@ const mapsSearch = z.object({
 export const Route = createFileRoute('/maps/')({
 	validateSearch: zodValidator(mapsSearch),
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps: { sort, dir, status, q, page } }) =>
+	loader: ({ deps: { ruleset, sort, dir, status, q, page } }) =>
 		(sort === 'plays' ? getPopularMaps : getAllMaps)(dir, {
-			status, q: q || undefined, 
+			ruleset, status, q: q || undefined,
 		}, page),
 	component: MapsRoute,
 	staticData: { title: msg`beatmap listing` },
 });
 
 function MapsRoute() {
-	const { sort, dir, status, q, page } = Route.useSearch();
+	const { ruleset, sort, dir, status, q, page } = Route.useSearch();
 	return <RankedMaps
-		sort={sort} dir={dir} status={status} q={q}
+		ruleset={ruleset} sort={sort} dir={dir} status={status} q={q}
 		page={page} mapsets={Route.useLoaderData()}
 	/>;
 }

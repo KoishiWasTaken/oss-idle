@@ -3,6 +3,14 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
+import {
+	findFrames,
+	findImage,
+	findSound,
+	normalizePath,
+} from '@oss-idle/shared/osuSkin/files';
+import { parseIdleIni } from '@oss-idle/shared/osuSkin/idleIni';
 import {
 	decodeIni,
 	parseSkinIni,
@@ -12,13 +20,6 @@ import {
 	maniaConfig,
 	NOTE_BODY,
 } from '@oss-idle/shared/osuSkin/mania';
-import { parseIdleIni } from '@oss-idle/shared/osuSkin/idleIni';
-import {
-	findFrames,
-	findImage,
-	findSound,
-	normalizePath,
-} from '@oss-idle/shared/osuSkin/files';
 
 const INI = `[General]
 #a note in French: stable skips it

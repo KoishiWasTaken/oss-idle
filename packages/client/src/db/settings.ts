@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Synced from '@oss-idle/shared/helpers/synced';
-import {
-	type Locale,
-	detectBrowserLocale,
-} from '@oss-idle/shared/i18n/locales';
-import {
-	AUTOPILOT_MODE,
-	AutopilotMode,
-} from '@oss-idle/shared/queue';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
+import Synced from '@oss-idle/shared/helpers/synced';
+import {
+	detectBrowserLocale,
+	type Locale,
+} from '@oss-idle/shared/i18n/locales';
 import type { Mod } from '@oss-idle/shared/mods';
+import {
+	AUTOPILOT_MODE,
+	AutopilotMode,
+} from '@oss-idle/shared/queue';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
 
 export const SCORE_TAB = mapped(['LOCAL', 'GLOBAL', 'COUNTRY']);
 export type ScoreTab = ValueIn<typeof SCORE_TAB>;
 
 export const GroupOptions = [
 	'No Grouping', 'By Artist', 'By BPM', 'By Creator', 'By Difficulty',
-	'By Download Status', 'By Length', 'By Playlist', 'By Rank Achieved', 'By Status', 'By Title', 'Recently Played',
+	'By Download Status', 'By Length', 'By Playlist', 'By Rank Achieved', 'By Status', 'By Tag', 'By Title', 'Recently Played',
 ] as const;
 export const GROUP_OPTION = mapped(GroupOptions);
 export type GroupOption = ValueIn<typeof GROUP_OPTION>;
@@ -128,6 +129,8 @@ const defaults = [
 	option<number>()('slowerRate', 0.95),
 	/** the other mods picked in song select (EZ, NF, HR, SD, PF) */
 	option<Mod[]>()('mods', []),
+	/** the ruleset a guest plays: a signed-in character's is the server's */
+	option<RulesetId>()('guestRuleset', 'mania4k'),
 	/**
 	 * Active UI language. Defaults to the browser's preferred locale on first
 	 * run, then sticks to the player's explicit choice. Read at boot (main.tsx)

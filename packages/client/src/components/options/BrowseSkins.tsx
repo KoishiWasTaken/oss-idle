@@ -1,9 +1,10 @@
 import { Trans } from '@lingui/react/macro';
-import Button from './controls/Button';
+
 import {
 	isOptionsOpen,
 	openPage,
 } from '../../globals';
+import Button from './controls/Button';
 
 const open = () => {
 	isOptionsOpen.set(false);

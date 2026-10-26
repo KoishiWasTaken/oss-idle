@@ -1,21 +1,22 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
 	afterPlay,
+	type Fatigue,
 	fatigueLevel,
 	restedFatigue,
-	tireSkill,
 	warmup,
 	warmupBar,
 	warmupTrend,
-	type Fatigue,
 } from '@oss-idle/shared/fatigue';
-import Reading from '@oss-idle/shared/sim/skills/reading';
-import Speed from '@oss-idle/shared/sim/skills/speed';
-import { xpToLevel } from '@oss-idle/shared/sim/skills/xp';
+import Reading from '@oss-idle/shared/rulesets/mania/4k/skills/reading';
+import Speed from '@oss-idle/shared/rulesets/mania/4k/skills/speed';
+import { tireSkill } from '@oss-idle/shared/rulesets/mania/4k/tiring';
+import { xpToLevel } from '@oss-idle/shared/xp';
 
 const MAP = 3;
 const GAP = 0.5;
@@ -35,14 +36,11 @@ const loop = (share: number, hours: number) =>
 	Array(Math.round(hours * 60 / (GAP + MAP))).fill(share);
 
 describe('fatigue', () => {
-	it('rests through an unranked play as through idle time', () => {
-		const tired = session(loop(1, 6));
-		const now = tired.at + 10 * 60_000;
-		// an unranked play adds no fatigue: the next play sees only its wall-clock rest
-		const idle = afterPlay(tired, MAP, MAP, now + MAP * 60_000);
-		const unstrained = afterPlay(afterPlay(tired, MAP, 0, now), MAP, MAP, now + MAP * 60_000);
-		expect(idle.minutes).toBeCloseTo(unstrained.minutes);
-		expect(restedFatigue(tired, now)).toBeLessThan(tired.minutes);
+	it('rests a minute per idle minute', () => {
+		const tired = {
+			at: 0, minutes: 7 * 60, 
+		};
+		expect(restedFatigue(tired, 3 * 3_600_000)).toBeCloseTo(4 * 60);
 	});
 
 	it('rests a fully strained map off with 2 or 3 easy ones', () => {
@@ -148,8 +146,8 @@ describe('warmupTrend', () => {
 	it('points right for strained maps, left for easy ones, harder for more', () => {
 		expect(warmupTrend(MAP, MAP)).toBe(3);
 		expect(warmupTrend(MAP, 0)).toBe(-3);
-		expect(warmupTrend(MAP, MAP * 0.5)).toBe(1);
-		expect(warmupTrend(MAP, MAP * 0.2)).toBe(-1);
+		expect(warmupTrend(MAP, MAP * 0.3)).toBe(1);
+		expect(warmupTrend(MAP, MAP * 0.15)).toBe(-1);
 		expect(warmupTrend(0, 0)).toBe(0);
 	});
 });

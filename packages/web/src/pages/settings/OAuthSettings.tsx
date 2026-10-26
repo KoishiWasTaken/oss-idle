@@ -1,22 +1,24 @@
-import { ph } from '@lingui/core/macro';
 import './OAuth.css';
-import {
-	useEffect,
-	useState,
-} from 'react';
+
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
 import {
+	useEffect,
+	useState,
+} from 'react';
+
+import {
+	type AuthorizedClient,
 	getAuthorizedClients,
 	getOwnClients,
-	revokeClient,
-	type AuthorizedClient,
 	type OwnClient,
+	revokeClient,
 } from '../../api/oauth';
-import { SCOPE_TEXT } from '../oauth/scopes';
 import Link from '../../components/Link';
+import { SCOPE_TEXT } from '../oauth/scopes';
 import OAuthClientDialog from './OAuthClientDialog';
 import OAuthNewClientDialog from './OAuthNewClientDialog';
 

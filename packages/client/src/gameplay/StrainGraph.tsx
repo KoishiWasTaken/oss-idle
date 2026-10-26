@@ -2,12 +2,14 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
-import type { HitRecord } from '@oss-idle/shared/sim/maniaGame';
-import { drawDevianceGraph } from './hitError';
-import { HitWindows } from '@oss-idle/shared/sim/scoring';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import type { HitRecord } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { HitWindows } from '@oss-idle/shared/rulesets/mania/scoring';
+
 import { currentSkin } from '../osu/skin/Skin';
 import { sizeCanvas } from '../sizeCanvas';
+import { drawDevianceGraph } from './hitError';
 
 interface Props {
 	hits: HitRecord[]

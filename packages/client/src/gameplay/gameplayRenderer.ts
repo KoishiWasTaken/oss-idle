@@ -1,12 +1,15 @@
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import type Skin from '../osu/skin/Skin';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import type { ManiaAssets } from '../osu/skin/maniaAssets';
+import type Skin from '../osu/skin/Skin';
+import { makeComboBurst } from './render/comboBurst';
 import {
-	playfieldGeometry,
 	type DrawOptions,
 	type PlayfieldGeometry,
+	playfieldGeometry,
 	type Viewport,
 } from './render/frame';
+import { makeHud } from './render/hud';
 import {
 	drawKeys,
 	drawLighting,
@@ -17,17 +20,15 @@ import {
 	type StageFrame,
 	type StageLayer,
 } from './render/stage';
+import { scorebarThickness } from './render/stageHud';
+import {
+	type StageLayout,
+	stageLayout,
+} from './render/stageLayout';
 import {
 	drawStageNotes,
 	preparePatterns,
 } from './render/stageNotes';
-import {
-	stageLayout,
-	type StageLayout,
-} from './render/stageLayout';
-import { scorebarThickness } from './render/stageHud';
-import { makeHud } from './render/hud';
-import { makeComboBurst } from './render/comboBurst';
 
 export type {
 	Viewport,
@@ -38,8 +39,6 @@ export type {
 export {
 	playfieldGeometry,
 	roundRect,
-	strainLabels,
-	STRAIN_HUD_SKILLS,
 } from './render/frame';
 
 const KEYS_OVER: StageLayer[] = [

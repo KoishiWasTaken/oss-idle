@@ -1,6 +1,8 @@
-import { Trans } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import { CONTACT_EMAIL } from '@oss-idle/shared/contact';
+
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import NotificationBanner from './NotificationBanner';
 

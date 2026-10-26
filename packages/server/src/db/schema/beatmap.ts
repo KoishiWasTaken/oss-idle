@@ -1,7 +1,13 @@
 import {
+	eq,
+	getTableColumns,
+	sql,
+} from 'drizzle-orm';
+import {
 	boolean,
 	char,
 	decimal,
+	index,
 	int,
 	json,
 	longtext,
@@ -9,12 +15,8 @@ import {
 	text,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { db } from '../client';
-import {
-	eq,
-	getTableColumns,
-	sql,
-} from 'drizzle-orm';
 
 export const beatmaps = mysqlTable('beatmap', {
 	id: int().primaryKey().autoincrement(),
@@ -61,7 +63,7 @@ export const beatmaps = mysqlTable('beatmap', {
 	ranked: boolean().notNull().default(true),
 	// MAP_TAGS, comma-separated, set by hand from the nomination page
 	tags: varchar({ length: 64 }).notNull().default(''),
-});
+}, table => [index('beatmap_set_idx').on(table.setId)]);
 
 /** Every column but `chart`, for lists that only show map info. */
 export const beatmapListColumns = Object.fromEntries(

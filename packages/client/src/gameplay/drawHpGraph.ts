@@ -1,5 +1,5 @@
-import type { HitRecord } from '@oss-idle/shared/sim/maniaGame';
-import { MAX_HP } from '@oss-idle/shared/sim/scoring';
+import type { HitRecord } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { MAX_HP } from '@oss-idle/shared/rulesets/mania/scoring';
 
 const GREEN = '126, 231, 135';
 const RED = '255, 90, 114';

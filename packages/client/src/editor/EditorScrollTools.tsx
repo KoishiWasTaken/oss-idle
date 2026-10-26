@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { useState } from 'react';
+
 import HoverCard from '@oss-idle/shared/display/HoverCard';
-import type EditorSession from './session';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { clock } from './clock';
+import type EditorSession from './session';
 
 /** A positive number typed in, or undefined. */
 const positive = (value: string): number | undefined => {

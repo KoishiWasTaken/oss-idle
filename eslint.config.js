@@ -1,5 +1,6 @@
 import stylistic from '@stylistic/eslint-plugin';
 import importNewlines from 'eslint-plugin-import-newlines';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import tseslint from 'typescript-eslint';
 
 // Lines exempt from max-len: a lone <Trans>, a `t` i18n template, single string
@@ -53,9 +54,22 @@ export default tseslint.config(
 		plugins: {
 			'@stylistic': stylistic,
 			'import-newlines': importNewlines,
+			'simple-import-sort': simpleImportSort,
 		},
 		rules: {
 			'import-newlines/enforce': ['error', { items: 1 }],
+			// side effects first (in their own order: CSS cascades by it), then node's,
+			// other packages, each of ours, and relative imports last
+			'simple-import-sort/imports': ['error', {
+				groups: [
+					['^\\u0000'],
+					['^node:'],
+					['^(?!@oss-idle/)@?\\w'],
+					...['shared', 'server', 'client', 'web', 'tests', 'e2e', 'desktop', 'discord']
+						.map(name => [`^@oss-idle/${name}(/|$)`]),
+					['^\\.'],
+				],
+			}],
 			'@stylistic/indent': ['error', 'tab'],
 			'@stylistic/semi': 'error',
 			'@stylistic/quotes': ['error', 'single'],
@@ -89,7 +103,7 @@ export default tseslint.config(
 		rules: {
 			'no-restricted-imports': ['error', {
 				paths: [{
-					name: '@oss-idle/shared/sim/skills/levelCurve',
+					name: '@oss-idle/shared/rulesets/mania/4k/skills/levelCurve',
 					importNames: ['mapLevel', 'LEVEL_MAPPING'],
 					message: 'gameplay skill is internal to the sim - show effectiveLevelOf instead',
 				}],

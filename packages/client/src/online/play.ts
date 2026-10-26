@@ -1,19 +1,22 @@
-import Synced from '@oss-idle/shared/helpers/synced';
-import type { PlayState } from '@oss-idle/shared/play';
-import type { ReplayOffset } from '@oss-idle/shared/sim/maniaGame';
-import type Character from '../db/schema/character';
-import { showDeltas } from '../globals';
-import Socket from './socket';
-import type { Tiredness } from './localPlay';
-import { rateFor } from '../gameplay/playRate';
-import { selectedMods } from '../gameplay/playMods';
-import type { Mod } from '@oss-idle/shared/mods';
-import { debugXpMultiplier } from '../globals';
 import {
 	ph,
 	t,
 } from '@lingui/core/macro';
+
 import { CONTACT_EMAIL } from '@oss-idle/shared/contact';
+import Synced from '@oss-idle/shared/helpers/synced';
+import type { Mod } from '@oss-idle/shared/mods';
+import type { PlayState } from '@oss-idle/shared/play';
+import type { ReplayOffset } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
+import type Character from '../db/schema/character';
+import { selectedMods } from '../gameplay/playMods';
+import { rateFor } from '../gameplay/playRate';
+import { showDeltas } from '../globals';
+import { debugXpMultiplier } from '../globals';
+import { maniaOffsets } from '../rulesets/mania/wire';
+import type { Tiredness } from './localPlay';
+import Socket from './socket';
 
 /** Generous: a start awaits the server-side simulation of the whole map. */
 const START_TIMEOUT_MS = 20_000;
@@ -133,6 +136,7 @@ export async function startPlaySession(
 	character: Character,
 	beatmapId: number,
 	lockedRate?: number,
+	lockedMods?: Mod[],
 ): Promise<PlaySession> {
 	if (character.isGuest()) return { mode: 'guest' };
 	try {
@@ -143,7 +147,7 @@ export async function startPlaySession(
 				beatmapId,
 				xpMultiplier: debugXpMultiplier.get(),
 				rate: rateFor(character, lockedRate),
-				mods: selectedMods.get(),
+				mods: lockedMods ?? selectedMods.get(),
 			},
 			'play:start',
 			START_TIMEOUT_MS,
@@ -160,7 +164,7 @@ export async function startPlaySession(
 				beatmapId: play.beatmapId,
 				rate: play.rate,
 				mods: play.mods,
-				offsets: play.offsets,
+				offsets: maniaOffsets(play.offsets),
 				next: play.next,
 				done: play.done,
 				startedAt: play.startedAt + skew,

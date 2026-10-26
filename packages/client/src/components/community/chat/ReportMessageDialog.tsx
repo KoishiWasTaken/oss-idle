@@ -1,16 +1,19 @@
 import './ReportMessageDialog.css';
+
+import { useLingui } from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
-import useKeyboardOwner from '../../../input/keyboardOwner';
-import { useLingui } from '@lingui/react/macro';
+
+import { reportReasonLabel } from '@oss-idle/shared/display/social';
 import Log from '@oss-idle/shared/helpers/log';
 import {
 	REPORT_REASON,
 	type ReportReason,
 } from '@oss-idle/shared/social';
-import { reportReasonLabel } from '@oss-idle/shared/display/social';
+
+import useKeyboardOwner from '../../../input/keyboardOwner';
 import { rpc } from '../../../online/client';
 import type { PlayerChatLine } from '../state';
 

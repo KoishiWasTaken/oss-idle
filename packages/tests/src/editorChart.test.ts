@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
 	backgroundOf,
 	fileIdsOf,
@@ -16,7 +17,7 @@ import {
 	withFileIds,
 	withSetMetadata,
 	writeChart,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 
 const OSU = [
 	'osu file format v14',

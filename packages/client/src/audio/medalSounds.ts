@@ -1,6 +1,7 @@
 import type { MedalTier } from '@oss-idle/shared/achievements/medal';
-import { audioContext } from './audioContext';
+
 import { SETTINGS } from '../db/settings';
+import { audioContext } from './audioContext';
 import * as synth from './medalSynth';
 
 /** Medals follow the main volume only, not the effects one. */

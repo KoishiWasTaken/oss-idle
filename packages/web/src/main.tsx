@@ -1,22 +1,25 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { I18nProvider } from '@lingui/react';
-import {
-	RouterProvider,
-	createRouter,
-} from '@tanstack/react-router';
-import type { MessageDescriptor } from '@lingui/core';
-import { detectBrowserLocale } from '@oss-idle/shared/i18n/locales';
-import { moveHost } from '@oss-idle/shared/hostMove';
-import {
-	i18n,
-	activateLocale,
-} from './i18n';
-import { routeTree } from './routeTree.gen';
-import PageError from './components/PageError';
 import '@oss-idle/shared/shared.css';
 import './font.css';
 import './styles.css';
+
+import type { MessageDescriptor } from '@lingui/core';
+import { I18nProvider } from '@lingui/react';
+import {
+	createRouter,
+	RouterProvider,
+} from '@tanstack/react-router';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+
+import { moveHost } from '@oss-idle/shared/hostMove';
+import { detectBrowserLocale } from '@oss-idle/shared/i18n/locales';
+
+import PageError from './components/PageError';
+import {
+	activateLocale,
+	i18n,
+} from './i18n';
+import { routeTree } from './routeTree.gen';
 
 await moveHost();
 

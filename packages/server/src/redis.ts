@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
+
 import { Redis } from 'ioredis';
+
 import {
 	env,
 	redisDb,

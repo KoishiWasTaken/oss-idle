@@ -3,16 +3,18 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import Link from '../Link';
-import Flag from '../Flag';
+
 import rank from '@oss-idle/shared/display/rank';
-import MedalLineIcon from './MedalLineIcon';
+
+import Flag from '../Flag';
+import Link from '../Link';
 import {
+	type Goal,
 	LINE_NAMES,
 	lineStanding,
 	lineValue,
-	type Goal,
 } from './medalLine';
+import MedalLineIcon from './MedalLineIcon';
 
 type Row = { id: number, name: string, country: string, value: number, current: number };
 

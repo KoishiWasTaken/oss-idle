@@ -1,16 +1,18 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
 import {
 	DEFAULT_CHANNEL,
 	TEAM_CHANNEL,
 } from '@oss-idle/shared/community/wire';
 import { isAdmin } from '@oss-idle/shared/groups';
+
 import { requireModerator } from '../auth/admin';
+import { currentCharacterOf } from '../db/schema/character';
 import { groupsOf } from '../groups';
 import { silence } from '../restrictions';
-import { sanctionable } from './restrictions';
-import { currentCharacterOf } from '../db/schema/character';
+import { valid } from '../validate';
 import {
 	adminAnnounce,
 	characterOwner,
@@ -19,13 +21,13 @@ import {
 	deleteByCharacter,
 	deleteMessages,
 	handleChat,
-	type ModerationStatus,
 	moderationOf,
+	type ModerationStatus,
 	nameColor,
 	setBanned,
 	untimeoutUser,
 } from '../ws/chat';
-import { valid } from '../validate';
+import { sanctionable } from './restrictions';
 
 const characterId = z.number().int().positive();
 

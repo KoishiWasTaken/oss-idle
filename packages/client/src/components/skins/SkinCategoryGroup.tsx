@@ -1,5 +1,7 @@
 import { useState } from 'react';
+
 import type { SkinFile } from '@oss-idle/shared/skin';
+
 import type OsuSkin from '../../osu/skin/OsuSkin';
 import SkinFileTile from './SkinFileTile';
 

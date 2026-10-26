@@ -1,11 +1,13 @@
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useMemo,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import { starsText } from '@oss-idle/shared/display/difficulty';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import Dropdown, { type DropdownOption } from '../components/dropdown/Dropdown';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
 import type EditorSession from './session';

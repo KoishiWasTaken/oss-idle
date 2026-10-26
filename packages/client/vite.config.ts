@@ -1,12 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { lingui } from '@lingui/vite-plugin';
+import react from '@vitejs/plugin-react';
 import {
 	defineConfig,
 	type Plugin,
 } from 'vite';
-import react from '@vitejs/plugin-react';
-import { lingui } from '@lingui/vite-plugin';
 
 const MIME: Record<string, string> = {
 	'.osz': 'application/octet-stream',
@@ -154,6 +155,9 @@ export default defineConfig({
 		allowedHosts: ['.lan'],
 		// lets the frame profiler run Chromium's JS sampler (src/dev/sampler.ts)
 		headers: { 'Document-Policy': 'js-profiling' },
+		// the API answers CORS for what is proxied to it: Vite's own would refuse the staging
+		// app's app:// origin a preflight, and so every write the app sends
+		cors: false,
 		// Serve the osu! web platform at /web on the game's own origin so the
 		// in-game browser iframe is same-origin. The web app runs its own dev
 		// server (packages/web, :5174) with base '/web/'; we proxy to it.

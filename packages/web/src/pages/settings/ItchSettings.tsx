@@ -1,8 +1,9 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import { getItchClaimUrl } from '../../api/store';
 import OutLink from '../../components/OutLink';
 

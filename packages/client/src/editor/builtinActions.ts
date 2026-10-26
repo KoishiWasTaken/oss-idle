@@ -3,24 +3,26 @@ import {
 	plural,
 	t,
 } from '@lingui/core/macro';
-import { library } from '../library';
+
+import { SETTINGS } from '../db/settings';
 import { message } from '../globals';
+import { library } from '../library';
 import {
-	keyBindings,
 	type ActionContext,
 	type EditorAction,
+	keyBindings,
 } from './actions';
-import {
-	MAX_DIVISOR,
-	TOOLS,
-	type Modifier,
-} from './session';
 import { commandListOpen } from './commandList';
 import {
-	METRONOME,
 	hitsoundsOn,
+	METRONOME,
 	metronome,
 } from './editorSounds';
+import {
+	MAX_DIVISOR,
+	type Modifier,
+	TOOLS,
+} from './session';
 
 /** The key modes the editor takes, and a column's default key: its number, 0 for the 10th. */
 const KEYMODES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -312,6 +314,11 @@ export const BUILTIN_ACTIONS: EditorAction[] = [
 		run: ({ session }) => void session.stepSpeed(-1),
 	},
 	{
+		id: 'playback.normal', group: 'playback', label: () => t`Normal playback speed`,
+		keys: ['Ctrl+0'],
+		run: ({ session }) => void session.setSpeed(1),
+	},
+	{
 		id: 'playback.keepPitch', group: 'playback', label: () => t`Keep the pitch at other speeds`,
 		more: true,
 		run: ({ session }) => void session.setSpeed(session.speed, !session.pitchKept),
@@ -365,6 +372,12 @@ export const BUILTIN_ACTIONS: EditorAction[] = [
 		keys: ['Shift+P'],
 		run: ({ session }) => session.toggleReference(),
 		on: session => session.reference !== undefined,
+	},
+	{
+		id: 'view.preview', group: 'view', label: () => t`Live preview`,
+		keys: ['P'],
+		run: () => void SETTINGS.editorPreview.set(!SETTINGS.editorPreview.get()),
+		on: () => SETTINGS.editorPreview.get(),
 	},
 	{
 		id: 'view.resetKeys', group: 'view', label: () => t`Reset every shortcut to its default`,

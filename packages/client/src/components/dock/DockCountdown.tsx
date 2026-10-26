@@ -1,6 +1,8 @@
-import { Trans } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import PlayManager from '../../online/playManager';
 
 /** When the next map starts: paused, in so many seconds, or after this one. */

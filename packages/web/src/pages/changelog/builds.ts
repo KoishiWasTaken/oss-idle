@@ -1,7 +1,7 @@
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
 
 // changelog/<major>/<minor>/<patch>/<version>.md, written at each version bump:
-// the date, a blank line, then one `add|fix[!] [Category] title[ (#PR)][ by @github]`
+// the date, a blank line, then one `add|change|fix[!] [Category] title[ (#PR)][ by @github]`
 // line per entry (`!` = major; PR and author credit a contributor, as on osu!).
 const files = import.meta.glob<string>([
 	'../../../../../changelog/**/*.md',
@@ -10,10 +10,11 @@ const files = import.meta.glob<string>([
 	query: '?raw', import: 'default', eager: true,
 });
 
-export const ENTRY = /^(add|fix)(!?) \[([^\]]+)\] (.+?)(?: \(#(\d+)\))?(?: by @([\w-]+))?$/;
+export const ENTRY = /^(add|change|fix)(!?) \[([^\]]+)\] (.+?)(?: \(#(\d+)\))?(?: by @([\w-]+))?$/;
 
 export type Entry = {
-	type: 'add' | 'fix'; major: boolean; category: string; title: string; pr?: number; author?: string;
+	type: 'add' | 'change' | 'fix'; major: boolean; category: string; title: string;
+	pr?: number; author?: string;
 };
 export type Build = { version: string; date: string; entries: Entry[] };
 

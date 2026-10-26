@@ -1,31 +1,33 @@
 import { ph } from '@lingui/core/macro';
 import {
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
-import Markdown from '@oss-idle/shared/display/Markdown';
-import useKeyboardOwner from '../../input/keyboardOwner';
-import {
 	Plural,
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
+
+import Markdown from '@oss-idle/shared/display/Markdown';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import type { PageAction } from '../page/pageBar';
+
 import { installedSkins } from '../../db/schema/skin';
+import useKeyboardOwner from '../../input/keyboardOwner';
+import Account from '../../online/account';
 import {
 	browseSkins,
 	getSkin,
-	skinIconUrl,
 	recordSkinDownload,
 	Skin,
+	skinIconUrl,
 } from '../../online/skins';
 import { installSkin } from '../../osu/skin/skinActions';
 import { remoteSource } from '../../osu/skin/sources';
-import Account from '../../online/account';
 import ConfirmMenu, { Confirm } from '../ConfirmMenu';
 import ListingIcon from '../listing/ListingIcon';
+import type { PageAction } from '../page/pageBar';
 import SkinView, { type SkinContent } from './SkinView';
 
 type Sort = 'created' | 'updated' | 'downloads';

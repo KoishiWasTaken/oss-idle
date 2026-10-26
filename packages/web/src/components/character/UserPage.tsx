@@ -1,8 +1,10 @@
 import './UserPage.css';
-import { useState } from 'react';
-import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import Link from '../Link';
 import UserPageEditor, { type UserPageContent } from './UserPageEditor';
 

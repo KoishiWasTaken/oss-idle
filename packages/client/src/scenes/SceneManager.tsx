@@ -1,28 +1,31 @@
-import type { MedalBatch } from '@oss-idle/shared/play';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import IntroScreen from './IntroScreen';
-import MainMenu from './MainMenu';
-import SongSelect, {
-	STRAIN_DEBUG_KEY,
-	type SongSelectMode,
-} from './SongSelect';
-import Editor from './Editor';
-import type EditorSession from '../editor/session';
-import Gameplay, { type TestPlay } from './Gameplay';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import { Score } from '../db/schema/score';
-import Result from './Result';
-import Lobby from './Lobby';
-import MatchSetup from './MatchSetup';
-import Screensaver from './Screensaver';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import type { Transition } from './Transition';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
 import Synced from '@oss-idle/shared/helpers/synced';
+import type { SkillGain } from '@oss-idle/shared/play';
+import type { MedalBatch } from '@oss-idle/shared/play';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
 import { ScoreDTO } from '@oss-idle/shared/score';
+
+import { Score } from '../db/schema/score';
+import type EditorSession from '../editor/session';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import type { TestPlay } from './Gameplay';
+import IntroScreen from './IntroScreen';
+import {
+	Editor,
+	Gameplay,
+	Lobby,
+	MatchSetup,
+	Result,
+	Screensaver,
+	SongSelect,
+} from './lazy';
+import MainMenu from './MainMenu';
+import type { SongSelectMode } from './SongSelect';
+import { STRAIN_DEBUG_KEY } from './strainDebugKey';
+import type { Transition } from './Transition';
 
 export const SCENE = mapped([
 	'INTRO',
@@ -69,7 +72,7 @@ export default class SceneManager {
 		[SCENE.RESULT]: (
 			score: Score | ScoreDTO,
 			game?: ManiaGame,
-			progression?: SkillProgress[],
+			progression?: SkillGain[],
 			failed?: boolean,
 			beatmap?: LightBeatmap,
 			medals?: MedalBatch,
@@ -85,8 +88,8 @@ export default class SceneManager {
 		[SCENE.LOBBY]: () => <Lobby />,
 		[SCENE.MATCH]: () => <MatchSetup />,
 		[SCENE.SAVER]: () => <Screensaver />,
-		[SCENE.EDITOR]: (beatmap: LightBeatmap, session?: EditorSession) =>
-			<Editor key={beatmap.metadata.id} beatmap={beatmap} resume={session} />,
+		[SCENE.EDITOR]: (beatmap: LightBeatmap, session?: EditorSession, fresh?: boolean) =>
+			<Editor key={beatmap.metadata.id} beatmap={beatmap} resume={session} fresh={fresh} />,
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as const satisfies Record<Scene, (...args: any[]) => JSX.Element>;

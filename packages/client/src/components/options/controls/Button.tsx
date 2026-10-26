@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
 import './Button.css';
+
+import { ReactNode } from 'react';
 
 interface Props {
 	label: ReactNode;

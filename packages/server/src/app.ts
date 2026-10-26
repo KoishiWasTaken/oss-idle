@@ -1,64 +1,66 @@
+import { serveStatic } from '@hono/node-server/serve-static';
+import { sql } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { httpMetrics } from './metrics';
-import { closeUnread } from './closeUnread';
+import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
-import { bodyLimit } from 'hono/body-limit';
-import { sql } from 'drizzle-orm';
-import { db } from './db/client';
-import { redis } from './redis';
-import { rateLimit } from './rateLimit';
-import { HTTPException } from 'hono/http-exception';
-import { serveStatic } from '@hono/node-server/serve-static';
 import { ZodError } from 'zod';
+
+import { __ } from '@oss-idle/shared/i18n/translate';
+import { SKIN_UPLOAD_MAX } from '@oss-idle/shared/skin';
+
+import { apiV2Routes } from './api/v2';
+import { IMMUTABLE } from './beatmaps/serve';
+import { UPLOAD_MAX } from './beatmaps/upload';
+import { closeUnread } from './closeUnread';
+import { db } from './db/client';
+import { reportError } from './discord/error';
 import {
 	clientUrl,
 	DESKTOP_ORIGIN,
-	LEGACY_CLIENT_URL,
 	isProd,
+	LEGACY_CLIENT_URL,
 } from './env';
 import { i18nMiddleware } from './i18n';
-import { reportError } from './discord/error';
-import { __ } from '@oss-idle/shared/i18n/translate';
-import {
-	UPLOAD_DIR,
-	UPLOAD_ROUTE,
-} from './uploads';
-import { IMMUTABLE } from './beatmaps/serve';
-import { usersRoutes } from './routes/users';
-import { authRoutes } from './routes/auth';
-import { meRoutes } from './routes/me';
-import { proxyRoutes } from './routes/proxy';
-import { newsRoutes } from './routes/news';
-import { scoresRoutes } from './routes/scores';
-import { medalsRoutes } from './routes/medals';
-import { charactersRoutes } from './routes/characters';
-import { statsRoutes } from './routes/stats';
-import { chatRoutes } from './routes/chat';
-import { rankingRoutes } from './routes/ranking';
-import { beatmapsRoutes } from './routes/beatmap';
+import { httpMetrics } from './metrics';
+import { tokenRoutes } from './oauth';
+import { rateLimit } from './rateLimit';
+import { redis } from './redis';
+import { accountsRoutes } from './routes/accounts';
 import { addonsRoutes } from './routes/addons';
-import { skinsRoutes } from './routes/skins';
+import { authRoutes } from './routes/auth';
+import { beatmapsRoutes } from './routes/beatmap';
+import { bugsRoutes } from './routes/bugs';
+import { charactersRoutes } from './routes/characters';
+import { chatRoutes } from './routes/chat';
+import { emojiRoutes } from './routes/emoji';
+import { groupsRoutes } from './routes/groups';
 import { matchesRoutes } from './routes/matches';
+import { meRoutes } from './routes/me';
+import { medalsRoutes } from './routes/medals';
+import { newsRoutes } from './routes/news';
+import { oauthRoutes } from './routes/oauth';
+import { proxyRoutes } from './routes/proxy';
+import { rankingRoutes } from './routes/ranking';
+import { restrictionsRoutes } from './routes/restrictions';
+import { scoresRoutes } from './routes/scores';
+import { skinsRoutes } from './routes/skins';
 import { socialRoutes } from './routes/social';
+import { statsRoutes } from './routes/stats';
 import { storeRoutes } from './routes/store';
 import { teamRoutes } from './routes/team';
-import { groupsRoutes } from './routes/groups';
-import { restrictionsRoutes } from './routes/restrictions';
-import { accountsRoutes } from './routes/accounts';
-import { bugsRoutes } from './routes/bugs';
-import { oauthRoutes } from './routes/oauth';
-import { emojiRoutes } from './routes/emoji';
-import { tokenRoutes } from './oauth';
-import { apiV2Routes } from './api/v2';
-import { UPLOAD_MAX } from './beatmaps/upload';
-import { SKIN_UPLOAD_MAX } from '@oss-idle/shared/skin';
+import { usersRoutes } from './routes/users';
 import {
 	SKIN_DIR,
 	SKIN_ROUTE,
 } from './skins/storage';
+import {
+	UPLOAD_DIR,
+	UPLOAD_ROUTE,
+} from './uploads';
 
 // The desktop app loads its bundle from a registered `app://` scheme, so it
 // calls us from that origin (Bearer-authed, no cookie). In dev also accept the

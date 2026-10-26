@@ -1,6 +1,7 @@
 import type { NewsDTO } from '@oss-idle/shared/news';
-import Link from './Link';
+
 import { i18n } from '../i18n';
+import Link from './Link';
 
 /** A collapsed dashboard news post: day, month and title on one line, like osu!web's. */
 export default function NewsRow({ article }: { article: NewsDTO }) {

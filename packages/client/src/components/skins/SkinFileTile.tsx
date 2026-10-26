@@ -2,8 +2,10 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import { fileType } from '@oss-idle/shared/osuSkin/files';
 import type { SkinFile } from '@oss-idle/shared/skin';
+
 import type OsuSkin from '../../osu/skin/OsuSkin';
 import { fileSize } from './fileSize';
 

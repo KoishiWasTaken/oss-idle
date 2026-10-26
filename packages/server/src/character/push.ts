@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm';
+
+import type { CharacterDTO } from '@oss-idle/shared/character';
+
 import { db } from '../db/client';
-import {
-	characters,
-	characterToDTO,
-} from '../db/schema/character';
+import { characters } from '../db/schema/character';
 import { users } from '../db/schema/user';
 import { hub } from '../ws/hub';
 import { refresh as refreshPresence } from '../ws/presence';
-import type { CharacterDTO } from '@oss-idle/shared/character';
+import { characterDTOOf } from './dto';
 
 /**
  * Hand the character to its own devices.
@@ -27,7 +27,7 @@ export const pushCharacter = async (characterId: number): Promise<void> => {
 		.limit(1);
 	if (!row) return;
 
-	announceCharacter(characterToDTO(row.character, row.user.avatarUrl, row.user.country));
+	announceCharacter(await characterDTOOf(row.character, row.user));
 	await refreshPresence(row.character, row.user);
 };
 

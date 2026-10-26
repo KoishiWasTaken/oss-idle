@@ -6,6 +6,7 @@ import {
 	createPool,
 	type Pool,
 } from 'mysql2';
+
 import {
 	dbName,
 	env,

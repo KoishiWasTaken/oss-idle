@@ -1,13 +1,16 @@
 import './Ticker.css';
+
 import {
 	useEffect,
 	useRef,
 } from 'react';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import clock from '@oss-idle/shared/display/clock';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { menuIdle } from '../../globals';
 import Socket from '../../online/socket';
 import ChatText from './chat/ChatText';
-import { menuIdle } from '../../globals';
 
 /** The latest chat line, shown while the overlay is closed (when enabled). */
 export default function Ticker() {

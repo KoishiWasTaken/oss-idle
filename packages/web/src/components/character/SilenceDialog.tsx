@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
 import { faCommentSlash } from '@fortawesome/free-solid-svg-icons';
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import { silenceAccount } from '../../api/restrictions';
 import ConfirmDialog from './ConfirmDialog';
 import SanctionLength from './SanctionLength';

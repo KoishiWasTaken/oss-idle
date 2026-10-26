@@ -1,6 +1,7 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { msg } from '@lingui/core/macro';
+
 import { getCountryRanking } from '../../api/rankings';
 import CountryRankings from '../../pages/rankings/Country';
 import { pageSearch } from '../-rankingSearch';

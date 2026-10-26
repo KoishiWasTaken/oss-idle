@@ -1,13 +1,15 @@
 import { Trans } from '@lingui/react/macro';
+
 import { useSyncedAll } from '@oss-idle/shared/hooks/useSyncedAll';
-import type Skill from '@oss-idle/shared/sim/skills/skill';
-import { skillName } from '@oss-idle/shared/display/skills';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
 import {
 	canPrestige,
 	prestigeXPMultiplier,
 } from '@oss-idle/shared/upgrades';
 
-const tally = (skills: Skill[], locked: boolean) => {
+import { selectedDef } from '../../rulesets/registry';
+
+const tally = (skills: SkillState[], locked: boolean) => {
 	const rows = skills.map(skill => {
 		const state = {
 			level: skill.level.get(),
@@ -30,11 +32,14 @@ const tally = (skills: Skill[], locked: boolean) => {
 	};
 };
 
-export default function PrestigeSummary({ skills, locked }: { skills: Skill[], locked: boolean }) {
+export default function PrestigeSummary({ skills, locked }: {
+	skills: SkillState[],
+	locked: boolean,
+}) {
 	useSyncedAll(() => skills.flatMap(s => [s.level, s.prestige]), [skills]);
 
 	const s = tally(skills, locked);
-	const best = skillName(s.best.skill.name);
+	const best = selectedDef().skillName(s.best.skill.name);
 
 	return (
 		<div className="ladder-sum">

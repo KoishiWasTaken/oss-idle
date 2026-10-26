@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { xpForLevel } from '../sim/skills/xp.js';
+
+import { xpForLevel } from '../xp.js';
 import { levelFromXp } from './levelDisplay.js';
 
 const ensureNum = (n?: number | string): number =>

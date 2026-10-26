@@ -1,12 +1,13 @@
-import { redis } from './redis';
 import { redisKeyPrefix } from './env';
 import {
 	BUCKET_MS,
+	DISK_KEY,
 	firstBucket,
 	LATENCY_BINS,
 	readSeries,
 	VIAS,
 } from './metrics';
+import { redis } from './redis';
 
 /** The admin dashboard's report: the last day of metrics.ts, merged into what a page draws. */
 
@@ -148,6 +149,55 @@ const gauges = async <K extends string>(series: string, names: readonly K[]) => 
 	return Object.fromEntries(names.map(name => [name, field(rows, name)])) as Record<K, number[]>;
 };
 
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+const TREND_MS = 7 * DAY_MS;
+const MIN_TREND_MS = 6 * HOUR_MS;
+
+/** Least-squares slope of `free` over `at`, bytes per ms. */
+const slope = (samples: { at: number; free: number }[]) => {
+	const n = samples.length;
+	const mx = samples.reduce((m, s) => m + s.at, 0) / n;
+	const my = samples.reduce((m, s) => m + s.free, 0) / n;
+	let num = 0;
+	let den = 0;
+	for (const s of samples) {
+		num += (s.at - mx) * (s.free - my);
+		den += (s.at - mx) ** 2;
+	}
+	return num / den;
+};
+
+/** The server's disk: used space hourly (0 = no sample), and when it fills at the last week's pace. */
+const disk = async () => {
+	const samples = Object.entries(await redis.hgetall(DISK_KEY))
+		.map(([hour, value]) => {
+			const [free, total] = value.split(' ').map(Number);
+			return {
+				at: Number(hour) * HOUR_MS, free, total,
+			};
+		})
+		.sort((a, b) => a.at - b.at);
+	const last = samples.at(-1);
+	if (!last) return undefined;
+	const start = samples[0].at;
+	const used = Array.from({ length: (last.at - start) / HOUR_MS + 1 }, () => 0);
+	for (const s of samples) used[(s.at - start) / HOUR_MS] = s.total - s.free;
+	const recent = samples.filter(s => s.at > last.at - TREND_MS);
+	const freePerDay = last.at - recent[0].at >= MIN_TREND_MS ? slope(recent) * DAY_MS : undefined;
+	return {
+		start,
+		bucketMs: HOUR_MS,
+		used,
+		free: last.free,
+		total: last.total,
+		freePerDay,
+		fullAt: freePerDay !== undefined && freePerDay < 0
+			? last.at + (last.free / -freePerDay) * DAY_MS
+			: undefined,
+	};
+};
+
 /** Everything the dashboard shows. */
 export const dashboard = async (rttHosts: string[]) => ({
 	bucketMs: BUCKET_MS,
@@ -159,4 +209,5 @@ export const dashboard = async (rttHosts: string[]) => ({
 	probes: await probes(),
 	activity: await gauges('activity', ACTIVITY),
 	system: await gauges('system', SYSTEM),
+	disk: await disk(),
 });

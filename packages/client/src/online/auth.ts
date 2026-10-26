@@ -1,15 +1,16 @@
+import { desktop } from '@oss-idle/shared/desktop';
+import Synced from '@oss-idle/shared/helpers/synced';
 import type { UserDTO } from '@oss-idle/shared/user';
+
+import {
+	isWebOpen,
+	webUrl,
+} from '../globals';
 import {
 	BASE_URL,
 	rpc,
 	withAuth,
 } from './client';
-import Synced from '@oss-idle/shared/helpers/synced';
-import { desktop } from '@oss-idle/shared/desktop';
-import {
-	isWebOpen,
-	webUrl,
-} from '../globals';
 
 /**
  * Client auth state. The session lives in an HttpOnly cookie set by the API, so

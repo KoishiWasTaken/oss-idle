@@ -1,5 +1,6 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { apiUrl } from '../../api/client';
 
 /** Screenshots as thumbnails, each opening full size; removable while writing. */

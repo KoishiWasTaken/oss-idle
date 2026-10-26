@@ -1,19 +1,22 @@
 import './ChannelPicker.css';
+
+import { useLingui } from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	ANNOUNCE_CHANNEL,
 	DEFAULT_CHANNEL,
 	TEAM_CHANNEL,
 } from '@oss-idle/shared/community/wire';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { LOBBY_CHANNEL } from '@oss-idle/shared/multiplayer';
+
+import { LOGS_CHANNEL } from '../../../logs';
 import Auth from '../../../online/auth';
 import ContextMenu from '../../ContextMenu';
-import { LOGS_CHANNEL } from '../../../logs';
 import {
 	activeChatTab,
 	channelPickerOpen,

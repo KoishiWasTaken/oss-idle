@@ -1,13 +1,13 @@
 import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
+import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /** A bug report from the game's options carries the game's add-ons and skins. */
 test.describe('bug reports', () => {

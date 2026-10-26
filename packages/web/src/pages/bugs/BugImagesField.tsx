@@ -1,8 +1,10 @@
-import { Trans } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import { BUG_IMAGES_MAX } from '@oss-idle/shared/bugs';
-import type { BugImagesState } from './useBugImages';
+
 import BugImages from './BugImages';
+import type { BugImagesState } from './useBugImages';
 
 /** Attach screenshots: a file picker, or paste them into the text. */
 export default function BugImagesField({ pics }: { pics: BugImagesState }) {

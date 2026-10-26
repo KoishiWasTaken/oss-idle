@@ -1,11 +1,12 @@
 import { normalizePath } from '@oss-idle/shared/osuSkin/files';
 import type { SkinFile } from '@oss-idle/shared/skin';
+
+import { skinFileUrl } from '../../online/skins';
 import type { SkinSource } from './OsuSkin';
 import {
 	getManifest,
 	getSkinFile,
 } from './skinFiles';
-import { skinFileUrl } from '../../online/skins';
 
 /** An installed skin's files, or undefined when none are stored for it. */
 export const installedSource = async (id: number): Promise<SkinSource | undefined> => {

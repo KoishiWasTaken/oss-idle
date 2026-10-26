@@ -9,48 +9,44 @@ import {
 	max,
 	sql,
 } from 'drizzle-orm';
+
+import { medalXPMultiplier } from '@oss-idle/shared/achievements/catalogue';
 import { OWNER_ID } from '@oss-idle/shared/groups';
-import {
-	MEDALS,
-	medalXPMultiplier,
-} from '@oss-idle/shared/achievements/catalogue';
-import { Skills } from '@oss-idle/shared/skills';
+import { NO_MEDALS } from '@oss-idle/shared/mods';
+import type { MedalBatch } from '@oss-idle/shared/play';
 import { maxUpgrades } from '@oss-idle/shared/upgrades';
+
 import { countCurated } from './beatmaps/curated';
 import { countMapped } from './beatmaps/mapped';
-import { followerCount } from './social';
 import { db } from './db/client';
-import { scores } from './db/schema/score';
 import { beatmaps } from './db/schema/beatmap';
-import { beatmapset } from './db/schema/beatmapset';
-import { firstPlace } from './db/schema/first_place';
-import { beatmaps_played } from './db/schema/beatmaps_played';
-import { beatmapRequests } from './db/schema/beatmap_request';
-import { users } from './db/schema/user';
-import { characterProgress } from './db/schema/character_progress';
 import {
+	type CharacterRow,
 	characters,
 	getCharacterById,
-	type CharacterRow,
+	profileOf,
+	type ProfileRow,
+	skillOf,
 } from './db/schema/character';
 import {
-	character_totals,
-	getCharacterTotals,
-} from './db/schema/character_totals';
-import {
 	addMedals,
-	characterMedals,
 	getMedals,
 } from './db/schema/character_medal';
-import { presenceTimezone } from './ws/presence';
-import { hasChatted } from './ws/chat';
-import { hub } from './ws/hub';
+import { getCharacterTotals } from './db/schema/character_totals';
+import { users } from './db/schema/user';
 import {
 	ppTopPercent,
 	reindexCharacter,
 } from './rankings';
-import type { MedalBatch } from '@oss-idle/shared/play';
-import { NO_MEDALS } from '@oss-idle/shared/mods';
+import { enabledRulesets } from './rulesets/registry';
+import {
+	column,
+	type ServerRuleset,
+} from './rulesets/ruleset';
+import { followerCount } from './social';
+import { hasChatted } from './ws/chat';
+import { hub } from './ws/hub';
+import { presenceTimezone } from './ws/presence';
 
 /** What a finished play adds that the database does not keep. */
 export type PlayFacts = {
@@ -71,20 +67,20 @@ const PARALLAX_ID = 1443309;
 /** Yuyoyuppe - AiAe [Wafles' SHD], the "Wonderful" medal's map */
 const AIAE_ID = 421066;
 
-// the stars a play was actually played at: a rate changes them
-const playedStars = sql`coalesce(${scores.sr}, ${beatmaps.sr})`;
-
 // a play with a mod that earns no medals (EZ) counts for none of the play feats
-const medalPlay = and(...NO_MEDALS.map(mod => sql`find_in_set(${mod}, ${scores.mods}) = 0`));
-
-// loved maps count for none of the star medals
-const rankedStars = sql`if(${beatmapset.status} = 'ranked', ${playedStars}, null)`;
+const medalPlay = ({ score: scores }: ServerRuleset) =>
+	and(...NO_MEDALS.map(mod => sql`find_in_set(${mod}, ${scores.mods}) = 0`));
 
 /** Best star rating passed and full-combo'd, and the one-off score feats. */
-const scoreFacts = async (characterId: number) => {
+const scoreFacts = async (r: ServerRuleset, characterId: number) => {
+	const { score: scores } = r;
+	// the stars a play was actually played at: a rate changes them
+	const playedStars = sql`coalesce(${scores.sr}, ${beatmaps.sr})`;
+	// loved maps count for none of the star medals
+	const rankedStars = sql`if(${r.setStatus.status} = 'ranked', ${playedStars}, null)`;
 	const [row] = await db.select({
 		pass: max(sql<number>`floor(${rankedStars})`),
-		fc: max(sql<number>`if(${scores.MISS} = 0, floor(${rankedStars}), null)`),
+		fc: max(sql<number>`if(${column(scores, r.def.miss)} = 0, floor(${rankedStars}), null)`),
 		topPlay: max(scores.pp),
 		rice: max(sql<number>`${rankedStars} >= 4 and ${beatmaps.rice} > 0.9 * ${beatmaps.objects}`),
 		ln: max(sql<number>`${rankedStars} >= 4 and ${beatmaps.ln} > 0.5 * ${beatmaps.objects}`),
@@ -98,8 +94,8 @@ const scoreFacts = async (characterId: number) => {
 	})
 		.from(scores)
 		.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
-		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
-		.where(and(eq(scores.characterId, characterId), medalPlay));
+		.innerJoin(r.setStatus, eq(r.setStatus.setId, beatmaps.setId))
+		.where(and(eq(scores.characterId, characterId), medalPlay(r)));
 	// no scores yet: every aggregate is null
 	return {
 		pass: Number(row?.pass ?? 0),
@@ -115,30 +111,42 @@ const scoreFacts = async (characterId: number) => {
 };
 
 /** #1s held on ranked maps (loved ones don't count). */
-const firstPlaces = async (characterId: number) => {
+const firstPlaces = async ({ firstPlace, setStatus }: ServerRuleset, characterId: number) => {
 	const [row] = await db.select({ n: count() })
 		.from(firstPlace)
 		.innerJoin(beatmaps, eq(beatmaps.id, firstPlace.beatmapId))
-		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
-		.where(and(eq(firstPlace.characterId, characterId), eq(beatmapset.status, 'ranked')));
+		.innerJoin(setStatus, eq(setStatus.setId, beatmaps.setId))
+		.where(and(eq(firstPlace.characterId, characterId), eq(setStatus.status, 'ranked')));
 	return row?.n ?? 0;
 };
 
+/** The grades set at 1.0x or faster: a slowed play's cut score is no grade. */
+const fullRateGrades = async (r: ServerRuleset, characterId: number) => new Set<string>((await db
+	.selectDistinct({ grade: r.score.grade })
+	.from(r.score)
+	.where(and(eq(r.score.characterId, characterId), medalPlay(r), sql`${r.score.rate} >= 1`)))
+	.map(row => row.grade));
+
 /** Most plays of any single map. */
-const mostReplays = async (characterId: number) => {
-	const [row] = await db.select({ n: max(beatmaps_played.plays) })
-		.from(beatmaps_played)
-		.where(eq(beatmaps_played.characterId, characterId));
+const mostReplays = async ({ played }: ServerRuleset, characterId: number) => {
+	const [row] = await db.select({ n: max(played.plays) })
+		.from(played)
+		.where(eq(played.characterId, characterId));
 	return Number(row?.n ?? 0);
 };
 
 /** The account rebirthed past this character (the old one keeps the medal too). */
-const rebirthedPast = async (character: CharacterRow) => {
+const rebirthedPast = async (
+	{ profile }: ServerRuleset,
+	character: CharacterRow,
+	generation: number,
+) => {
 	const [row] = await db.select({ n: count() })
 		.from(characters)
+		.innerJoin(profile, eq(profile.id, characters.id))
 		.where(and(
 			eq(characters.userId, character.userId),
-			gt(characters.generation, character.generation),
+			gt(profile.generation, generation),
 		));
 	return (row?.n ?? 0) > 0;
 };
@@ -160,13 +168,14 @@ const utcOffset = (tz: string) => {
  *  read off the scores rather than the clock. The database has no timezone
  *  tables: SQL takes an hour either side at today's offset (DST moves it), and
  *  the exact hour is checked here. */
-const playedAtNight = async (characterId: number, tz: string) => {
+const playedAtNight = async (r: ServerRuleset, characterId: number, tz: string) => {
+	const { score: scores } = r;
 	const offset = utcOffset(tz);
 	const rows = await db.select({ at: scores.playedAt })
 		.from(scores)
 		.where(and(
 			eq(scores.characterId, characterId),
-			medalPlay,
+			medalPlay(r),
 			sql`hour(${scores.playedAt} + interval ${offset} minute) between 2 and 5`,
 		))
 		.orderBy(desc(scores.playedAt))
@@ -175,28 +184,39 @@ const playedAtNight = async (characterId: number, tz: string) => {
 };
 
 /** Everything the medal conditions read, as it stands now. */
-const live = async (character: CharacterRow, play: PlayFacts, tz?: string) => {
+const live = async (
+	r: ServerRuleset,
+	character: CharacterRow,
+	profile: ProfileRow,
+	play: PlayFacts,
+	tz?: string,
+) => {
 	const id = character.id;
 	const [
-		facts, firsts, replays, curatedMaps, mappedMaps, followers, totals, chatted, rebirthed, nightOwl,
-		topPercent,
+		facts, grades, firsts, replays, curatedMaps, mappedMaps, followers, totals, chatted, rebirthed,
+		nightOwl, topPercent,
 	] = await Promise.all([
-		scoreFacts(id),
-		firstPlaces(id),
-		mostReplays(id),
-		countCurated(character.userId),
-		Promise.all([countMapped(character.userId, 'ranked'), countMapped(character.userId, 'loved')])
+		scoreFacts(r, id),
+		fullRateGrades(r, id),
+		firstPlaces(r, id),
+		mostReplays(r, id),
+		countCurated(r, character.userId),
+		Promise.all([countMapped(r, character.userId, 'ranked'), countMapped(r, character.userId, 'loved')])
 			.then(([ranked, loved]) => ranked + loved),
 		followerCount(character.userId),
-		getCharacterTotals(id),
+		getCharacterTotals(r, id),
 		hasChatted(id),
-		rebirthedPast(character),
-		tz !== undefined && playedAtNight(id, tz),
-		Number(character.pp) > 0 ? ppTopPercent(id) : undefined,
+		rebirthedPast(r, character, profile.generation),
+		tz !== undefined && playedAtNight(r, id, tz),
+		Number(profile.pp) > 0 ? ppTopPercent(r, id) : undefined,
 	]);
+	const skills = r.def.skills.map(s => skillOf(profile, s));
 	return {
 		...facts,
+		grades,
 		character,
+		profile,
+		skills: Object.fromEntries(r.def.skills.map((s, i) => [s, skills[i]])),
 		totals,
 		firsts,
 		mostReplays: replays,
@@ -204,50 +224,55 @@ const live = async (character: CharacterRow, play: PlayFacts, tz?: string) => {
 		mappedMaps,
 		followers,
 		chatted,
-		rebirthed: rebirthed || character.generation > 1,
+		rebirthed: rebirthed || profile.generation > 1,
 		nightOwl,
 		topPercent,
 		nearMiss: (play.failedAt ?? 0) >= FAIL_99,
 		earlyFail: play.failedSeconds !== undefined && play.failedSeconds < EARLY_FAIL_SECONDS,
 		// raw, as the game shows it ("2.4ω")
-		overdrive: Math.max(...Skills.map(s => character[`${s}Overdrive`])),
-		prestige: Skills.reduce((sum, s) => sum + character[`${s}Prestige`], 0),
+		overdrive: Math.max(...skills.map(s => s.overdrive)),
+		prestige: skills.reduce((sum, s) => sum + s.prestige, 0),
 	};
 };
 
 type Live = Awaited<ReturnType<typeof live>>;
 
 /** What each line of threshold medals counts, by medal id prefix. */
-const COUNTERS: Record<string, (p: Live) => number> = {
+const countersOf = (r: ServerRuleset): Record<string, (p: Live) => number> => ({
 	pass: p => p.pass,
 	fc: p => p.fc,
 	plays: p => p.totals.playCount,
 	hits: p => p.totals.hits,
 	time: p => p.totals.playTime / 3600,
 	friends: p => p.followers,
-	...Object.fromEntries(Skills.map(s => [s, (p: Live) => p.character[`${s}Level`]])),
-	overall: p => p.character.overallLevel,
-	upgrades: p => Skills.reduce((sum, s) => sum + p.character[`${s}Upgrades`], 0),
-	ladders: p => Skills.filter(s =>
-		p.character[`${s}Upgrades`] >= maxUpgrades(p.character[`${s}Prestige`])).length,
+	...Object.fromEntries(r.def.skills.map(s => [s, (p: Live) => p.skills[s].level])),
+	overall: p => p.profile.overallLevel,
+	upgrades: p => r.def.skills.reduce((sum, s) => sum + p.skills[s].upgrades, 0),
+	ladders: p => r.def.skills.filter(s =>
+		p.skills[s].upgrades >= maxUpgrades(p.skills[s].prestige)).length,
 	overdrive: p => p.overdrive,
 	prestige: p => p.prestige,
 	first: p => p.firsts,
-	pp: p => Number(p.character.pp),
+	pp: p => Number(p.profile.pp),
 	'play-pp': p => p.topPlay,
 	curator: p => p.curatedMaps,
 	mapper: p => p.mappedMaps,
-};
+});
 
 /** Keep each counter's best ever next to where it is now, and return the
  *  bests: a reset or a loss never takes progress back, it has to be earned
  *  past again. */
-const recordBest = async (characterId: number, p: Live): Promise<Record<string, number>> => {
+const recordBest = async (
+	r: ServerRuleset,
+	characterId: number,
+	p: Live,
+): Promise<Record<string, number>> => {
+	const { progress: characterProgress } = r;
 	const stored = await db.select()
 		.from(characterProgress)
 		.where(eq(characterProgress.characterId, characterId));
 	const before = new Map(stored.map(r => [r.line, r]));
-	const changed = Object.entries(COUNTERS)
+	const changed = Object.entries(countersOf(r))
 		.map(([line, value]) => {
 			const current = value(p);
 			return {
@@ -269,10 +294,15 @@ const recordBest = async (characterId: number, p: Live): Promise<Record<string, 
 };
 
 /** Everything the medal conditions read, the counters at their best ever. */
-const progress = async (character: CharacterRow, play: PlayFacts, tz?: string) => {
-	const now = await live(character, play, tz);
+const progress = async (
+	r: ServerRuleset,
+	character: CharacterRow,
+	play: PlayFacts,
+	tz?: string,
+) => {
+	const now = await live(r, character, await profileOf(r, character.id), play, tz);
 	return {
-		...now, best: await recordBest(character.id, now),
+		...now, best: await recordBest(r, character.id, now),
 	};
 };
 
@@ -291,6 +321,7 @@ const amount = (n: number) => n.toLocaleString('en-US');
 
 /** A line of medals earned at thresholds of one counter's best. */
 const series = (
+	counters: Record<string, (p: Live) => number>,
 	label: string,
 	at: Record<string, number>,
 	counter: string,
@@ -298,7 +329,7 @@ const series = (
 	test: (p: Progress) => (p.best[counter] ?? 0) >= min,
 	rule: `best ${label} ≥ ${amount(min)}`,
 	value: (p: Progress) => p.best[counter] ?? 0,
-	current: (p: Progress) => COUNTERS[counter](p),
+	current: (p: Progress) => counters[counter](p),
 	goal: min,
 }]));
 
@@ -309,113 +340,152 @@ const one = (rule: string, test: (p: Progress) => boolean): Rule => ({
 const STAR_STEPS = Array.from({ length: 10 }, (_, i) => i + 1);
 const SKILL_STEPS = [50, 100, 105, 110];
 
-/** When each medal is earned, by id. */
-const RULES: Record<string, Rule> = {
-	...series('best star rating (floored) among stored scores on ranked maps',
-		Object.fromEntries(STAR_STEPS.map(n => [`pass-${n}`, n])), 'pass'),
-	...series('best star rating (floored) among stored scores on ranked maps with 0 misses',
-		Object.fromEntries(STAR_STEPS.map(n => [`fc-${n}`, n])), 'fc'),
-	'grade-ss': one('holds an SS, X or XX', p => p.totals.SS + p.totals.X + p.totals.XX > 0),
-	'grade-x': one('holds an X or XX', p => p.totals.X + p.totals.XX > 0),
-	'grade-xx': one('holds an XX', p => p.totals.XX > 0),
-	'rice': one('a score on a 4★+ ranked map whose single notes are over 90% of its objects',
-		p => p.rice),
-	'ln': one('a score on a 4★+ ranked map whose long notes are over 50% of its objects', p => p.ln),
-	...series('play count', {
-		'plays-100': 100, 'plays-1k': 1_000, 'plays-5k': 5_000, 'plays-25k': 25_000, 'plays-100k': 100_000,
-	}, 'plays'),
-	...series('notes hit (non-miss)', {
-		'hits-100k': 1e5, 'hits-1m': 1e6, 'hits-10m': 1e7, 'hits-50m': 5e7, 'hits-1b': 1e9,
-	}, 'hits'),
-	...series('hours played (sum of map lengths)', {
-		'time-10h': 10, 'time-100h': 100, 'time-1000h': 1_000, 'time-10000h': 10_000,
-	}, 'time'),
-	...series('players who added the account as a friend', {
-		'friends-1': 1, 'friends-5': 5, 'friends-25': 25, 'friends-100': 100, 'friends-1k': 1_000,
-	}, 'friends'),
-	...Object.fromEntries(Skills.flatMap(skill => Object.entries(series(
-		`${skill} level (earned)`,
-		Object.fromEntries(SKILL_STEPS.map(n => [`${skill}-${n}`, n])),
-		skill,
-	)))),
-	...series('overall level', {
-		'overall-25': 25, 'overall-50': 50, 'overall-75': 75,
-		'overall-100': 100, 'overall-105': 105, 'overall-110': 110,
-	}, 'overall'),
-	...series('upgrades held across all skills', {
-		'upgrades-1': 1, 'upgrades-10': 10, 'upgrades-50': 50, 'upgrades-100': 100,
-	}, 'upgrades'),
-	...series('skills with every upgrade bought', {
-		'ladders-1': 1, 'ladders-5': 5, 'ladders-10': 10, 'ladders-11': 11,
-	}, 'ladders'),
-	...series('highest raw overdrive on a skill (ω)', {
-		'overdrive-2': 2, 'overdrive-10': 10, 'overdrive-100': 100, 'overdrive-1000': 1_000,
-	}, 'overdrive'),
-	...series('prestiges across all skills', {
-		'prestige-1': 1, 'prestige-5': 5, 'prestige-25': 25, 'prestige-100': 100,
-	}, 'prestige'),
-	'rebirth': one('a reborn character, or one the account rebirthed past', p => p.rebirthed),
-	...series('ranked maps currently held at #1', {
-		'first-1': 1, 'first-10': 10, 'first-100': 100, 'first-1000': 1_000,
-	}, 'first'),
-	...series('pp', {
-		'pp-1k': 1_000, 'pp-5k': 5_000, 'pp-10k': 10_000, 'pp-20k': 20_000,
-	}, 'pp'),
-	...Object.fromEntries([75, 50, 25, 10, 1].map(n => [`top-${n}`, one(
-		`global pp rank in the top ${n}% of players with pp`,
-		p => p.topPercent !== undefined && p.topPercent <= n,
-	)])),
-	...series('best pp of a single stored score', {
-		'play-pp-50': 50, 'play-pp-100': 100, 'play-pp-200': 200,
-		'play-pp-500': 500, 'play-pp-750': 750, 'play-pp-1k': 1_000,
-	}, 'play-pp'),
-	...series('proposed maps now approved (ranked or loved) and live', {
-		'curator-1': 1, 'curator-5': 5, 'curator-25': 25, 'curator-100': 100,
-	}, 'curator'),
-	...series('approved (ranked or loved) and live sets the account mapped', {
-		'mapper-1': 1, 'mapper-2': 2, 'mapper-5': 5, 'mapper-10': 10, 'mapper-50': 50, 'mapper-100': 100,
-	}, 'mapper'),
-	'combo-727': one('a stored score with max combo exactly 727', p => p.combo727),
-	'same-map-100': one('played a single map ≥ 100 times', p => p.mostReplays >= 100),
-	'fail-99': one('the shown play failed after ≥ 99% of the map', p => p.nearMiss),
-	'fail-10s': one(`the shown play failed in the song's first ${EARLY_FAIL_SECONDS} seconds`,
-		p => p.earlyFail),
-	'night-owl': one(
-		'a play ended between 03:00 and 04:59 local time (the timezone the player is in now)',
-		p => p.nightOwl,
-	),
-	'first-chat': one('has sent a #oss!idle chat message (counted since medals exist)', p => p.chatted),
-	'possessed': one(`a ${amount(PERFECT_SCORE)} score on TAG underground - POSSESSION [CHALLENGE]`,
-		p => p.possessed),
-	'parallax': one('an S or better on The Parallax II: Future Sequence [Marathon]', p => p.parallax),
-	'wonderful': one('an SS or better on Yuyoyuppe - AiAe [Wafles\' SHD] at 1.0x rate or faster',
-		p => p.wonderful),
+/** When each medal is earned, by its id without the ruleset's prefix. */
+const rulesFor = (r: ServerRuleset): Record<string, Rule> => {
+	const s = (label: string, at: Record<string, number>, counter: string) =>
+		series(countersOf(r), label, at, counter);
+	return {
+		...s('best star rating (floored) among stored scores on ranked maps',
+			Object.fromEntries(STAR_STEPS.map(n => [`pass-${n}`, n])), 'pass'),
+		...s('best star rating (floored) among stored scores on ranked maps with 0 misses',
+			Object.fromEntries(STAR_STEPS.map(n => [`fc-${n}`, n])), 'fc'),
+		'grade-ss': one('a stored SS, X or XX at 1.0x rate or faster',
+			p => ['SS', 'X', 'XX'].some(g => p.grades.has(g))),
+		'grade-x': one('a stored X or XX at 1.0x rate or faster',
+			p => ['X', 'XX'].some(g => p.grades.has(g))),
+		'grade-xx': one('a stored XX at 1.0x rate or faster', p => p.grades.has('XX')),
+		'rice': one('a score on a 4★+ ranked map whose single notes are over 90% of its objects',
+			p => p.rice),
+		'ln': one('a score on a 4★+ ranked map whose long notes are over 50% of its objects', p => p.ln),
+		...s('play count', {
+			'plays-100': 100, 'plays-1k': 1_000, 'plays-5k': 5_000, 'plays-25k': 25_000, 'plays-100k': 100_000,
+		}, 'plays'),
+		...s('notes hit (non-miss)', {
+			'hits-100k': 1e5, 'hits-1m': 1e6, 'hits-10m': 1e7, 'hits-50m': 5e7, 'hits-1b': 1e9,
+		}, 'hits'),
+		...s('hours played (sum of map lengths)', {
+			'time-10h': 10, 'time-100h': 100, 'time-1000h': 1_000, 'time-10000h': 10_000,
+		}, 'time'),
+		...s('players who added the account as a friend', {
+			'friends-1': 1, 'friends-5': 5, 'friends-25': 25, 'friends-100': 100, 'friends-1k': 1_000,
+		}, 'friends'),
+		...Object.fromEntries(r.def.skills.flatMap(skill => Object.entries(s(
+			`${skill} level (earned)`,
+			Object.fromEntries(SKILL_STEPS.map(n => [`${skill}-${n}`, n])),
+			skill,
+		)))),
+		...s('overall level', {
+			'overall-25': 25, 'overall-50': 50, 'overall-75': 75,
+			'overall-100': 100, 'overall-105': 105, 'overall-110': 110,
+		}, 'overall'),
+		...s('upgrades held across all skills', {
+			'upgrades-1': 1, 'upgrades-10': 10, 'upgrades-50': 50, 'upgrades-100': 100,
+		}, 'upgrades'),
+		...s('skills with every upgrade bought', {
+			'ladders-1': 1, 'ladders-5': 5, 'ladders-10': 10, 'ladders-11': 11,
+		}, 'ladders'),
+		...s('highest raw overdrive on a skill (ω)', {
+			'overdrive-2': 2, 'overdrive-10': 10, 'overdrive-100': 100, 'overdrive-1000': 1_000,
+		}, 'overdrive'),
+		...s('prestiges across all skills', {
+			'prestige-1': 1, 'prestige-5': 5, 'prestige-25': 25, 'prestige-100': 100,
+		}, 'prestige'),
+		'rebirth': one('a reborn character, or one the account rebirthed past', p => p.rebirthed),
+		...s('ranked maps currently held at #1', {
+			'first-1': 1, 'first-10': 10, 'first-100': 100, 'first-1000': 1_000,
+		}, 'first'),
+		...s('pp', {
+			'pp-1k': 1_000, 'pp-5k': 5_000, 'pp-10k': 10_000, 'pp-20k': 20_000,
+		}, 'pp'),
+		...Object.fromEntries([75, 50, 25, 10, 1].map(n => [`top-${n}`, one(
+			`global pp rank in the top ${n}% of players with pp`,
+			p => p.topPercent !== undefined && p.topPercent <= n,
+		)])),
+		...s('best pp of a single stored score', {
+			'play-pp-50': 50, 'play-pp-100': 100, 'play-pp-200': 200,
+			'play-pp-500': 500, 'play-pp-750': 750, 'play-pp-1k': 1_000,
+		}, 'play-pp'),
+		...s('proposed maps now approved (ranked or loved) and live', {
+			'curator-1': 1, 'curator-5': 5, 'curator-25': 25, 'curator-100': 100,
+		}, 'curator'),
+		...s('approved (ranked or loved) and live sets the account mapped', {
+			'mapper-1': 1, 'mapper-2': 2, 'mapper-5': 5, 'mapper-10': 10, 'mapper-50': 50, 'mapper-100': 100,
+		}, 'mapper'),
+		'combo-727': one('a stored score with max combo exactly 727', p => p.combo727),
+		'same-map-100': one('played a single map ≥ 100 times', p => p.mostReplays >= 100),
+		'fail-99': one('the shown play failed after ≥ 99% of the map', p => p.nearMiss),
+		'fail-10s': one(`the shown play failed in the song's first ${EARLY_FAIL_SECONDS} seconds`,
+			p => p.earlyFail),
+		'night-owl': one(
+			'a play ended between 03:00 and 04:59 local time (the timezone the player is in now)',
+			p => p.nightOwl,
+		),
+		'first-chat': one('has sent a #oss!idle chat message (counted since medals exist)', p => p.chatted),
+		'possessed': one(`a ${amount(PERFECT_SCORE)} score on TAG underground - POSSESSION [CHALLENGE]`,
+			p => p.possessed),
+		'parallax': one('an S or better on The Parallax II: Future Sequence [Marathon]', p => p.parallax),
+		'wonderful': one('an SS or better on Yuyoyuppe - AiAe [Wafles\' SHD] at 1.0x rate or faster',
+			p => p.wonderful),
+	};
 };
 
-// a medal without a condition could never be earned: refuse to start
-const unearnable = MEDALS.filter(m => !RULES[m.id]).map(m => m.id);
-if (unearnable.length) throw new Error(`medals with no condition: ${unearnable.join(', ')}`);
+const rulesCache = new Map<string, Record<string, Rule>>();
+const RULES = (r: ServerRuleset) => {
+	let rules = rulesCache.get(r.def.id);
+	if (!rules) {
+		const { prefix } = r.def.medals;
+		rules = Object.fromEntries(Object.entries(rulesFor(r)).map(([id, rule]) => [prefix + id, rule]));
+		rulesCache.set(r.def.id, rules);
+	}
+	return rules;
+};
+
+/** A medal without a condition could never be earned: the server refuses to start. */
+export const checkMedalRules = (): void => {
+	for (const r of enabledRulesets()) {
+		const unearnable = r.def.medals.medals.filter(m => !RULES(r)[m.id]).map(m => m.id);
+		if (unearnable.length) throw new Error(`medals with no condition: ${unearnable.join(', ')}`);
+	}
+};
 
 /** Each medal's rule in words, for the admin page. */
-export const medalRules = (): Record<string, string> =>
-	Object.fromEntries(MEDALS.map(m => [m.id, RULES[m.id].rule]));
+export const medalRules = (r: ServerRuleset): Record<string, string> =>
+	Object.fromEntries(r.def.medals.medals.map(m => [m.id, RULES(r)[m.id].rule]));
 
 /** Every medal a character qualifies for right now, held or not. Reads only. */
 export const earnedMedals = async (
-	character: CharacterRow, play: PlayFacts = {}, tz?: string,
+	r: ServerRuleset, character: CharacterRow, play: PlayFacts = {}, tz?: string,
 ): Promise<string[]> => {
-	const p = await progress(character, play, tz);
-	return MEDALS.filter(m => RULES[m.id].test(p)).map(m => m.id);
+	const p = await progress(r, character, play, tz);
+	return r.def.medals.medals.filter(m => RULES(r)[m.id].test(p)).map(m => m.id);
+};
+
+/** Every medal a character qualifies for with `lines`' bests back at their live
+ *  value, the other bests as stored. Reads only. */
+export const earnedWithLive = async (
+	r: ServerRuleset, character: CharacterRow, lines: string[],
+): Promise<string[]> => {
+	const now = await live(r, character, await profileOf(r, character.id), {});
+	const stored = await db.select()
+		.from(r.progress)
+		.where(eq(r.progress.characterId, character.id));
+	const best: Record<string, number> = Object.fromEntries(stored.map(row => [row.line, row.value]));
+	const counters = countersOf(r);
+	for (const line of lines) best[line] = counters[line](now);
+	return r.def.medals.medals.filter(m => RULES(r)[m.id].test({
+		...now, best,
+	})).map(m => m.id);
 };
 
 /** How far a character is toward each threshold medal, at its best and now;
  *  secret ones stay secret. */
 export const medalProgress = async (
+	r: ServerRuleset,
 	character: CharacterRow,
 ): Promise<Record<string, { value: number, current: number, goal: number }>> => {
-	const p = await progress(character, {});
-	return Object.fromEntries(MEDALS.flatMap(m => {
-		const { value, current, goal } = RULES[m.id];
+	const p = await progress(r, character, {});
+	return Object.fromEntries(r.def.medals.medals.flatMap(m => {
+		const { value, current, goal } = RULES(r)[m.id];
 		return m.category !== 'secret' && value && current && goal !== undefined
 			? [[m.id, {
 				value: value(p), current: current(p), goal,
@@ -429,50 +499,54 @@ export const medalProgress = async (
  * with `medals: true`). It also catches up on everything earned before and never
  * shown, which is how existing characters got their backfill.
  */
-export const awardMedals = async (characterId: number, play: PlayFacts): Promise<MedalBatch> => {
+export const awardMedals = async (
+	r: ServerRuleset,
+	characterId: number,
+	play: PlayFacts,
+): Promise<MedalBatch> => {
 	const character = await getCharacterById(characterId);
 	if (!character) return {
 		ids: [], held: 0,
 	};
 	const tz = await presenceTimezone(characterId);
-	const batch = await addMedals(characterId, await earnedMedals(character, play, tz));
-	if (batch.ids.length) await reindexCharacter(characterId);
+	const batch = await addMedals(r, characterId, await earnedMedals(r, character, play, tz));
+	if (batch.ids.length) await reindexCharacter(r, characterId);
 	return batch;
 };
 
 /** Award what was earned away from a play (a first chat, a purchase) and show it
  *  on the character's devices right away. */
-export const pushMedals = async (characterId: number): Promise<void> => {
+export const pushMedals = async (r: ServerRuleset, characterId: number): Promise<void> => {
 	const character = await getCharacterById(characterId);
 	if (!character) return;
-	const medals = await addMedals(characterId, await earnedMedals(character));
+	const medals = await addMedals(r, characterId, await earnedMedals(r, character));
 	if (!medals.ids.length) return;
-	await reindexCharacter(characterId);
+	await reindexCharacter(r, characterId);
 	hub.sendTo(characterId, {
 		type: 'medals', medals,
 	});
 };
 
 /** How many characters hold each medal, out of every character that has played. */
-export const medalHolders = async () => {
+export const medalHolders = async ({ medals, totals }: ServerRuleset) => {
 	const [held, [{ players }]] = await Promise.all([
 		db.select({
-			id: characterMedals.medalId, n: count(),
+			id: medals.medalId, n: count(),
 		})
-			.from(characterMedals)
-			.groupBy(sql`${characterMedals.medalId}`),
+			.from(medals)
+			.groupBy(sql`${medals.medalId}`),
 		db.select({ players: count() })
-			.from(character_totals)
-			.where(gt(character_totals.playCount, 0)),
+			.from(totals)
+			.where(gt(totals.playCount, 0)),
 	]);
 	return {
 		players, held: Object.fromEntries(held.map(h => [h.id, h.n])),
 	};
 };
 
-/** XP multiplier from the medals a character holds. */
-export const medalMultiplier = async (characterId: number): Promise<number> =>
-	medalXPMultiplier((await getMedals(characterId)).map(m => m.medalId));
+/** XP multiplier from the medals a character holds in a ruleset. */
+export const medalMultiplier = async (r: ServerRuleset, characterId: number): Promise<number> =>
+	medalXPMultiplier(r.def.medals, (await getMedals(r, characterId)).map(m => m.medalId));
 
 /** The medal lines with a progress board. A per-account line ranks each
  *  account's current character. */
@@ -490,8 +564,8 @@ const BOARDS: Record<string, { perAccount?: true }> = {
 export const ProgressLines = Object.keys(BOARDS);
 
 /** A line's medals and the value each is earned at. */
-const lineGoals = (line: string) => MEDALS.flatMap(m => {
-	const { goal } = RULES[m.id];
+const lineGoals = (r: ServerRuleset, line: string) => r.def.medals.medals.flatMap(m => {
+	const { goal } = RULES(r)[m.id];
 	return m.id.startsWith(`${line}-`) && goal !== undefined
 		? [{
 			id: m.id, goal,
@@ -500,32 +574,34 @@ const lineGoals = (line: string) => MEDALS.flatMap(m => {
 });
 
 /** Bring a character's best counters up to date. */
-export const recordProgress = async (characterId: number) => {
+export const recordProgress = async (r: ServerRuleset, characterId: number) => {
 	const character = await getCharacterById(characterId);
-	if (character) await progress(character, {});
+	if (character) await progress(r, character, {});
 };
 
 /** A set just went live, so its proposer's curator count rose (Adri's, if
  *  nobody proposed it). */
-export const recordCurators = async (osuSetId: number | null) => {
-	const [request] = osuSetId === null ? [] : await db.select({ userId: beatmapRequests.userId })
-		.from(beatmapRequests)
-		.where(eq(beatmapRequests.setId, osuSetId));
+export const recordCurators = async (r: ServerRuleset, osuSetId: number | null) => {
+	const [request] = osuSetId === null ? [] : await db.select({ userId: r.requests.userId })
+		.from(r.requests)
+		.where(eq(r.requests.setId, osuSetId));
 	const owners = await db.select({ id: users.currentCharacter })
 		.from(users)
 		.where(inArray(users.id, request ? [request.userId] : [OWNER_ID]));
-	for (const { id } of owners) if (id) await recordProgress(id);
+	for (const { id } of owners) if (id) await recordProgress(r, id);
 };
 
 /** One medal line's board: the players furthest along it, with the line's goals.
  *  A value once reached stays, even if the live one drops. */
 export const progressPage = async (
+	r: ServerRuleset,
 	line: string,
 	page: number,
 	size: number,
 	country?: string,
 	among?: number[],
 ) => {
+	const { progress: characterProgress } = r;
 	const { perAccount } = BOARDS[line];
 	const rows = await db.select({
 		id: characters.id,
@@ -549,13 +625,13 @@ export const progressPage = async (
 		.limit(size)
 		.offset((page - 1) * size);
 	return {
-		goals: lineGoals(line), rows,
+		goals: lineGoals(r, line), rows,
 	};
 };
 
 const PODIUM = 5;
 
 /** Every medal line's top players, for the overview. */
-export const progressOverview = () => Promise.all(ProgressLines.map(async line => ({
-	line, ...await progressPage(line, 1, PODIUM),
+export const progressOverview = (r: ServerRuleset) => Promise.all(ProgressLines.map(async line => ({
+	line, ...await progressPage(r, line, 1, PODIUM),
 })));

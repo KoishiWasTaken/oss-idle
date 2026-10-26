@@ -1,14 +1,15 @@
+import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
 import {
 	Plural,
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+
 import type { getSupporterStatus } from '../../api/store';
-import SupportDuration from './SupportDuration';
 import { euros } from './euros';
+import SupportDuration from './SupportDuration';
 
 type Status = Awaited<ReturnType<typeof getSupporterStatus>>;
 

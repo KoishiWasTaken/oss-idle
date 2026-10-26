@@ -44,6 +44,13 @@
 	height: calc(100% - 220px);
 	padding-left: 500px;
 }
+/* the carousel's box runs under the gutter so popped cards aren't clipped at its edge */
+@media (min-width: 851px) {
+	.game__body .carousel {
+		margin-left: -500px;
+		padding-left: 500px;
+	}
+}
 
 /* Song select mounted over a running play: it keeps the carousel and the queue
    and drops everything else - its own backdrop included, so the play stays
@@ -946,6 +953,20 @@
 
 .select-footer__btn:hover {
 	filter: brightness(1.35);
+}
+
+.select-footer__btn.is-mode {
+	--strip: #a347d6;
+}
+
+.select-footer__btn.is-mode.is-open {
+	background: linear-gradient(180deg, #b45ae6, #7a2fb0);
+}
+
+.select-footer__mode-icon {
+	width: 2.4rem;
+	height: 2.4rem;
+	margin-bottom: 2px;
 }
 
 .select-footer__btn.is-mods {

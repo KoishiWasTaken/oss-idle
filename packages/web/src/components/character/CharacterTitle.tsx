@@ -1,5 +1,6 @@
 import { Trans } from '@lingui/react/macro';
-import { medalName } from '@oss-idle/shared/display/medals';
+
+import { medalName } from '../../rulesets';
 import Link from '../Link';
 
 /** The medal name a character wears as its title, in its group's colour like osu!web; its owner's

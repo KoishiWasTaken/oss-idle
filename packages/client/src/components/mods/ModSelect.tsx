@@ -1,13 +1,24 @@
-import { ph } from '@lingui/core/macro';
 import './ModSelect.css';
 import '../ContextMenu.css';
-import { useEffect } from 'react';
-import useKeyboardOwner from '../../input/keyboardOwner';
+
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useEffect } from 'react';
+
+import {
+	MOD_LOOK,
+	modName,
+} from '@oss-idle/shared/display/mods';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import {
+	countsForMedals,
+	isRankedMods,
+	type Mod,
+	modsScoreMultiplier,
+} from '@oss-idle/shared/mods';
 import {
 	MAX_RATE,
 	MIN_RATE,
@@ -15,29 +26,21 @@ import {
 	rateSteps,
 	scoreMultiplier,
 } from '@oss-idle/shared/rate';
-import Entities from '../../entity/entities';
+
 import { SETTINGS } from '../../db/settings';
-import { inTextBox } from '../../input/Controls';
-import {
-	pickRate,
-	selectedRate,
-	speedUpgrades,
-} from '../../gameplay/playRate';
-import {
-	countsForMedals,
-	isRankedMods,
-	modsScoreMultiplier,
-	type Mod,
-} from '@oss-idle/shared/mods';
+import Entities from '../../entity/entities';
 import {
 	pickMod,
 	resetMods,
 	selectedMods,
 } from '../../gameplay/playMods';
 import {
-	MOD_LOOK,
-	modName,
-} from '@oss-idle/shared/display/mods';
+	pickRate,
+	selectedRate,
+	speedUpgrades,
+} from '../../gameplay/playRate';
+import { inTextBox } from '../../input/Controls';
+import useKeyboardOwner from '../../input/keyboardOwner';
 import ModTile from './ModTile';
 import { rateShort } from './rateShort';
 import RateStepper from './RateStepper';

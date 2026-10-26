@@ -1,8 +1,8 @@
-import DocsCode from './DocsCode';
 import {
 	EDITOR_API,
 	EDITOR_EXAMPLE,
 } from './addonDocs';
+import DocsCode from './DocsCode';
 
 /** The editor API: how an Editor add-on reaches the open editor, and everything it offers. */
 export default function AddonDocsEditor() {

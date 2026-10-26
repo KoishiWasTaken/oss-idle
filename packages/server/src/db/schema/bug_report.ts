@@ -7,7 +7,9 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { BUG_STATUS } from '@oss-idle/shared/bugs';
+
 import { users } from './user';
 
 /** A player's bug report, from the game's options; its description is the first message. */

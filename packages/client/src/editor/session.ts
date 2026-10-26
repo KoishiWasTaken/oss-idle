@@ -1,76 +1,29 @@
 import Synced from '@oss-idle/shared/helpers/synced';
 import { RATE_STEP } from '@oss-idle/shared/rate';
-import { Setting } from '../db/settings';
-import { music } from '../audio/MusicPlayer';
-import type LightBeatmap from '../osu/beatmap/LightBeatmap';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
 import {
+	type Chart,
+	type ChartDoc,
 	DIVISORS,
-	MAX_DIVISOR,
-	parseChart,
 	inEffect,
+	MAX_DIVISOR,
+	type Metadata,
+	type Note,
+	parseChart,
 	snapAt,
 	snapTime,
 	stepTime,
 	stepToward,
+	type TimingPoint,
 	withBackground,
 	withFileIds,
 	withOmitFirstBarLine,
 	withoutBeatmapId,
 	writeChart,
-	type Chart,
-	type ChartDoc,
-	type Metadata,
-	type Note,
-	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
-import {
-	extrasFile,
-	withExtras,
-	writeExtras,
-} from '@oss-idle/shared/editor/extras';
-import {
-	hasAddition,
-	parsePointSound,
-	soundPointAt,
-	withAddition,
-	withSample,
-	writePointSound,
-	type Addition,
-	type NoteSample,
-	type PointSound,
-} from '@oss-idle/shared/editor/hitsounds';
-import {
-	addSampleFiles,
-	changeSetFiles,
-	localCopyOf,
-	removeSetFile,
-	saveChart,
-	setBackgroundImage,
-	writeIds,
-} from './save';
-import type { UploadIds } from './upload';
-import EditorSounds from './editorSounds';
-import { currentPlacing } from './placing';
-import {
-	entryById,
-	library,
-	onLibraryChanged,
-	readEntryFile,
-} from '../library';
-import { effects } from '../audio/EffectPlayer';
-import { assetKey } from '../osu/beatmap/storyboard';
-import type { PlayfieldClock } from './playfieldMessages';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 import {
 	checkChart,
 	type Issue,
-} from '@oss-idle/shared/editor/checks';
-import {
-	constantScroll,
-	linearScroll,
-	scaleScroll,
-	type Range,
-} from './svTools';
+} from '@oss-idle/shared/rulesets/mania/editor/checks';
 import {
 	fitting,
 	flipped,
@@ -83,7 +36,56 @@ import {
 	shifted,
 	swappedLanes,
 	withoutHolds,
-} from '@oss-idle/shared/editor/edits';
+} from '@oss-idle/shared/rulesets/mania/editor/edits';
+import {
+	extrasFile,
+	withExtras,
+	writeExtras,
+} from '@oss-idle/shared/rulesets/mania/editor/extras';
+import {
+	type Addition,
+	hasAddition,
+	type NoteSample,
+	parsePointSound,
+	type PointSound,
+	soundPointAt,
+	withAddition,
+	withSample,
+	writePointSound,
+} from '@oss-idle/shared/rulesets/mania/editor/hitsounds';
+
+import { effects } from '../audio/EffectPlayer';
+import { music } from '../audio/MusicPlayer';
+import { Setting } from '../db/settings';
+import {
+	entryById,
+	library,
+	onLibraryChanged,
+	readEntryFile,
+} from '../library';
+import BeatmapStore from '../osu/beatmap/beatmap_store';
+import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { assetKey } from '../osu/beatmap/storyboard';
+import EditorSounds from './editorSounds';
+import type { HoveredPoint } from './painter';
+import { currentPlacing } from './placing';
+import type { PlayfieldClock } from './playfieldMessages';
+import {
+	addSampleFiles,
+	changeSetFiles,
+	localCopyOf,
+	removeSetFile,
+	saveChart,
+	setBackgroundImage,
+	writeIds,
+} from './save';
+import {
+	constantScroll,
+	linearScroll,
+	type Range,
+	scaleScroll,
+} from './svTools';
+import type { UploadIds } from './upload';
 
 // an edit snapshots the whole document (shared note objects); fine for
 // a few thousand notes, switch to per-action diffs if charts get much bigger
@@ -155,6 +157,8 @@ const chartOf = async (beatmap: LightBeatmap): Promise<Chart> => {
 export default class EditorSession {
 
 	public readonly revision = new Synced(0);
+	/** The BPM or SV point the pointer is on in its list, lit on the field and the timeline. */
+	public readonly hoveredPoint = new Synced<HoveredPoint | undefined>(undefined);
 
 	private doc: ChartDoc;
 	public selected = new Set<Note>();
@@ -531,9 +535,27 @@ export default class EditorSession {
 		if (this.selected.size) this.apply(this.unselected);
 	}
 
-	/** Move the selection by `dt` ms and `dc` columns. */
-	public moveSelection(dt: number, dc: number): boolean {
-		return this.replaceSelection(shifted(this.selection, dt, this.columnShift(dc)));
+	/** Move the selection by `dt` ms and `dc` columns, then onto the beat lines unless
+	 *  `keepOffset`. */
+	public moveSelection(dt: number, dc: number, keepOffset = true): boolean {
+		return this.replaceSelection(this.shiftedSelection(dt, dc, keepOffset));
+	}
+
+	public shiftedSelection(dt: number, dc: number, keepOffset: boolean): Note[] {
+		const moved = shifted(this.selection, dt, this.columnShift(dc));
+		return keepOffset ? moved : this.onLines(moved);
+	}
+
+	/** Heads and tails on their nearest beat line; a long note that collapses becomes a note. */
+	private onLines(notes: Note[]): Note[] {
+		const line = (time: number) => snapTime(this.timing, time, snapAt(this.timing, time, this.divisor));
+		return notes.map(note => {
+			const time = line(note.time);
+			const end = note.end === undefined ? undefined : line(note.end);
+			return {
+				...note, time, end: end !== undefined && end > time ? end : undefined,
+			};
+		});
 	}
 
 	/** `dc` held to what keeps every selected note inside the columns. */
@@ -656,9 +678,10 @@ export default class EditorSession {
 	}
 
 	/** A BPM point at the current time, carrying on from the one before it. */
-	public addTimingPoint(): void {
+	/** A BPM point at the current time, like the one before it; returns its time. */
+	public addTimingPoint(): number {
 		const time = Math.round(this.now());
-		if (this.timing.some(point => point.time === time)) return;
+		if (this.timing.some(point => point.time === time)) return time;
 		const before = inEffect(this.timing, time) ?? this.timing[0];
 		this.setTiming([...this.timing, {
 			time,
@@ -667,6 +690,7 @@ export default class EditorSession {
 			sound: before?.sound ?? '0,0,100',
 			effects: '0',
 		}]);
+		return time;
 	}
 
 	/** A BPM point at `time` with `beatLength`, or the one there changed to it. */
@@ -704,6 +728,7 @@ export default class EditorSession {
 	}
 
 	public removeTimingPoint(point: TimingPoint): void {
+		void this.hoveredPoint.set(undefined);
 		this.setTiming(this.timing.filter(other => other !== point));
 	}
 
@@ -719,9 +744,10 @@ export default class EditorSession {
 	}
 
 	/** An SV point at the current time, carrying on the speed in effect there. */
-	public addScrollPoint(): void {
+	/** An SV point at the current time, like the one before it; returns its time. */
+	public addScrollPoint(): number {
 		const time = Math.round(this.now());
-		if (this.scroll.some(point => point.time === time)) return;
+		if (this.scroll.some(point => point.time === time)) return time;
 		const before = this.scrollAt(time);
 		this.setScroll([...this.scroll, {
 			time,
@@ -730,6 +756,7 @@ export default class EditorSession {
 			sound: before?.sound ?? '0,0,100',
 			effects: '0',
 		}]);
+		return time;
 	}
 
 	public updateScrollPoint(point: TimingPoint, change: Partial<TimingPoint>): void {
@@ -739,6 +766,7 @@ export default class EditorSession {
 	}
 
 	public removeScrollPoint(point: TimingPoint): void {
+		void this.hoveredPoint.set(undefined);
 		this.setScroll(this.scroll.filter(other => other !== point));
 	}
 
@@ -762,10 +790,10 @@ export default class EditorSession {
 		this.replaceNotes(this.selection, note => withSample(note, patch));
 	}
 
-	/** Make `image` the set's background, on every difficulty. */
-	public async setBackground(image: File): Promise<void> {
+	/** Make `image` the set's background, on every difficulty or only this one. */
+	public async setBackground(image: File, onlyThis = false): Promise<void> {
 		const switches = this.switches;
-		const { beatmap, name } = await setBackgroundImage(this.beatmap, image);
+		const { beatmap, name } = await setBackgroundImage(this.beatmap, image, onlyThis);
 		if (!this.took(beatmap, switches)) return;
 		this.chart = {
 			...this.chart, text: withBackground(this.chart.text, name), background: true,

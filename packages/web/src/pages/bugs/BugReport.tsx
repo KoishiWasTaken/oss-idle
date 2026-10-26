@@ -1,24 +1,27 @@
 import './Bugs.css';
-import { useState } from 'react';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
 import { useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
+
 import {
 	BUG_STATUS,
 	BUG_TEXT_MAX,
 	type BugStatus,
 } from '@oss-idle/shared/bugs';
 import { dateAgo } from '@oss-idle/shared/display/ago';
+
 import {
 	answerBug,
 	type Bug,
 } from '../../api/bugs';
+import BugImagesField from './BugImagesField';
 import BugMessage from './BugMessage';
 import BugStatusPill from './BugStatusPill';
 import { useBugImages } from './useBugImages';
-import BugImagesField from './BugImagesField';
 import { useBugStatusLabels } from './useBugStatusLabels';
 
 /** One report: its thread, and a reply box (with the status for the team). */

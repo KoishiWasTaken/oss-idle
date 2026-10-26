@@ -8,12 +8,14 @@ import {
 	unique,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import { users } from './user';
-import { splitTags } from '../columns';
+
 import {
 	SKIN_STATUS,
 	type SkinStatus,
 } from '@oss-idle/shared/skin';
+
+import { splitTags } from '../columns';
+import { users } from './user';
 
 export const skins = mysqlTable('skin', {
 	id: int().autoincrement().primaryKey(),

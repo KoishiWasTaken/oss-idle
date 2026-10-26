@@ -1,14 +1,15 @@
 import { readFileSync } from 'node:fs';
+
+import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * Add-on types: Gameplay unless the author picks Editor (or both), and the

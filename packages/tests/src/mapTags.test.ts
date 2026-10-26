@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import { parseMapTags } from '@oss-idle/shared/beatmap';
 
 describe('parseMapTags', () => {

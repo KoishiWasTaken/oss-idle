@@ -1,4 +1,4 @@
-import type Skill from '@oss-idle/shared/sim/skills/skill';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
 import {
 	maxUpgrades,
 	overdriveMultiplier,
@@ -10,7 +10,7 @@ import {
 export type MedalBoost = { held: number, multiplier: number };
 
 /** Everything a skill's XP multiplier is made of. Guests have no medals. */
-export const skillStats = (skill: Skill, medals?: MedalBoost) => {
+export const skillStats = (skill: SkillState, medals?: MedalBoost) => {
 	const upgrades = skill.upgrades.get();
 	const overdrive = skill.overdrive.get();
 	const prestige = skill.prestige.get();

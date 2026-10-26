@@ -1,9 +1,11 @@
 import './Message.css';
-import { message } from '../globals';
+
 import {
 	useCallback,
 	useState,
 } from 'react';
+
+import { message } from '../globals';
 
 type MessageState = {
 	id: number,

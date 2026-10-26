@@ -1,15 +1,17 @@
 import './Medals.css';
+
 import {
 	useCallback,
 	useEffect,
 	useState,
 } from 'react';
-import Link from '../../components/Link';
+
 import {
 	liftRestriction,
 	listRestricted,
 	type RestrictedAccount,
 } from '../../api/restrictions';
+import Link from '../../components/Link';
 
 /** Restricted accounts. Restrict from a profile's ⋮ menu; a chargeback restricts the buyer by itself. */
 export default function Restrictions() {

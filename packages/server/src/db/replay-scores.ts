@@ -16,45 +16,55 @@
  * mindblock reads the plays already inserted and fatigue the ones applied, so
  * the order is the point.
  *
+ * Mania 4K only: the dump is 4K's score table, its judgement columns included.
+ *
  *   npm -w @oss-idle/server run replay:scores -- --file backups/scores.json --dry-run
  */
 import { readFileSync } from 'node:fs';
+
 import { i18n } from '@lingui/core';
-import { BeatmapDecoder } from 'osu-parsers';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import { parseMods } from '@oss-idle/shared/mods';
-import CharacterBot from '@oss-idle/shared/sim/bots/character';
-import { hasUnlock } from '@oss-idle/shared/rebirth';
-import type { SkillName } from '@oss-idle/shared/skills';
-import { Skills } from '@oss-idle/shared/skills';
 import { eq } from 'drizzle-orm';
-import { db } from './client';
-import { characters } from './schema/character';
-import {
-	scores,
-	type NewScoreRow,
-} from './schema/score';
-import { getBeatmap } from '../beatmaps';
-import {
-	getServerXP,
-	loadCharacterSkills,
-} from '../play';
-import {
-	applySkillXp,
-	onSubmitScore,
-} from '../scores';
-import { addBeatmapPlayed } from './schema/beatmaps_played';
-import {
-	addFatigue,
-	playStrain,
-} from '../fatigue';
+import { BeatmapDecoder } from 'osu-parsers';
+
 import {
 	fatigueLevel,
 	restedFatigue,
 	warmup,
 } from '@oss-idle/shared/fatigue';
+import { parseMods } from '@oss-idle/shared/mods';
+import { hasUnlock } from '@oss-idle/shared/rebirth';
+import CharacterBot from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import type { SkillName } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import { Skills } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
+import { getBeatmap } from '../beatmaps';
+import { addFatigue } from '../fatigue';
+import {
+	getServerXP,
+	loadCharacterSkills,
+	STRAINED_4K,
+} from '../rulesets/mania/4k/play';
+import { playStrain } from '../rulesets/mania/playRules';
+import {
+	loadRulesets,
+	rulesetFor,
+} from '../rulesets/registry';
+import type { ServerRuleset } from '../rulesets/ruleset';
+import {
+	applySkillXp,
+	onSubmitScore,
+} from '../scores';
+import { db } from './client';
+import { addBeatmapPlayed } from './schema/beatmaps_played';
+import {
+	profileOf,
+	skillOf,
+} from './schema/character';
+import type { NewScoreRow } from './schema/score';
 
 const decoder = new BeatmapDecoder();
+let r: ServerRuleset;
 
 const arg = (name: string): string | undefined => {
 	const i = process.argv.indexOf(`--${name}`);
@@ -100,34 +110,32 @@ const xpFor = async (row: DumpedScore) => {
 	const characterId = Number(row.character_id);
 	const beatmapId = Number(row.beatmap_id);
 
-	const [character] = await db.select().from(characters)
-		.where(eq(characters.id, characterId)).limit(1);
-	if (!character) return undefined;
+	const profile = await profileOf(r, characterId);
 
 	const beatmap = await getBeatmap(beatmapId);
 	if (!beatmap?.chart) return undefined;
 
 	const at = new Date(row.played_at!).getTime();
-	const tired = restedFatigue(character.fatigue ?? undefined, at);
+	const tired = restedFatigue(profile.fatigue ?? undefined, at);
 	const fatigue = fatigueLevel(tired);
-	const warm = warmup(tired, character.staminaUpgrades);
-	const skills = await loadCharacterSkills(character, beatmapId, fatigue, warm);
+	const warm = warmup(tired, skillOf(profile, 'stamina').upgrades);
+	const skills = await loadCharacterSkills(r, profile, beatmapId, fatigue, warm);
 	const chart = decoder.decodeFromString(beatmap.chart);
 	const bot = new CharacterBot(skills);
 	const rate = Number(row.rate ?? 1);
 	const game = new ManiaGame(chart, bot, {
-		divine: hasUnlock(character.generation, 'DIVINE'), rate,
+		divine: hasUnlock(profile.generation, 'DIVINE'), rate,
 	});
 	game.update(game.songEndMs + 1000); // straight to the end: only the blame matters
 
 	const xp = await getServerXP(
-		character, bot, beatmap, chart, asScoreLike(row) as never, rate, Number(row.sr ?? beatmap.sr),
-		parseMods(row.mods ?? ''), fatigue,
+		r, characterId, beatmapId, bot, chart, asScoreLike(row) as never, rate,
+		Number(row.sr ?? beatmap.sr), parseMods(row.mods ?? ''), fatigue,
 	);
 	return {
 		xp,
 		minutes: chart.totalLength / rate / 60_000,
-		strain: playStrain(bot, chart.totalLength / rate),
+		strain: playStrain(STRAINED_4K, bot, chart.totalLength / rate),
 		at,
 	};
 };
@@ -138,6 +146,8 @@ const main = async () => {
 	i18n.loadAndActivate({
 		locale: 'en', messages: {},
 	});
+	await loadRulesets();
+	r = rulesetFor('mania4k');
 
 	const rows = JSON.parse(readFileSync(file, 'utf8')) as DumpedScore[];
 	console.log(`replaying ${rows.length} scores from ${file}${dryRun ? ' (dry run)' : ''}`);
@@ -164,14 +174,14 @@ const main = async () => {
 
 		if (!dryRun) {
 			// milestones were announced the first time round: silent here
-			await applySkillXp(characterId, xp, false);
-			await addFatigue(characterId, minutes, strain, at);
+			await applySkillXp(r, characterId, xp, false);
+			await addFatigue(r, characterId, minutes, strain, at);
 			// the original row, not the simulated one
-			await addBeatmapPlayed(characterId, Number(row.beatmap_id));
-			await db.insert(scores).values(toDraft(row));
-			const stored = (await db.select().from(scores)
-				.where(eq(scores.id, Number(row.id))).limit(1))[0];
-			if (stored) await onSubmitScore(stored);
+			await addBeatmapPlayed(r, characterId, Number(row.beatmap_id));
+			await db.insert(r.score).values(toDraft(row));
+			const stored = (await db.select().from(r.score)
+				.where(eq(r.score.id, Number(row.id))).limit(1))[0];
+			if (stored) await onSubmitScore(r, stored);
 		}
 
 		if (++done % 100 === 0) console.log(`  ${done}/${rows.length}`);

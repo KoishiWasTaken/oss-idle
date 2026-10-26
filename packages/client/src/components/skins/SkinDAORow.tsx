@@ -1,11 +1,13 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import type { SkinDAO } from '../../db/schema/skin';
-import { skinIconUrl } from '../../online/skins';
-import ListingIcon from '../listing/ListingIcon';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { currentSkinDAO } from '../../osu/skin/Skin';
+
+import type { SkinDAO } from '../../db/schema/skin';
 import { SETTINGS } from '../../db/settings';
+import { skinIconUrl } from '../../online/skins';
+import { currentSkinDAO } from '../../osu/skin/Skin';
+import ListingIcon from '../listing/ListingIcon';
 
 type Props = {
 	skin: SkinDAO,

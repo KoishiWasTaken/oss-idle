@@ -1,5 +1,6 @@
-import { openDirect } from './directState';
 import './direct.css';
+
+import { openDirect } from './directState';
 
 /** oss!direct tab on the main menu's right edge */
 export default function DirectTab() {

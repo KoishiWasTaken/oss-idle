@@ -1,4 +1,5 @@
 import { useLingui } from '@lingui/react/macro';
+
 import ContextMenu from './ContextMenu';
 
 export type Confirm = {

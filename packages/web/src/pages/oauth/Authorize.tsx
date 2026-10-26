@@ -1,19 +1,21 @@
-import { ph } from '@lingui/core/macro';
 import './Authorize.css';
-import {
-	useEffect,
-	useState,
-} from 'react';
+
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
 import {
+	useEffect,
+	useState,
+} from 'react';
+
+import {
 	answerAuthorization,
 	getAuthorization,
 } from '../../api/oauth';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { loginAndReturn } from '../../auth';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { SCOPE_TEXT } from './scopes';
 
 type Request = Awaited<ReturnType<typeof getAuthorization>>;

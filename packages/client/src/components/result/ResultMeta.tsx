@@ -1,6 +1,8 @@
-import { versionLabel } from '@oss-idle/shared/rate';
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
+import { versionLabel } from '@oss-idle/shared/rate';
+
 import { music } from '../../audio/MusicPlayer';
 import LightBeatmap from '../../osu/beatmap/LightBeatmap';
 

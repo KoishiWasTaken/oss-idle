@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import type { RoundScore } from '@oss-idle/shared/multiplayer';
+
 import Multiplayer from '../../online/multiplayer';
 import Socket from '../../online/socket';
 

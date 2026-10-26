@@ -1,16 +1,17 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import type { Note } from '@oss-idle/shared/editor/chart';
+
+import type { Note } from '@oss-idle/shared/rulesets/mania/editor/chart';
 import {
 	fitting,
 	flipped,
 	notesIn,
 	resnapped,
 	shifted,
-} from '@oss-idle/shared/editor/edits';
+} from '@oss-idle/shared/rulesets/mania/editor/edits';
 
 const note = (time: number, column: number, end?: number): Note => ({
 	time, column, end, hitSound: '0', sample: '0:0:0:0:',

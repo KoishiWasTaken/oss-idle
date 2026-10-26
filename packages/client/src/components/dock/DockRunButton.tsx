@@ -1,10 +1,12 @@
-import { useLingui } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { faPause } from '@fortawesome/free-solid-svg-icons/faPause';
 import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
-import PlayManager from '../../online/playManager';
-import PlayQueue, { AUTOPILOT_MODE } from '../../gameplay/playQueue';
+import { useLingui } from '@lingui/react/macro';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { SETTINGS } from '../../db/settings';
+import PlayQueue, { AUTOPILOT_MODE } from '../../gameplay/playQueue';
+import PlayManager from '../../online/playManager';
 import DockIconButton from './DockIconButton';
 
 /**

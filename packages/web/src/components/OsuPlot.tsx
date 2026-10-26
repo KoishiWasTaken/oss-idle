@@ -1,14 +1,14 @@
 import './OsuPlot.css';
 
+// Type-only: plotly stays out of the module graph (vite externalizes it) and is
+// loaded at runtime by the <script> below, so only the namespace types remain.
+import type Plotly from 'plotly.js-dist-min';
 import {
 	useEffect,
 	useMemo,
 	useState,
 } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
-// Type-only: plotly stays out of the module graph (vite externalizes it) and is
-// loaded at runtime by the <script> below, so only the namespace types remain.
-import type Plotly from 'plotly.js-dist-min';
 
 type PlotComponent = ReturnType<typeof createPlotlyComponent>;
 

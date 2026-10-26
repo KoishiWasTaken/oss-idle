@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
-import { z } from 'zod';
+import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
+import { z } from 'zod';
+
 import {
 	getCharacter,
 	getCharacterStats,

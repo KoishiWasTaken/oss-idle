@@ -1,6 +1,7 @@
 import { createMiddleware } from 'hono/factory';
-import { redis } from './redis';
+
 import { redisKeyPrefix } from './env';
+import { redis } from './redis';
 
 /** The dashboard's time buckets: 5 minutes, a day of them. */
 export const BUCKET_MS = 5 * 60_000;
@@ -21,6 +22,10 @@ export const LATENCY_BINS = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
 /** Where a request came in: straight to this server, or through an edge that says so. */
 export const VIAS = ['direct', 'na', 'fr', 'home'] as const;
+
+/** Hourly samples of the server's disk, field = hour since epoch, value = `free total` bytes. */
+export const DISK_KEY = `${redisKeyPrefix}metrics:disk`;
+export const DISK_KEEP_H = 30 * 24;
 
 const key = (series: string, bucket: number) => `${redisKeyPrefix}metrics:${series}:${bucket}`;
 

@@ -1,11 +1,13 @@
 import { inArray } from 'drizzle-orm';
+
 import { __ } from '@oss-idle/shared/i18n/translate';
-import { db } from './db/client';
-import { characters } from './db/schema/character';
+
 import {
 	profileNames,
 	renderBBCode,
 } from './bbcode';
+import { db } from './db/client';
+import { characters } from './db/schema/character';
 import { proxiedUrl } from './mediaProxy';
 
 /** A me! page as HTML, its `[profile]` names linked to their characters. */

@@ -1,7 +1,7 @@
 import {
-	SampleSet,
 	type ControlPointInfo,
 	type HitSample,
+	SampleSet,
 } from 'osu-classes';
 
 export type SampleSetName = 'normal' | 'soft' | 'drum';

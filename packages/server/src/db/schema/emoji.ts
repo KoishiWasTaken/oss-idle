@@ -5,8 +5,9 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import { users } from './user';
+
 import { mediumblob } from '../columns';
+import { users } from './user';
 
 /** The chat's emoji: Discord's (seeded by ops after deploy), the team's, and one per supporter. */
 export const emojis = mysqlTable('emoji', {

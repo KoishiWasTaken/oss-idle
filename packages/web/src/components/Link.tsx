@@ -1,7 +1,7 @@
 import { createLink } from '@tanstack/react-router';
 import {
-	forwardRef,
 	type AnchorHTMLAttributes,
+	forwardRef,
 } from 'react';
 
 const Anchor = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAnchorElement>>(

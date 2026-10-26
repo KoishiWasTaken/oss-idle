@@ -3,8 +3,8 @@ import DockNowPlaying from './DockNowPlaying';
 import DockQueue from './DockQueue';
 import DockQueueButton from './DockQueueButton';
 import DockTransport from './DockTransport';
-import DockUpNext from './DockUpNext';
 import DockUpgradesButton from './DockUpgradesButton';
+import DockUpNext from './DockUpNext';
 
 type Props = {
 	/** docked to the left column while the queue carousel is open */

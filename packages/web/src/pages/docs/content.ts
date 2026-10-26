@@ -1,6 +1,7 @@
-import type { Scope } from '@oss-idle/shared/oauth';
-import { Skills } from '@oss-idle/shared/skills';
 import { MATCH_EVENT } from '@oss-idle/shared/multiplayer';
+import type { Scope } from '@oss-idle/shared/oauth';
+
+import { rulesetDef } from '../../rulesets';
 
 /** The API reference, in English only like osu!'s: not sent to Crowdin. */
 
@@ -151,6 +152,14 @@ const NEWS_POST = {
 	published_at: '2026-10-14T22:16:58.000Z',
 	updated_at: '2026-10-14T22:16:58.000Z',
 	url: 'https://oss.idle.rhythmgamers.net/web/news/beta-0-20-4',
+};
+
+/** osu!'s mode, in the path where osu! puts it. */
+const MODE_PARAM: Param = {
+	name: 'mode', type: 'string', about: 'mania, the only mode oss! plays for now.',
+};
+const OPTIONAL_MODE: Param = {
+	...MODE_PARAM, optional: true,
 };
 
 const USER_PARAM: Param = {
@@ -361,17 +370,17 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-ranking',
 				title: 'Get Ranking',
-				path: '/rankings/{type}',
+				path: '/rankings/{mode}/{type}',
 				scope: 'public',
 				about: 'Gets the players ranked on pp, ranked score or medals.',
-				url: [{
+				url: [MODE_PARAM, {
 					name: 'type',
 					type: 'string',
 					about: 'performance, score or medals. Rows of the medals ranking add medals: { held, score }.',
 				}],
 				query: RANKING_QUERY,
 				example: {
-					path: '/rankings/performance', query: { country: 'FR' },
+					path: '/rankings/mania/performance', query: { country: 'FR' },
 				},
 				response: {
 					ranking: [RANKING_ROW], cursor: { page: 2 },
@@ -381,14 +390,14 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-skill-ranking',
 				title: 'Get Skill Ranking',
-				path: '/rankings/skill/{skill}',
+				path: '/rankings/{mode}/skill/{skill}',
 				scope: 'public',
 				about: 'Gets the players ranked on one skill, or overall.',
-				url: [{
-					name: 'skill', type: 'string', about: `${Skills.join(', ')} or overall.`,
+				url: [MODE_PARAM, {
+					name: 'skill', type: 'string', about: `${rulesetDef().skills.join(', ')} or overall.`,
 				}],
 				query: RANKING_QUERY,
-				example: { path: '/rankings/skill/stamina' },
+				example: { path: '/rankings/mania/skill/stamina' },
 				response: {
 					ranking: [{
 						...RANKING_ROW,
@@ -403,11 +412,12 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-country-ranking',
 				title: 'Get Country Ranking',
-				path: '/rankings/country',
+				path: '/rankings/{mode}/country',
 				scope: 'public',
 				about: 'Gets the countries ranked on their players\' summed pp.',
+				url: [MODE_PARAM],
 				query: [RANKING_QUERY[1]],
-				example: { path: '/rankings/country' },
+				example: { path: '/rankings/mania/country' },
 				response: {
 					ranking: [{
 						rank: 1, code: 'FR', active_users: 65, play_count: 173602, ranked_score: 13185865659, performance: 199753.436,
@@ -424,10 +434,11 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-own-data',
 				title: 'Get Own Data',
-				path: '/me',
+				path: '/me/{mode?}',
 				scope: 'identify',
 				user: true,
 				about: 'Similar to Get User but with authenticated user (token owner) as user id.',
+				url: [OPTIONAL_MODE],
 				example: { path: '/me' },
 				response: USER,
 				format: 'See Get User.',
@@ -464,10 +475,10 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-user',
 				title: 'Get User',
-				path: '/users/{user}',
+				path: '/users/{user}/{mode?}',
 				scope: 'public',
 				about: 'Returns the detail of a user, through the character they play as now.',
-				url: [USER_PARAM],
+				url: [USER_PARAM, OPTIONAL_MODE],
 				example: { path: '/users/1375479' },
 				response: USER,
 				format: 'User.',
@@ -475,10 +486,10 @@ export const ENDPOINTS: EndpointSection[] = [
 			{
 				id: 'get-character',
 				title: 'Get Character',
-				path: '/characters/{character}',
+				path: '/characters/{character}/{mode?}',
 				scope: 'public',
 				about: 'The same User, for one character.',
-				url: [CHARACTER_PARAM],
+				url: [CHARACTER_PARAM, OPTIONAL_MODE],
 				example: { path: '/characters/13' },
 				format: 'See Get User.',
 			},

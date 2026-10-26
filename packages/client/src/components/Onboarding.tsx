@@ -1,19 +1,22 @@
-import { ph } from '@lingui/core/macro';
 import './Onboarding.css';
+
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
-import Auth from '../online/auth';
-import Account from '../online/account';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
+
+import useKeyboardOwner, { LAYER } from '../input/keyboardOwner';
+import Account from '../online/account';
+import Auth from '../online/auth';
 
 /**
  * First-login onboarding. Shown once when signed in but the account has no

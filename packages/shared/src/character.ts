@@ -1,14 +1,11 @@
 import { z } from 'zod';
-import { MAX_ACCURACY } from './sim/scoring.js';
+
 import {
-	Skills,
-	type SkillName,
-} from './skills.js';
-import {
-	Grades,
 	type Grade,
-} from './judgement.js';
+	Grades,
+} from './grade.js';
 import { pendingActionDTO } from './pendingAction.js';
+import { RULESET_IDS } from './rulesets/ids.js';
 
 export const skillProgressDTO = z.object({
 	level: z.number().int().min(0),
@@ -21,13 +18,8 @@ export const skillProgressDTO = z.object({
 });
 export type SkillProgressDTO = z.infer<typeof skillProgressDTO>;
 
-/** Per-skill progress for every skill - the character's full progression. */
-export const skillsDTO = z.object(
-	Object.fromEntries(Skills.map(s => [s, skillProgressDTO])) as Record<
-		SkillName,
-		typeof skillProgressDTO
-	>,
-);
+/** Per-skill progress for every skill of the ruleset - the character's full progression there. */
+export const skillsDTO = z.record(z.string(), skillProgressDTO);
 export type SkillsDTO = z.infer<typeof skillsDTO>;
 
 export const characterDTO = z.object({
@@ -41,6 +33,10 @@ export const characterDTO = z.object({
 	bannerUrl: z.string().optional(),
 	// The account's osu! country code. Absent for the local Guest.
 	country: z.string().optional(),
+	// The ruleset the rest is in (the one the player picked, unless asked for another).
+	ruleset: z.enum(RULESET_IDS),
+	// Reborn characters play only the ruleset they were reborn in.
+	rulesetLock: z.enum(RULESET_IDS).optional(),
 	// Rebirth number, 1 for a first character: its unlock set is the first
 	// generation - 1 entries of REBIRTH_UNLOCKS.
 	generation: z.number().int().positive(),
@@ -56,7 +52,7 @@ export type CharacterDTO = z.infer<typeof characterDTO>;
  *  profile header). Aggregates that live on the character row / its totals. */
 export const characterStatsDTO = z.object({
 	pp: z.number().min(0),
-	accuracy: z.number().min(0).max(MAX_ACCURACY),
+	accuracy: z.number().min(0),
 	playCount: z.number().int().min(0),
 	level: z.number().int().min(0),
 });

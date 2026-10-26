@@ -2,10 +2,12 @@ import {
 	ph,
 	t,
 } from '@lingui/core/macro';
-import { desktop } from '@oss-idle/shared/desktop';
+
 import { MAP_LINK_CHANNEL } from '@oss-idle/shared/beatmap';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import { desktop } from '@oss-idle/shared/desktop';
+
 import { message } from '../globals';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
 
 /** `oss-idle://dl/<setId>` from the site: download that set into the library. */
 const open = async (link: string) => {

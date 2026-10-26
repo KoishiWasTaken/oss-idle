@@ -1,24 +1,27 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { addonTabs } from './addonUi';
+import EditorAddonMount from './EditorAddonMount';
+import EditorClock from './EditorClock';
 import EditorCompose from './EditorCompose';
+import EditorDifficulty from './EditorDifficulty';
+import EditorHitsounds from './EditorHitsounds';
 import EditorMetadata from './EditorMetadata';
-import EditorTiming from './EditorTiming';
+import EditorModes from './EditorModes';
+import EditorPanelResize from './EditorPanelResize';
 import EditorScroll from './EditorScroll';
 import EditorScrollTools from './EditorScrollTools';
-import type EditorSession from './session';
-import EditorClock from './EditorClock';
-import EditorDifficulty from './EditorDifficulty';
-import EditorModes from './EditorModes';
-import EditorHitsounds from './EditorHitsounds';
+import EditorSpeed from './EditorSpeed';
+import EditorTiming from './EditorTiming';
 import EditorViewOptions from './EditorViewOptions';
-import EditorAddonMount from './EditorAddonMount';
-import { addonTabs } from './addonUi';
-import type LightBeatmap from '../osu/beatmap/LightBeatmap';
-import EditorPanelResize from './EditorPanelResize';
+import type EditorSession from './session';
 
 
 /** The built-in tabs, then add-ons' by their id. */
@@ -74,6 +77,7 @@ export default function EditorSummary({ session, onOpen, onAdd }: Props) {
 					</>}
 				</span>
 			</div>
+			<EditorSpeed session={session} />
 			<EditorModes session={session} />
 			<div className="editor__tabs">
 				{tabs.map(([id, label]) => (

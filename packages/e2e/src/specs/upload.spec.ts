@@ -3,21 +3,22 @@ import {
 	strToU8,
 	zipSync,
 } from 'fflate';
+
 import {
-	expect,
-	test,
-} from '../support/fixtures';
-import Game from '../support/game';
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
 import {
 	cleanOsz,
 	jpeg,
 	silence,
 } from '../support/files';
 import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
+	expect,
+	test,
+} from '../support/fixtures';
+import Game from '../support/game';
 
 /**
  * A player's own map going online as unranked: gated by the map checks, then
@@ -214,9 +215,15 @@ test.describe('upload', () => {
 		// an osu! set credited to Grace, ranked here
 		const osuId = 900_000_000 + Math.floor(Math.random() * 90_000_000);
 		await query(
-			'INSERT INTO beatmapset (osu_id, artist, title, creator, status, ranked_at, owner_user_id) '
-			+ 'VALUES (?, \'e2e\', ?, ?, \'ranked\', NOW(), ?)',
+			'INSERT INTO beatmapset (osu_id, artist, title, creator, owner_user_id) '
+			+ 'VALUES (?, \'e2e\', ?, ?, ?)',
 			[osuId, `Known ${osuId}`, grace.name, grace.id],
+		);
+		// ranked in 4K: a set's status is its ruleset's
+		await query(
+			'INSERT INTO mania4k_beatmapset_status (set_id, status, ranked_at) '
+			+ 'SELECT id, \'ranked\', NOW() FROM beatmapset WHERE osu_id = ?',
+			[osuId],
 		);
 		const file = (account: Account) => cleanOsz(`Known ${osuId}`, {
 			creator: account.name, setId: osuId, 
@@ -320,7 +327,11 @@ test.describe('upload', () => {
 		} finally {
 			await query('DELETE FROM user_group WHERE user_id = ? AND `group` = \'admin\'', [heidi.id]);
 			// a ranked e2e map would be the catalog's easiest, which other specs open
-			await query('UPDATE beatmapset SET status = \'rejected\' WHERE owner_user_id = ?', [grace.id]);
+			await query(
+				`UPDATE mania4k_beatmapset_status s JOIN beatmapset b ON b.id = s.set_id
+				SET s.status = 'rejected' WHERE b.owner_user_id = ?`,
+				[grace.id],
+			);
 		}
 	});
 

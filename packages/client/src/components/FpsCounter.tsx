@@ -1,10 +1,13 @@
+import './FpsCounter.css';
+
 import {
 	useEffect,
 	useState,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { SETTINGS } from '../db/settings';
-import './FpsCounter.css';
 
 /**
  * Tiny corner FPS read-out, gated on the `showFps` setting. Samples twice a

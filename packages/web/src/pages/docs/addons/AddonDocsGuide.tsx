@@ -1,10 +1,10 @@
-import DocsCode from './DocsCode';
 import {
 	CONTRACT,
 	SCAFFOLD,
 	SDK_ADDON,
 	SHARED_REACT,
 } from './addonDocs';
+import DocsCode from './DocsCode';
 
 /** The guide's first part: what add-ons are, making and publishing one, the contract, types, React. */
 export default function AddonDocsGuide() {

@@ -1,11 +1,13 @@
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart } from '@fortawesome/free-solid-svg-icons';
+
 import { dateAgo } from '@oss-idle/shared/display/ago';
+
 import type { MapRequest } from '../../api/mapRequests';
 import OutLink from '../../components/OutLink';
 import ProfilePicture from '../../components/ProfilePicture';

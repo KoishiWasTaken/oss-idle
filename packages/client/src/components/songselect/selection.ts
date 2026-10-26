@@ -2,10 +2,12 @@ import {
 	createContext,
 	useContext,
 } from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
-import LightBeatmap from '../../osu/beatmap/LightBeatmap';
+
 import { music } from '../../audio/MusicPlayer';
 import { openPage } from '../../globals';
+import LightBeatmap from '../../osu/beatmap/LightBeatmap';
 
 /**
  * Which map the carousel is on.

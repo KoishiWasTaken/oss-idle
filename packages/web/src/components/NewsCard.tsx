@@ -2,15 +2,16 @@ import './NewsCard.css';
 
 import {
 	NEWS_TAGS,
-	type NewsTag,
 	type NewsDTO,
+	type NewsTag,
 } from '@oss-idle/shared/news';
-import Link from './Link';
+
 import {
 	formatDate,
 	mediaUrl,
 } from '../api/news';
 import { Asset } from '../router';
+import Link from './Link';
 
 export interface NewsCardData {
 	slug: string;

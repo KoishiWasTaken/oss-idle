@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
 
 /** A die that always lands on its highest face, to read the max back. */

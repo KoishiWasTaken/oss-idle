@@ -1,9 +1,11 @@
-import { useId } from 'react';
-import {
-	medalSvg,
-	type MedalLook,
-} from '@oss-idle/shared/achievements/medal';
 import './MedalIcon.css';
+
+import { useId } from 'react';
+
+import {
+	type MedalLook,
+	medalSvg,
+} from '@oss-idle/shared/achievements/medal';
 
 // the svg string is generated from our own medal data, never from user input
 export default function MedalIcon({ look }: { look: MedalLook }) {

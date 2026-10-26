@@ -1,0 +1,2101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden mania4k plays > 2-redline L20 divine 1`] = `
+{
+  "accuracy": 0.9775686274509804,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 110,
+    "GOOD": 0,
+    "GREAT": 48,
+    "MARVELOUS": 230,
+    "MISS": 0,
+    "PERFECT": 376,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "4af14fb0",
+  "maxCombo": 765,
+  "replay": "df0e610d",
+  "score": 951513.0370655438,
+  "timings": "fc8e50bf",
+  "xp": {
+    "accuracy": 1715,
+    "concentration": 143,
+    "consistency": 39,
+    "coordination": 0,
+    "jackspeed": 12,
+    "memory": 0,
+    "reading": 0,
+    "release": 92,
+    "speed": 82,
+    "speedjam": 0,
+    "stamina": 6,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L20 ez 1`] = `
+{
+  "accuracy": 0.9973464052287584,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 1,
+    "GREAT": 4,
+    "MARVELOUS": 489,
+    "MISS": 0,
+    "PERFECT": 271,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "4efa4410",
+  "maxCombo": 765,
+  "replay": "df0e610d",
+  "score": 295521.4705107929,
+  "timings": "fc8e50bf",
+  "xp": {
+    "accuracy": 857,
+    "concentration": 71,
+    "consistency": 19,
+    "coordination": 0,
+    "jackspeed": 6,
+    "memory": 0,
+    "reading": 0,
+    "release": 46,
+    "speed": 41,
+    "speedjam": 0,
+    "stamina": 3,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L20 hr 1`] = `
+{
+  "accuracy": 0.924235294117647,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 10,
+    "GREAT": 139,
+    "MARVELOUS": 226,
+    "MISS": 4,
+    "PERFECT": 386,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "5167254e",
+  "maxCombo": 233,
+  "replay": "df0e610d",
+  "score": 654335.9180974008,
+  "timings": "fc8e50bf",
+  "xp": {
+    "accuracy": 1886,
+    "concentration": 143,
+    "consistency": 39,
+    "coordination": 0,
+    "jackspeed": 12,
+    "memory": 0,
+    "reading": 0,
+    "release": 92,
+    "speed": 82,
+    "speedjam": 0,
+    "stamina": 6,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L20 plain 1`] = `
+{
+  "accuracy": 0.9775686274509804,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 48,
+    "MARVELOUS": 340,
+    "MISS": 0,
+    "PERFECT": 376,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "f0ff5cd0",
+  "maxCombo": 765,
+  "replay": "df0e610d",
+  "score": 951513.0370655438,
+  "timings": "fc8e50bf",
+  "xp": {
+    "accuracy": 1715,
+    "concentration": 143,
+    "consistency": 39,
+    "coordination": 0,
+    "jackspeed": 12,
+    "memory": 0,
+    "reading": 0,
+    "release": 92,
+    "speed": 82,
+    "speedjam": 0,
+    "stamina": 6,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L20 rate 1`] = `
+{
+  "accuracy": 0.9679999999999999,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 72,
+    "MARVELOUS": 290,
+    "MISS": 0,
+    "PERFECT": 403,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "24a13ce4",
+  "maxCombo": 765,
+  "replay": "7facd81e",
+  "score": 939470.2349985205,
+  "timings": "52ce6867",
+  "xp": {
+    "accuracy": 1293,
+    "concentration": 110,
+    "consistency": 91,
+    "coordination": 0,
+    "jackspeed": 45,
+    "memory": 0,
+    "reading": 11,
+    "release": 119,
+    "speed": 143,
+    "speedjam": 0,
+    "stamina": 32,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L60 divine 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 290,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 362,
+    "MISS": 0,
+    "PERFECT": 113,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "ac457807",
+  "maxCombo": 765,
+  "replay": "66105b88",
+  "score": 995383.9869281013,
+  "timings": "2bb90c74",
+  "xp": {
+    "accuracy": 1113,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L60 ez 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 747,
+    "MISS": 0,
+    "PERFECT": 18,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "c462693b",
+  "maxCombo": 765,
+  "replay": "66105b88",
+  "score": 299779.41176470666,
+  "timings": "2bb90c74",
+  "xp": {
+    "accuracy": 556,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L60 hr 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 527,
+    "MISS": 0,
+    "PERFECT": 238,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "c59a6e62",
+  "maxCombo": 765,
+  "replay": "66105b88",
+  "score": 990277.7777777748,
+  "timings": "2bb90c74",
+  "xp": {
+    "accuracy": 1224,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L60 plain 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 652,
+    "MISS": 0,
+    "PERFECT": 113,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "a083a63e",
+  "maxCombo": 765,
+  "replay": "66105b88",
+  "score": 995383.9869281013,
+  "timings": "2bb90c74",
+  "xp": {
+    "accuracy": 1113,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L60 rate 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 615,
+    "MISS": 0,
+    "PERFECT": 150,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "c924fff6",
+  "maxCombo": 765,
+  "replay": "a6c87caf",
+  "score": 993872.5490196047,
+  "timings": "be84fd70",
+  "xp": {
+    "accuracy": 957,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 9,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L120 divine 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 523,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 241,
+    "MISS": 0,
+    "PERFECT": 1,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "d073a862",
+  "maxCombo": 765,
+  "replay": "6d00b01e",
+  "score": 999959.1503267937,
+  "timings": "25c39ace",
+  "xp": {
+    "accuracy": 111,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L120 ez 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 765,
+    "MISS": 0,
+    "PERFECT": 0,
+  },
+  "failed": false,
+  "grade": "X",
+  "hits": "9b5053fe",
+  "maxCombo": 765,
+  "replay": "6d00b01e",
+  "score": 300000.0000000008,
+  "timings": "25c39ace",
+  "xp": {
+    "accuracy": 55,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L120 hr 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 721,
+    "MISS": 0,
+    "PERFECT": 44,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "fb357c19",
+  "maxCombo": 765,
+  "replay": "6d00b01e",
+  "score": 998202.6143790814,
+  "timings": "25c39ace",
+  "xp": {
+    "accuracy": 122,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L120 plain 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 764,
+    "MISS": 0,
+    "PERFECT": 1,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "538d72d3",
+  "maxCombo": 765,
+  "replay": "6d00b01e",
+  "score": 999959.1503267937,
+  "timings": "25c39ace",
+  "xp": {
+    "accuracy": 111,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 2-redline L120 rate 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 765,
+    "MISS": 0,
+    "PERFECT": 0,
+  },
+  "failed": false,
+  "grade": "X",
+  "hits": "20e4d797",
+  "maxCombo": 765,
+  "replay": "2cd90ee9",
+  "score": 999999.9999999963,
+  "timings": "7430cd08",
+  "xp": {
+    "accuracy": 111,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L20 divine 1`] = `
+{
+  "accuracy": 0.7604153354632583,
+  "counts": {
+    "BAD": 8,
+    "DIVINE": 7,
+    "GOOD": 27,
+    "GREAT": 77,
+    "MARVELOUS": 35,
+    "MISS": 24,
+    "PERFECT": 135,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "88f2ef04",
+  "maxCombo": 72,
+  "replay": "4b419ce8",
+  "score": 105809.00095179831,
+  "timings": "594a603a",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 10,
+    "jackspeed": 37,
+    "memory": 0,
+    "reading": 7,
+    "release": 0,
+    "speed": 13,
+    "speedjam": 0,
+    "stamina": 101,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L20 ez 1`] = `
+{
+  "accuracy": 0.8161830357142875,
+  "counts": {
+    "BAD": 6,
+    "DIVINE": 0,
+    "GOOD": 23,
+    "GREAT": 85,
+    "MARVELOUS": 88,
+    "MISS": 33,
+    "PERFECT": 213,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "6c9a6a2c",
+  "maxCombo": 72,
+  "replay": "4b419ce8",
+  "score": 50209.22442276542,
+  "timings": "a245d07d",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L20 hr 1`] = `
+{
+  "accuracy": 0.6845132743362825,
+  "counts": {
+    "BAD": 12,
+    "DIVINE": 0,
+    "GOOD": 26,
+    "GREAT": 70,
+    "MARVELOUS": 12,
+    "MISS": 20,
+    "PERFECT": 86,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "93ee9d96",
+  "maxCombo": 59,
+  "replay": "4b419ce8",
+  "score": 65770.43424017674,
+  "timings": "23c7ca89",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L20 plain 1`] = `
+{
+  "accuracy": 0.7604153354632583,
+  "counts": {
+    "BAD": 8,
+    "DIVINE": 0,
+    "GOOD": 27,
+    "GREAT": 77,
+    "MARVELOUS": 42,
+    "MISS": 24,
+    "PERFECT": 135,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "aaf26cb6",
+  "maxCombo": 72,
+  "replay": "4b419ce8",
+  "score": 105809.00095179831,
+  "timings": "594a603a",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 10,
+    "jackspeed": 37,
+    "memory": 0,
+    "reading": 7,
+    "release": 0,
+    "speed": 13,
+    "speedjam": 0,
+    "stamina": 101,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L20 rate 1`] = `
+{
+  "accuracy": 0.6670558375634507,
+  "counts": {
+    "BAD": 12,
+    "DIVINE": 0,
+    "GOOD": 21,
+    "GREAT": 66,
+    "MARVELOUS": 19,
+    "MISS": 19,
+    "PERFECT": 60,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "23bd46",
+  "maxCombo": 56,
+  "replay": "c1511318",
+  "score": 61348.697362900384,
+  "timings": "7ec2ceac",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L60 divine 1`] = `
+{
+  "accuracy": 0.9788618468146035,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 159,
+    "GOOD": 3,
+    "GREAT": 78,
+    "MARVELOUS": 578,
+    "MISS": 1,
+    "PERFECT": 578,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "a936909f",
+  "maxCombo": 1148,
+  "replay": "521e368f",
+  "score": 945210.6727588635,
+  "timings": "25c03761",
+  "xp": {
+    "accuracy": 205,
+    "concentration": 0,
+    "consistency": 124,
+    "coordination": 106,
+    "jackspeed": 65,
+    "memory": 0,
+    "reading": 227,
+    "release": 58,
+    "speed": 147,
+    "speedjam": 0,
+    "stamina": 119,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L60 ez 1`] = `
+{
+  "accuracy": 0.9951395848246244,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 1,
+    "GREAT": 18,
+    "MARVELOUS": 1018,
+    "MISS": 0,
+    "PERFECT": 360,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "be48d663",
+  "maxCombo": 1397,
+  "replay": "521e368f",
+  "score": 295591.44192284177,
+  "timings": "25c03761",
+  "xp": {
+    "accuracy": 102,
+    "concentration": 0,
+    "consistency": 62,
+    "coordination": 53,
+    "jackspeed": 32,
+    "memory": 0,
+    "reading": 113,
+    "release": 29,
+    "speed": 73,
+    "speedjam": 0,
+    "stamina": 59,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L60 hr 1`] = `
+{
+  "accuracy": 0.9379241231209748,
+  "counts": {
+    "BAD": 2,
+    "DIVINE": 0,
+    "GOOD": 26,
+    "GREAT": 193,
+    "MARVELOUS": 477,
+    "MISS": 2,
+    "PERFECT": 697,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "3016a655",
+  "maxCombo": 1148,
+  "replay": "521e368f",
+  "score": 805591.2016420277,
+  "timings": "ddf77c0c",
+  "xp": {
+    "accuracy": 225,
+    "concentration": 0,
+    "consistency": 124,
+    "coordination": 106,
+    "jackspeed": 65,
+    "memory": 0,
+    "reading": 227,
+    "release": 58,
+    "speed": 147,
+    "speedjam": 0,
+    "stamina": 119,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L60 plain 1`] = `
+{
+  "accuracy": 0.9788618468146035,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 3,
+    "GREAT": 78,
+    "MARVELOUS": 737,
+    "MISS": 1,
+    "PERFECT": 578,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "4c0d8067",
+  "maxCombo": 1148,
+  "replay": "521e368f",
+  "score": 945210.6727588635,
+  "timings": "25c03761",
+  "xp": {
+    "accuracy": 205,
+    "concentration": 0,
+    "consistency": 124,
+    "coordination": 106,
+    "jackspeed": 65,
+    "memory": 0,
+    "reading": 227,
+    "release": 58,
+    "speed": 147,
+    "speedjam": 0,
+    "stamina": 119,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L60 rate 1`] = `
+{
+  "accuracy": 0.966528274874733,
+  "counts": {
+    "BAD": 2,
+    "DIVINE": 0,
+    "GOOD": 10,
+    "GREAT": 107,
+    "MARVELOUS": 654,
+    "MISS": 2,
+    "PERFECT": 622,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "57131526",
+  "maxCombo": 794,
+  "replay": "5dcac22d",
+  "score": 917271.8161187139,
+  "timings": "ea33ef34",
+  "xp": {
+    "accuracy": 121,
+    "concentration": 0,
+    "consistency": 68,
+    "coordination": 93,
+    "jackspeed": 114,
+    "memory": 0,
+    "reading": 0,
+    "release": 33,
+    "speed": 200,
+    "speedjam": 0,
+    "stamina": 260,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L120 divine 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 816,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 560,
+    "MISS": 0,
+    "PERFECT": 21,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "71142734",
+  "maxCombo": 1397,
+  "replay": "dd8634b9",
+  "score": 999530.243378683,
+  "timings": "d87503b7",
+  "xp": {
+    "accuracy": 483,
+    "concentration": 0,
+    "consistency": 4,
+    "coordination": 0,
+    "jackspeed": 21,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L120 ez 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 1386,
+    "MISS": 0,
+    "PERFECT": 11,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "f684b8cb",
+  "maxCombo": 1397,
+  "replay": "dd8634b9",
+  "score": 299926.18110236694,
+  "timings": "d87503b7",
+  "xp": {
+    "accuracy": 241,
+    "concentration": 0,
+    "consistency": 2,
+    "coordination": 0,
+    "jackspeed": 10,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L120 hr 1`] = `
+{
+  "accuracy": 0.9992698639942734,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 3,
+    "MARVELOUS": 1294,
+    "MISS": 0,
+    "PERFECT": 100,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "f6953ca9",
+  "maxCombo": 1397,
+  "replay": "dd8634b9",
+  "score": 996792.9144527874,
+  "timings": "d87503b7",
+  "xp": {
+    "accuracy": 531,
+    "concentration": 0,
+    "consistency": 4,
+    "coordination": 0,
+    "jackspeed": 21,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L120 plain 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 1376,
+    "MISS": 0,
+    "PERFECT": 21,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "9b47fa9a",
+  "maxCombo": 1397,
+  "replay": "dd8634b9",
+  "score": 999530.243378683,
+  "timings": "d87503b7",
+  "xp": {
+    "accuracy": 483,
+    "concentration": 0,
+    "consistency": 4,
+    "coordination": 0,
+    "jackspeed": 21,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > 4-blu L120 rate 1`] = `
+{
+  "accuracy": 1,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 0,
+    "MARVELOUS": 1347,
+    "MISS": 0,
+    "PERFECT": 50,
+  },
+  "failed": false,
+  "grade": "SS",
+  "hits": "5ad5888",
+  "maxCombo": 1397,
+  "replay": "9edf29ea",
+  "score": 998881.5318539876,
+  "timings": "f3333a99",
+  "xp": {
+    "accuracy": 436,
+    "concentration": 0,
+    "consistency": 7,
+    "coordination": 0,
+    "jackspeed": 19,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L20 divine 1`] = `
+{
+  "accuracy": 0.6632084309133497,
+  "counts": {
+    "BAD": 20,
+    "DIVINE": 17,
+    "GOOD": 51,
+    "GREAT": 76,
+    "MARVELOUS": 41,
+    "MISS": 67,
+    "PERFECT": 155,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "63f906d6",
+  "maxCombo": 117,
+  "replay": "726dfaa3",
+  "score": 80814.83630672169,
+  "timings": "7917d55a",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L20 ez 1`] = `
+{
+  "accuracy": 0.7238510638297884,
+  "counts": {
+    "BAD": 24,
+    "DIVINE": 0,
+    "GOOD": 29,
+    "GREAT": 80,
+    "MARVELOUS": 88,
+    "MISS": 63,
+    "PERFECT": 186,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "c9de2a80",
+  "maxCombo": 133,
+  "replay": "726dfaa3",
+  "score": 30880.140682807967,
+  "timings": "2ca165ae",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L20 hr 1`] = `
+{
+  "accuracy": 0.6886092715231783,
+  "counts": {
+    "BAD": 5,
+    "DIVINE": 0,
+    "GOOD": 6,
+    "GREAT": 20,
+    "MARVELOUS": 20,
+    "MISS": 32,
+    "PERFECT": 68,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "6eefcea4",
+  "maxCombo": 70,
+  "replay": "726dfaa3",
+  "score": 25572.91119336339,
+  "timings": "fecce06b",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L20 plain 1`] = `
+{
+  "accuracy": 0.6632084309133497,
+  "counts": {
+    "BAD": 20,
+    "DIVINE": 0,
+    "GOOD": 51,
+    "GREAT": 76,
+    "MARVELOUS": 58,
+    "MISS": 67,
+    "PERFECT": 155,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "21bf363f",
+  "maxCombo": 117,
+  "replay": "726dfaa3",
+  "score": 80814.83630672169,
+  "timings": "7917d55a",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L20 rate 1`] = `
+{
+  "accuracy": 0.6980821917808212,
+  "counts": {
+    "BAD": 9,
+    "DIVINE": 0,
+    "GOOD": 2,
+    "GREAT": 27,
+    "MARVELOUS": 33,
+    "MISS": 26,
+    "PERFECT": 49,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "be241e53",
+  "maxCombo": 99,
+  "replay": "bf218a6f",
+  "score": 36999.597782622004,
+  "timings": "a1186fbb",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L60 divine 1`] = `
+{
+  "accuracy": 0.9479015544041467,
+  "counts": {
+    "BAD": 8,
+    "DIVINE": 161,
+    "GOOD": 36,
+    "GREAT": 223,
+    "MARVELOUS": 619,
+    "MISS": 14,
+    "PERFECT": 1255,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "b36b1f2a",
+  "maxCombo": 479,
+  "replay": "ebcf9c4b",
+  "score": 785691.8049168534,
+  "timings": "3d2128f",
+  "xp": {
+    "accuracy": 29,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 56,
+    "jackspeed": 152,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 120,
+    "speedjam": 187,
+    "stamina": 97,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L60 ez 1`] = `
+{
+  "accuracy": 0.9785492227979281,
+  "counts": {
+    "BAD": 4,
+    "DIVINE": 0,
+    "GOOD": 8,
+    "GREAT": 94,
+    "MARVELOUS": 1226,
+    "MISS": 9,
+    "PERFECT": 975,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "bd344102",
+  "maxCombo": 479,
+  "replay": "ebcf9c4b",
+  "score": 271388.65105079015,
+  "timings": "ae05f64f",
+  "xp": {
+    "accuracy": 14,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 28,
+    "jackspeed": 76,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 60,
+    "speedjam": 93,
+    "stamina": 48,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L60 hr 1`] = `
+{
+  "accuracy": 0.8852547495682254,
+  "counts": {
+    "BAD": 29,
+    "DIVINE": 0,
+    "GOOD": 139,
+    "GREAT": 339,
+    "MARVELOUS": 484,
+    "MISS": 33,
+    "PERFECT": 1292,
+  },
+  "failed": false,
+  "grade": "B",
+  "hits": "b1a464f7",
+  "maxCombo": 287,
+  "replay": "ebcf9c4b",
+  "score": 561483.0632193025,
+  "timings": "7299124b",
+  "xp": {
+    "accuracy": 31,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 56,
+    "jackspeed": 152,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 120,
+    "speedjam": 187,
+    "stamina": 97,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L60 plain 1`] = `
+{
+  "accuracy": 0.9479015544041467,
+  "counts": {
+    "BAD": 8,
+    "DIVINE": 0,
+    "GOOD": 36,
+    "GREAT": 223,
+    "MARVELOUS": 780,
+    "MISS": 14,
+    "PERFECT": 1255,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "163ea2d3",
+  "maxCombo": 479,
+  "replay": "ebcf9c4b",
+  "score": 785691.8049168534,
+  "timings": "3d2128f",
+  "xp": {
+    "accuracy": 29,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 56,
+    "jackspeed": 152,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 120,
+    "speedjam": 187,
+    "stamina": 97,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L60 rate 1`] = `
+{
+  "accuracy": 0.8942098445595913,
+  "counts": {
+    "BAD": 15,
+    "DIVINE": 0,
+    "GOOD": 73,
+    "GREAT": 375,
+    "MARVELOUS": 653,
+    "MISS": 56,
+    "PERFECT": 1144,
+  },
+  "failed": false,
+  "grade": "B",
+  "hits": "e5f9c1ff",
+  "maxCombo": 343,
+  "replay": "9efe68a4",
+  "score": 641780.854344608,
+  "timings": "a3117b1d",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 30,
+    "jackspeed": 155,
+    "memory": 0,
+    "reading": 2,
+    "release": 0,
+    "speed": 97,
+    "speedjam": 0,
+    "stamina": 164,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L120 divine 1`] = `
+{
+  "accuracy": 0.991463730569948,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 934,
+    "GOOD": 7,
+    "GREAT": 36,
+    "MARVELOUS": 1022,
+    "MISS": 2,
+    "PERFECT": 314,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "f3a6fd32",
+  "maxCombo": 2024,
+  "replay": "54fb7929",
+  "score": 977331.733743877,
+  "timings": "ed395ff",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 2,
+    "consistency": 118,
+    "coordination": 96,
+    "jackspeed": 17,
+    "memory": 0,
+    "reading": 0,
+    "release": 114,
+    "speed": 0,
+    "speedjam": 2136,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L120 ez 1`] = `
+{
+  "accuracy": 0.997085492227979,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 1,
+    "GREAT": 12,
+    "MARVELOUS": 2107,
+    "MISS": 2,
+    "PERFECT": 194,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "41c6aa1",
+  "maxCombo": 2024,
+  "replay": "54fb7929",
+  "score": 296664.7305754148,
+  "timings": "ed395ff",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 1,
+    "consistency": 59,
+    "coordination": 48,
+    "jackspeed": 8,
+    "memory": 0,
+    "reading": 0,
+    "release": 57,
+    "speed": 0,
+    "speedjam": 1068,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L120 hr 1`] = `
+{
+  "accuracy": 0.9824395509499129,
+  "counts": {
+    "BAD": 9,
+    "DIVINE": 0,
+    "GOOD": 15,
+    "GREAT": 59,
+    "MARVELOUS": 1690,
+    "MISS": 3,
+    "PERFECT": 540,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "7fcbda08",
+  "maxCombo": 2024,
+  "replay": "54fb7929",
+  "score": 944228.359143256,
+  "timings": "ed395ff",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 2,
+    "consistency": 118,
+    "coordination": 96,
+    "jackspeed": 17,
+    "memory": 0,
+    "reading": 0,
+    "release": 114,
+    "speed": 0,
+    "speedjam": 2136,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L120 plain 1`] = `
+{
+  "accuracy": 0.991463730569948,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 0,
+    "GOOD": 7,
+    "GREAT": 36,
+    "MARVELOUS": 1956,
+    "MISS": 2,
+    "PERFECT": 314,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "44d3cec1",
+  "maxCombo": 2024,
+  "replay": "54fb7929",
+  "score": 977331.733743877,
+  "timings": "ed395ff",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 2,
+    "consistency": 118,
+    "coordination": 96,
+    "jackspeed": 17,
+    "memory": 0,
+    "reading": 0,
+    "release": 114,
+    "speed": 0,
+    "speedjam": 2136,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > s-singularity L120 rate 1`] = `
+{
+  "accuracy": 0.9922452504317779,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 4,
+    "GREAT": 42,
+    "MARVELOUS": 1889,
+    "MISS": 1,
+    "PERFECT": 380,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "f63377e0",
+  "maxCombo": 1434,
+  "replay": "5c09a73e",
+  "score": 977431.1082643964,
+  "timings": "d746535b",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 202,
+    "coordination": 123,
+    "jackspeed": 101,
+    "memory": 0,
+    "reading": 0,
+    "release": 113,
+    "speed": 2,
+    "speedjam": 1927,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L20 divine 1`] = `
+{
+  "accuracy": 0.8399407407407428,
+  "counts": {
+    "BAD": 5,
+    "DIVINE": 38,
+    "GOOD": 48,
+    "GREAT": 202,
+    "MARVELOUS": 103,
+    "MISS": 3,
+    "PERFECT": 276,
+  },
+  "failed": false,
+  "grade": "B",
+  "hits": "840c0dad",
+  "maxCombo": 474,
+  "replay": "61a17ae3",
+  "score": 493975.86444392084,
+  "timings": "23fe1564",
+  "xp": {
+    "accuracy": 51,
+    "concentration": 0,
+    "consistency": 25,
+    "coordination": 0,
+    "jackspeed": 109,
+    "memory": 0,
+    "reading": 64,
+    "release": 0,
+    "speed": 51,
+    "speedjam": 190,
+    "stamina": 42,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L20 ez 1`] = `
+{
+  "accuracy": 0.9318962962962968,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 0,
+    "GOOD": 9,
+    "GREAT": 115,
+    "MARVELOUS": 234,
+    "MISS": 0,
+    "PERFECT": 316,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "63387fe4",
+  "maxCombo": 675,
+  "replay": "61a17ae3",
+  "score": 235294.0703581658,
+  "timings": "23fe1564",
+  "xp": {
+    "accuracy": 25,
+    "concentration": 0,
+    "consistency": 12,
+    "coordination": 0,
+    "jackspeed": 54,
+    "memory": 0,
+    "reading": 32,
+    "release": 0,
+    "speed": 25,
+    "speedjam": 95,
+    "stamina": 21,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L20 hr 1`] = `
+{
+  "accuracy": 0.7241556291390757,
+  "counts": {
+    "BAD": 28,
+    "DIVINE": 0,
+    "GOOD": 73,
+    "GREAT": 227,
+    "MARVELOUS": 81,
+    "MISS": 17,
+    "PERFECT": 178,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "9ec2389a",
+  "maxCombo": 270,
+  "replay": "61a17ae3",
+  "score": 351841.24533706537,
+  "timings": "9d1684f1",
+  "xp": {
+    "accuracy": 56,
+    "concentration": 0,
+    "consistency": 25,
+    "coordination": 0,
+    "jackspeed": 109,
+    "memory": 0,
+    "reading": 64,
+    "release": 0,
+    "speed": 51,
+    "speedjam": 190,
+    "stamina": 42,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L20 plain 1`] = `
+{
+  "accuracy": 0.8399407407407428,
+  "counts": {
+    "BAD": 5,
+    "DIVINE": 0,
+    "GOOD": 48,
+    "GREAT": 202,
+    "MARVELOUS": 141,
+    "MISS": 3,
+    "PERFECT": 276,
+  },
+  "failed": false,
+  "grade": "B",
+  "hits": "bd83dd97",
+  "maxCombo": 474,
+  "replay": "61a17ae3",
+  "score": 493975.86444392084,
+  "timings": "23fe1564",
+  "xp": {
+    "accuracy": 51,
+    "concentration": 0,
+    "consistency": 25,
+    "coordination": 0,
+    "jackspeed": 109,
+    "memory": 0,
+    "reading": 64,
+    "release": 0,
+    "speed": 51,
+    "speedjam": 190,
+    "stamina": 42,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L20 rate 1`] = `
+{
+  "accuracy": 0.7657213930348296,
+  "counts": {
+    "BAD": 24,
+    "DIVINE": 0,
+    "GOOD": 59,
+    "GREAT": 187,
+    "MARVELOUS": 120,
+    "MISS": 18,
+    "PERFECT": 195,
+  },
+  "failed": true,
+  "grade": "D",
+  "hits": "916be422",
+  "maxCombo": 177,
+  "replay": "178c4008",
+  "score": 378764.69543417176,
+  "timings": "a5228049",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 0,
+    "coordination": 0,
+    "jackspeed": 51,
+    "memory": 0,
+    "reading": 2,
+    "release": 0,
+    "speed": 18,
+    "speedjam": 0,
+    "stamina": 46,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L60 divine 1`] = `
+{
+  "accuracy": 0.9290814814814822,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 119,
+    "GOOD": 23,
+    "GREAT": 93,
+    "MARVELOUS": 234,
+    "MISS": 0,
+    "PERFECT": 205,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "b6f7e204",
+  "maxCombo": 675,
+  "replay": "bb6fca27",
+  "score": 756742.9874766968,
+  "timings": "5da19ace",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 159,
+    "coordination": 0,
+    "jackspeed": 29,
+    "memory": 0,
+    "reading": 4,
+    "release": 0,
+    "speed": 5,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L60 ez 1`] = `
+{
+  "accuracy": 0.9642518518518522,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 1,
+    "GREAT": 69,
+    "MARVELOUS": 442,
+    "MISS": 0,
+    "PERFECT": 163,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "c3023060",
+  "maxCombo": 675,
+  "replay": "bb6fca27",
+  "score": 283111.02464150765,
+  "timings": "5da19ace",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 79,
+    "coordination": 0,
+    "jackspeed": 14,
+    "memory": 0,
+    "reading": 2,
+    "release": 0,
+    "speed": 2,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L60 hr 1`] = `
+{
+  "accuracy": 0.8581777777777796,
+  "counts": {
+    "BAD": 16,
+    "DIVINE": 0,
+    "GOOD": 53,
+    "GREAT": 117,
+    "MARVELOUS": 241,
+    "MISS": 7,
+    "PERFECT": 241,
+  },
+  "failed": false,
+  "grade": "B",
+  "hits": "71eeeddc",
+  "maxCombo": 226,
+  "replay": "bb6fca27",
+  "score": 511321.0610535813,
+  "timings": "5da19ace",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 159,
+    "coordination": 0,
+    "jackspeed": 29,
+    "memory": 0,
+    "reading": 4,
+    "release": 0,
+    "speed": 5,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L60 plain 1`] = `
+{
+  "accuracy": 0.9290814814814822,
+  "counts": {
+    "BAD": 1,
+    "DIVINE": 0,
+    "GOOD": 23,
+    "GREAT": 93,
+    "MARVELOUS": 353,
+    "MISS": 0,
+    "PERFECT": 205,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "8e52a2c3",
+  "maxCombo": 675,
+  "replay": "bb6fca27",
+  "score": 756742.9874766968,
+  "timings": "5da19ace",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 159,
+    "coordination": 0,
+    "jackspeed": 29,
+    "memory": 0,
+    "reading": 4,
+    "release": 0,
+    "speed": 5,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L60 rate 1`] = `
+{
+  "accuracy": 0.9068444444444453,
+  "counts": {
+    "BAD": 4,
+    "DIVINE": 0,
+    "GOOD": 32,
+    "GREAT": 112,
+    "MARVELOUS": 307,
+    "MISS": 0,
+    "PERFECT": 220,
+  },
+  "failed": false,
+  "grade": "A",
+  "hits": "a8da0562",
+  "maxCombo": 675,
+  "replay": "49d869c9",
+  "score": 614104.7080465708,
+  "timings": "a27fd979",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 140,
+    "coordination": 0,
+    "jackspeed": 44,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 8,
+    "speedjam": 0,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L120 divine 1`] = `
+{
+  "accuracy": 0.9874222222222224,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 269,
+    "GOOD": 1,
+    "GREAT": 23,
+    "MARVELOUS": 268,
+    "MISS": 0,
+    "PERFECT": 114,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "d7067d33",
+  "maxCombo": 675,
+  "replay": "f9cbb27a",
+  "score": 976954.2153249194,
+  "timings": "20da72f7",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 86,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 150,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L120 ez 1`] = `
+{
+  "accuracy": 0.9969777777777776,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 0,
+    "GREAT": 6,
+    "MARVELOUS": 593,
+    "MISS": 0,
+    "PERFECT": 76,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "10a003e6",
+  "maxCombo": 675,
+  "replay": "f9cbb27a",
+  "score": 297749.7937978673,
+  "timings": "20da72f7",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 43,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 75,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L120 hr 1`] = `
+{
+  "accuracy": 0.9663851851851859,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 9,
+    "GREAT": 49,
+    "MARVELOUS": 465,
+    "MISS": 0,
+    "PERFECT": 152,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "390d3e34",
+  "maxCombo": 675,
+  "replay": "f9cbb27a",
+  "score": 936683.5220128031,
+  "timings": "20da72f7",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 86,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 150,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L120 plain 1`] = `
+{
+  "accuracy": 0.9874222222222224,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 1,
+    "GREAT": 23,
+    "MARVELOUS": 537,
+    "MISS": 0,
+    "PERFECT": 114,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "2289a89a",
+  "maxCombo": 675,
+  "replay": "f9cbb27a",
+  "score": 976954.2153249194,
+  "timings": "20da72f7",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 86,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 150,
+    "stamina": 0,
+  },
+}
+`;
+
+exports[`golden mania4k plays > slow-stress L120 rate 1`] = `
+{
+  "accuracy": 0.9723555555555554,
+  "counts": {
+    "BAD": 0,
+    "DIVINE": 0,
+    "GOOD": 4,
+    "GREAT": 47,
+    "MARVELOUS": 497,
+    "MISS": 0,
+    "PERFECT": 127,
+  },
+  "failed": false,
+  "grade": "S",
+  "hits": "aefa86db",
+  "maxCombo": 675,
+  "replay": "1a355d97",
+  "score": 952584.7787971994,
+  "timings": "e7ac8b79",
+  "xp": {
+    "accuracy": 0,
+    "concentration": 0,
+    "consistency": 89,
+    "coordination": 0,
+    "jackspeed": 0,
+    "memory": 0,
+    "reading": 0,
+    "release": 0,
+    "speed": 0,
+    "speedjam": 121,
+    "stamina": 0,
+  },
+}
+`;

@@ -1,14 +1,20 @@
-import * as ppjs from 'rosu-pp-js-web';
 import { Beatmap } from 'osu-classes';
+import * as ppjs from 'rosu-pp-js-web';
+
+import type { Mod } from '@oss-idle/shared/mods';
+import type {
+	PerformanceScore,
+	RulesetDef,
+} from '@oss-idle/shared/rulesets/ruleset';
+
 import BeatmapAPI from './beatmap/beatmap_api';
 import BeatmapStore from './beatmap/beatmap_store';
 import rosuReady from './rosu';
-import { ScoreState } from '@oss-idle/shared/sim/scoring';
-import type { Mod } from '@oss-idle/shared/mods';
-import { performanceArgs } from '@oss-idle/shared/osu/performanceArgs';
 
+/** A play's pp, as its ruleset reads it to rosu. */
 const calculatePP = async (
-	score: ScoreState,
+	def: RulesetDef,
+	score: PerformanceScore,
 	beatmap: Beatmap,
 	rate = 1,
 	mods: readonly Mod[] = [],
@@ -19,7 +25,7 @@ const calculatePP = async (
 	if (!osu) return 0;
 
 	await rosuReady();
-	return new ppjs.Performance(performanceArgs(score, rate, mods))
+	return new ppjs.Performance(def.performanceArgs(score, rate, mods))
 		.calculate(new ppjs.Beatmap(osu)).pp;
 };
 

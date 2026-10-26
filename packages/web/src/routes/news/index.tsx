@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { listNews } from '../../api/news';
 import News from '../../pages/news/News';
 

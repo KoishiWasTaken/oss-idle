@@ -1,25 +1,28 @@
 import '../../components/leaderboard/PlayerLeaderboard.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
 import '../../components/leaderboard/MedalProgress.css';
-import { useNavigate } from '@tanstack/react-router';
+
 import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useNavigate } from '@tanstack/react-router';
+
+import rank from '@oss-idle/shared/display/rank';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
+import type { getProgressRanking } from '../../api/rankings';
+import Flag from '../../components/Flag';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
 import MedalBoardTabs from '../../components/leaderboard/MedalBoardTabs';
-import MedalLineIcon from '../../components/leaderboard/MedalLineIcon';
-import Pager from '../../components/leaderboard/Pager';
-import Flag from '../../components/Flag';
-import Link from '../../components/Link';
-import rank from '@oss-idle/shared/display/rank';
-import type { getProgressRanking } from '../../api/rankings';
 import {
 	LINE_NAMES,
 	lineStanding,
 	lineValue,
 } from '../../components/leaderboard/medalLine';
+import MedalLineIcon from '../../components/leaderboard/MedalLineIcon';
+import Pager from '../../components/leaderboard/Pager';
+import Link from '../../components/Link';
 import RankingsNav from './RankingsNav';
 
 /** The players furthest along one medal line, toward their next medal. */

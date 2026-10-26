@@ -1,19 +1,23 @@
 import './PlayerLeaderboard.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
-import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
-import Link from '../Link';
-import Pager from './Pager';
-import int from '@oss-idle/shared/math/int';
-import type { getGlobalRanking } from '../../api/rankings';
-import Flag from '../Flag';
-import rank from '@oss-idle/shared/display/rank';
-import num from '@oss-idle/shared/display/num';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
-import accuracy from '@oss-idle/shared/display/accuracy';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
+import accuracy from '@oss-idle/shared/display/accuracy';
+import num from '@oss-idle/shared/display/num';
+import rank from '@oss-idle/shared/display/rank';
+import int from '@oss-idle/shared/math/int';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+import hitAccuracy from '@oss-idle/shared/rulesets/mania/hitAccuracy';
+import { countsOf } from '@oss-idle/shared/rulesets/ruleset';
+
+import type { getGlobalRanking } from '../../api/rankings';
+import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
+import Flag from '../Flag';
+import Link from '../Link';
+import Pager from './Pager';
 
 export type ScoreSort = 'pp' | 'rankedScore';
 
@@ -65,16 +69,16 @@ export default function PlayerLeaderboard({ sort, country, page, players }: {
 							<Flag country={player.user.country} />
 							<Link to='/c/$id' params={{ id: String(player.character.id) }}>{player.character.name}</Link>
 						</div></td>
-						<td className='dimmed'>{accuracy(hitAccuracy(player.character_totals))}</td>
-						<td className='dimmed'>{num(player.character_totals.playCount)}</td>
+						<td className='dimmed'>{accuracy(hitAccuracy(countsOf(player.totals)))}</td>
+						<td className='dimmed'>{num(player.totals.playCount)}</td>
 						<td className={`${sort === 'rankedScore' ? 'current' : 'dimmed'}`}>
-							{num(player.character_totals.rankedScore)}
+							{num(player.totals.rankedScore)}
 						</td>
-						<td className={`${sort === 'pp' ? 'current' : 'dimmed'}`}>{num(int(player.character.pp) ?? 0)}</td>
-						<td className='dimmed extra'>{num(player.character_totals.X)}</td>
-						<td className='dimmed extra'>{num(player.character_totals.SS)}</td>
-						<td className='dimmed extra'>{num(player.character_totals.S)}</td>
-						<td className='dimmed extra'>{num(player.character_totals.A)}</td>
+						<td className={`${sort === 'pp' ? 'current' : 'dimmed'}`}>{num(int(player.profile.pp) ?? 0)}</td>
+						<td className='dimmed extra'>{num(player.totals.X)}</td>
+						<td className='dimmed extra'>{num(player.totals.SS)}</td>
+						<td className='dimmed extra'>{num(player.totals.S)}</td>
+						<td className='dimmed extra'>{num(player.totals.A)}</td>
 					</tr>)}
 				</tbody>
 			</table>

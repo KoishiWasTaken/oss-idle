@@ -1,13 +1,14 @@
-import { versionLabel } from '@oss-idle/shared/rate';
-import { useEffect } from 'react';
+import './Screensaver.css';
+
 import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { useEffect } from 'react';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
-import { LEAD_IN_MS } from '@oss-idle/shared/sim/maniaGame';
-import PlayManager from '../online/playManager';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { LEAD_IN_MS } from '@oss-idle/shared/play';
+import { versionLabel } from '@oss-idle/shared/rate';
+
 import { music } from '../audio/MusicPlayer';
-import { currentSkin } from '../osu/skin/Skin';
-import Controls from '../input/Controls';
 import useTick from '../components/dock/useTick';
 import {
 	isCommunityOpen,
@@ -15,9 +16,11 @@ import {
 	isWebOpen,
 	openPage,
 } from '../globals';
+import Controls from '../input/Controls';
+import PlayManager from '../online/playManager';
+import { currentSkin } from '../osu/skin/Skin';
 import Background from './Background';
 import { leaveScreensaver } from './screensaver';
-import './Screensaver.css';
 
 /** How long without input before the chrome over the screensaver fades out. */
 const IDLE_MS = 4000;

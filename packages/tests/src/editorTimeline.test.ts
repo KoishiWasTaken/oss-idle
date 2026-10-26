@@ -3,7 +3,9 @@ import {
 	expect,
 	it,
 } from 'vitest';
-import type { TimingPoint } from '@oss-idle/shared/editor/chart';
+
+import type { TimingPoint } from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import {
 	mainBeatLength,
 	straysOf,

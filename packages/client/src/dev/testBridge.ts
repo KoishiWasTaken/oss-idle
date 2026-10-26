@@ -1,27 +1,28 @@
+import type Synced from '@oss-idle/shared/helpers/synced';
 import {
-	Skills,
 	type SkillName,
-} from '@oss-idle/shared/skills';
-import SceneManager, {
-	SCENE,
-	type Scene,
-} from '../scenes/SceneManager';
+	Skills,
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
+
+import { music } from '../audio/MusicPlayer';
+import { DB } from '../db/dao';
+import { Score } from '../db/schema/score';
+import { ScoreXP } from '../db/schema/score_xp';
+import { SETTINGS } from '../db/settings';
 import Entities from '../entity/entities';
-import Account from '../online/account';
-import PlayManager from '../online/playManager';
 import PlayQueue from '../gameplay/playQueue';
+import Account from '../online/account';
 import {
 	currentLocalPlay,
 	finishLocalPlay,
 } from '../online/localPlay';
+import PlayManager from '../online/playManager';
 import BeatmapAPI from '../osu/beatmap/beatmap_api';
 import BeatmapStore from '../osu/beatmap/beatmap_store';
-import { Score } from '../db/schema/score';
-import { ScoreXP } from '../db/schema/score_xp';
-import { SETTINGS } from '../db/settings';
-import { DB } from '../db/dao';
-import type Synced from '@oss-idle/shared/helpers/synced';
-import { music } from '../audio/MusicPlayer';
+import SceneManager, {
+	SCENE,
+	type Scene,
+} from '../scenes/SceneManager';
 import { menuWarmed } from '../warmup/menuWarmed';
 
 /**
@@ -35,7 +36,7 @@ import { menuWarmed } from '../warmup/menuWarmed';
  */
 
 type SkillView = {
-	name: SkillName;
+	name: string;
 	level: number;
 	xp: number;
 	upgrades: number;
@@ -83,8 +84,8 @@ const character = (): CharacterView => {
 		name: c.name,
 		guest: c.isGuest(),
 		generation: c.generation,
-		overallLevel: c.overallLevel,
-		overallTotalXp: c.overallTotalXp,
+		overallLevel: c.progress.overallLevel,
+		overallTotalXp: c.progress.overallTotalXp,
 		skills: c.skills.map(s => ({
 			name: s.name,
 			level: s.level.get(),
@@ -217,7 +218,7 @@ const bridge = {
 			scoreId: row.scoreId,
 			beatmapId: row.beatmapId,
 			gains: Object.fromEntries(
-				Skills.map(s => [s, row[s]]).filter(([, gained]) => (gained as number) > 0),
+				Skills.map(s => [s, row.gainOf(s)]).filter(([, gained]) => (gained as number) > 0),
 			) as Partial<Record<SkillName, number>>,
 		}));
 	},

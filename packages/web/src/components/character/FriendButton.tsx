@@ -1,10 +1,13 @@
 import './FriendButton.css';
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import num from '@oss-idle/shared/display/num';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
 	addFriend,
 	getRelation,

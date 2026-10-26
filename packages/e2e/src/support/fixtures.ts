@@ -1,16 +1,17 @@
-import {
-	test as base,
-	expect,
-} from '@playwright/test';
 import type {
 	BrowserContext,
 	Page,
 } from '@playwright/test';
-import Game from './game';
 import {
-	signIn,
+	expect,
+	test as base,
+} from '@playwright/test';
+
+import {
 	type Account,
+	signIn,
 } from './accounts';
+import Game from './game';
 
 /**
  * Every spec gets a fresh browser context, so the local sql.js database, the

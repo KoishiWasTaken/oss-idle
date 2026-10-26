@@ -1,15 +1,18 @@
 import './EditableProfilePicture.css';
-import { useRef } from 'react';
-import ProfilePicture from './ProfilePicture';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
-import {
-	resetAvatar,
-	uploadAvatar,
-} from '../api/users';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useRef } from 'react';
+
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
+import {
+	resetAvatar,
+	uploadAvatar,
+} from '../api/users';
+import ProfilePicture from './ProfilePicture';
 
 type Props = {
 	characterId: number;

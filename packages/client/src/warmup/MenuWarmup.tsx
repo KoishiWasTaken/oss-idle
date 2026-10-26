@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import MainMenu from '../scenes/MainMenu';
 import { warmedUp } from './menuWarmed';
 

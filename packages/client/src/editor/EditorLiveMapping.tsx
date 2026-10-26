@@ -2,7 +2,9 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	actions,
 	appliesTo,
@@ -11,13 +13,12 @@ import {
 } from './actions';
 import {
 	currentPlacing,
-	placingOptions,
 	type PlacingOptions,
+	placingOptions,
 } from './placing';
 import {
-	choices,
+	toggle,
 	whole,
-	type Choice,
 } from './viewControls';
 
 /** Live mapping, as Quaver's: a column's own key places a note at the current time while
@@ -31,7 +32,6 @@ export default function EditorLiveMapping({ keys }: { keys: number }) {
 	const set = (patch: Partial<PlacingOptions>) => placingOptions.set({
 		...placing, ...patch,
 	});
-	const onOff: Choice<boolean>[] = [[true, t`On`], [false, t`Off`]];
 	const columns = all.filter(action => action.group === 'live' && appliesTo(action, keys))
 		.map(action => keysOf(action)[0] ?? '·');
 
@@ -44,17 +44,17 @@ export default function EditorLiveMapping({ keys }: { keys: number }) {
 					{columns.map((key, i) => <kbd key={i}>{key}</kbd>)}
 				</span>
 			</div>
-			<div className='editor__stat'>
-				<span className='ladder-sum__label'><Trans>Snap live notes while playing</Trans></span>
-				{choices(onOff, placing.liveSnap, liveSnap => set({ liveSnap }))}
+			<div className='editor__stat editor__switches'>
+				{toggle(
+					<Trans>Snap live notes while playing</Trans>,
+					placing.liveSnap,
+					liveSnap => set({ liveSnap }),
+				)}
+				{toggle(<Trans>Hold a key for an LN</Trans>, placing.liveHolds, liveHolds => set({ liveHolds }))}
 			</div>
 			<div className='editor__stat'>
 				<span className='ladder-sum__label'><Trans>Live note offset (ms)</Trans></span>
 				{whole(placing.liveOffset, -200, 200, liveOffset => set({ liveOffset }), t`Live note offset`)}
-			</div>
-			<div className='editor__stat'>
-				<span className='ladder-sum__label'><Trans>Hold a key for an LN</Trans></span>
-				{choices(onOff, placing.liveHolds, liveHolds => set({ liveHolds }))}
 			</div>
 			{placing.liveHolds && (
 				<div className='editor__stat'>

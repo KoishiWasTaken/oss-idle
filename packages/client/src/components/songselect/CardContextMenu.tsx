@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
-import ContextMenu from '../ContextMenu';
-import { type CarouselItem } from '../BeatmapCarousel';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import { canPlayAt } from '../../gameplay/playRate';
+import { type CarouselItem } from '../BeatmapCarousel';
+import ContextMenu from '../ContextMenu';
 
 /** The card's osu!-style right-click menu. `deleting` lives here (not in the
  *  parent) so it resets every time the menu reopens - the menu only mounts while

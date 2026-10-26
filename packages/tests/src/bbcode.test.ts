@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { renderBBCode } from '../../server/src/bbcode';
 
 const render = (raw: string) => renderBBCode(raw, {

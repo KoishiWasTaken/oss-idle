@@ -3,6 +3,7 @@ import {
 	type Locator,
 	type Page,
 } from '@playwright/test';
+
 import type {
 	CatalogEntry,
 	CatalogVersion,
@@ -92,6 +93,9 @@ export default class Game {
 			name, mimeType: 'audio/wav', buffer: song,
 		});
 		await this.expectScene('EDITOR');
+		// the new map's metadata is asked for first
+		await this.page.locator('.editor__new-map')
+			.getByRole('button', { name: 'Start mapping' }).click();
 		await expect(this.page.locator('.editor__counts')).toHaveAttribute('data-notes', '0');
 	}
 

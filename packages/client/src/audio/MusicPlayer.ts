@@ -1,21 +1,23 @@
-import { stretchBuffer } from './stretchBuffer';
-import liveStretchUrl from './liveStretch.worklet?worker&url';
-import type { LiveStretchMessage } from './liveStretch.worklet';
 import { Beatmap } from 'osu-classes';
-import BeatmapStore, { revokeBlob } from '../osu/beatmap/beatmap_store';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { audioContext } from './audioContext';
-import { effects } from './EffectPlayer';
-import { SampleSchedule } from './SampleSchedule';
-import { preloadSamples } from './hitsounds';
-import { loadStoryboardAssets } from '../osu/beatmap/storyboard';
+
+import Listener from '@oss-idle/shared/helpers/listener';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
 import Synced from '@oss-idle/shared/helpers/synced';
-import Listener from '@oss-idle/shared/helpers/listener';
+
 import { SETTINGS } from '../db/settings';
+import BeatmapStore, { revokeBlob } from '../osu/beatmap/beatmap_store';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { loadStoryboardAssets } from '../osu/beatmap/storyboard';
+import { audioContext } from './audioContext';
+import { effects } from './EffectPlayer';
+import { preloadSamples } from './hitsounds';
+import type { LiveStretchMessage } from './liveStretch.worklet';
+import liveStretchUrl from './liveStretch.worklet?worker&url';
+import { SampleSchedule } from './SampleSchedule';
+import { stretchBuffer } from './stretchBuffer';
 
 export const PLAYER_MODE = mapped(['PLAYLIST', 'LOOP', 'SINGLE']);
 export type PlayerMode = ValueIn<typeof PLAYER_MODE>;
@@ -329,7 +331,7 @@ export class MusicPlayer {
 	private history: LightBeatmap[] = [];
 
 	async next() {
-		const all = (await BeatmapStore.getAllSets()).flatMap(set => set.getPlayableBeatmaps());
+		const all = (await BeatmapStore.getAllSets()).flatMap(set => set.getPickedBeatmaps());
 		if (!all.length) return;
 		const current = music.beatmap.get();
 		// the intro is never stepped back to

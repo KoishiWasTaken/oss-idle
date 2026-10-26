@@ -1,5 +1,11 @@
 import Synced from '@oss-idle/shared/helpers/synced';
 import {
+	type Mod,
+	modsKey,
+	parseMods,
+} from '@oss-idle/shared/mods';
+
+import {
 	Column,
 	DAO,
 	DB,
@@ -15,13 +21,15 @@ const playlist = table('playlist', {
 });
 
 // in play order; a difficulty can sit in a playlist more than once, each copy
-// with how many times it plays in a row. No rate follows the mod (stored as 0).
+// with how many times it plays in a row. No rate follows the picked rate and mods
+// (stored as 0); a rate locks the mods stored with it too.
 const playlistEntry = table('playlist_entry', {
 	id:         integer().primaryKey().autoincrement(),
 	playlistId: integer(),
 	beatmapId:  integer(),
 	rate:       new Column<number | undefined>('REAL', v => v ?? 0, v => (v as number) || undefined)
 		.default(undefined),
+	mods:       new Column<Mod[]>('TEXT', modsKey, v => parseMods(String(v ?? ''))).default([]),
 	position:   integer(),
 	repeat:     integer().default(1),
 }, { indexes: { idx_playlist_entry_beatmap: 'beatmapId' } });
@@ -62,32 +70,38 @@ export class Playlist extends DAO(playlist) {
 		await this.delete();
 	}
 
-	/** At the end. `rate` locks the entry at it; without one it follows the mod. */
-	async addBeatmap(beatmapId: number, rate?: number, repeat = 1): Promise<void> {
+	/** At the end. `rate` locks the entry at it and `mods`; without one it follows the
+	 *  picked rate and mods. */
+	async addBeatmap(
+		beatmapId: number, rate?: number, mods: Mod[] = [], repeat = 1,
+	): Promise<void> {
 		const last = await PlaylistEntry.first(
 			'SELECT * FROM playlist_entry WHERE playlistId = ? ORDER BY position DESC LIMIT 1', [this.id],
 		);
 		await new PlaylistEntry({
-			playlistId: this.id, beatmapId, rate, repeat, position: (last?.position ?? 0) + 1,
+			playlistId: this.id, beatmapId, rate, mods: rate === undefined ? [] : mods, repeat,
+			position: (last?.position ?? 0) + 1,
 		}).add();
 		touch();
 	}
 
-	/** Every copy of it. */
-	async removeBeatmap(beatmapId: number, rate?: number): Promise<void> {
+	/** Every copy of it with that lock. */
+	async removeBeatmap(beatmapId: number, rate?: number, mods: Mod[] = []): Promise<void> {
 		await DB.run(
-			'DELETE FROM playlist_entry WHERE playlistId = ? AND beatmapId = ? AND rate = ?',
-			[this.id, beatmapId, rate ?? 0],
+			`DELETE FROM playlist_entry
+				WHERE playlistId = ? AND beatmapId = ? AND rate = ? AND mods = ?`,
+			[this.id, beatmapId, rate ?? 0, modsKey(mods)],
 		);
 		touch();
 	}
 }
 
-/** A difficulty's place in a playlist, at the rate it is locked at if any. */
+/** A difficulty's place in a playlist, at the rate and mods it is locked at if any. */
 export interface PlaylistMembership {
 	id: number;
 	name: string;
 	rate?: number;
+	mods: Mod[];
 	entry: PlaylistSlot;
 }
 
@@ -120,7 +134,7 @@ export async function getPlaylistIndex(): Promise<PlaylistIndex> {
 		let list = byBeatmap.get(e.beatmapId);
 		if (!list) byBeatmap.set(e.beatmapId, list = []);
 		list.push({
-			id: p.id, name: p.name, rate: e.rate, entry: {
+			id: p.id, name: p.name, rate: e.rate, mods: e.mods, entry: {
 				id: e.id, position: e.position, repeat: e.repeat,
 			},
 		});

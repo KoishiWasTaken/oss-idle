@@ -1,4 +1,5 @@
 import './BeatmapsetPage.css';
+
 import type { Mapset } from '../../api/maps';
 import BeatmapsetHeader from './BeatmapsetHeader';
 import MapScoreboard, { type Board } from './MapScoreboard';

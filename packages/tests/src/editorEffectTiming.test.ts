@@ -3,13 +3,14 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import {
 	eachSnapLine,
 	snapTime,
 	stepTime,
 	stepToward,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 
 const point = (time: number, beatLength: number): TimingPoint => ({
 	time, beatLength, meter: 4, sound: '1,1,100', effects: '0',

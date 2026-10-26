@@ -2,11 +2,13 @@ import {
 	useEffect,
 	useState,
 } from 'react';
-import Skill from '@oss-idle/shared/sim/skills/skill';
-import { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import { skillName } from '@oss-idle/shared/display/skills';
+
 import { bignum } from '@oss-idle/shared/display/num';
 import SkillLevel from '@oss-idle/shared/display/SkillLevel';
+import type { SkillGain } from '@oss-idle/shared/play';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
+
+import { selectedDef } from '../rulesets/registry';
 
 const SEGMENT_MS = 2000;     // time to pour a full level's worth of fill
 const MIN_SEGMENT_MS = 1000; // floor so tiny gains still read as a fill
@@ -29,13 +31,13 @@ function buildSegments({
 	fromXp,
 	toLevel, 
 	toXp,
-}: SkillProgress): Segment[] {
-	const startFill = fromXp / Skill.xpForLevel(fromLevel);
+}: SkillGain): Segment[] {
+	const startFill = fromXp / SkillState.xpForLevel(fromLevel);
 	if (toLevel === fromLevel) {
 		return [{ 
 			level: fromLevel, 
 			from: startFill, 
-			to: toXp / Skill.xpForLevel(toLevel), 
+			to: toXp / SkillState.xpForLevel(toLevel), 
 		}];
 	}
 	const segs: Segment[] = [{
@@ -47,7 +49,7 @@ function buildSegments({
 		});
 	}
 	segs.push({
-		level: toLevel, from: 0, to: toXp / Skill.xpForLevel(toLevel), 
+		level: toLevel, from: 0, to: toXp / SkillState.xpForLevel(toLevel), 
 	});
 	return segs;
 }
@@ -66,7 +68,7 @@ export default function SkillXPBar({
 	prestige,
 	lifetimeXp,
 }: { 
-	progress: SkillProgress, 
+	progress: SkillGain, 
 	delay?: number
 	/** how long this bar's whole fill may take, however many levels it crosses */
 	budgetMs?: number
@@ -76,7 +78,7 @@ export default function SkillXPBar({
 	lifetimeXp?: number
 }) {
 	const { skill, gained, fromLevel } = progress;
-	const startFill = progress.fromXp / Skill.xpForLevel(fromLevel);
+	const startFill = progress.fromXp / SkillState.xpForLevel(fromLevel);
 	const [state, setState] = useState({
 		level: fromLevel, fill: startFill, 
 	});
@@ -123,12 +125,12 @@ export default function SkillXPBar({
 				if (e.animationName === 'skillxp-enter') setAppeared(true); 
 			}}
 		>
-			<span className="skillxp__name">{skillName(skill)}</span>
+			<span className="skillxp__name">{selectedDef().skillName(skill)}</span>
 			{/* keyed so each level-up remounts and replays the pop animation */}
 			<span className="skillxp__level" key={state.level}>
 				<i>Lv</i><SkillLevel
 					level={state.level}
-					xp={state.fill * Skill.xpForLevel(state.level)}
+					xp={state.fill * SkillState.xpForLevel(state.level)}
 					prestige={prestige}
 					lifetimeXp={lifetimeXp}
 				/>

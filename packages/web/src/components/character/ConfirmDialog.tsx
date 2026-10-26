@@ -1,9 +1,11 @@
 import './ReportDialog.css';
-import type { ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { useLingui } from '@lingui/react/macro';
+
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+
 import { useAction } from '@oss-idle/shared/hooks/useAction';
 
 /** osu!web's report dialog shape: `send` runs on the main button, `onDone` once it worked. */

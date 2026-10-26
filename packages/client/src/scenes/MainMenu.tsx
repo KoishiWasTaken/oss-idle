@@ -1,61 +1,62 @@
+import './MainMenu.css';
+
+import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
 import {
 	useCallback,
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import IdleLogo from '../components/IdleLogo';
-import LogoVisualizer from '../components/LogoVisualizer';
-import {
-	music,
-	PLAYER_MODE,
-} from '../audio/MusicPlayer';
-import './MainMenu.css';
-import Background from './Background';
-import Multiplayer from '../online/multiplayer';
-import SceneManager, { SCENE } from './SceneManager';
-import Device from '../responsive/Device';
-import { useParallax } from '@oss-idle/shared/hooks/useParallax';
-import Announce from '../components/Announce';
+
+import { desktop } from '@oss-idle/shared/desktop';
 import {
 	mapped,
 	ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import Controls from '../input/Controls';
+import { useParallax } from '@oss-idle/shared/hooks/useParallax';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { DISCORD_URL } from '@oss-idle/shared/links';
 import normalize from '@oss-idle/shared/math/normalize';
+import { VERSION } from '@oss-idle/shared/version';
+
+import {
+	music,
+	PLAYER_MODE,
+} from '../audio/MusicPlayer';
+import Announce from '../components/Announce';
+import Changelog from '../components/Changelog';
+import ConfirmMenu from '../components/ConfirmMenu';
+import ContextMenu from '../components/ContextMenu';
+import DesktopUpdate from '../components/DesktopUpdate';
+import DirectTab from '../components/direct/DirectTab';
+import IdleLogo from '../components/IdleLogo';
+import LogoVisualizer from '../components/LogoVisualizer';
+import SupporterHeart from '../components/SupporterHeart';
+import { SETTINGS } from '../db/settings';
+import Entities from '../entity/entities';
 import {
 	isOptionsOpen,
 	menuIdle,
 } from '../globals';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Entities from '../entity/entities';
-import { SETTINGS } from '../db/settings';
-import { VERSION } from '@oss-idle/shared/version';
-import DesktopUpdate from '../components/DesktopUpdate';
-import SupporterHeart from '../components/SupporterHeart';
-import Changelog from '../components/Changelog';
-import DirectTab from '../components/direct/DirectTab';
-import { currentSkin } from '../osu/skin/Skin';
+import Controls from '../input/Controls';
 import Auth from '../online/auth';
-import ContextMenu from '../components/ContextMenu';
-import ConfirmMenu from '../components/ConfirmMenu';
-import PlayManager from '../online/playManager';
-import useAwayHours from './useAwayHours';
-import Socket from '../online/socket';
 import { checkAwayMedals } from '../online/medalWatch';
-import { desktop } from '@oss-idle/shared/desktop';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
-import { DISCORD_URL } from '@oss-idle/shared/links';
+import Multiplayer from '../online/multiplayer';
+import PlayManager from '../online/playManager';
+import Socket from '../online/socket';
 import {
 	easiestPlayable,
 	pickOsz,
 } from '../osu/beatmap/oszImport';
+import { currentSkin } from '../osu/skin/Skin';
 import { pickFile } from '../pickFile';
-import { createSet } from '../editor/save';
-import { message } from '../globals';
+import Device from '../responsive/Device';
+import Background from './Background';
+import SceneManager, { SCENE } from './SceneManager';
+import useAwayHours from './useAwayHours';
 
 interface Props {
 	/** play the white-flash "drop" entrance (true when arriving from the intro) */
@@ -175,19 +176,10 @@ export default function MainMenu({ flash = false }: Props) {
 
 	/** Start a map on an audio file, straight into the editor. */
 	const newMap = async () => {
-		const audio = await pickFile('audio/*,.mp3,.ogg,.wav');
-		if (!audio) return;
-		try {
-			const beatmap = await createSet(audio, {
-				creator: user?.username ?? character.name,
-				version: t`New difficulty`,
-				keys: 4,
-			});
-			SceneManager.set(SCENE.EDITOR, beatmap);
-		} catch (e) {
-			console.error('[editor] new map failed', e);
-			message.set(t`Could not start a map on ${ph({ name: audio.name })}`);
-		}
+		// the editor loads with the map it starts
+		const { AUDIO_TYPES, startMap } = await import('../editor/newMap');
+		const audio = await pickFile(AUDIO_TYPES);
+		if (audio) await startMap(audio);
 	};
 
 	// Exit only works in the desktop app; the browser forbids closing its own tab.

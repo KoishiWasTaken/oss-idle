@@ -1,7 +1,9 @@
 import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import ContextMenu from '../ContextMenu';
+
 import { copyText } from '../../clipboard';
+import ContextMenu from '../ContextMenu';
 import { linkFor } from './state';
 
 /** Asks before leaving the game for an address a player posted in chat. */

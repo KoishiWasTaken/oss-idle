@@ -1,5 +1,13 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+
+import {
+	reportBody,
+	socialSettingsBody,
+} from '@oss-idle/shared/social';
+
+import { requireActive } from '../auth/active';
+import { requireModerator } from '../auth/admin';
 import {
 	requireAuth,
 	sessionUserId,
@@ -10,26 +18,20 @@ import {
 	block,
 	blockedBy,
 	friendsOf,
+	relation,
+	removeFriend,
 	report,
 	reports,
 	resolveReport,
-	unblock,
-	relation,
-	removeFriend,
 	setSocialSettings,
 	socialSettings,
+	unblock,
 } from '../social';
-import {
-	reportBody,
-	socialSettingsBody,
-} from '@oss-idle/shared/social';
-import { requireModerator } from '../auth/admin';
-import { requireActive } from '../auth/active';
-import { chatLine } from '../ws/chat';
 import {
 	idParam,
 	valid,
 } from '../validate';
+import { chatLine } from '../ws/chat';
 
 
 export const socialRoutes = new Hono()

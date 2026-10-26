@@ -1,17 +1,19 @@
-import { ph } from '@lingui/core/macro';
 import './RankGraph.css';
 
+import { ph } from '@lingui/core/macro';
+import {
+	Plural,
+	Trans,
+} from '@lingui/react/macro';
 import {
 	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react';
-import {
-	Plural,
-	Trans,
-} from '@lingui/react/macro';
-import FancyGraph from '../FancyGraph';
+
 import num from '@oss-idle/shared/display/num';
+
+import FancyGraph from '../FancyGraph';
 
 const HEIGHT = 90;
 const MARGIN = 3;

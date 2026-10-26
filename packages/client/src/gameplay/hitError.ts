@@ -1,17 +1,18 @@
 import {
 	JUDGEMENT,
 	Judgements,
-} from '@oss-idle/shared/judgement';
-import type { HitRecord } from '@oss-idle/shared/sim/maniaGame';
-import Skin from '../osu/skin/Skin';
-import { HitWindows } from '@oss-idle/shared/sim/scoring';
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import type { HitRecord } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { HitWindows } from '@oss-idle/shared/rulesets/mania/scoring';
 import {
+	type Color,
 	colorA,
 	colorDim,
-	type Color,
 } from '@oss-idle/shared/types/color';
 
-export { unstableRate } from '@oss-idle/shared/sim/maniaGame';
+import Skin from '../osu/skin/Skin';
+
+export { unstableRate } from '@oss-idle/shared/rulesets/mania/maniaGame';
 
 // the zone colours, made once: the bar is drawn every frame
 const zoneFills = new Map<string, string>();

@@ -1,7 +1,9 @@
 import { Trans } from '@lingui/react/macro';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
 import num from '@oss-idle/shared/display/num';
-import { Judgements } from '@oss-idle/shared/judgement';
+import { Judgements } from '@oss-idle/shared/rulesets/mania/judgement';
+
 import Grade from '../../components/score/Grade';
 import PlayerName from './PlayerName';
 import type { HistoryScore } from './types';

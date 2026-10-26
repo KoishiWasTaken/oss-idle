@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
+
+import { getRecentMaps } from '../api/maps';
 import { listNews } from '../api/news';
 import {
 	getGeneralStats,
 	getRecentStats,
 } from '../api/stats';
-import { getRecentMaps } from '../api/maps';
 import Home from '../pages/Home';
 
 export const Route = createFileRoute('/')({

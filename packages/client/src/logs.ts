@@ -2,15 +2,17 @@ import {
 	ph,
 	t,
 } from '@lingui/core/macro';
-import Synced from '@oss-idle/shared/helpers/synced';
-import accuracyText from '@oss-idle/shared/display/accuracy';
+
 import type { ChatLine } from '@oss-idle/shared/community/wire';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import type { Grade } from '@oss-idle/shared/judgement';
-import { skillName } from '@oss-idle/shared/display/skills';
+import accuracyText from '@oss-idle/shared/display/accuracy';
 import num from '@oss-idle/shared/display/num';
-import type LightBeatmap from './osu/beatmap/LightBeatmap';
+import type { Grade } from '@oss-idle/shared/grade';
+import Synced from '@oss-idle/shared/helpers/synced';
+import type { SkillGain } from '@oss-idle/shared/play';
+
 import Entities from './entity/entities';
+import type LightBeatmap from './osu/beatmap/LightBeatmap';
+import { selectedDef } from './rulesets/registry';
 
 /** The client-only chat channel: written by code, never touches the wire. */
 export const LOGS_CHANNEL = '#logs';
@@ -36,11 +38,11 @@ export const log = (text: string, color = LOG_COLOR, at = Date.now()): void => {
 	void logLines.set([...logLines.get(), line]);
 };
 
-const gainsSummary = (progression?: SkillProgress[]): string => {
+const gainsSummary = (progression?: SkillGain[]): string => {
 	const gains = (progression ?? [])
 		.filter(g => g.gained > 0)
 		.sort((a, b) => b.gained - a.gained)
-		.map(g => `+${num(Math.round(g.gained))} ${skillName(g.skill)}`
+		.map(g => `+${num(Math.round(g.gained))} ${selectedDef().skillName(g.skill)}`
 			+ (g.toLevel > g.fromLevel ? ` (lv${g.fromLevel} to lv${g.toLevel})` : ''));
 	return gains.length ? gains.join(', ') : t`No XP gained.`;
 };
@@ -49,7 +51,7 @@ const gainsSummary = (progression?: SkillProgress[]): string => {
 export const logPlayFinished = (
 	score: { accuracy: number; grade: Grade; playedAt: number },
 	beatmap: LightBeatmap,
-	progression?: SkillProgress[],
+	progression?: SkillGain[],
 ): void => {
 	const name = Entities.character.get()?.name ?? t`Guest`;
 	const meta = beatmap.set.metadata;
@@ -66,10 +68,11 @@ export const logPlayFinished = (
 };
 
 /** One #logs line per level crossed this play, every level, every time. */
-const logSkillLevelUps = (progression?: SkillProgress[], at = Date.now()): void => {
+const logSkillLevelUps = (progression?: SkillGain[], at = Date.now()): void => {
 	for (const g of progression ?? []) {
+		const skill = selectedDef().skillName(g.skill);
 		for (let level = g.fromLevel + 1; level <= g.toLevel; level++) {
-			log(t`${ph({ skill: skillName(g.skill) })} reached level ${level}!`, LEVELUP_COLOR, at);
+			log(t`${ph({ skill })} reached level ${level}!`, LEVELUP_COLOR, at);
 		}
 	}
 };

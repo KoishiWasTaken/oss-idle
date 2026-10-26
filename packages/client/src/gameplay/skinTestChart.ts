@@ -1,5 +1,5 @@
-import { BeatmapDecoder } from 'osu-parsers';
 import type { Beatmap } from 'osu-classes';
+import { BeatmapDecoder } from 'osu-parsers';
 
 /** A minute of taps, chords and holds at 180 BPM over `keys` columns, the same every time:
  *  enough to see every piece of a skin move. */

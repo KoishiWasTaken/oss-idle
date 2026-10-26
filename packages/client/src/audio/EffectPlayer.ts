@@ -1,7 +1,8 @@
 import Log from '@oss-idle/shared/helpers/log';
-import { audioContext } from './audioContext';
-import { SETTINGS } from '../db/settings';
 import Synced from '@oss-idle/shared/helpers/synced';
+
+import { SETTINGS } from '../db/settings';
+import { audioContext } from './audioContext';
 import { unwrapWav } from './wav';
 
 export type PlayOptions = {

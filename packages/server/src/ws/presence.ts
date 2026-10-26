@@ -1,31 +1,33 @@
 import {
 	type PresenceEntry,
-	type Status,
 	STATUS,
+	type Status,
 } from '@oss-idle/shared/community/presence';
-import { redis } from '../redis';
-import { redisKeyPrefix } from '../env';
-import {
-	type CharacterRow,
-	getCharacterById,
-	resolveAvatarUrl,
-} from '../db/schema/character';
-import {
-	getUserById,
-	type UserRow,
-} from '../db/schema/user';
 import {
 	MAKISEBOT_ID,
 	MAKISEBOT_USER_ID,
 } from '@oss-idle/shared/groups';
-import { getCharacterTotals } from '../db/schema/character_totals';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
+
+import {
+	type CharacterRow,
+	getCharacterById,
+	profileOf,
+	resolveAvatarUrl,
+} from '../db/schema/character';
+import { getCharacterTotals } from '../db/schema/character_totals';
+import {
+	getUserById,
+	type UserRow,
+} from '../db/schema/user';
+import { redisKeyPrefix } from '../env';
+import type { GeoResult } from '../geo';
 import {
 	globalRank,
 	ppTopPercent,
 } from '../rankings';
-import type { GeoResult } from '../geo';
+import { redis } from '../redis';
+import { selectedRuleset } from '../rulesets/registry';
 import { hub } from './hub';
 
 /**
@@ -60,20 +62,24 @@ const buildEntry = async (params: {
 	status: Status;
 }): Promise<PresenceEntry> => {
 	const { character, user, geo, status } = params;
-	const totals = await getCharacterTotals(character.id);
-	const topPercent = Number(character.pp) > 0 ? await ppTopPercent(character.id) : undefined;
+	// the card shows the ruleset the player picked
+	const r = selectedRuleset(character);
+	const [totals, profile] = await Promise.all([
+		getCharacterTotals(r, character.id), profileOf(r, character.id),
+	]);
+	const topPercent = Number(profile.pp) > 0 ? await ppTopPercent(r, character.id) : undefined;
 	return {
 		characterId: character.id,
 		userId: user.id,
 		name: character.name,
 		avatarUrl: resolveAvatarUrl(character.avatarUrl, user.avatarUrl),
 		country: user.country,
-		rank: await globalRank('pp', character.id),
+		rank: await globalRank(r, 'pp', character.id),
 		rankPercent: topPercent === undefined ? undefined : topPercent / 100,
-		pp: Number(character.pp),
-		accuracy: hitAccuracy(totals),
+		pp: Number(profile.pp),
+		accuracy: r.def.accuracyOf(totals as unknown as Record<string, number>),
 		playCount: totals.playCount,
-		level: character.overallLevel,
+		level: profile.overallLevel,
 		status,
 		loc: geo.loc,
 		tz: geo.tz,

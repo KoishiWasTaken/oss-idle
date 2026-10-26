@@ -1,5 +1,9 @@
-import type { CSSProperties } from 'react';
 import '../components/options/controls/Slider.css';
+
+import type {
+	CSSProperties,
+	ReactNode,
+} from 'react';
 /** The view tab's controls: a row of choices, a slider. */
 
 export type Choice<T> = [T, string];
@@ -18,6 +22,40 @@ export const choices = <T,>(options: Choice<T>[], value: T, pick: (value: T) => 
 		))}
 	</span>
 );
+
+/** An on/off cell for a row of `.editor__switches`: its label over a switch. */
+export const toggle = (label: ReactNode, on: boolean, set: (on: boolean) => void) => (
+	<button
+		type='button'
+		role='switch'
+		aria-checked={on}
+		className={`editor__switch${on ? ' is-on' : ''}`}
+		onClick={() => set(!on)}
+	>
+		<span className='ladder-sum__label'>{label}</span>
+		<span className='editor__switch-track' aria-hidden />
+	</button>
+);
+
+/** A cell like {@link toggle} that steps through `options` in turn, the first being off. */
+export const cycle = <T,>(
+	label: ReactNode,
+	options: Choice<T>[],
+	value: T,
+	pick: (value: T) => void,
+) => {
+	const at = Math.max(0, options.findIndex(([option]) => option === value));
+	return (
+		<button
+			type='button'
+			className='editor__switch'
+			onClick={() => pick(options[(at + 1) % options.length][0])}
+		>
+			<span className='ladder-sum__label'>{label}</span>
+			<span className={`editor__cycle${at > 0 ? ' is-on' : ''}`}>{options[at][1]}</span>
+		</button>
+	);
+};
 
 /** A 0-100 slider, in steps of 10 from `min` up when `step` is given. */
 export const slider = (

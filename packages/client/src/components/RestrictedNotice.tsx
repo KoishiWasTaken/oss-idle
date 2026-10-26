@@ -1,15 +1,18 @@
 import './RestrictedNotice.css';
-import { Trans } from '@lingui/react/macro';
+
 import { ph } from '@lingui/core/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { Trans } from '@lingui/react/macro';
+
 import { CONTACT_EMAIL } from '@oss-idle/shared/contact';
-import Auth from '../online/auth';
-import { showUsers } from './community/state';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	isCommunityOpen,
 	openPage,
 } from '../globals';
+import Auth from '../online/auth';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import { showUsers } from './community/state';
 
 const HIDDEN_IN: string[] = [SCENE.INTRO, SCENE.GAME, SCENE.RESULT, SCENE.SELECT];
 

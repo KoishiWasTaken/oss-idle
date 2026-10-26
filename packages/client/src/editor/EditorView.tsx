@@ -1,42 +1,44 @@
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 } from 'react';
-import { writeExtras } from '@oss-idle/shared/editor/extras';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import { inTextBox } from '../input/Controls';
+
+import { writeExtras } from '@oss-idle/shared/rulesets/mania/editor/extras';
+
 import {
 	isWebOpen,
 	message,
 	webUrl,
 } from '../globals';
+import { inTextBox } from '../input/Controls';
+import { keyboardClaimed } from '../input/keyboardOwner';
+import Auth from '../online/auth';
+import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { launchPlay } from '../scenes/launchPlay';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import {
+	actionFor,
+	type EditorCommands,
+} from './actions';
+import { startAction } from './commandList';
 import EditorActions from './EditorActions';
+import EditorAddonWindows from './EditorAddonWindows';
+import { editorApiOf } from './editorApi';
+import EditorCommandList from './EditorCommandList';
+import {
+	editorClosed,
+	editorOpened,
+} from './editorHost';
 import EditorPlayfield from './EditorPlayfield';
 import EditorSummary from './EditorSummary';
 import {
 	addDifficulty,
 	exportOsz,
 } from './save';
-import { uploadSet } from './upload';
-import Auth from '../online/auth';
-import type LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { launchPlay } from '../scenes/launchPlay';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
 import type EditorSession from './session';
-import {
-	actionFor,
-	type EditorCommands,
-} from './actions';
-import { startAction } from './commandList';
-import { keyboardClaimed } from '../input/keyboardOwner';
-import EditorCommandList from './EditorCommandList';
-import EditorAddonWindows from './EditorAddonWindows';
-import {
-	editorClosed,
-	editorOpened,
-} from './editorHost';
-import { editorApiOf } from './editorApi';
+import { uploadSet } from './upload';
 
 type Props = {
 	session: EditorSession,

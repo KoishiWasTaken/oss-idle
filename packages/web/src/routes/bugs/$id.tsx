@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { getBug } from '../../api/bugs';
 import BugReport from '../../pages/bugs/BugReport';
 

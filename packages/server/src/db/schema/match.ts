@@ -8,9 +8,13 @@ import {
 	primaryKey,
 	text,
 	timestamp,
+	varchar,
 } from 'drizzle-orm/mysql-core';
+
+import { Grades } from '@oss-idle/shared/grade';
 import { MATCH_EVENT } from '@oss-idle/shared/multiplayer';
-import { Grades } from '@oss-idle/shared/judgement';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import { judgeColumns } from './score';
 
 /** A multiplayer match's history: its id is the live match's id. */
@@ -29,23 +33,29 @@ export const matchGames = mysqlTable('mp_game', {
 	matchId: int().notNull()
 		.references(() => matches.id, { onDelete: 'cascade' }),
 	beatmapId: int().notNull(),
+	/** the map's ruleset: its scores are in that ruleset's table */
+	ruleset: varchar({ length: 16 }).$type<RulesetId>().notNull().default('mania4k'),
 	startedAt: timestamp({ fsp: 3 }).notNull().defaultNow(),
 	endedAt: timestamp({ fsp: 3 }),
 });
 
-export const matchGameScores = mysqlTable('mp_game_score', {
-	gameId: int().notNull()
-		.references(() => matchGames.id, { onDelete: 'cascade' }),
-	characterId: int().notNull(),
-	score: int().notNull(),
-	maxCombo: int().notNull(),
-	accuracy: decimal({
-		precision: 10, scale: 8,
-	}).notNull(),
-	failed: boolean().notNull(),
-	grade: mysqlEnum(Grades).notNull().default('D'),
-	...judgeColumns,
-}, t => [primaryKey({ columns: [t.gameId, t.characterId] })]);
+/** A ruleset's scores in match games: a match can switch rulesets map to map. */
+export const matchScoresTable = <J extends string>(name: string, judgements: readonly J[]) =>
+	mysqlTable(name as 'mp_game_score', {
+		gameId: int().notNull()
+			.references(() => matchGames.id, { onDelete: 'cascade' }),
+		characterId: int().notNull(),
+		score: int().notNull(),
+		maxCombo: int().notNull(),
+		accuracy: decimal({
+			precision: 10, scale: 8,
+		}).notNull(),
+		failed: boolean().notNull(),
+		grade: mysqlEnum(Grades).notNull().default('D'),
+		...judgeColumns(judgements),
+	}, t => [primaryKey({ columns: [t.gameId, t.characterId] })]);
+
+export type MatchScoresTable = ReturnType<typeof matchScoresTable<never>>;
 
 /** What happened in a match, in order: joins, leaves, host changes, games. */
 export const matchEvents = mysqlTable('mp_event', {

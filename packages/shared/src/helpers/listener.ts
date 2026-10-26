@@ -11,18 +11,19 @@ export default class Listener<T extends Callback = (() => void)> {
 	public static onError: (error: unknown) => void = e => console.error(e);
 
 	protected callbacks = new Set<T>();
-	/** the listeners as a trigger delivers to them, made again only when they change */
-	private snapshot?: T[];
+
+	/** Stable list of callbacks to avoid shifts when triggering them */
+	private stableCallbacks?: T[];
 
 	public on(callback: T): () => void {
 		this.callbacks.add(callback);
-		this.snapshot = undefined;
+		this.stableCallbacks = undefined;
 		return () => this.off(callback);
 	}
 
 	public off(callback: T): void {
 		this.callbacks.delete(callback);
-		this.snapshot = undefined;
+		this.stableCallbacks = undefined;
 	}
 
 	/**
@@ -39,15 +40,11 @@ export default class Listener<T extends Callback = (() => void)> {
 	}
 
 	public async trigger(...args: Parameters<T>): Promise<void> {
-		// snapshot the listeners: a handler may swap scenes mid-dispatch (an awaited
-		// callback lets React mount the next scene, which subscribes here), and a live
-		// Set iteration would then deliver this same event to that just-added handler -
-		// e.g. a back press bleeding result → select → menu in one tap. The snapshot is
-		// kept until the listeners change: some fire every frame.
-		const snapshot = this.snapshot ??= [...this.callbacks];
-		for (let i = 0; i < snapshot.length; i++) {
+		const stableCallbacks = this.stableCallbacks ??= [...this.callbacks];
+
+		for (let i = 0; i < stableCallbacks.length; i++) {
 			try {
-				await snapshot[i](...args);
+				await stableCallbacks[i](...args);
 			} catch (e) {
 				Listener.onError(e);
 			}

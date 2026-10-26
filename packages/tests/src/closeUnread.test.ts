@@ -1,13 +1,15 @@
+import { request } from 'node:http';
+import type { AddressInfo } from 'node:net';
+
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
 import {
 	afterAll,
 	describe,
 	expect,
 	it,
 } from 'vitest';
-import { request } from 'node:http';
-import type { AddressInfo } from 'node:net';
-import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
+
 import { closeUnread } from '../../server/src/closeUnread';
 
 const app = new Hono()

@@ -1,6 +1,6 @@
 import {
-	GLYPHS,
 	type GlyphName,
+	GLYPHS,
 } from '@oss-idle/shared/achievements/glyphs';
 
 export default function Glyph({ name, className }: { name: GlyphName, className?: string }) {

@@ -1,15 +1,17 @@
 import {
+	type CSSProperties,
 	useCallback,
 	useRef,
-	type CSSProperties,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { scoreboardEdge } from './scoreboardEdge';
-import Multiplayer from '../../online/multiplayer';
+
 import Entities from '../../entity/entities';
+import Multiplayer from '../../online/multiplayer';
 import MatchScoreCard from './MatchScoreCard';
-import usePlayers from './usePlayers';
+import { scoreboardEdge } from './scoreboardEdge';
 import useLiveScores from './useLiveScores';
+import usePlayers from './usePlayers';
 
 /** The live standings on the left of the playfield, during a match play. */
 export default function MatchScoreboard({ beatmapId }: { beatmapId: number }) {

@@ -1,22 +1,23 @@
-import {
-	SKILL,
-	type SkillName,
-} from '@oss-idle/shared/skills';
+import Log from '@oss-idle/shared/helpers/log';
 import {
 	applyPrestige,
 	canRebirth,
 } from '@oss-idle/shared/upgrades';
-import Log from '@oss-idle/shared/helpers/log';
-import { rpc } from '../client';
-import Entities from '../../entity/entities';
+
 import Character from '../../db/schema/character';
+import Entities from '../../entity/entities';
+import {
+	selectedDef,
+	selectedProgression,
+} from '../../rulesets/registry';
+import { rpc } from '../client';
 import { sendCharacterAction } from './characterAction';
 
 /** Prestige one skill of the live character: guests locally, signed-in via the
  *  server. Returns true when it landed. */
-export const prestigeSkill = async (skillName: SkillName): Promise<boolean> => {
+export const prestigeSkill = async (skillName: string): Promise<boolean> => {
 	const character = Entities.character.get();
-	if (character.id === 0) return false;
+	if (character.id === 0 || !selectedDef().rebirth) return false;
 
 	// a guest's play is already resolved, so nothing it does now can reach it
 	if (character.isGuest()) return prestigeLocally(character, skillName);
@@ -34,7 +35,7 @@ export const prestigeSkill = async (skillName: SkillName): Promise<boolean> => {
 /** Run the prestige against the character in hand, with the shared math. */
 const prestigeLocally = async (
 	character: Character,
-	skillName: SkillName,
+	skillName: string,
 ): Promise<boolean> => {
 	const skill = character.skills.find(s => s.name === skillName);
 	if (!skill) return false;
@@ -46,12 +47,7 @@ const prestigeLocally = async (
 	} catch {
 		return false;
 	}
-	// memory's progress is the maps it has learned, so that is what its
-	// prestige spends - the scores themselves stay for the profile
-	if (skillName === SKILL.memory) {
-		character.memoryResetAt = Date.now();
-		character.memoryForgetAt = '[]';
-	}
+	selectedProgression()?.afterPrestige(character, skillName);
 	// and the levels it reset stop counting toward the overall level, the
 	// same way the server route drops them
 	await character.spendXP(skillName, spent);
@@ -61,7 +57,7 @@ const prestigeLocally = async (
 /** Whether the live character has reached the overall level rebirth needs. */
 export const rebirthAvailable = (): boolean => {
 	const character = Entities.character.get();
-	return character.id !== 0 && canRebirth(character.overallLevel);
+	return !!selectedDef().rebirth && character.id !== 0 && canRebirth(character.overallLevel);
 };
 
 /** Start a fresh character one generation up. The previous one stays playable

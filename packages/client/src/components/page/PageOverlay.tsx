@@ -1,20 +1,24 @@
+import './pageOverlay.css';
+
 import {
+	Suspense,
 	useEffect,
 	useState,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { openPage } from '../../globals';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
-import Addons from '../../scenes/Addons';
-import Skins from '../../scenes/Skins';
-import Character from '../../scenes/Character';
-import SongSelect from '../../scenes/SongSelect';
-import Direct from '../../scenes/Direct';
-import './pageOverlay.css';
 import useKeyboardOwner, {
 	KeyboardLayer,
 	LAYER,
 } from '../../input/keyboardOwner';
+import Addons from '../../scenes/Addons';
+import Character from '../../scenes/Character';
+import Direct from '../../scenes/Direct';
+import { SongSelect } from '../../scenes/lazy';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import Skins from '../../scenes/Skins';
 
 /**
  * Hosts the full-screen pages (skins / add-ons / character / the play queue)
@@ -70,7 +74,7 @@ export default function PageOverlay() {
 					: shown.page === 'direct'
 						? <Direct />
 						: shown.page === 'queue'
-							? <SongSelect mode="queue" />
+							? <Suspense fallback={null}><SongSelect mode="queue" /></Suspense>
 							: shown.page === 'skins'
 								? <Skins key={shown.view} view={shown.view} />
 								: <Addons key={shown.view} view={shown.view} />}

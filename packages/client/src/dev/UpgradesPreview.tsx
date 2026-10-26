@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
 import { Trans } from '@lingui/react/macro';
+import type { ReactNode } from 'react';
+
 import Page from '../components/page/Page';
 
 /** The character page around an upgrades layout, at a fixed desktop size. */

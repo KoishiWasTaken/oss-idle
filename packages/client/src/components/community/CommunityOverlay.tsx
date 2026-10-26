@@ -1,29 +1,32 @@
 import './CommunityOverlay.css';
+
 import {
 	useEffect,
 	useState,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { isCommunityOpen } from '../../globals';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
-import CommunityHeader from './CommunityHeader';
-import CommunityBody from './CommunityBody';
-import PlayerMenu from './PlayerMenu';
-import LinkMenu from './LinkMenu';
-import Chat from './chat/Chat';
-import ChannelPicker from './chat/ChannelPicker';
-import CommunityControls from './CommunityControls';
 import useKeyboardOwner, {
 	KeyboardLayer,
 	LAYER,
 } from '../../input/keyboardOwner';
-import Ticker from './Ticker';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import ChannelPicker from './chat/ChannelPicker';
+import Chat from './chat/Chat';
+import CommunityBody from './CommunityBody';
+import CommunityControls from './CommunityControls';
+import CommunityHeader from './CommunityHeader';
+import LinkMenu from './LinkMenu';
+import PlayerMenu from './PlayerMenu';
 import {
 	autoHide,
 	showChat,
 	showTicker,
 	showUsers,
 } from './state';
+import Ticker from './Ticker';
 
 const COMMUNITY = {
 	layer: LAYER.COMMUNITY, open: true, 

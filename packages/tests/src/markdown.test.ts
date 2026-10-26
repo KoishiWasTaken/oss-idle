@@ -5,6 +5,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import Markdown from '@oss-idle/shared/display/Markdown';
 
 const render = (text: string, inline = false) => renderToStaticMarkup(createElement(Markdown, {

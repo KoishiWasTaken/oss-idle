@@ -1,8 +1,9 @@
+import { getConnInfo } from '@hono/node-server/conninfo';
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { getConnInfo } from '@hono/node-server/conninfo';
-import { redis } from './redis';
+
 import { redisKeyPrefix } from './env';
+import { redis } from './redis';
 
 /** Who sent the request: the hop Apache appended to `X-Forwarded-For` (the earlier ones are
  *  whatever the client claimed), else the socket. */

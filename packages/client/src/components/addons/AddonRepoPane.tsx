@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useEffect } from 'react';
+
 import { ADDON_BUILD_STATUS } from '@oss-idle/shared/addon';
 import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	checkAddonRepo,
 	myAddons,
-	renewAddonHook,
 	type OwnAddon,
+	renewAddonHook,
 } from '../../online/addons';
 import AddonRepoBuild from './AddonRepoBuild';
 

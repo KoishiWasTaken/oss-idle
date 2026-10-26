@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
+import { deleteAccount } from '../accounts';
 import { requireAdmin } from '../auth/admin';
 import { getUserById } from '../db/schema/user';
-import { deleteAccount } from '../accounts';
 import {
 	idParam,
 	valid,

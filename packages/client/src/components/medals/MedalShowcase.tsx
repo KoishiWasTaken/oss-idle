@@ -1,14 +1,15 @@
+import { Trans } from '@lingui/react/macro';
 import {
+	type RefObject,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
-	type RefObject,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import type { MedalTier } from '@oss-idle/shared/achievements/medal';
 import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
-import { MEDALS } from '@oss-idle/shared/achievements/catalogue';
+
 import type { MedalUnlock } from '../../achievements/medalUnlocks';
 import {
 	medalFinale,
@@ -16,8 +17,9 @@ import {
 	medalTick,
 	medalWhoosh,
 } from '../../audio/medalSounds';
-import { medalSlots } from './medalLayout';
+import { selectedDef } from '../../rulesets/registry';
 import { lookKey } from './medalBitmaps';
+import { medalSlots } from './medalLayout';
 import MedalTile from './MedalTile';
 
 /** wait before medal i+1 arrives, while they come one at a time */
@@ -144,7 +146,9 @@ export default function MedalShowcase({
 			<div className="medal-showcase__title">
 				{medals.length > 1 ? <Trans>Medals unlocked</Trans> : <Trans>Medal unlocked</Trans>}
 			</div>
-			<div className="medal-showcase__count">{held - medals.length + shown} / {MEDALS.length}</div>
+			<div className="medal-showcase__count">
+				{held - medals.length + shown} / {selectedDef().medals.medals.length}
+			</div>
 			<div className="medal-showcase__bonus"><Trans>+{percent}% XP</Trans></div>
 		</div>
 		<div ref={stage} className="medal-showcase__stage" style={{

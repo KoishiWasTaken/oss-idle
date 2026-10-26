@@ -5,7 +5,9 @@ import {
 	text,
 	timestamp,
 } from 'drizzle-orm/mysql-core';
+
 import { REPORT_REASON } from '@oss-idle/shared/social';
+
 import { users } from './user';
 
 /** A player reporting another from their profile or a chat line; resolved by an admin from

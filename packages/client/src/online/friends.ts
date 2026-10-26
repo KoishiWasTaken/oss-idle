@@ -1,6 +1,7 @@
 import Synced from '@oss-idle/shared/helpers/synced';
-import { rpc } from './client';
+
 import Auth from './auth';
+import { rpc } from './client';
 
 const api = rpc.v1.social.friends;
 

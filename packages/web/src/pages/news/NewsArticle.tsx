@@ -1,18 +1,18 @@
 import './News.css';
 
+import { isAdmin } from '@oss-idle/shared/groups';
 import {
 	NEWS_TAGS,
 	type NewsDTO,
 } from '@oss-idle/shared/news';
-import { isAdmin } from '@oss-idle/shared/groups';
 
 import { formatDate } from '../../api/news';
+import Link from '../../components/Link';
 import {
 	coverImage,
 	tagGradient,
 } from '../../components/NewsCard';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import Link from '../../components/Link';
 
 export default function NewsArticle({ article }: { article: NewsDTO }) {
 	const user = useCurrentUser();

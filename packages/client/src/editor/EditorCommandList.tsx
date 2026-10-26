@@ -1,20 +1,22 @@
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import useKeyboardOwner from '../input/keyboardOwner';
 import {
 	ACTION_GROUPS,
 	actions,
 	appliesTo,
+	type EditorAction,
+	type EditorCommands,
 	groupLabel,
 	keyLabel,
 	keysOf,
-	type EditorAction,
-	type EditorCommands,
 } from './actions';
 import {
 	commandAsking,

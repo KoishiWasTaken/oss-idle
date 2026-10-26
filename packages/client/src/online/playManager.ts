@@ -1,52 +1,54 @@
-import type { PlayState } from '@oss-idle/shared/play';
-import {
-	abortPlaySession,
-	fetchPlayResult,
-	playState,
-	restrictedMessage,
-	inMatchMessage,
-	startPlaySession,
-} from './play';
-import Log from '@oss-idle/shared/helpers/log';
-import Socket from './socket';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
-import { launchPlay } from '../scenes/launchPlay';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { Score } from '../db/schema/score';
-import { ScoreXP } from '../db/schema/score_xp';
-import { flushBeatmapScores } from './services/scores';
-import { logPlayFinished } from '../logs';
-import Entities from '../entity/entities';
-import Account from './account';
-import { message } from '../globals';
 import { t } from '@lingui/core/macro';
+
+import type { ServerMessage } from '@oss-idle/shared/community/wire';
+import Log from '@oss-idle/shared/helpers/log';
 import Synced from '@oss-idle/shared/helpers/synced';
-import PlayQueue, { AUTOPILOT_MODE } from '../gameplay/playQueue';
-import { SETTINGS } from '../db/settings';
+import {
+	type Mod,
+	retriesOnFail,
+} from '@oss-idle/shared/mods';
+import type { PlayState } from '@oss-idle/shared/play';
 import type {
 	QueueEntry,
 	QueueState,
 } from '@oss-idle/shared/queue';
-import type { ServerMessage } from '@oss-idle/shared/community/wire';
+
+import { RESULT_SETTLE_MS } from '../components/result/settle';
+import { Score } from '../db/schema/score';
+import { ScoreXP } from '../db/schema/score_xp';
+import { SETTINGS } from '../db/settings';
+import Entities from '../entity/entities';
+import PlayQueue, { AUTOPILOT_MODE } from '../gameplay/playQueue';
+import { message } from '../globals';
+import { logPlayFinished } from '../logs';
+import BeatmapStore from '../osu/beatmap/beatmap_store';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { launchPlay } from '../scenes/launchPlay';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import Account from './account';
+import {
+	abortLocalPlay,
+	currentLocalPlay,
+	type LocalPlayState,
+	localPlayState,
+	pollLocalPlay,
+	startLocalPlay,
+} from './localPlay';
+import Multiplayer from './multiplayer';
+import {
+	abortPlaySession,
+	fetchPlayResult,
+	inMatchMessage,
+	playState,
+	restrictedMessage,
+	startPlaySession,
+} from './play';
 import {
 	receivePrefs,
 	resetPrefs,
 } from './queuePrefs';
-import { RESULT_SETTLE_MS } from '../components/result/settle';
-import {
-	retriesOnFail,
-	type Mod,
-} from '@oss-idle/shared/mods';
-import Multiplayer from './multiplayer';
-import {
-	abortLocalPlay,
-	currentLocalPlay,
-	localPlayState,
-	pollLocalPlay,
-	startLocalPlay,
-	type LocalPlayState,
-} from './localPlay';
+import { flushBeatmapScores } from './services/scores';
+import Socket from './socket';
 
 type ActivePlayState = Extract<PlayState, { phase: 'active' }>;
 
@@ -302,7 +304,7 @@ export default class PlayManager {
 		serial, entry,
 	}: { serial: number; entry: QueueEntry }): Promise<void> {
 		if (localPlayState.get()) return;
-		const beatmap = (await this.findDownloaded(entry.beatmapId))?.at(entry.rate);
+		const beatmap = (await this.findDownloaded(entry.beatmapId))?.at(entry.rate, entry.mods);
 		if (!beatmap) return;
 		const claim = await Socket.request(
 			{
@@ -614,7 +616,9 @@ export default class PlayManager {
 	private static async startInBackground(beatmap: LightBeatmap): Promise<StartResult> {
 		const character = Entities.character.get();
 		const beatmapId = beatmap.metadata.id;
-		const session = await startPlaySession(character, beatmapId, beatmap.lockedRate);
+		const session = await startPlaySession(
+			character, beatmapId, beatmap.lockedRate, beatmap.lockedMods,
+		);
 		if (session.mode === 'ranked') {
 			// start-or-join: another tab or device may already have a play running,
 			// and the server hands that one back instead. It is not this map, so the
@@ -766,7 +770,7 @@ export default class PlayManager {
 		const res = await fetchPlayResult(token, false, false).catch(() => null);
 		if (!res || res.failed || !res.score) return;
 
-		// the one started keeps its playlist's locked rate
+		// the one started keeps its playlist's locked rate and mods
 		const beatmap = this.known.get(token) ?? await this.findDownloaded(res.score.beatmapId);
 		if (!beatmap) return;
 

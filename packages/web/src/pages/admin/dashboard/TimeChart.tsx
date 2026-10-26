@@ -1,5 +1,6 @@
 import './TimeChart.css';
 
+import { line } from 'd3-shape';
 import {
 	useEffect,
 	useLayoutEffect,
@@ -7,7 +8,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import { line } from 'd3-shape';
+
 import { clock } from './format';
 
 export type Series = {
@@ -29,6 +30,10 @@ type Props = {
 	height?: number;
 	/** The axis reaches at least this, so a quiet day doesn't scale noise up. */
 	floor?: number;
+	/** Time between labels on the time axis. */
+	tickMs?: number;
+	/** How a time reads on the axis and in the tooltip. */
+	time?: (at: number) => string;
 };
 
 const PAD = {
@@ -46,6 +51,7 @@ const niceStep = (max: number) => {
 /** One measure over the last day: thin lines on one axis, hover for the values at a time. */
 export default function TimeChart({
 	title, note, series, start, bucketMs, format, height = 160, floor = 4,
+	tickMs = 3 * 3_600_000, time = clock,
 }: Props) {
 	const box = useRef<HTMLDivElement>(null);
 	const [width, setWidth] = useState(600);
@@ -76,13 +82,13 @@ export default function TimeChart({
 		.x((_, i) => x(i))
 		.y(v => y(v!))(s.values) ?? ''), [series, width, top]);
 
-	// a tick on every third hour, at the hour
+	// ticks every `tickMs`, at the hour
 	const hourTicks = useMemo(() => {
 		const out: number[] = [];
 		const first = Math.ceil(start / 3_600_000) * 3_600_000;
-		for (let at = first; at < start + count * bucketMs; at += 3 * 3_600_000) out.push(at);
+		for (let at = first; at < start + count * bucketMs; at += tickMs) out.push(at);
 		return out;
-	}, [start, count, bucketMs]);
+	}, [start, count, bucketMs, tickMs]);
 
 	const onMove = (event: React.PointerEvent<SVGSVGElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect();
@@ -122,7 +128,7 @@ export default function TimeChart({
 					{hourTicks.map(at => {
 						const i = (at - start) / bucketMs;
 						return <text key={at} className='time-chart__tick' x={x(i)} y={height - 6} textAnchor='middle'>
-							{clock(at)}
+							{time(at)}
 						</text>;
 					})}
 					{series.map((s, k) => (
@@ -159,7 +165,7 @@ export default function TimeChart({
 						}}
 					>
 						<span className='time-chart__tip-time'>
-							{clock(start + hover * bucketMs)} - {clock(start + (hover + 1) * bucketMs)}
+							{time(start + hover * bucketMs)} - {time(start + (hover + 1) * bucketMs)}
 						</span>
 						{series.map(s => (
 							<span key={s.label} className='time-chart__tip-row'>

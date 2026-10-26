@@ -5,22 +5,24 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import {
 	type AdminMetrics,
 	type AdminStats,
 	getAdminMetrics,
 	getAdminStats,
 } from '../../api/admin';
-import PlayerLatency from './dashboard/PlayerLatency';
-import ApiTraffic from './dashboard/ApiTraffic';
-import ServiceHealth from './dashboard/ServiceHealth';
 import Activity from './dashboard/Activity';
-import SystemLoad from './dashboard/SystemLoad';
+import ApiTraffic from './dashboard/ApiTraffic';
 import {
+	fullIn,
 	ms,
 	pct,
 } from './dashboard/format';
 import { serverName } from './dashboard/hosts';
+import PlayerLatency from './dashboard/PlayerLatency';
+import ServiceHealth from './dashboard/ServiceHealth';
+import SystemLoad from './dashboard/SystemLoad';
 
 const STATS_MS = 10_000;
 const METRICS_MS = 30_000;
@@ -78,6 +80,9 @@ const tiles = (stats: AdminStats, metrics: AdminMetrics | undefined) => {
 		},
 		{
 			label: 'Services up', value: `${up} / ${metrics.probes.length}`,
+		},
+		{
+			label: 'Disk full in', value: fullIn(metrics.disk),
 		},
 		...Object.entries(metrics.rtt).map(([host, r], i) => ({
 			label: `Players' round trip, ${serverName(host, i).split(' (')[0]}`,

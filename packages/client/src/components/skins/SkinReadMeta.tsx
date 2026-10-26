@@ -1,11 +1,13 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
+import Markdown from '@oss-idle/shared/display/Markdown';
 import { SkinCreateBody } from '@oss-idle/shared/skin';
+
 import {
 	Skin,
 	skinIconUrl,
 } from '../../online/skins';
-import Markdown from '@oss-idle/shared/display/Markdown';
 import ListingIcon from '../listing/ListingIcon';
 
 type Shown = Skin | (SkinCreateBody & { authorName?: string });

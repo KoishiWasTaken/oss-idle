@@ -1,7 +1,8 @@
 import { useId } from 'react';
+
 import {
-	medalSvg,
 	type MedalLook,
+	medalSvg,
 } from '@oss-idle/shared/achievements/medal';
 
 type Props = {

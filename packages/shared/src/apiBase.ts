@@ -186,11 +186,18 @@ export const withAuth = (init?: RequestInit): RequestInit => ({
 
 type JsonResponse<T> = { ok: boolean; status: number; json: () => Promise<T> };
 
+/** The server's error message, with the HTTP status it came with. */
+export class ApiError extends Error {
+	constructor(message: string, readonly status: number) {
+		super(message);
+	}
+}
+
 /** Parse a JSON response, throwing the server's error message on failure. */
 export const json = async <T>(res: JsonResponse<unknown>): Promise<T> => {
 	if (!res.ok) {
 		const body = await res.json().catch(() => ({})) as { error?: string };
-		throw new Error(body.error ?? `Request failed (${res.status})`);
+		throw new ApiError(body.error ?? `Request failed (${res.status})`, res.status);
 	}
 	return res.json() as Promise<T>;
 };

@@ -1,52 +1,51 @@
 import {
+	eq,
+	sql,
+} from 'drizzle-orm';
+import {
 	bigint,
 	int,
 	mysqlTable,
 } from 'drizzle-orm/mysql-core';
-import { characters } from './character';
+
 import {
-	Grades,
-	JUDGEMENT,
-	Judgements,
 	type Grade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
-import { db } from '../client';
+	Grades,
+} from '@oss-idle/shared/grade';
+
 import {
-	eq,
-	sql,
-} from 'drizzle-orm';
-import { best } from './best';
+	column,
+	type ServerRuleset,
+} from '../../rulesets/ruleset';
+import { db } from '../client';
 import { beatmaps } from './beatmap';
-import { scores } from './score';
+import { characters } from './character';
 
 const totalColumn = () => bigint({ mode: 'number' }).notNull().default(0);
-
-const skillColumns = Judgements.reduce((acc, j) => {
-	acc[j] = totalColumn();
-	return acc;
-}, {} as Record<Judgement, ReturnType<typeof totalColumn>>);
 
 const gradesColumns = Grades.reduce((acc, j) => {
 	acc[j] = totalColumn();
 	return acc;
 }, {} as Record<Grade, ReturnType<typeof totalColumn>>);
 
+/** A ruleset's lifetime sums per character, a judgement column per judgement. */
+export const totalsTable = <J extends string>(name: string, judgements: readonly J[]) =>
+	mysqlTable(name as 'character_totals', {
+		id: int().notNull()
+			.references(() => characters.id, { onDelete: 'cascade' }),
+		totalScore: totalColumn(),
+		rankedScore: totalColumn(),
+		hits: totalColumn(),
+		playCount: totalColumn(),
+		playTime: totalColumn(),
+		...Object.fromEntries(judgements.map(j => [j, totalColumn()])) as
+			{ [K in J]: ReturnType<typeof totalColumn> },
+		...gradesColumns,
+	});
 
-export const character_totals = mysqlTable('character_totals', {
-	id: int().notNull()
-		.references(() => characters.id, { onDelete: 'cascade' }),
-	totalScore: totalColumn(),
-	rankedScore: totalColumn(),
-	hits: totalColumn(),
-	playCount: totalColumn(),
-	playTime: totalColumn(),
-	...skillColumns,
-	...gradesColumns,
-});
+export type TotalsTable = ReturnType<typeof totalsTable<never>>;
 
-export type CharacterTotalsRow = typeof character_totals.$inferSelect;
-export type NewCharacterTotalsRow = typeof character_totals.$inferInsert;
+export type CharacterTotalsRow = TotalsTable['$inferSelect'];
 
 
 /**
@@ -55,13 +54,14 @@ export type NewCharacterTotalsRow = typeof character_totals.$inferInsert;
  * halfway (a best saved, the totals not) would leave them wrong for good.
  */
 export const refreshCharacterTotals = async (
+	{ def, score: scores, best, totals: character_totals }: ServerRuleset,
 	characterId: number,
 	on: Pick<typeof db, 'execute'> = db,
 ) => {
 	const hits = sql.join(
-		Judgements.filter(j => j !== JUDGEMENT.MISS).map(j => sql`${scores[j]}`), sql` + `,
+		def.judgements.filter(j => j !== def.miss).map(j => sql`${column(scores, j)}`), sql` + `,
 	);
-	const all = Judgements.map(j => sql`, ${character_totals[j]} = p.${sql.raw(j)}`);
+	const all = def.judgements.map(j => sql`, ${column(character_totals, j)} = p.${sql.raw(j)}`);
 	const grades = Grades.map(g => sql`, ${character_totals[g]} = p.${sql.raw(`grade_${g}`)}`);
 	await on.execute(sql`
 		UPDATE ${character_totals},
@@ -74,7 +74,7 @@ export const refreshCharacterTotals = async (
 			) a,
 			(
 				SELECT COALESCE(SUM(${best.score}), 0) ranked
-					${sql.join(Judgements.map(j => sql`, COALESCE(SUM(${best[j]}), 0) ${sql.raw(j)}`))}
+					${sql.join(def.judgements.map(j => sql`, COALESCE(SUM(${column(best, j)}), 0) ${sql.raw(j)}`))}
 					${sql.join(Grades.map(g => sql`, COALESCE(SUM(${best.grade} = ${g}), 0) ${sql.raw(`grade_${g}`)}`))}
 				FROM ${best} WHERE ${best.characterId} = ${characterId}
 			) p
@@ -86,7 +86,8 @@ export const refreshCharacterTotals = async (
 	`);
 };
 
-export const getCharacterTotals = async (characterId: number) => {
+export const getCharacterTotals = async (t: ServerRuleset, characterId: number) => {
+	const { totals: character_totals } = t;
 	const read = () => db
 		.select()
 		.from(character_totals)
@@ -95,7 +96,7 @@ export const getCharacterTotals = async (characterId: number) => {
 	let [row] = await read();
 	if (!row) {
 		await db.insert(character_totals).values({ id: characterId });
-		await refreshCharacterTotals(characterId);
+		await refreshCharacterTotals(t, characterId);
 		[row] = await read();
 		if (!row) throw new Error('Could not insert character totals ! ' + characterId);
 	}

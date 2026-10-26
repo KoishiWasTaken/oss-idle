@@ -1,11 +1,12 @@
 import {
-	GROUP_BADGE,
 	type Group,
+	GROUP_BADGE,
 } from '@oss-idle/shared/groups';
+
+import type { TeamMember } from '../../api/team';
+import GroupBadge from '../../components/character/GroupBadge';
 import Link from '../../components/Link';
 import ProfilePicture from '../../components/ProfilePicture';
-import GroupBadge from '../../components/character/GroupBadge';
-import type { TeamMember } from '../../api/team';
 
 /** One group of the team page and its members. */
 export default function TeamGroup({ group, members, busy, onRemove }: {

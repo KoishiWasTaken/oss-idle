@@ -1,44 +1,52 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
-	eq,
 	and,
 	desc,
+	eq,
 	inArray,
 	isNull,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
 import { betterScore } from '@oss-idle/shared/scoreOrder';
+
+import {
+	requireAuth,
+	sessionUserId,
+} from '../auth/middleware';
+import {
+	setColumns,
+	withStatus,
+} from '../beatmaps/catalog';
 import {
 	hasUnrankedBoard,
 	unrankedBoard,
 } from '../beatmaps/unrankedBoard';
 import { db } from '../db/client';
 import {
-	scores,
-	toScoreDTO,
-} from '../db/schema/score';
-import {
 	beatmapListColumns,
 	beatmaps,
 } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
-import { best } from '../db/schema/best';
 import {
 	characters,
 	currentCharacterOf,
 	resolveAvatarUrl,
 } from '../db/schema/character';
-import { users } from '../db/schema/user';
 import {
-	requireAuth,
-	sessionUserId,
-} from '../auth/middleware';
+	type ScoreRow,
+	toScoreDTO,
+} from '../db/schema/score';
+import { users } from '../db/schema/user';
 import {
 	beatmapPageIds,
 	beatmapRank,
 	PAGE_SIZE,
 } from '../rankings';
+import { rulesetOfBeatmap } from '../rulesets/registry';
+import { rulesetQuery } from '../rulesets/request';
+import type { ServerRuleset } from '../rulesets/ruleset';
 import { friendCharacterIds } from '../social';
 import {
 	idParam,
@@ -48,11 +56,17 @@ import {
 
 /** Hydrate ranked character ids into their `best` rows on a beatmap, in rank order.
  *  A player's unranked map has its own board instead: global only, no countries. */
-async function beatmapLeaderboard(beatmapId: number, page: number, country?: string) {
+async function beatmapLeaderboard(
+	r: ServerRuleset,
+	beatmapId: number,
+	page: number,
+	country?: string,
+) {
+	const { best } = r;
 	if (await hasUnrankedBoard(beatmapId)) {
-		return country ? [] : unrankedBoard(beatmapId, undefined, page);
+		return country ? [] : unrankedBoard(r, beatmapId, undefined, page);
 	}
-	const ids = await beatmapPageIds(beatmapId, page, country);
+	const ids = await beatmapPageIds(r, beatmapId, page, country);
 	if (ids.length === 0) return [];
 	const rows = await db
 		.select()
@@ -66,9 +80,11 @@ async function beatmapLeaderboard(beatmapId: number, page: number, country?: str
  *  within a country) - shown below the leaderboard even when outside the top 50. */
 async function myBeatmapScore(userId: number, beatmapId: number, country?: string) {
 	const character = (await currentCharacterOf(userId))?.character;
-	if (!character) return null;
+	const r = await rulesetOfBeatmap(beatmapId);
+	if (!character || !r) return null;
+	const { best } = r;
 	if (await hasUnrankedBoard(beatmapId)) {
-		return country ? null : myUnrankedScore(character.id, beatmapId);
+		return country ? null : myUnrankedScore(r, character.id, beatmapId);
 	}
 
 	const [row] = await db
@@ -78,9 +94,9 @@ async function myBeatmapScore(userId: number, beatmapId: number, country?: strin
 		.limit(1);
 	if (!row) return null;
 
-	const rank = await beatmapRank(beatmapId, character.id, country);
+	const rank = await beatmapRank(r, beatmapId, character.id, country);
 	return {
-		score: toScoreDTO(row), rank, 
+		score: toScoreDTO(row, r.def), rank, 
 	};
 }
 
@@ -90,16 +106,16 @@ const boardQuery = valid('query', z.object({
 }));
 
 /** The character's own score on an unranked map's board, with its place there. */
-async function myUnrankedScore(characterId: number, beatmapId: number) {
-	const board = await unrankedBoard(beatmapId, Infinity);
+async function myUnrankedScore(r: ServerRuleset, characterId: number, beatmapId: number) {
+	const board = await unrankedBoard(r, beatmapId, Infinity);
 	const at = board.findIndex(row => row.characterId === characterId);
 	return at < 0 ? null : {
-		score: toScoreDTO(board[at]), rank: at + 1, 
+		score: toScoreDTO(board[at], r.def), rank: at + 1, 
 	};
 }
 
 /** The bests of the viewer and their friends on a map, in rank order. */
-async function friendsBests(beatmapId: number, among: number[]) {
+async function friendsBests({ best }: ServerRuleset, beatmapId: number, among: number[]) {
 	if (await hasUnrankedBoard(beatmapId)) return [];
 	const rows = await db
 		.select()
@@ -110,9 +126,11 @@ async function friendsBests(beatmapId: number, among: number[]) {
 
 /** A map's leaderboard for its web page: each best with who set it. */
 export async function beatmapBoard(beatmapId: number, country?: string, among?: number[]) {
-	const rows = among
-		? await friendsBests(beatmapId, among)
-		: await beatmapLeaderboard(beatmapId, 1, country);
+	const r = await rulesetOfBeatmap(beatmapId);
+	if (!r) return [];
+	const rows: ScoreRow[] = among
+		? await friendsBests(r, beatmapId, among)
+		: await beatmapLeaderboard(r, beatmapId, 1, country);
 	const ids = rows.map(r => r.characterId);
 	const players = ids.length ? await db
 		.select({
@@ -131,7 +149,7 @@ export async function beatmapBoard(beatmapId: number, country?: string, among?: 
 		const p = byId.get(row.characterId);
 		if (!p) return [];
 		return [{
-			score: toScoreDTO(row),
+			score: toScoreDTO(row, r.def),
 			player: {
 				id: p.id,
 				userId: p.userId,
@@ -143,6 +161,13 @@ export async function beatmapBoard(beatmapId: number, country?: string, among?: 
 	}).slice(0, PAGE_SIZE);
 }
 
+/** A map's leaderboard page one, as the game shows it. */
+const boardOf = async (beatmapId: number, country?: string) => {
+	const r = await rulesetOfBeatmap(beatmapId);
+	if (!r) return [];
+	return (await beatmapLeaderboard(r, beatmapId, 1, country)).map(row => toScoreDTO(row, r.def));
+};
+
 export const scoresRoutes = new Hono()
 	// the web map page: global, one country, or the viewer's friends
 	.get('/beatmap/:beatmap/board', boardQuery, async c => {
@@ -152,14 +177,17 @@ export const scoresRoutes = new Hono()
 		if (friends && !among) return c.json([]);
 		return c.json(await beatmapBoard(idParam.parse(c.req.param('beatmap')), country, among));
 	})
-	// the web score page: the score with its map, player and rank on the map, like osu!'s
+	// the web score page: the score with its map, player and rank on the map, like osu!'s.
+	// A score id is its ruleset's: `?ruleset=` says which.
 	.get('/:id/show', async c => {
 		const id = idParam.parse(c.req.param('id'));
+		const r = rulesetQuery(c);
+		const { score: scores, best } = r;
 		const [row] = await db
 			.select({
 				score: scores,
 				beatmap: beatmapListColumns,
-				beatmapset,
+				beatmapset: setColumns(r),
 				player: {
 					id: characters.id,
 					userId: users.id,
@@ -172,6 +200,7 @@ export const scoresRoutes = new Hono()
 			.from(scores)
 			.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
 			.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
+			.innerJoin(...withStatus(r))
 			.innerJoin(characters, eq(characters.id, scores.characterId))
 			.innerJoin(users, eq(users.id, characters.userId))
 			.where(and(eq(scores.id, id), isNull(users.restrictedAt)))
@@ -182,17 +211,19 @@ export const scoresRoutes = new Hono()
 		const [isBest] = await db.select({ id: best.id }).from(best).where(eq(best.id, id)).limit(1);
 		const { osuAvatarUrl, ...player } = row.player;
 		return c.json({
-			score: toScoreDTO(row.score),
+			ruleset: r.def.id,
+			score: toScoreDTO(row.score, r.def),
 			beatmap: row.beatmap,
 			beatmapset: row.beatmapset,
 			player: {
 				...player, avatarUrl: resolveAvatarUrl(player.avatarUrl, osuAvatarUrl), 
 			},
-			rank: isBest ? await beatmapRank(row.score.beatmapId, row.score.characterId) : undefined,
+			rank: isBest ? await beatmapRank(r, row.score.beatmapId, row.score.characterId) : undefined,
 		});
 	})
 	.get('/:id', async c => {
 		const id = idParam.parse(c.req.param('id'));
+		const { score: scores } = rulesetQuery(c);
 
 		const [row] = await db.select().from(scores).where(eq(scores.id, id)).limit(1);
 
@@ -202,29 +233,26 @@ export const scoresRoutes = new Hono()
 	})
 	// a match player's latest score on the round's map, for the multiplayer ranking
 	.get('/character/:character/beatmap/:beatmap/latest', async c => {
+		const beatmapId = idParam.parse(c.req.param('beatmap'));
+		const r = await rulesetOfBeatmap(beatmapId);
+		if (!r) throw new HTTPException(404, { message: 'Score not found' });
+		const { score: scores } = r;
 		const [row] = await db
 			.select()
 			.from(scores)
 			.where(and(
 				eq(scores.characterId, idParam.parse(c.req.param('character'))),
-				eq(scores.beatmapId, idParam.parse(c.req.param('beatmap'))),
+				eq(scores.beatmapId, beatmapId),
 			))
 			.orderBy(desc(scores.playedAt))
 			.limit(1);
 		if (!row) throw new HTTPException(404, { message: 'Score not found' });
-		return c.json(toScoreDTO(row));
+		return c.json(toScoreDTO(row, r.def));
 	})
-	.get('/beatmap/:beatmap', async c => c.json((
-		await beatmapLeaderboard(
-			idParam.parse(c.req.param('beatmap')),
-			1,
-		)).map(toScoreDTO)))
-	.get('/beatmap/:beatmap/country/:country', async c => c.json((
-		await beatmapLeaderboard(
-			idParam.parse(c.req.param('beatmap')), 
-			1,
-			c.req.param('country'),
-		)).map(toScoreDTO)))
+	.get('/beatmap/:beatmap', async c => c.json(
+		await boardOf(idParam.parse(c.req.param('beatmap')))))
+	.get('/beatmap/:beatmap/country/:country', async c => c.json(
+		await boardOf(idParam.parse(c.req.param('beatmap')), c.req.param('country'))))
 	.get('/beatmap/:beatmap/me', requireAuth, async c => c.json(
 		await myBeatmapScore(
 			c.get('userId'),

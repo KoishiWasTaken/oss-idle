@@ -1,10 +1,12 @@
 import './Tabs.css';
+
+import {
+	type ReactNode,
+	useEffect,
+} from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import {
-	useEffect,
-	type ReactNode,
-} from 'react';
 
 export type Tab<Id extends string = string> = {
 	id: Id,

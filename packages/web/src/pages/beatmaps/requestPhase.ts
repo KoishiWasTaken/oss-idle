@@ -1,5 +1,6 @@
-import { msg } from '@lingui/core/macro';
 import type { MessageDescriptor } from '@lingui/core';
+import { msg } from '@lingui/core/macro';
+
 import type { MapRequest } from '../../api/mapRequests';
 
 /**

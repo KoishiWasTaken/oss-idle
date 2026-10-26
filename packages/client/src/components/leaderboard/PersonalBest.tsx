@@ -1,10 +1,13 @@
 import './PersonalBest.css';
-import ScoreEntry from './ScoreEntry';
-import Account from '../../online/account';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { getMyBeatmapScore } from '../../online/services/scores';
+
 import { Trans } from '@lingui/react/macro';
+
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import Account from '../../online/account';
+import { getMyBeatmapScore } from '../../online/services/scores';
+import ScoreEntry from './ScoreEntry';
 
 interface Props {
 	beatmapId: number,

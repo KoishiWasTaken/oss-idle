@@ -1,13 +1,15 @@
+import './RankArea.css';
+
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
 import type { ReactNode } from 'react';
+
 import rank from '@oss-idle/shared/display/rank';
 import {
 	isFirst,
 	rankTier,
 	rankTierGradient,
 } from '@oss-idle/shared/display/rankTier';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import './RankArea.css';
 
 /** One profile rank, with the highest rank reached on its board on hover. */
 export default function RankArea({ label, current, highest, percent }: {

@@ -1,32 +1,34 @@
-import { ph } from '@lingui/core/macro';
 import './MapRequests.css';
 
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useCallback,
 	useEffect,
 	useMemo,
 	useState,
 } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import Link from '../../components/Link';
-import MapsNav from './MapsNav';
-import RequestForm from './RequestForm';
-import RequestRow from './RequestRow';
-import RequestBulkBar, { type BulkProgress } from './RequestBulkBar';
+
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	deleteMapRequest,
 	ingestMapRequest,
 	listMapRequests,
+	type MapRequest,
 	resolveMapRequest,
 	toggleMapSupport,
-	type MapRequest,
 } from '../../api/mapRequests';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+import Link from '../../components/Link';
 import { useAdmin } from '../../hooks/useAdmin';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import MapsNav from './MapsNav';
+import RequestBulkBar, { type BulkProgress } from './RequestBulkBar';
+import RequestForm from './RequestForm';
+import RequestRow from './RequestRow';
 
 export type RequestFilter = 'open' | 'accepted' | 'rejected' | 'mine' | 'all';
 export type RequestSort = 'support' | 'date';

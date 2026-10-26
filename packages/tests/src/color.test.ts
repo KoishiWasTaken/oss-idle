@@ -1,16 +1,17 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-} from 'vitest';
 import { i18n } from '@lingui/core';
 import {
+	beforeAll,
+	describe,
+	expect,
+	it,
+} from 'vitest';
+
+import {
+	type Color,
 	colorA,
 	colorDim,
 	parseColor,
 	RGBColorSchema,
-	type Color,
 } from '@oss-idle/shared/types/color';
 
 const hex = '#63b3ff' as Color;

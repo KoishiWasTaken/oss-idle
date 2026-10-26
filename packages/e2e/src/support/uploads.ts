@@ -2,8 +2,9 @@ import {
 	expect,
 	type Page,
 } from '@playwright/test';
-import { cleanOsz } from './files';
+
 import type { Account } from './accounts';
+import { cleanOsz } from './files';
 
 /** `account`'s map up, or over their set `setId`, which the file names; `count` notes. */
 export const upload = async (

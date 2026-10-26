@@ -2,13 +2,15 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
+import { getMapBoard } from '../../api/maps';
 import Link from '../../components/Link';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { getMapBoard } from '../../api/maps';
-import TopScoreCard from './TopScoreCard';
-import ScoreboardRow from './ScoreboardRow';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
+import ScoreboardRow from './ScoreboardRow';
+import TopScoreCard from './TopScoreCard';
 
 export type Board = 'global' | 'country' | 'friends';
 

@@ -1,17 +1,19 @@
 import { t } from '@lingui/core/macro';
+
 import Listener from '@oss-idle/shared/helpers/listener';
 import Synced from '@oss-idle/shared/helpers/synced';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
-import { SETTINGS } from '../db/settings';
-import { closeTop } from './keyboardOwner';
+
 import { music } from '../audio/MusicPlayer';
+import { showChat } from '../components/community/state';
+import { SETTINGS } from '../db/settings';
 import {
 	isOptionsOpen,
 	isStandalone,
 	message,
 	openPage,
 } from '../globals';
-import { showChat } from '../components/community/state';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import { closeTop } from './keyboardOwner';
 
 type KeyCallback = (press: boolean, release: boolean) => void;
 

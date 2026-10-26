@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import ChatConsole from '../../pages/admin/ChatConsole';
 
 export const Route = createFileRoute('/admin/chat')({

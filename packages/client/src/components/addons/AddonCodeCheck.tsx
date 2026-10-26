@@ -1,8 +1,9 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import type { AddonViolation } from '@oss-idle/shared/addonRules';
 
 const DEBOUNCE_MS = 400;

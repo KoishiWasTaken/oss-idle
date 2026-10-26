@@ -1,38 +1,34 @@
 import { unlink } from 'node:fs/promises';
+
 import {
 	eq,
 	inArray,
 } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+
 import { db } from './db/client';
-import { users } from './db/schema/user';
-import { characters } from './db/schema/character';
-import { skins } from './db/schema/skin';
 import { addons } from './db/schema/addon';
-import {
-	matchEvents,
-	matchGameScores,
-} from './db/schema/match';
-import {
-	beatmapClaims,
-	beatmapRequests,
-	beatmapRequestVotes,
-} from './db/schema/beatmap_request';
-import {
-	UPLOAD_DIR,
-	UPLOAD_ROUTE,
-} from './uploads';
-import { recomputeFirstPlace } from './scores';
-import {
-	characterIds,
-	takeOffline,
-} from './restrictions';
-import { forgetChatUser } from './ws/chat';
-import { needStripe } from './stripe';
+import { beatmapClaims } from './db/schema/beatmap_request';
+import { characters } from './db/schema/character';
+import { matchEvents } from './db/schema/match';
+import { skins } from './db/schema/skin';
+import { users } from './db/schema/user';
 import {
 	env,
 	isProd,
 } from './env';
+import {
+	characterIds,
+	takeOffline,
+} from './restrictions';
+import { enabledRulesets } from './rulesets/registry';
+import { recomputeFirstPlace } from './scores';
+import { needStripe } from './stripe';
+import {
+	UPLOAD_DIR,
+	UPLOAD_ROUTE,
+} from './uploads';
+import { forgetChatUser } from './ws/chat';
 
 /** The files this account uploaded: avatars, banners, skin and addon icons. */
 const uploadsOf = async (userId: number, characterIds: number[]): Promise<string[]> => {
@@ -61,12 +57,18 @@ const deleteCustomer = async (customer: string): Promise<void> => {
 
 /** The rows that point at the account without a foreign key, so the delete can't reach them. */
 const forgetUnlinked = async (userId: number, characterIds: number[]): Promise<void> => {
-	await db.delete(beatmapRequestVotes).where(eq(beatmapRequestVotes.userId, userId));
+	for (const { requestVotes } of enabledRulesets()) {
+		await db.delete(requestVotes).where(eq(requestVotes.userId, userId));
+	}
 	await db.delete(beatmapClaims).where(eq(beatmapClaims.userId, userId));
 	// the map proposal stays for the others who backed it, without its proposer
-	await db.update(beatmapRequests).set({ userId: 0 }).where(eq(beatmapRequests.userId, userId));
+	for (const { requests } of enabledRulesets()) {
+		await db.update(requests).set({ userId: 0 }).where(eq(requests.userId, userId));
+	}
 	if (!characterIds.length) return;
-	await db.delete(matchGameScores).where(inArray(matchGameScores.characterId, characterIds));
+	for (const { matchScores } of enabledRulesets()) {
+		await db.delete(matchScores).where(inArray(matchScores.characterId, characterIds));
+	}
 	await db.delete(matchEvents).where(inArray(matchEvents.characterId, characterIds));
 };
 

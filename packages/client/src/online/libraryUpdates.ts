@@ -1,11 +1,13 @@
 import { t } from '@lingui/core/macro';
-import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
-import { openPage } from '../globals';
-import { SkinDAO } from '../db/schema/skin';
+import Log, { POPUP_TYPE } from '@oss-idle/shared/helpers/log';
+
 import { Addon } from '../db/schema/addon';
-import { getSkin } from './skins';
+import { SkinDAO } from '../db/schema/skin';
+import { openPage } from '../globals';
 import { getAddon } from './addons';
+import { getSkin } from './skins';
 
 type Item = { id: number, version: string };
 

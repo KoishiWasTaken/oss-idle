@@ -3,15 +3,16 @@ import {
 	allowedRate,
 	RATE_STEP,
 } from '@oss-idle/shared/rate';
-import { SKILL } from '@oss-idle/shared/skills';
-import type Skill from '@oss-idle/shared/sim/skills/skill';
+import type SkillState from '@oss-idle/shared/rulesets/skillState';
+
+import type Character from '../db/schema/character';
 import { SETTINGS } from '../db/settings';
 import Entities from '../entity/entities';
-import type Character from '../db/schema/character';
 import type { PlayContext } from '../online/play';
+import { selectedDefLoaded } from '../rulesets/registry';
 
-const speedOf = (character: Character): Skill | undefined =>
-	character.skills.find(s => s.name === SKILL.speed);
+const speedOf = (character: Character): SkillState | undefined =>
+	character.skills.find(s => s.name === selectedDefLoaded()?.rateSkill);
 
 export const speedUpgrades = (character: Character): number =>
 	speedOf(character)?.upgrades.get() ?? 0;
@@ -36,7 +37,7 @@ const update = () => {
 	void liveSpeedUpgrades.set(speedUpgrades(character));
 	void selectedRate.set(rateFor(character));
 };
-let watched: Skill | undefined;
+let watched: SkillState | undefined;
 void Entities.character.sync(character => {
 	watched?.upgrades.desync(update);
 	watched = speedOf(character);

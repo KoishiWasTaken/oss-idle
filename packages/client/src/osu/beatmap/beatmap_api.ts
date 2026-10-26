@@ -3,7 +3,10 @@ import {
 	Unzipped,
 } from 'fflate';
 import type { InferResponseType } from 'hono/client';
+
 import sleep from '@oss-idle/shared/helpers/sleep';
+
+import { SETTINGS } from '../../db/settings';
 import API from '../../online/api';
 import {
 	BASE_URL,
@@ -11,10 +14,9 @@ import {
 	withAuth,
 } from '../../online/client';
 import Socket from '../../online/socket';
-import { SETTINGS } from '../../db/settings';
 import BeatmapStore, {
-	SetRecord,
 	beatmapsVersion,
+	SetRecord,
 } from './beatmap_store';
 import type LightBeatmap from './LightBeatmap';
 

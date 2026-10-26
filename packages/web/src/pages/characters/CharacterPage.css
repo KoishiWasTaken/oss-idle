@@ -218,7 +218,6 @@
 	margin: 0 10px;
 	padding: 20px 40px;
 	position: relative;
-	transform: translateZ(0);
 }
 
 .character__block-title {

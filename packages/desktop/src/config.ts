@@ -1,6 +1,7 @@
-import { app } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { app } from 'electron';
 
 /** Custom scheme the OS routes back to the running app (`oss-idle://<action>`) -
  *  must match electron-builder's `protocols`. The transport for app-directed deep

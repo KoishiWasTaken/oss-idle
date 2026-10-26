@@ -1,5 +1,7 @@
 import type { Unzipped } from 'fflate';
+
 import type { LibraryEntry } from '@oss-idle/shared/desktop';
+
 import {
 	entriesOf,
 	entryById,

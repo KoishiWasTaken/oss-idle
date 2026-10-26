@@ -1,6 +1,6 @@
-import { redis } from './redis';
 import { redisKeyPrefix } from './env';
 import { getOnline } from './play';
+import { redis } from './redis';
 
 export type Stats = {
 	online_hist: number[];

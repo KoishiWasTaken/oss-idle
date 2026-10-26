@@ -1,4 +1,10 @@
 import type { Page } from '@playwright/test';
+
+import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
 import {
 	expect,
 	test,
@@ -8,11 +14,6 @@ import {
 	difficultyOf,
 	upload,
 } from '../support/uploads';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * Leaderboards of players' unranked maps: a supporter's map has one, a supporter's

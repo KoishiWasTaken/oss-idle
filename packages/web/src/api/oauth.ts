@@ -1,9 +1,11 @@
 import type { InferResponseType } from 'hono/client';
+
 import type {
 	AuthorizeBody,
 	OAuthClientBody,
 	OAuthClientUpdateBody,
 } from '@oss-idle/shared/oauth';
+
 import {
 	rpc,
 	unwrap,

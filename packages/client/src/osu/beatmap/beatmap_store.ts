@@ -1,25 +1,20 @@
 import '@oss-idle/shared/osu/controlPointPatch';
-import Synced from '@oss-idle/shared/helpers/synced';
+
 import {
 	strToU8,
 	Unzipped,
 } from 'fflate';
+import { Beatmap } from 'osu-classes';
+import { BeatmapDecoder } from 'osu-parsers';
+
+import Synced from '@oss-idle/shared/helpers/synced';
+
+import { library } from '../../library';
 import {
 	Manifest,
 	Metadata,
 	VersionMetadata,
 } from './beatmap_api';
-import { Beatmap } from 'osu-classes';
-import { BeatmapDecoder } from 'osu-parsers';
-import type LightBeatmap from './LightBeatmap';
-import LightBeatmapSet from './LightBeatmapSet';
-import {
-	chartFile,
-	isChart,
-	mime,
-	normalizeName,
-} from './setFiles';
-import { library } from '../../library';
 import {
 	diskAllMeta,
 	diskChart,
@@ -33,11 +28,19 @@ import {
 	removeDiskSet,
 	updateDiskSet,
 } from './diskSets';
+import type LightBeatmap from './LightBeatmap';
+import LightBeatmapSet from './LightBeatmapSet';
+import {
+	chartFile,
+	isChart,
+	mime,
+	normalizeName,
+} from './setFiles';
 import {
 	forgetThumbnails,
 	setThumbnailKey,
-	thumbnail,
 	type Thumbnail,
+	thumbnail,
 } from './thumbnails';
 
 const DB_NAME = 'beatmaps';

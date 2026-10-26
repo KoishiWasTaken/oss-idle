@@ -5,7 +5,9 @@ import {
 	primaryKey,
 	timestamp,
 } from 'drizzle-orm/mysql-core';
+
 import { GROUPS } from '@oss-idle/shared/groups';
+
 import { users } from './user';
 
 /** An account's membership of one group, set by an admin from the team page. */

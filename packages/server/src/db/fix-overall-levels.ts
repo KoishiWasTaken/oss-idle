@@ -15,35 +15,51 @@
  *
  * Lifetime is deliberately left alone: it is the one figure nothing spends.
  *
- *   npm -w @oss-idle/server run fix:overall:prod -- --dry-run
+ *   npm -w @oss-idle/server run fix:overall:prod -- --dry-run [--ruleset mania4k]
  */
 import { eq } from 'drizzle-orm';
+
 import {
 	xpGivesLevel,
 	xpToLevel,
-} from '@oss-idle/shared/sim/skills/xp';
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import { db } from './client';
-import { characters } from './schema/character';
+} from '@oss-idle/shared/xp';
+
 import { reindexCharacter } from '../rankings';
+import {
+	loadRulesets,
+	rulesetFromArgs,
+} from '../rulesets/registry';
+import { db } from './client';
+import {
+	characters,
+	skillColumnsFor,
+	skillOf,
+} from './schema/character';
 
 const dryRun = process.argv.includes('--dry-run');
 /** Rounding noise, not a wrong total: levels are stored as integers. */
 const TOLERANCE = 1000;
 
 const main = async () => {
-	const rows = await db.select().from(characters);
+	await loadRulesets();
+	const r = rulesetFromArgs();
+	const rows = (await db.select({
+		name: characters.name, profile: r.profile, 
+	})
+		.from(r.profile)
+		.innerJoin(characters, eq(characters.id, r.profile.id)))
+		.map(({ name, profile }) => ({
+			...profile, name, 
+		}));
 	console.log(`checking ${rows.length} characters${dryRun ? ' (dry run)' : ''}`);
 
 	let fixed = 0;
 	for (const row of rows) {
-		const totals = {} as Record<SkillName, number>;
+		const totals: Record<string, number> = {};
 		let overallTotalXp = 0;
-		for (const skill of Skills) {
-			const owed = Math.round(xpToLevel(row[`${skill}Level`]) + row[`${skill}Xp`]);
+		for (const skill of r.def.skills) {
+			const { level, xp } = skillOf(row, skill);
+			const owed = Math.round(xpToLevel(level) + xp);
 			totals[skill] = owed;
 			overallTotalXp += owed;
 		}
@@ -58,14 +74,14 @@ const main = async () => {
 		);
 
 		if (!dryRun) {
-			await db.update(characters).set({
-				...Object.fromEntries(Skills.map(s => [`${s}TotalXp`, totals[s]])),
+			await db.update(r.profile).set({
+				...Object.assign({}, ...r.def.skills.map(s => skillColumnsFor(s, { totalXp: totals[s] }))),
 				overallTotalXp,
 				overallLevel: overall.level,
 				overallXp: Math.round(overall.xp),
-			}).where(eq(characters.id, row.id));
+			}).where(eq(r.profile.id, row.id));
 			// the boards rank on these, so they have to be told
-			await reindexCharacter(row.id);
+			await reindexCharacter(r, row.id);
 		}
 		fixed++;
 	}

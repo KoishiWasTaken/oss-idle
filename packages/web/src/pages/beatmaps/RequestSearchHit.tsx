@@ -1,5 +1,6 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
 import type { MapSearchHit } from '../../api/mapRequests';
 
 /** osu!'s own status for the set, purely informative here - any map can be

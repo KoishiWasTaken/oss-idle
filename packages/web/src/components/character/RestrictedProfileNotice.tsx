@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro';
+
 import NotificationBanner from '../NotificationBanner';
 
 /** osu!web's warning on a restricted player's profile. Only admins get this far; the player

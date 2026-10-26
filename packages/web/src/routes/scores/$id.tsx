@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { getScore } from '../../api/scores';
 import ScorePage from '../../pages/scores/ScorePage';
 

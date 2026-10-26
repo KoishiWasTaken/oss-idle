@@ -1,4 +1,3 @@
-import type { ManiaAssets } from '../osu/skin/maniaAssets';
 import type { Context2D } from '../gameplay/render/frame';
 import {
 	drawKeys,
@@ -9,8 +8,9 @@ import {
 	type StageFrame,
 	type StageLayer,
 } from '../gameplay/render/stage';
-import { drawStageNotes } from '../gameplay/render/stageNotes';
 import { stageLayout } from '../gameplay/render/stageLayout';
+import { drawStageNotes } from '../gameplay/render/stageNotes';
+import type { ManiaAssets } from '../osu/skin/maniaAssets';
 import ChartField from './chartField';
 import { stageSpan } from './editorSkins';
 import type { PaintState } from './painter';

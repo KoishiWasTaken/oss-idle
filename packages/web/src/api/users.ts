@@ -1,4 +1,5 @@
 import type { CharacterDTO } from '@oss-idle/shared/character';
+
 import {
 	apiUrl,
 	json,

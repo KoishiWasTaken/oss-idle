@@ -1,12 +1,14 @@
 import './TopPlays.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
 import rank from '@oss-idle/shared/display/rank';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
 import type { getTopPlays } from '../../api/rankings';
-import ScoreRow from '../../components/score/ScoreRow';
-import Pager from '../../components/leaderboard/Pager';
-import RankingsNav from './RankingsNav';
 import LeaderboardFilters from '../../components/leaderboard/LeaderboardFilters';
+import Pager from '../../components/leaderboard/Pager';
 import { useFriendsFilter } from '../../components/leaderboard/useFriendsFilter';
+import ScoreRow from '../../components/score/ScoreRow';
+import RankingsNav from './RankingsNav';
 
 type Plays = Awaited<ReturnType<typeof getTopPlays>>;
 

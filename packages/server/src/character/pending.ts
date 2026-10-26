@@ -1,11 +1,14 @@
 import { eq } from 'drizzle-orm';
+
+import type { PendingAction } from '@oss-idle/shared/pendingAction';
+
 import { db } from '../db/client';
 import {
-	characters,
 	type CharacterRow,
+	characters,
 } from '../db/schema/character';
 import { users } from '../db/schema/user';
-import type { PendingAction } from '@oss-idle/shared/pendingAction';
+import { rulesetFor } from '../rulesets/registry';
 import {
 	performPrestige,
 	performRebirth,
@@ -120,12 +123,13 @@ const runAction = async (
 	row: CharacterRow,
 	action: PendingAction,
 ): Promise<number | undefined> => {
+	const r = rulesetFor(action.ruleset);
 	switch (action.type) {
 		case 'upgrade':
-			await performUpgrade(row, action.skill);
+			await performUpgrade(r, row.id, action.skill);
 			return undefined;
 		case 'prestige':
-			await performPrestige(row, action.skill);
+			await performPrestige(r, row.id, action.skill);
 			return undefined;
 		case 'rebirth': {
 			const [user] = await db
@@ -133,7 +137,7 @@ const runAction = async (
 				.from(users)
 				.where(eq(users.id, row.userId))
 				.limit(1);
-			return user ? performRebirth(user, row, action.name) : undefined;
+			return user ? performRebirth(r, user, row, action.name) : undefined;
 		}
 	}
 };

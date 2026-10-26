@@ -1,12 +1,14 @@
+import { BeatmapDecoder } from 'osu-parsers';
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import { BeatmapDecoder } from 'osu-parsers';
-import { Bot } from '@oss-idle/shared/sim/bot';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import { parseChart } from '@oss-idle/shared/editor/chart';
+
+import { Bot } from '@oss-idle/shared/rulesets/mania/bot';
+import { parseChart } from '@oss-idle/shared/rulesets/mania/editor/chart';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import ChartField from '@oss-idle/client/editor/chartField';
 
 class Autoplay extends Bot {

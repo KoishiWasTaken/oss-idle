@@ -1,6 +1,9 @@
 import './Footer.css';
-import { VERSION } from '@oss-idle/shared/version';
+
 import { Trans } from '@lingui/react/macro';
+
+import { VERSION } from '@oss-idle/shared/version';
+
 import Link from './components/Link';
 
 export default function Footer() {

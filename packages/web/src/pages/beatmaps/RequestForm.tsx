@@ -1,22 +1,24 @@
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ph } from '@lingui/core/macro';
-import {
-	useEffect,
-	useState,
-} from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import {
 	maxPendingRequests,
 	parseBeatmapsetId,
 } from '@oss-idle/shared/beatmapRequest';
+
 import {
+	type MapSearchHit,
 	searchMapRequests,
 	submitMapRequest,
-	type MapSearchHit,
 } from '../../api/mapRequests';
 import RequestSearchHit from './RequestSearchHit';
 

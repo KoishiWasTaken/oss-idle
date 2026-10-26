@@ -1,8 +1,9 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import { bignum } from '@oss-idle/shared/display/num';
 
 describe('bignum', () => {

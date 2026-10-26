@@ -2,8 +2,9 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
-import { drawWarmupGauge } from '../gameplay/render/hud';
+
 import type { Frame } from '../gameplay/render/frame';
+import { drawWarmupGauge } from '../gameplay/render/hud';
 
 const STATES: [string, number, number][] = [
 	['Cold', 0.05, -3],

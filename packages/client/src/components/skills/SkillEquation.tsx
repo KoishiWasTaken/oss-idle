@@ -2,7 +2,9 @@ import {
 	Plural,
 	Trans,
 } from '@lingui/react/macro';
+
 import { overdriveText } from '@oss-idle/shared/display/overdrive';
+
 import PrestigeDiamonds from '../character/PrestigeDiamonds';
 import SkillChip from './SkillChip';
 import {

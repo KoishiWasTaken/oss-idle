@@ -1,15 +1,17 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
 	LEVEL_COLOUR_MAX,
 	LEVEL_COLOUR_MIN,
 	levelClass,
-	levelProgress,
 } from '@oss-idle/shared/display/levelDisplay';
-import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
+import { levelProgress } from '@oss-idle/shared/xp';
+import { xpForLevel } from '@oss-idle/shared/xp';
+
 import { levelPercent } from '../../server/src/api/levelPercent';
 
 /** The rules every level on screen follows. They live in one helper precisely

@@ -3,36 +3,40 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import {
 	cleanMods,
 	countsForMedals,
 	isRankedMods,
 	modsKey,
 	modsScoreMultiplier,
-	modXp,
-	modXpMultipliers,
 	parseMods,
 	playLabel,
 	toggleMod,
 	windowScale,
-	worstAllowed,
 } from '@oss-idle/shared/mods';
+import CharacterBot from '@oss-idle/shared/rulesets/mania/4k/bots/character';
 import {
-	ScoreState,
-	maniaWindows,
-} from '@oss-idle/shared/sim/scoring';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import { xpScore } from '@oss-idle/shared/sim/xpScore';
+	modXp,
+	modXpMultipliers,
+} from '@oss-idle/shared/rulesets/mania/4k/modXp';
+import {
+	type SkillName,
+	Skills,
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
+import { makeOrderedSkills } from '@oss-idle/shared/rulesets/mania/4k/skills/factory';
 import {
 	JUDGEMENT,
 	type Judgement,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { worstAllowed } from '@oss-idle/shared/rulesets/mania/mods';
 import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
+	maniaWindows,
+	ScoreState,
+} from '@oss-idle/shared/rulesets/mania/scoring';
+import { xpScore } from '@oss-idle/shared/rulesets/mania/xpScore';
+
 import {
 	CHARTS,
 	getBeatmap,

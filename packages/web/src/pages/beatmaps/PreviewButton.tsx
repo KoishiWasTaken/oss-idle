@@ -1,14 +1,14 @@
 import {
+	faPause,
+	faPlay,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-	faPause,
-	faPlay,
-} from '@fortawesome/free-solid-svg-icons';
 
 /** Plays the map's audio preview, with a bar for how far along it is. */
 export default function PreviewButton({ src }: { src: string }) {

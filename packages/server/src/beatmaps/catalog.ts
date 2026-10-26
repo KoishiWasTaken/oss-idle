@@ -1,4 +1,5 @@
 import { statSync } from 'node:fs';
+
 import {
 	and,
 	eq,
@@ -10,26 +11,32 @@ import {
 	max,
 	ne,
 	or,
+	type SQL,
 	sql,
 	sum,
-	type SQL,
 } from 'drizzle-orm';
+
 import {
+	APPROVED_STATUSES,
 	INTRO_SET_ID,
 	isApproved,
-	APPROVED_STATUSES,
 	type MapTag,
-	parseMapTags,
 	type PanelDiff,
+	parseMapTags,
 } from '@oss-idle/shared/beatmap';
+
 import { db } from '../db/client';
 import { likeEscape } from '../db/columns';
-import { redis } from '../redis';
-import { redisKeyPrefix } from '../env';
-import { hub } from '../ws/hub';
 import { beatmaps } from '../db/schema/beatmap';
 import { beatmapset } from '../db/schema/beatmapset';
+import { redisKeyPrefix } from '../env';
+import { redis } from '../redis';
+import { hub } from '../ws/hub';
 import { oszPath } from './storage';
+export { setColumns } from '../db/schema/beatmapset';
+import { chartsOf } from '../rulesets/enabled';
+import { enabledRulesets } from '../rulesets/registry';
+import type { ServerRuleset } from '../rulesets/ruleset';
 
 /** What a set's panel shows besides the set itself, over the `beatmaps` joined to it:
  *  plays, a cover, the preview track and the difficulties. */
@@ -42,59 +49,74 @@ export const panelColumns = () => ({
 		.mapWith(value => (typeof value === 'string' ? JSON.parse(value) : value) as PanelDiff[]),
 });
 
-/** A set is live - listed, downloadable, previewable - only once it's ranked (or
- *  loved) and its scheduled rank time has passed. Pending (null rankedAt) and future-dated
- *  sets are excluded (null <= now() is null, so they drop out). Reused by the
- *  public listing routes so the whole site shares one definition of "live". */
-export const liveCondition = and(
-	inArray(beatmapset.status, [...APPROVED_STATUSES]),
-	lte(beatmapset.rankedAt, sql`now()`),
+/** The difficulties a ruleset plays, for a query joining `beatmaps`. */
+export const diffsOf = (r: ServerRuleset) => chartsOf(r.def.id, beatmaps.mode, beatmaps.keys);
+
+/** A set is live in a ruleset - listed, downloadable, previewable - only once it's ranked (or
+ *  loved) there and its scheduled rank time has passed. Pending (null rankedAt) and future-dated
+ *  sets are excluded (null <= now() is null, so they drop out). For queries joining the
+ *  ruleset's `setStatus`, so the whole site shares one definition of "live". */
+export const liveCondition = ({ setStatus }: ServerRuleset) => and(
+	inArray(setStatus.status, [...APPROVED_STATUSES]),
+	lte(setStatus.rankedAt, sql`now()`),
 );
 
 /** Per-difficulty gate on top of `liveCondition`: a diff is live only when its
- *  set is live AND the diff itself is ranked. For queries joining `beatmaps`. */
-export const liveDiffCondition = and(liveCondition, eq(beatmaps.ranked, true));
+ *  set is live in its ruleset AND the diff itself is ranked. For queries joining `beatmaps`. */
+export const liveDiffCondition = (r: ServerRuleset) => and(
+	liveCondition(r), eq(beatmaps.ranked, true), diffsOf(r),
+);
 
 // Public listings show live sets (ranked diffs only) but never the intro (it's
 // not a ranked map). Every listing joins `beatmaps`, so the diff gate applies.
-export const listedCondition = and(liveDiffCondition, ne(beatmapset.id, INTRO_SET_ID));
+export const listedCondition = (r: ServerRuleset) =>
+	and(liveDiffCondition(r), ne(beatmapset.id, INTRO_SET_ID));
 
 const previewUrl = (setId: number, file: string | null) =>
 	file ? `/v1/beatmap/preview/${setId}/${file}` : undefined;
 
-/** A player's own upload that is still up and unranked: the one with a leaderboard. */
-export const unrankedCondition = and(
-	eq(beatmapset.status, 'unranked'),
+/** A player's own upload that is still up and unranked in the ruleset: the one with a leaderboard. */
+export const unrankedCondition = ({ setStatus }: ServerRuleset) => and(
+	eq(setStatus.status, 'unranked'),
 	isNull(beatmapset.deletedAt),
 );
 
-/** A player's own map that is still up and not ranked: unranked, or waiting in the
- *  ranking queue - listed, downloadable and with its page either way. */
-export const playerMapCondition = and(
+/** A player's own map that is still up and not ranked in the ruleset: unranked, or waiting in
+ *  its ranking queue - listed, downloadable and with its page either way. */
+export const playerMapCondition = ({ setStatus }: ServerRuleset) => and(
 	isNull(beatmapset.deletedAt),
 	isNotNull(beatmapset.uploadedAt),
-	or(eq(beatmapset.status, 'unranked'), eq(beatmapset.status, 'pending')),
+	or(eq(setStatus.status, 'unranked'), eq(setStatus.status, 'pending')),
 );
 
-/** Whether a single set is live, for gating the .osz + preview file routes. */
-export const isSetLive = async (setId: number): Promise<boolean> => {
-	const [row] = await db
-		.select({ id: beatmapset.id })
-		.from(beatmapset)
-		.where(and(eq(beatmapset.id, setId), liveCondition))
-		.limit(1);
-	return !!row;
+/** A difficulty with a page: live, or on a player's map still up. For queries joining `beatmaps`. */
+export const shownDiffCondition = (r: ServerRuleset) =>
+	or(liveDiffCondition(r), and(playerMapCondition(r), diffsOf(r)));
+
+/** The ruleset's status of every set, for a query on `beatmapset`. */
+export const withStatus = ({ setStatus }: ServerRuleset) =>
+	[setStatus, eq(setStatus.setId, beatmapset.id)] as const;
+
+/** Whether a set matches `where` in any ruleset this server plays. */
+const inAnyRuleset = async (setId: number, where: (r: ServerRuleset) => SQL | undefined) => {
+	for (const r of enabledRulesets()) {
+		const [row] = await db
+			.select({ id: beatmapset.id })
+			.from(beatmapset)
+			.innerJoin(...withStatus(r))
+			.where(and(eq(beatmapset.id, setId), where(r)))
+			.limit(1);
+		if (row) return true;
+	}
+	return false;
 };
 
+/** Whether a single set is live in any ruleset, for gating the .osz + preview file routes. */
+export const isSetLive = (setId: number): Promise<boolean> => inAnyRuleset(setId, liveCondition);
+
 /** Whether anyone may download a set: a live one, or a player's own not ranked yet. */
-export const isSetPublic = async (setId: number): Promise<boolean> => {
-	const [row] = await db
-		.select({ id: beatmapset.id })
-		.from(beatmapset)
-		.where(and(eq(beatmapset.id, setId), or(liveCondition, playerMapCondition)))
-		.limit(1);
-	return !!row;
-};
+export const isSetPublic = (setId: number): Promise<boolean> =>
+	inAnyRuleset(setId, r => or(liveCondition(r), playerMapCondition(r)));
 
 // `runtime: false` marks a catalog entry the client hasn't downloaded yet, as
 // opposed to its local runtime store of downloaded sets.
@@ -145,8 +167,9 @@ export type Catalog = {
 	beatmaps: CatalogSet[];
 };
 
-/** Every set with a difficulty matching `where`, with those difficulties, catalog-shaped. */
-const catalogSets = async (where: SQL | undefined): Promise<CatalogSet[]> => {
+/** Every set with a difficulty matching `where` in a ruleset, with those difficulties,
+ *  catalog-shaped. */
+const catalogSets = async (r: ServerRuleset, where: SQL | undefined): Promise<CatalogSet[]> => {
 	const rows = await db
 		.select({
 			setId: beatmapset.id,
@@ -154,12 +177,13 @@ const catalogSets = async (where: SQL | undefined): Promise<CatalogSet[]> => {
 			title: beatmapset.title,
 			creator: beatmapset.creator,
 			bundled: beatmapset.bundled,
-			status: beatmapset.status,
-			rankedAt: beatmapset.rankedAt,
-			submittedAt: beatmapset.submittedAt,
+			status: r.setStatus.status,
+			rankedAt: r.setStatus.rankedAt,
+			submittedAt: r.setStatus.submittedAt,
 			b: beatmaps,
 		})
 		.from(beatmapset)
+		.innerJoin(...withStatus(r))
 		.innerJoin(beatmaps, eq(beatmapset.id, beatmaps.setId))
 		.where(where);
 
@@ -213,12 +237,38 @@ const catalogSets = async (where: SQL | undefined): Promise<CatalogSet[]> => {
 	return [...sets.values()];
 };
 
+/** Sets listed by several rulesets as one: every ruleset's difficulties, ranked or loved
+ *  when any ruleset has it so. */
+const mergeSets = (lists: CatalogSet[][]): CatalogSet[] => {
+	const sets = new Map<number, CatalogSet>();
+	for (const set of lists.flat()) {
+		const held = sets.get(set.id);
+		if (!held) sets.set(set.id, set);
+		else {
+			// the intro is every ruleset's, its difficulty with it
+			held.versions.push(...set.versions.filter(v => !held.versions.some(h => h.id === v.id)));
+			held.plays += set.plays;
+			held.ranked ||= set.ranked;
+			held.loved ||= set.loved;
+		}
+	}
+	return [...sets.values()];
+};
+
+/** Every ruleset's catalog sets matching `where`, merged. */
+const allCatalogSets = async (where: (r: ServerRuleset) => SQL | undefined) =>
+	mergeSets(await Promise.all(enabledRulesets().map(r => catalogSets(r, where(r)))));
+
 /** The live catalog: every ranked-and-due set with its difficulties, plus the
- *  intro set called out separately. Replaces the old static manifest.json. */
+ *  intro set called out separately (a standard map: no ruleset lists its difficulty).
+ *  Replaces the old static manifest.json. */
 export const buildCatalog = async (): Promise<Catalog> => {
-	const sets = await catalogSets(liveDiffCondition);
+	const [sets, intros] = await Promise.all([
+		allCatalogSets(liveDiffCondition),
+		allCatalogSets(r => and(eq(beatmapset.id, INTRO_SET_ID), liveCondition(r))),
+	]);
 	return {
-		intro: sets.find(set => set.id === INTRO_SET_ID), beatmaps: sets,
+		intro: intros[0], beatmaps: mergeSets([sets, intros]),
 	};
 };
 
@@ -269,18 +319,21 @@ export const setLiveChanged = async (wasLive: boolean, isLive: boolean): Promise
 export const LIST_STATUSES = ['ranked', 'loved', 'unranked', 'any'] as const;
 export type ListStatus = (typeof LIST_STATUSES)[number];
 
-/** The listed difficulties of a status: ranked ones, loved ones, players' unranked
- *  uploads, or all of them. */
-export const listCondition = (status: ListStatus) => {
-	const unranked = and(playerMapCondition, ne(beatmapset.id, INTRO_SET_ID));
+/** The listed difficulties of a status in a ruleset: ranked ones, loved ones, players'
+ *  unranked uploads, or all of them. */
+export const listCondition = (r: ServerRuleset, status: ListStatus) => {
+	const unranked = and(
+		playerMapCondition(r), ne(beatmapset.id, INTRO_SET_ID), diffsOf(r),
+	);
 	if (status === 'ranked' || status === 'loved') {
-		return and(listedCondition, eq(beatmapset.status, status));
+		return and(listedCondition(r), eq(r.setStatus.status, status));
 	}
-	return status === 'unranked' ? unranked : or(listedCondition, unranked);
+	return status === 'unranked' ? unranked : or(listedCondition(r), unranked);
 };
 
-/** When a listed set got there: approved, or uploaded for an unranked one. */
-export const listedAt = sql`coalesce(${beatmapset.rankedAt}, ${beatmapset.submittedAt})`;
+/** When a listed set got there in a ruleset: approved, or uploaded for an unranked one. */
+export const listedAt = ({ setStatus }: ServerRuleset) =>
+	sql`coalesce(${setStatus.rankedAt}, ${setStatus.submittedAt})`;
 
 /** Sets whose title, artist or mapper contains `search`; everything without one. */
 export const nameMatches = (search?: string) => {
@@ -295,8 +348,8 @@ export const nameMatches = (search?: string) => {
 };
 
 /** Every player's own map not ranked yet, catalog-shaped like the ranked catalog. */
-export const unrankedSets = () => catalogSets(listCondition('unranked'));
+export const unrankedSets = () => allCatalogSets(r => listCondition(r, 'unranked'));
 
 /** One player's own map not ranked yet, catalog-shaped for the game to download it. */
 export const unrankedSet = async (setId: number): Promise<CatalogSet | undefined> =>
-	(await catalogSets(and(playerMapCondition, eq(beatmapset.id, setId))))[0];
+	(await allCatalogSets(r => and(playerMapCondition(r), eq(beatmapset.id, setId))))[0];

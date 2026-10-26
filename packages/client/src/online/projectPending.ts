@@ -1,8 +1,9 @@
+import type { PendingAction } from '@oss-idle/shared/pendingAction';
 import {
 	applyPrestige,
 	applyUpgrade,
 } from '@oss-idle/shared/upgrades';
-import type { PendingAction } from '@oss-idle/shared/pendingAction';
+
 import type Character from '../db/schema/character';
 
 /**

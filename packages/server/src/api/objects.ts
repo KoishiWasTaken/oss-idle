@@ -1,38 +1,41 @@
-import { Skills } from '@oss-idle/shared/skills';
-import { levelPercent } from './levelPercent';
-import {
-	GoodGrades,
-	Judgements,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
-import type { ScoreDTO } from '@oss-idle/shared/score';
 import { mapCoverUrl } from '@oss-idle/shared/beatmap';
-import { supportLevel } from '@oss-idle/shared/supporter';
-import type { BeatmapRow } from '../db/schema/beatmap';
-import type { BeatmapsetRow } from '../db/schema/beatmapset';
+import { GoodGrades } from '@oss-idle/shared/grade';
 import {
+	OSU_MODE,
+	RULESETS,
+} from '@oss-idle/shared/rulesets/ids';
+import type { RulesetDef } from '@oss-idle/shared/rulesets/ruleset';
+import type { ScoreDTO } from '@oss-idle/shared/score';
+import { supportLevel } from '@oss-idle/shared/supporter';
+
+import type { BeatmapRow } from '../db/schema/beatmap';
+import type { RulesetSetRow } from '../db/schema/beatmapset';
+import {
+	type CharacterRow,
+	type ProfileRow,
 	resolveAvatarUrl,
 	resolveBannerUrl,
-	type CharacterRow,
+	skillOf,
 } from '../db/schema/character';
 import type { CharacterTotalsRow } from '../db/schema/character_totals';
+import type { NewsRow } from '../db/schema/news';
 import {
 	supporterActive,
 	type UserRow,
 } from '../db/schema/user';
-import type { NewsRow } from '../db/schema/news';
 import {
 	apiBaseUrl,
 	clientUrl,
 } from '../env';
+import { levelPercent } from './levelPercent';
 
 /** osu!'s API objects, in its snake_case, with the fields we have. */
 
 const lower = <K extends string>(k: K) => k.toLowerCase() as Lowercase<K>;
 
-export const statistics = (counts: Record<Judgement, number>) =>
-	Object.fromEntries(Judgements.map(j => [lower(j), counts[j]])) as
-		Record<Lowercase<Judgement>, number>;
+/** A play's or a player's count per judgement, by the ruleset's judgements. */
+export const statistics = (def: RulesetDef, counts: Readonly<Record<string, number>>) =>
+	Object.fromEntries(def.judgements.map(j => [lower(j), counts[j]]));
 
 const iso = (d: Date | null | undefined) => d?.toISOString();
 
@@ -59,11 +62,12 @@ const gradeCounts = (totals: CharacterTotalsRow) =>
 		Record<Lowercase<typeof GoodGrades[number]>, number>;
 
 export const userStatistics = (
-	character: CharacterRow,
+	def: RulesetDef,
+	profile: Pick<ProfileRow, 'pp' | 'overallLevel' | 'overallXp' | 'overallTotalXp'>,
 	totals: CharacterTotalsRow,
 	ranks: { global?: number; country?: number },
 ) => ({
-	pp: Number(character.pp),
+	pp: Number(profile.pp),
 	global_rank: ranks.global,
 	country_rank: ranks.country,
 	ranked_score: totals.rankedScore,
@@ -72,20 +76,23 @@ export const userStatistics = (
 	play_time: totals.playTime,
 	total_hits: totals.hits,
 	level: {
-		current: character.overallLevel,
-		progress: levelPercent(character.overallLevel, character.overallXp),
-		total_xp: character.overallTotalXp,
+		current: profile.overallLevel,
+		progress: levelPercent(profile.overallLevel, profile.overallXp),
+		total_xp: profile.overallTotalXp,
 	},
 	grade_counts: gradeCounts(totals),
-	statistics: statistics(totals),
+	statistics: statistics(def, totals as unknown as Record<string, number>),
 });
 
 export const apiUser = (
+	def: RulesetDef,
 	user: UserRow,
 	character: CharacterRow,
+	profile: ProfileRow,
 	totals: CharacterTotalsRow,
 	ranks: { global?: number; country?: number },
 ) => {
+	const { mode, variant }: { mode: string, variant?: string } = RULESETS[def.id];
 	const supporter = supporterActive(user);
 	return {
 		...userCompact({
@@ -97,25 +104,28 @@ export const apiUser = (
 		}),
 		cover_url: resolveBannerUrl(character.bannerUrl),
 		title: character.title ?? undefined,
-		generation: character.generation,
+		generation: profile.generation,
 		is_supporter: supporter,
 		support_level: supportLevel(supporter, user.supporterMonths),
 		join_date: iso(user.createdAt),
-		statistics: userStatistics(character, totals, ranks),
-		skills: Object.fromEntries(Skills.map(s => [s, {
-			level: character[`${s}Level`],
-			progress: levelPercent(character[`${s}Level`], character[`${s}Xp`]),
-			total_xp: character[`${s}TotalXp`],
-			prestige: character[`${s}Prestige`],
-			upgrades: character[`${s}Upgrades`],
-		}])),
+		statistics: userStatistics(def, profile, totals, ranks),
+		skills: Object.fromEntries(def.skills.map(s => {
+			const skill = skillOf(profile, s);
+			return [s, {
+				level: skill.level,
+				progress: levelPercent(skill.level, skill.xp),
+				total_xp: skill.totalXp,
+				prestige: skill.prestige,
+				upgrades: skill.upgrades,
+			}];
+		})),
 		rank_history: {
-			mode: 'mania', data: character.rankHistory?.ranks ?? [],
+			mode, variant, data: profile.rankHistory?.ranks ?? [],
 		},
 	};
 };
 
-export const apiScore = (score: ScoreDTO) => ({
+export const apiScore = (def: RulesetDef, score: ScoreDTO) => ({
 	id: score.id,
 	character_id: score.characterId,
 	beatmap_id: score.beatmapId,
@@ -127,22 +137,22 @@ export const apiScore = (score: ScoreDTO) => ({
 	perfect: score.pfc,
 	rate: score.rate,
 	mods: score.mods,
-	statistics: statistics(score.judgements),
+	statistics: statistics(def, score.judgements),
 	ended_at: new Date(score.playedAt).toISOString(),
 });
 
 type BeatmapInput = Omit<BeatmapRow, 'chart'>;
 
 /** osu!'s status for an approved set: ranked or loved. */
-const apiStatus = (s: Pick<BeatmapsetRow, 'status'>) => s.status === 'loved' ? 'loved' : 'ranked';
+const apiStatus = (s: Pick<RulesetSetRow, 'status'>) => s.status === 'loved' ? 'loved' : 'ranked';
 
-export const apiBeatmap = (b: BeatmapInput, set: Pick<BeatmapsetRow, 'status'>) => ({
+export const apiBeatmap = (b: BeatmapInput, set: Pick<RulesetSetRow, 'status'>) => ({
 	id: b.id,
 	osu_id: b.osuId ?? undefined,
 	beatmapset_id: b.setId,
 	version: b.version,
 	difficulty_rating: Number(b.sr),
-	mode: 'mania',
+	mode: (Object.keys(OSU_MODE) as (keyof typeof OSU_MODE)[]).find(m => OSU_MODE[m] === b.mode),
 	status: apiStatus(set),
 	cs: b.keys,
 	bpm: b.bpm,
@@ -153,7 +163,7 @@ export const apiBeatmap = (b: BeatmapInput, set: Pick<BeatmapsetRow, 'status'>) 
 	url: `${clientUrl}/web/maps/${b.setId}?diff=${b.id}`,
 });
 
-export const apiBeatmapset = (s: BeatmapsetRow, beatmaps: BeatmapInput[] = []) => ({
+export const apiBeatmapset = (s: RulesetSetRow, beatmaps: BeatmapInput[] = []) => ({
 	id: s.id,
 	osu_id: s.osuId ?? undefined,
 	artist: s.artist,

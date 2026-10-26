@@ -1,4 +1,5 @@
 import type { InferRequestType } from 'hono/client';
+
 import {
 	rpc,
 	unwrap,

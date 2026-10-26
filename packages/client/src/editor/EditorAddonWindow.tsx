@@ -1,9 +1,10 @@
+import { useLingui } from '@lingui/react/macro';
 import {
+	type MouseEvent,
 	useRef,
 	useState,
-	type MouseEvent,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import type { AddonWindow } from './addonUi';
 import EditorAddonMount from './EditorAddonMount';
 

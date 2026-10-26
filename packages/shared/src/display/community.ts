@@ -1,8 +1,8 @@
+import type { Status } from '../community/presence.js';
 import {
 	__,
 	defineMessages,
 } from '../i18n/translate.js';
-import type { Status } from '../community/presence.js';
 
 const STATUS_NAMES = defineMessages({
 	idle: 'Idle',

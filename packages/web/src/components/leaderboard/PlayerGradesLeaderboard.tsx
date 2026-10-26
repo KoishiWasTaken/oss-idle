@@ -1,24 +1,28 @@
 import './PlayerLeaderboard.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
-import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
-import Link from '../Link';
-import Pager from './Pager';
-import int from '@oss-idle/shared/math/int';
-import type { getGradesRanking } from '../../api/rankings';
-import Flag from '../Flag';
-import rank from '@oss-idle/shared/display/rank';
-import num from '@oss-idle/shared/display/num';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
-import accuracy from '@oss-idle/shared/display/accuracy';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
+import accuracy from '@oss-idle/shared/display/accuracy';
+import num from '@oss-idle/shared/display/num';
+import rank from '@oss-idle/shared/display/rank';
 import {
 	GoodGrade,
 	GoodGrades,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/grade';
 import sum from '@oss-idle/shared/helpers/sum';
+import int from '@oss-idle/shared/math/int';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+import hitAccuracy from '@oss-idle/shared/rulesets/mania/hitAccuracy';
+import { countsOf } from '@oss-idle/shared/rulesets/ruleset';
+
+import type { getGradesRanking } from '../../api/rankings';
+import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
+import Flag from '../Flag';
+import Link from '../Link';
+import Pager from './Pager';
 
 type Sort = GoodGrade | 'all';
 
@@ -39,32 +43,32 @@ export default function PlayerGradesLeaderboard({ sort, country, page, players }
 	type Player = Players[number];
 
 	const totalGrades = (p: Player) =>
-		sum(GoodGrades.map(g => p.character_totals[g]));
+		sum(GoodGrades.map(g => p.totals[g]));
 
 	const untie = (a: Player, b: Player) => {
-		if (a.character_totals.X !== b.character_totals.X)
-			return b.character_totals.X - a.character_totals.X;
+		if (a.totals.X !== b.totals.X)
+			return b.totals.X - a.totals.X;
 
-		if (a.character_totals.SS !== b.character_totals.SS)
-			return b.character_totals.SS - a.character_totals.SS;
+		if (a.totals.SS !== b.totals.SS)
+			return b.totals.SS - a.totals.SS;
 
-		if (a.character_totals.S !== b.character_totals.S)
-			return b.character_totals.S - a.character_totals.S;
+		if (a.totals.S !== b.totals.S)
+			return b.totals.S - a.totals.S;
 
-		if (a.character_totals.A !== b.character_totals.A)
-			return b.character_totals.A - a.character_totals.A;
+		if (a.totals.A !== b.totals.A)
+			return b.totals.A - a.totals.A;
 
 		return totalGrades(b) - totalGrades(a);
 	};
 
 	const sortedPlayers = [...players].sort((a, b) => {
 		const aScore = sort === 'all'
-			? sum(GoodGrades.map(g => a.character_totals[g]))
-			: a.character_totals[sort];
+			? sum(GoodGrades.map(g => a.totals[g]))
+			: a.totals[sort];
 
 		const bScore = sort === 'all'
-			? sum(GoodGrades.map(g => b.character_totals[g]))
-			: b.character_totals[sort];
+			? sum(GoodGrades.map(g => b.totals[g]))
+			: b.totals[sort];
 
 		// preserve original order when not tied
 		if (aScore !== bScore)
@@ -113,15 +117,15 @@ export default function PlayerGradesLeaderboard({ sort, country, page, players }
 							<Flag country={player.user.country} />
 							<Link to='/c/$id' params={{ id: String(player.character.id) }}>{player.character.name}</Link>
 						</div></td>
-						<td className='dimmed extra'>{accuracy(hitAccuracy(player.character_totals))}</td>
-						<td className='dimmed extra'>{num(player.character_totals.playCount)}</td>
-						<td className='dimmed extra'>{num(player.character_totals.rankedScore)}</td>
-						<td className='dimmed extra'>{num(int(player.character.pp) ?? 0)}</td>
+						<td className='dimmed extra'>{accuracy(hitAccuracy(countsOf(player.totals)))}</td>
+						<td className='dimmed extra'>{num(player.totals.playCount)}</td>
+						<td className='dimmed extra'>{num(player.totals.rankedScore)}</td>
+						<td className='dimmed extra'>{num(int(player.profile.pp) ?? 0)}</td>
 						{...GoodGrades.map(type => <td key={type} className={sort === type ? 'current' : 'dimmed'}>
-							{num(player.character_totals[type])}
+							{num(player.totals[type])}
 						</td>)}
 						<td className={sort === 'all' ? 'current' : 'dimmed'}>
-							{num(sum(GoodGrades.map(g => player.character_totals[g])))}
+							{num(sum(GoodGrades.map(g => player.totals[g])))}
 						</td>
 					</tr>)}
 				</tbody>

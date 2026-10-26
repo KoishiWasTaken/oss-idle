@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import Prism from 'prismjs';
 import 'prism-themes/themes/prism-vsc-dark-plus.css';
+
+import Prism from 'prismjs';
+import { useState } from 'react';
 
 /** The "View code" toggle and panel for one add-on. */
 export default function AddonRowCode({ source }: { source: string }) {

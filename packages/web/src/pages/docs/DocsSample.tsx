@@ -1,8 +1,8 @@
 import type { Sample } from './content';
 import {
 	jsonHtml,
-	requestHtml,
 	type Language,
+	requestHtml,
 } from './samples';
 
 /** The dark column's example request and response, as osu!'s docs show them. */

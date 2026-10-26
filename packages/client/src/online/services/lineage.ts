@@ -1,9 +1,10 @@
 import type { CharacterDTO } from '@oss-idle/shared/character';
 import Log from '@oss-idle/shared/helpers/log';
-import { rpc } from '../client';
-import Account from '../account';
-import Entities from '../../entity/entities';
+
 import Character from '../../db/schema/character';
+import Entities from '../../entity/entities';
+import Account from '../account';
+import { rpc } from '../client';
 
 /** Every character the player owns, oldest generation first. Guests read their
  *  local lineage; signed-in accounts read the server's. */

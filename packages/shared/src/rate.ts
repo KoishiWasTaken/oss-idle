@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import type { Mod } from './mods.js';
+
 /** Each Speed upgrade unlocks one more step of playback rate, faster and slower. */
 export const RATE_STEP = 0.05;
 export const MIN_RATE = 0.5;
@@ -43,9 +45,11 @@ export const rateSchema = z.number().min(MIN_RATE).max(MAX_RATE);
 /** How a rate is written: x1.25, x1.3, x0.5. */
 export const rateLabel = (rate: number): string => `x${round(rate)}`;
 
-/** A difficulty's name as shown at a rate: Beginner x1.3. Display only. */
-export const versionLabel = (version: string, rate: number): string =>
-	rate === 1 ? version : `${version} ${rateLabel(rate)}`;
+/** A difficulty's name as shown at a rate, with its locked mods: Beginner x1.3 +HRNF.
+ *  Display only. */
+export const versionLabel = (version: string, rate: number, mods: readonly Mod[] = []): string =>
+	[version, rate === 1 ? '' : rateLabel(rate), mods.length ? `+${mods.join('')}` : '']
+		.filter(Boolean).join(' ');
 
 /** Every rate there is, x1 left out: what a difficulty's stars are kept at. */
 export const RATES = rateSteps(Math.round((MAX_RATE - 1) / RATE_STEP)).filter(rate => rate !== 1);

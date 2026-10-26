@@ -1,63 +1,76 @@
-import type { WSContext } from 'hono/ws';
 import {
 	and,
 	eq,
 	ne,
 } from 'drizzle-orm';
+import type { WSContext } from 'hono/ws';
+
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
 import type { ClientMessage } from '@oss-idle/shared/community/wire';
-import {
-	isMatchChannel,
-	matchChannel,
-	MAX_SLOTS,
-	type Match,
-	type MatchBeatmap,
-	type MatchSlot,
-	type PlayerSlot,
-	type RoundScore,
-} from '@oss-idle/shared/multiplayer';
-import {
-	redis,
-	withLock,
-} from '../redis';
-import { redisKeyPrefix } from '../env';
-import { db } from '../db/client';
-import { characters } from '../db/schema/character';
-import { isRestricted } from '../db/schema/user';
-import {
-	beatmapListColumns,
-	beatmaps,
-} from '../db/schema/beatmap';
-import { beatmapset } from '../db/schema/beatmapset';
-import { liveDiffCondition } from '../beatmaps/catalog';
-import {
-	playEnds,
-	playTimeline,
-	isPlaying,
-	startPlay,
-	type PlaySample,
-} from '../play';
-import { LEAD_IN_MS } from '@oss-idle/shared/sim/maniaGame';
-import { hub } from './hub';
-import { areOnline } from './presence';
-import { isAway } from '../queue';
-import { characterOwner } from './chat';
-import { botLine } from './makiseBot';
-import { Judgements } from '@oss-idle/shared/judgement';
 import {
 	cleanMods,
 	modsKey,
 	parseMods,
 } from '@oss-idle/shared/mods';
+import {
+	isMatchChannel,
+	type Match,
+	type MatchBeatmap,
+	matchChannel,
+	type MatchSlot,
+	MAX_SLOTS,
+	type PlayerSlot,
+	type RoundScore,
+} from '@oss-idle/shared/multiplayer';
+import { LEAD_IN_MS } from '@oss-idle/shared/play';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+import {
+	countsOf,
+	type RulesetDef,
+} from '@oss-idle/shared/rulesets/ruleset';
+
+import {
+	liveDiffCondition,
+	withStatus,
+} from '../beatmaps/catalog';
+import { db } from '../db/client';
+import {
+	beatmapListColumns,
+	beatmaps,
+} from '../db/schema/beatmap';
+import { beatmapset } from '../db/schema/beatmapset';
+import { characters } from '../db/schema/character';
 import type { NewScoreRow } from '../db/schema/score';
+import { isRestricted } from '../db/schema/user';
+import { redisKeyPrefix } from '../env';
 import {
 	closeMatch,
 	endGame,
+	type GameScoreDetail,
 	openMatch,
 	recordEvent,
 	startGame,
-	type GameScoreDetail,
 } from '../matchHistory';
+import {
+	isPlaying,
+	playEnds,
+	type PlaySample,
+	playTimeline,
+	startPlay,
+} from '../play';
+import { isAway } from '../queue';
+import {
+	redis,
+	withLock,
+} from '../redis';
+import {
+	rulesetFor,
+	rulesetOfBeatmap,
+} from '../rulesets/registry';
+import { characterOwner } from './chat';
+import { hub } from './hub';
+import { botLine } from './makiseBot';
+import { areOnline } from './presence';
 
 /**
  * Multiplayer matches. Every match lives in one Redis hash (id -> JSON) and every
@@ -102,6 +115,8 @@ type RoundPlayer = {
 
 type Round = {
 	beatmapId: number,
+	/** the map's ruleset: the game's scores are kept in its tables */
+	ruleset?: RulesetId,
 	/** its row in the match history */
 	gameId?: number,
 	startedAt: number,
@@ -110,7 +125,12 @@ type Round = {
 
 const readRound = async (id: number): Promise<Round | undefined> => {
 	const raw = await redis.get(roundKey(id));
-	return raw ? JSON.parse(raw) as Round : undefined;
+	if (!raw) return undefined;
+	const round = JSON.parse(raw) as Round;
+	// a game stored before rulesets keeps its scores in 4K's tables
+	return round.gameId === undefined ? round : {
+		ruleset: 'mania4k', ...round,
+	};
 };
 
 /** Every round player's score at the live position; a play that is over shows
@@ -143,18 +163,22 @@ const roundOver = async (m: Stored, round: Round | undefined): Promise<boolean> 
 };
 
 /** What a started play will end as. Known up front: the server simulated it whole. */
-const judgementsOf = (draft: NewScoreRow) =>
-	Object.fromEntries(Judgements.map(j => [j, draft[j] ?? 0])) as GameScoreDetail['judgements'];
+const judgementsOf = (def: RulesetDef, draft: NewScoreRow): GameScoreDetail['judgements'] =>
+	Object.fromEntries(def.judgements.map(j => [j, countsOf(draft)[j] ?? 0]));
 
 /** A round play as its result screen shows it. Failed ones are never saved, so
  *  this is the only copy. */
-const roundResult = (characterId: number, draft: NewScoreRow): RoundScore['result'] => ({
+const roundResult = (
+	def: RulesetDef,
+	characterId: number,
+	draft: NewScoreRow,
+): RoundScore['result'] => ({
 	characterId,
 	beatmapId: draft.beatmapId,
 	score: draft.score ?? 0,
 	accuracy: Number(draft.accuracy ?? 0),
 	maxCombo: draft.maxCombo ?? 0,
-	judgements: judgementsOf(draft),
+	judgements: judgementsOf(def, draft),
 	grade: draft.grade,
 	pp: Number(draft.pp ?? 0),
 	ur: Number(draft.ur ?? 0),
@@ -167,6 +191,7 @@ const roundResult = (characterId: number, draft: NewScoreRow): RoundScore['resul
 const roundPlayer = async (characterId: number): Promise<RoundPlayer | undefined> => {
 	const play = await playTimeline(characterId);
 	if (!play?.samples) return undefined;
+	const { def } = rulesetFor(play.ruleset);
 	return {
 		characterId,
 		startedAt: play.startedAt,
@@ -178,11 +203,11 @@ const roundPlayer = async (characterId: number): Promise<RoundPlayer | undefined
 			combo: play.draft.maxCombo ?? 0,
 			failed: play.failedAt !== undefined,
 			accuracy: Number(play.draft.accuracy ?? 0),
-			result: roundResult(characterId, play.draft),
+			result: roundResult(def, characterId, play.draft),
 		},
 		detail: {
 			grade: play.failedAt !== undefined ? 'F' : play.draft.grade,
-			judgements: judgementsOf(play.draft),
+			judgements: judgementsOf(def, play.draft),
 		},
 	};
 };
@@ -225,7 +250,9 @@ const save = async (m: Stored): Promise<void> => {
 		await redis.hdel(MATCHES, String(m.id));
 		// emptied mid-round: the game still ends, on the outcomes known at its start
 		const round = m.playing ? await readRound(m.id) : undefined;
-		if (round?.gameId && round.startedAt === m.roundStartedAt) endGame(round.gameId, round.players);
+		if (round?.gameId && round.ruleset && round.startedAt === m.roundStartedAt) {
+			endGame(round.gameId, round.ruleset, round.players);
+		}
 		await redis.del(roundKey(m.id));
 		closeMatch(m.id);
 		hub.broadcast({
@@ -389,16 +416,19 @@ const join = async (
 /** A live ranked diff, as a match shows it. Never the intro set: it is
  *  exempt from the ranking rules, but no match is played on it. */
 const findBeatmap = async (beatmapId: number): Promise<MatchBeatmap | undefined> => {
+	const r = await rulesetOfBeatmap(beatmapId);
+	if (!r) return undefined;
 	const [row] = await db
 		.select({
 			...beatmapListColumns, creator: beatmapset.creator,
 		})
 		.from(beatmaps)
 		.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
+		.innerJoin(...withStatus(r))
 		.where(and(
 			eq(beatmaps.id, beatmapId),
 			ne(beatmaps.setId, INTRO_SET_ID),
-			liveDiffCondition,
+			liveDiffCondition(r),
 		))
 		.limit(1);
 	return row && {
@@ -463,9 +493,12 @@ const start = async (characterId: number): Promise<void> => {
 	const timelines = await Promise.all(round
 		.filter((_, i) => started[i] !== undefined)
 		.map(roundPlayer));
-	const gameId = timelines.some(p => p) ? await startGame(matchId, beatmapId) : undefined;
+	const ruleset = (await Promise.all(round.map(playTimeline))).find(p => p)?.ruleset;
+	const gameId = ruleset && timelines.some(p => p)
+		? await startGame(matchId, beatmapId, ruleset)
+		: undefined;
 	await redis.set(roundKey(matchId), JSON.stringify({
-		beatmapId, gameId, startedAt, players: timelines.filter(p => p !== undefined),
+		beatmapId, ruleset, gameId, startedAt, players: timelines.filter(p => p !== undefined),
 	} satisfies Round), 'EX', ROUND_TTL_S);
 	await change(matchId, m => {
 		// dropped, and a new round started since
@@ -530,7 +563,9 @@ export const sweepMatches = async (): Promise<void> => {
 				for (const s of players(m)) s.playing = false;
 			}
 		});
-		if (endedHere && round?.gameId) endGame(round.gameId, round.players);
+		if (endedHere && round?.gameId && round.ruleset) {
+			endGame(round.gameId, round.ruleset, round.players);
+		}
 		for (const id of gone) {
 			if (members[ids.indexOf(id)] === String(m.id)) await redis.hdel(MEMBERS, String(id));
 			await redis.hdel(AWAY, String(id));

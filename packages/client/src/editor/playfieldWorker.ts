@@ -1,16 +1,17 @@
-import type { Note } from '@oss-idle/shared/editor/chart';
+import type { Note } from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import type { EditorSkins } from './editorSkins';
 import EditorPainter, {
 	type Overlay,
 	type PaintState,
 } from './painter';
-import EditorPreview from './preview';
-import SongVisuals from './songVisuals';
-import { DEFAULT_VISUALS } from './visualOptions';
 import type {
 	PlayfieldClock,
 	ToPlayfield,
 } from './playfieldMessages';
+import EditorPreview from './preview';
+import SongVisuals from './songVisuals';
+import { DEFAULT_VISUALS } from './visualOptions';
 
 /**
  * The editor's playfield, drawn in a worker on a canvas of its own: nothing the page

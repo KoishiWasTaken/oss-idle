@@ -1,18 +1,14 @@
-import { message } from '../globals';
 import {
 	Addon,
 	addonsVersion,
 } from '../db/schema/addon';
-import type { Addon as AddonDTO } from '../online/addons';
-import {
-	hostFor,
-	type AddonHost,
-} from './host';
+import { message } from '../globals';
 import {
 	entryById,
 	library,
 	onLibraryChanged,
 } from '../library';
+import type { Addon as AddonDTO } from '../online/addons';
 import {
 	addonsMoved,
 	markAddonsMoved,
@@ -20,6 +16,10 @@ import {
 	removeAddonFile,
 	writeAddonFile,
 } from './addonFiles';
+import {
+	type AddonHost,
+	hostFor,
+} from './host';
 
 /**
  * Add-on runtime. Add-ons are unsandboxed userscripts: we run them by turning

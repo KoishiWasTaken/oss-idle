@@ -1,11 +1,12 @@
 import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import mysql from 'mysql2/promise';
-import Redis from 'ioredis';
+
 import {
-	test,
 	type BrowserContext,
+	test,
 } from '@playwright/test';
+import Redis from 'ioredis';
+import mysql from 'mysql2/promise';
 
 /**
  * Signed-in players without osu! OAuth: test accounts written straight into the
@@ -126,9 +127,15 @@ export const testAccounts = async (spec: keyof typeof TEST_USERS): Promise<Accou
 			await db.query('UPDATE user SET current_character = ? WHERE id = ?', [row.id, id]);
 			await db.query(
 				`UPDATE \`character\`
-				SET speed_upgrades = 0, autopilot_mode = 'PLAYLIST', autopilot_delay = 3, play_rate = 1,
-					play_mods = NULL, fatigue = NULL
+				SET autopilot_mode = 'PLAYLIST', autopilot_delay = 3, play_rate = 1, play_mods = NULL,
+					ruleset = 'mania4k', ruleset_lock = NULL
 				WHERE id = ?`,
+				[row.id],
+			);
+			// its 4K profile: skills and fatigue are a ruleset's
+			await db.query(
+				`INSERT INTO mania4k_character (id) VALUES (?)
+				ON DUPLICATE KEY UPDATE speed_upgrades = 0, fatigue = NULL`,
 				[row.id],
 			);
 			accounts.push({

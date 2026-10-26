@@ -9,7 +9,9 @@ npm run build   # dist/my-addon.js: one file, ready to publish`;
 export const CONTRACT = `// the whole contract: two exports
 export const mount = (addon, host) => {
 	// addon: { id, name, version, gameVersion, authorId, authorName }
-	// host: { version, react, editor }
+	// host: { version, react, ruleset, editor }
+	// host.ruleset.current(): the ruleset the player picked ('mania4k', ...);
+	// host.ruleset.watch(ruleset => ...) follows it, tag an add-on made for one with its id
 	console.log(\`\${addon.name} \${addon.version} on oss!idle \${host.version}\`);
 };
 

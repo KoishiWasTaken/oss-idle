@@ -1,17 +1,19 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight';
 import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
 import { faListUl } from '@fortawesome/free-solid-svg-icons/faListUl';
 import { faRepeat } from '@fortawesome/free-solid-svg-icons/faRepeat';
 import { faShuffle } from '@fortawesome/free-solid-svg-icons/faShuffle';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Marquee from '../Marquee';
-import DockQueueLength from './DockQueueLength';
-import DockRefresh from './DockRefresh';
+
 import PlayQueue, {
 	AUTOPILOT_MODE,
 	autopilotModeLabels,
 } from '../../gameplay/playQueue';
+import Marquee from '../Marquee';
+import DockQueueLength from './DockQueueLength';
+import DockRefresh from './DockRefresh';
 
 const MODE_ICON = {
 	[AUTOPILOT_MODE.DISABLED]: faBan,

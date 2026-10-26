@@ -1,18 +1,20 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { config } from 'dotenv';
-import { z } from 'zod';
+
 import {
 	Client,
 	Events,
 	GatewayIntentBits,
-	PermissionFlagsBits,
 	type Guild,
 	type GuildMember,
+	PermissionFlagsBits,
 	type Role,
 } from 'discord.js';
+import { config } from 'dotenv';
 import { Redis } from 'ioredis';
 import mysql, { type RowDataPacket } from 'mysql2/promise';
+import { z } from 'zod';
+
 import type { ServerMessage } from '@oss-idle/shared/community/wire';
 import {
 	GROUP_BADGE,
@@ -167,8 +169,17 @@ const roleFor = (guild: Guild, tier: number): Promise<Role> => {
 	if (existing) return Promise.resolve(existing);
 	let made = creating.get(tier);
 	if (!made) {
+		// At the foot of the block, or orderRoles would rebuild it from position 1, over any role
+		// kept under the ladder.
+		const position = Math.min(...guild.roles.cache
+			.filter(role => tierOfRole(role) !== undefined || isBadge(role))
+			.map(role => role.position));
 		made = guild.roles.create({
-			name: roleName(tier), colors: { primaryColor: colourOf(tier) }, hoist: true, permissions: [],
+			name: roleName(tier),
+			colors: { primaryColor: colourOf(tier) },
+			hoist: true,
+			permissions: [],
+			position,
 		}).then(async role => {
 			await orderRoles(guild);
 			return role;

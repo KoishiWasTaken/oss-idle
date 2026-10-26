@@ -1,9 +1,12 @@
-import { Trans } from '@lingui/react/macro';
-import { PRESTIGE_MIN_LEVEL } from '@oss-idle/shared/upgrades';
-import type Character from '../../db/schema/character';
-import PrestigeSummary from './PrestigeSummary';
-import PrestigeRow from './PrestigeRow';
 import '../upgrades/ladder.css';
+
+import { Trans } from '@lingui/react/macro';
+
+import { PRESTIGE_MIN_LEVEL } from '@oss-idle/shared/upgrades';
+
+import type Character from '../../db/schema/character';
+import PrestigeRow from './PrestigeRow';
+import PrestigeSummary from './PrestigeSummary';
 
 export default function PrestigeView({ character }: { character: Character }) {
 	const locked = character.id === 0;
@@ -17,7 +20,7 @@ export default function PrestigeView({ character }: { character: Character }) {
 						key={`${character.id}:${skill.name}`}
 						skill={skill}
 						locked={locked}
-						lifetimeXp={character[`${skill.name}LifetimeXp`]}
+						lifetimeXp={character.lifetimeXp(skill.name)}
 					/>
 				))}
 			</div>

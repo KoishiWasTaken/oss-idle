@@ -1,7 +1,8 @@
 import './NotificationBanner.css';
-import type { ReactNode } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faExclamation } from '@fortawesome/free-solid-svg-icons/faExclamation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { ReactNode } from 'react';
 
 /** osu!web's notification banner: an icon, a type and title, then the message. */
 export default function NotificationBanner({ type, title, children }: {

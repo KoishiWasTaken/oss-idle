@@ -1,8 +1,10 @@
-import { useLingui } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import PlayManager from '../../online/playManager';
+import { useLingui } from '@lingui/react/macro';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import PlayQueue from '../../gameplay/playQueue';
+import PlayManager from '../../online/playManager';
 import { launchPlay } from '../../scenes/launchPlay';
 import { playFromList } from '../songselect/listPlay';
 import { focusInCarousel } from '../songselect/selection';

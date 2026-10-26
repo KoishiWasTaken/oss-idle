@@ -1,28 +1,30 @@
-import { ph } from '@lingui/core/macro';
 import './Home.css';
 
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
+import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
+import { dateAgo } from '@oss-idle/shared/display/ago';
+import num from '@oss-idle/shared/display/num';
+
+import {
+	coverBackground,
+	type getRecentMaps,
+} from '../api/maps';
 import type { listNews } from '../api/news';
 import type {
 	getGeneralStats,
 	getRecentStats,
 } from '../api/stats';
-import {
-	coverBackground,
-	type getRecentMaps,
-} from '../api/maps';
+import DashboardCharacter from '../components/DashboardCharacter';
+import FancyGraph from '../components/FancyGraph';
+import HomeButton from '../components/HomeButton';
+import Link from '../components/Link';
 import NewsCard, { articleToCard } from '../components/NewsCard';
 import NewsRow from '../components/NewsRow';
-import HomeButton from '../components/HomeButton';
-import DashboardCharacter from '../components/DashboardCharacter';
-import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
-import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
-import FancyGraph from '../components/FancyGraph';
-import num from '@oss-idle/shared/display/num';
-import { dateAgo } from '@oss-idle/shared/display/ago';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
-import { Trans } from '@lingui/react/macro';
-import Link from '../components/Link';
 
 // osu!web's NewsPost::LANDING_LIMIT and DASHBOARD_LIMIT
 const LARGE_NEWS = 4;

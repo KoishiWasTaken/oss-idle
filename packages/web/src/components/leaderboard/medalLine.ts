@@ -1,5 +1,6 @@
-import { msg } from '@lingui/core/macro';
 import type { MessageDescriptor } from '@lingui/core';
+import { msg } from '@lingui/core/macro';
+
 import num from '@oss-idle/shared/display/num';
 import { overdriveText } from '@oss-idle/shared/display/overdrive';
 

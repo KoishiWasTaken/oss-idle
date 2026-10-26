@@ -4,6 +4,7 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { users } from './user';
 
 /** One itch.io purchase of oss!idle, claimed as supporter on the website. */

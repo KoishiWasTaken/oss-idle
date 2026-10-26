@@ -1,4 +1,5 @@
 import type { emojiMatcher } from '@oss-idle/shared/community/emoji';
+
 import { emojiSrc } from '../api/emoji';
 
 /** Chat text with its emoji as images, as the game draws them. */

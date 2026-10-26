@@ -1,14 +1,16 @@
 import './SkillBar.css';
 
-import { xpForLevel } from '@oss-idle/shared/sim/skills/xp';
-import { SkillName } from '@oss-idle/shared/skills';
 import SkillLevel from '@oss-idle/shared/display/SkillLevel';
-import { skillName } from '@oss-idle/shared/display/skills';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+import { xpForLevel } from '@oss-idle/shared/xp';
 
-export function SkillBar({ skill, progress: {
+import { rulesetDef } from '../../rulesets';
+
+export function SkillBar({ ruleset, skill, progress: {
 	level, xp, prestige, lifetimeXp,
 } }: {
-	skill: SkillName,
+	ruleset: RulesetId,
+	skill: string,
 	progress: {
 		level: number, xp: number, prestige?: number, lifetimeXp?: number
 	}
@@ -20,7 +22,7 @@ export function SkillBar({ skill, progress: {
 	const overall = String(skill) === 'overall';
 	return (
 		<li className='skill'>
-			<span className='skill__name'>{skillName(skill)}</span>
+			<span className='skill__name'>{rulesetDef(ruleset).skillName(skill)}</span>
 			<div
 				className='skill__track'
 				title={

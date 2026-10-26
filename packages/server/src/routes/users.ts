@@ -1,19 +1,20 @@
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
-import {
-	users,
-	toUserDTO,
-} from '../db/schema/user';
 
 import { isModerator } from '@oss-idle/shared/groups';
+
+import { sessionUserId } from '../auth/middleware';
+import { db } from '../db/client';
+import {
+	toUserDTO,
+	users,
+} from '../db/schema/user';
 import { groupsOf } from '../groups';
 import {
 	standing,
 	visibleTo,
 } from '../restrictions';
-import { sessionUserId } from '../auth/middleware';
 import { idParam } from '../validate';
 
 

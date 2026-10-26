@@ -1,39 +1,52 @@
+import '../components/upgrades/ladder.css';
+import '../editor/editor.css';
+
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { backgroundOf } from '@oss-idle/shared/rulesets/mania/editor/chart';
+
+import { music } from '../audio/MusicPlayer';
+import ConfirmMenu from '../components/ConfirmMenu';
+import EditorNewMap from '../editor/EditorNewMap';
+import EditorView from '../editor/EditorView';
+import EditorSession from '../editor/session';
 import {
 	currentVisuals,
 	visualOptions,
 } from '../editor/visualSetting';
-import ConfirmMenu from '../components/ConfirmMenu';
+import { message } from '../globals';
 import Controls, { inTextBox } from '../input/Controls';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { message } from '../globals';
-import { music } from '../audio/MusicPlayer';
-import EditorSession from '../editor/session';
-import EditorView from '../editor/EditorView';
-import SceneManager, { SCENE } from './SceneManager';
 import Background from './Background';
-import '../components/upgrades/ladder.css';
-import '../editor/editor.css';
+import SceneManager, { SCENE } from './SceneManager';
 
 type Props = {
 	beatmap: LightBeatmap,
 	/** the session to carry on with, coming back from a test play */
 	resume?: EditorSession,
+	/** a map just started: its metadata is asked for first */
+	fresh?: boolean,
 };
 
+const isImage = (file: File) => /\.(jpe?g|png)$/i.test(file.name);
+
 /** The map editor, on one difficulty. */
-export default function Editor({ beatmap, resume }: Props) {
+export default function Editor({ beatmap, resume, fresh }: Props) {
 	const { t } = useLingui();
 	const [session, setSession] = useState<EditorSession>();
 	/** the difficulty switched to in place, on the same track */
 	const [switched, setSwitched] = useState<LightBeatmap>();
 	/** what waits on the player agreeing to drop unsaved changes */
 	const [pending, setPending] = useState<() => void>();
+	const [askMetadata, setAskMetadata] = useState(fresh);
+	/** an image dropped on the editor, waiting on the player agreeing to replace the background */
+	const [dropped, setDropped] = useState<File>();
 	useSynced(visualOptions);
 	const dim = 1 - currentVisuals().field.brightness / 100;
 	// the backdrop follows the difficulty as stored: a new background shows at once
@@ -66,6 +79,19 @@ export default function Editor({ beatmap, resume }: Props) {
 			opened?.dispose();
 		};
 	}, [beatmap, resume]);
+
+	// an image dropped on the editor becomes this difficulty's background
+	useEffect(() => {
+		if (!session) return;
+		const drop = (e: DragEvent) => {
+			const image = [...e.dataTransfer?.files ?? []].find(isImage);
+			if (!image) return;
+			if (backgroundOf(session.chart.text)) setDropped(image);
+			else void session.setBackground(image, true);
+		};
+		window.addEventListener('drop', drop);
+		return () => window.removeEventListener('drop', drop);
+	}, [session]);
 
 	// back on the difficulty as saved: an edited server map is now its local copy
 	const leave = () => {
@@ -109,6 +135,19 @@ export default function Editor({ beatmap, resume }: Props) {
 				<div className="editor__loading-spinner" />
 			</div>
 			{session && <EditorView session={session} onBack={back} onOpen={open} />}
+			{session && askMetadata && (
+				<EditorNewMap session={session} onDone={() => setAskMetadata(false)} />
+			)}
+			{session && dropped && (
+				<ConfirmMenu
+					title={t`Replace the background?`}
+					sub={t`${ph({ name: dropped.name })} becomes this difficulty's background`}
+					confirmLabel={t`Replace`}
+					color="#ff4089"
+					onConfirm={() => void session.setBackground(dropped, true)}
+					onClose={() => setDropped(undefined)}
+				/>
+			)}
 			{pending && (
 				<ConfirmMenu
 					title={t`Unsaved changes`}

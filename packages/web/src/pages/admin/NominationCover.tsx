@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faPause,
 	faPlay,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	coverBackground,
 	type Nomination,

@@ -1,7 +1,8 @@
-import { ph } from '@lingui/core/macro';
 import './FormerNames.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 
 /** osu!-style previous usernames hint shown after a character's name: a small

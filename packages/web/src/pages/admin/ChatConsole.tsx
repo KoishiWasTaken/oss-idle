@@ -6,22 +6,24 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import { DEFAULT_CHANNEL } from '@oss-idle/shared/community/wire';
+
 import { emojiMatcher } from '@oss-idle/shared/community/emoji';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+import { DEFAULT_CHANNEL } from '@oss-idle/shared/community/wire';
 import clock from '@oss-idle/shared/display/clock';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
 	type ChatHistory,
-	type ModerateBody,
 	getChatHistory,
+	type ModerateBody,
 	moderateChat,
 	sendChatMessage,
 } from '../../api/chat';
-import ChatUserMenu from './ChatUserMenu';
-import ChatReports from './ChatReports';
-import { getReports } from '../../api/social';
 import { listEmoji } from '../../api/emoji';
+import { getReports } from '../../api/social';
 import EmojiText from '../../components/EmojiText';
+import ChatReports from './ChatReports';
+import ChatUserMenu from './ChatUserMenu';
 
 const REFRESH_MS = 2000;
 

@@ -4,11 +4,12 @@ import {
 	or,
 	sql,
 } from 'drizzle-orm';
+
 import { db } from '../db/client';
 import { beatmaps } from '../db/schema/beatmap';
-import { redis } from '../redis';
 import { redisKeyPrefix } from '../env';
 import { starsAtRates } from '../pp';
+import { redis } from '../redis';
 import { timingColumns } from './timingPoints';
 
 const LOCK = `${redisKeyPrefix}beatmaps:rate-stars`;

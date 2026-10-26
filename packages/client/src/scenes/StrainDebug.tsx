@@ -1,18 +1,21 @@
+import './StrainDebug.css';
+
 import {
 	useMemo,
 	useState,
 } from 'react';
-import Entities from '../entity/entities';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
-import { analyzeBeatmap } from '../gameplay/strainDebug';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { Judgements } from '@oss-idle/shared/rulesets/mania/judgement';
+
+import Entities from '../entity/entities';
 import { unstableRate } from '../gameplay/hitError';
 import StrainGraph from '../gameplay/StrainGraph';
-import './StrainDebug.css';
 import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { Judgements } from '@oss-idle/shared/judgement';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
 import { currentSkin } from '../osu/skin/Skin';
+import { analyzeBeatmap } from '../rulesets/mania/4k/strainDebug';
 
 interface Props {
 	beatmapInfo: LightBeatmap

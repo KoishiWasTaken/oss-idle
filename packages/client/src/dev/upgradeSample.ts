@@ -1,5 +1,6 @@
-import Skill from '@oss-idle/shared/sim/skills/skill';
-import type { SkillName } from '@oss-idle/shared/skills';
+import type { SkillName } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
+
 import Character from '../db/schema/character';
 
 type Seed = [level: number, upgrades: number, overdrive: number, prestige: number];
@@ -25,9 +26,9 @@ export const sampleCharacter = () => {
 		id: -1, name: 'Adri', local: 1, 
 	} as never);
 	for (const skill of character.skills) {
-		const [level, upgrades, overdrive, prestige] = SEEDS[skill.name];
+		const [level, upgrades, overdrive, prestige] = SEEDS[skill.name as SkillName];
 		void skill.level.set(level);
-		void skill.xp.set(Skill.xpForLevel(level) * 0.4);
+		void skill.xp.set(SkillState.xpForLevel(level) * 0.4);
 		void skill.upgrades.set(upgrades);
 		void skill.overdrive.set(overdrive);
 		void skill.prestige.set(prestige);

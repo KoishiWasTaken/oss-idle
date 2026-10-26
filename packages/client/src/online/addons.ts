@@ -1,16 +1,18 @@
-import type { AddonType } from '@oss-idle/shared/addon';
 import type { InferResponseType } from 'hono/client';
+
+import type { AddonType } from '@oss-idle/shared/addon';
 import type {
 	AddonCreateBody,
 	AddonUpdateBody,
 } from '@oss-idle/shared/addon';
+import { unwrap } from '@oss-idle/shared/apiBase';
+
 import {
 	apiUrl,
 	BASE_URL,
 	rpc,
 	withAuth,
 } from './client';
-import { unwrap } from '@oss-idle/shared/apiBase';
 
 /** One catalog/own add-on as it crosses the wire, inferred from the route. */
 export type Addon = InferResponseType<typeof rpc.v1.addons[':id']['$get']>;

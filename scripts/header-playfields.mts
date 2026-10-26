@@ -9,12 +9,15 @@
  *
  *   npm run playfields
  */
-import { writeFileSync } from 'node:fs';
-import AdmZip from 'adm-zip';
 import '@oss-idle/shared/osu/controlPointPatch';
-import { BeatmapDecoder } from 'osu-parsers';
+
+import { writeFileSync } from 'node:fs';
+
+import AdmZip from 'adm-zip';
 import { ManiaRuleset } from 'osu-mania-stable';
-import { ScrollModel } from '@oss-idle/shared/sim/scroll';
+import { BeatmapDecoder } from 'osu-parsers';
+
+import { ScrollModel } from '@oss-idle/shared/rulesets/mania/scroll';
 
 const MAPS: [set: number, version: string][] = [
 	[551469, 'CHALLENGE'],

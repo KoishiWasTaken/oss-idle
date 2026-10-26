@@ -1,13 +1,16 @@
 import { ph } from '@lingui/core/macro';
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import type Skill from '@oss-idle/shared/sim/skills/skill';
+import { useState } from 'react';
+
+import HoverCard from '@oss-idle/shared/display/HoverCard';
+import HoverCardRow from '@oss-idle/shared/display/HoverCardRow';
+import num from '@oss-idle/shared/display/num';
+import SkillLevel from '@oss-idle/shared/display/SkillLevel';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { skillName } from '@oss-idle/shared/display/skills';
-import { SKILL } from '@oss-idle/shared/skills';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
 import {
 	canPrestige,
 	maxUpgrades,
@@ -15,14 +18,12 @@ import {
 	prestigeXPMultiplier,
 	UPGRADES_PER_PRESTIGE,
 } from '@oss-idle/shared/upgrades';
-import { levelProgress } from '@oss-idle/shared/display/levelDisplay';
-import { xpToLevel } from '@oss-idle/shared/sim/skills/xp';
-import SkillLevel from '@oss-idle/shared/display/SkillLevel';
-import HoverCard from '@oss-idle/shared/display/HoverCard';
-import HoverCardRow from '@oss-idle/shared/display/HoverCardRow';
-import num from '@oss-idle/shared/display/num';
-import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
+import { levelProgress } from '@oss-idle/shared/xp';
+import { xpToLevel } from '@oss-idle/shared/xp';
+
 import { prestigeSkill } from '../../online/services/prestige';
+import { selectedDef } from '../../rulesets/registry';
+import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
 import PrestigeDiamonds from './PrestigeDiamonds';
 
 export default function PrestigeRow({
@@ -30,7 +31,7 @@ export default function PrestigeRow({
 	locked,
 	lifetimeXp,
 }: {
-	skill: Skill,
+	skill: SkillState,
 	locked: boolean,
 	/** xp ever earned on the skill, shown as a level behind it on hover */
 	lifetimeXp?: number,
@@ -66,12 +67,13 @@ export default function PrestigeRow({
 
 	const confirm = () => {
 		if (!ready || busy) return;
-		const name = skillName(skill.name);
+		const name = selectedDef().skillName(skill.name);
+		const note = selectedDef().prestigeNote(skill.name);
 		setConfirming({
 			title: t`Prestige ${name}?`,
 			sub: [
 				t`XP Lv${level} → XP Lv0 · Loses every upgrade and all Overdrive · Keeps +${ph({ bonus: prestige + 1 })} bonus levels, ${ph({ slots: maxUpgrades(prestige + 1) })} gear slots and x${ph({ multiplier: next.toFixed(2) })} XP`,
-				...skill.name === SKILL.memory ? [t`Resets every learned map`] : [],
+				...note ? [note] : [],
 			].join(' · '),
 			confirmLabel: t`Prestige`,
 			color: '#ff4089',
@@ -91,7 +93,7 @@ export default function PrestigeRow({
 	return (
 		<div className={`ladder-row ${ready ? 'is-ready' : ''}`}>
 			<div className="ladder-row__skill">
-				<span className="ladder-row__name">{skillName(skill.name)}</span>
+				<span className="ladder-row__name">{selectedDef().skillName(skill.name)}</span>
 				<span className="ladder-row__lv">
 					<Trans>XP Lv<SkillLevel
 						level={level} xp={xp} prestige={prestige} lifetimeXp={lifetimeXp} xpLevel

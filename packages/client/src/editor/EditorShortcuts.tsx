@@ -1,19 +1,21 @@
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	ACTION_GROUPS,
 	actions,
 	appliesTo,
 	bindKeys,
 	comboOf,
+	type EditorAction,
 	groupLabel,
 	keyBindings,
 	keysOf,
-	type EditorAction,
 } from './actions';
 import EditorKeyRow from './EditorKeyRow';
 
@@ -79,13 +81,16 @@ export default function EditorShortcuts({ keys }: { keys: number }) {
 			|| keysOf(a).some(key => key.toLowerCase().includes(searching))
 		: keysOf(a).length));
 	const mouse: Row[] = searching ? [] : [
-		[t`Select: click, drag`, t`Select a note and move the selection, or a box (Ctrl adds)`],
+		[
+			t`Select: click, drag`,
+			t`Select a note and move the selection onto the snap (Shift keeps its offset), or a box (Ctrl adds)`,
+		],
 		[t`Note: click`, t`Place a note, or remove one`],
 		[t`Note + LN: drag up`, t`LN`],
 		[t`Right click`, t`Remove a note`],
 		[t`Wheel`, t`Move along the beat lines`],
 		[t`Shift + wheel`, t`Move four lines at a time`],
-		[t`Ctrl + wheel`, t`Zoom`],
+		[t`Ctrl + wheel`, t`Zoom over the columns, change the beat snap elsewhere`],
 	].map(([keys, what]) => ({
 		keys, what,
 	}));

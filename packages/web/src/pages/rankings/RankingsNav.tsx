@@ -1,8 +1,9 @@
-import Nav from '../../components/Nav';
-import Link from '../../components/Link';
 import { useLingui } from '@lingui/react/macro';
-import { SKILL_SORT } from '../../components/leaderboard/PlayerSkillLeaderboard';
-import { GOOD_GRADE } from '@oss-idle/shared/judgement';
+
+import { GOOD_GRADE } from '@oss-idle/shared/grade';
+
+import Link from '../../components/Link';
+import Nav from '../../components/Nav';
 
 export default function RankingsNav({ current }: {
 	current: string,
@@ -14,19 +15,19 @@ export default function RankingsNav({ current }: {
 	return (<Nav>
 		<Link to='/rankings/global' search={{ page: 1 }} className={item('global')}>{t`global`}</Link>
 		<Link to='/rankings/skills/$skill' 
-			params={{ skill: SKILL_SORT.overall }} 
+			params={{ skill: 'overall' }} 
 			search={{ page: 1 }} 
 			className={item('skills')}>
 			{t`skills`}
 		</Link>
 		<Link to='/rankings/lifetime/$skill'
-			params={{ skill: SKILL_SORT.overall }}
+			params={{ skill: 'overall' }}
 			search={{ page: 1 }}
 			className={item('lifetime')}>
 			{t`lifetime`}
 		</Link>
 		<Link to='/rankings/prestige/$skill'
-			params={{ skill: SKILL_SORT.overall }}
+			params={{ skill: 'overall' }}
 			search={{ page: 1 }}
 			className={item('prestige')}>
 			{t`prestige`}

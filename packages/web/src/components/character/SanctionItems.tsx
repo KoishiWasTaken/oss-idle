@@ -1,5 +1,3 @@
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faComment,
 	faCommentSlash,
@@ -7,13 +5,17 @@ import {
 	faLockOpen,
 	faTrash,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { useAdmin } from '../../hooks/useAdmin';
+
 import {
 	getStanding,
 	liftRestriction,
 	liftSilence,
 } from '../../api/restrictions';
+import { useAdmin } from '../../hooks/useAdmin';
 import type { ProfileDialog } from './ProfileMenuDialog';
 
 const reload = () => window.location.reload();

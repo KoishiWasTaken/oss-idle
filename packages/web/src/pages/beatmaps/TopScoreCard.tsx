@@ -1,14 +1,16 @@
-import { Trans } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
-import num from '@oss-idle/shared/display/num';
+import { Trans } from '@lingui/react/macro';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
 import { dateAgo } from '@oss-idle/shared/display/ago';
-import Link from '../../components/Link';
-import Flag from '../../components/Flag';
-import ScoreLink from '../../components/score/ScoreLink';
-import Grade from '../../components/score/Grade';
-import ProfilePicture from '../../components/ProfilePicture';
+import num from '@oss-idle/shared/display/num';
+
 import type { BoardRow } from '../../api/maps';
+import Flag from '../../components/Flag';
+import Link from '../../components/Link';
+import ProfilePicture from '../../components/ProfilePicture';
+import Grade from '../../components/score/Grade';
+import ScoreLink from '../../components/score/ScoreLink';
 import { JUDGEMENT_COLUMNS } from './judgementColumns';
 
 /** osu!'s card for the map's #1, above the table. */

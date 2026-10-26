@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { getMatch } from '../../api/matches';
 import MatchHistory from '../../pages/matches/MatchHistory';
 

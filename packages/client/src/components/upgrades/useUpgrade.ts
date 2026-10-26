@@ -1,15 +1,14 @@
+import { ph } from '@lingui/core/macro';
+import { useLingui } from '@lingui/react/macro';
 import {
 	useRef,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import type Skill from '@oss-idle/shared/sim/skills/skill';
+
+import num from '@oss-idle/shared/display/num';
+import { overdriveText } from '@oss-idle/shared/display/overdrive';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import {
-	skillName,
-	upgradeLabel,
-} from '@oss-idle/shared/display/skills';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
 import {
 	applyUpgrade,
 	canUpgrade,
@@ -18,13 +17,13 @@ import {
 	upgradeMinLevel,
 	upgradeXPMultiplier,
 } from '@oss-idle/shared/upgrades';
-import num from '@oss-idle/shared/display/num';
-import { overdriveText } from '@oss-idle/shared/display/overdrive';
-import type { Confirm } from '../ConfirmMenu';
+
 import { purchaseUpgrade } from '../../online/services/upgrades';
+import { selectedDef } from '../../rulesets/registry';
+import type { Confirm } from '../ConfirmMenu';
 
 /** Everything an upgrade row shows and does. */
-export const useUpgrade = (skill: Skill, locked: boolean) => {
+export const useUpgrade = (skill: SkillState, locked: boolean) => {
 	const { t } = useLingui();
 	const [level] = useSynced(skill.level);
 	const [xp] = useSynced(skill.xp);
@@ -59,8 +58,8 @@ export const useUpgrade = (skill: Skill, locked: boolean) => {
 
 	const confirm = () => {
 		if (!preview || busy) return;
-		const name = skillName(skill.name);
-		const nextGear = upgradeLabel(skill.name, upgrades + 1);
+		const name = selectedDef().skillName(skill.name);
+		const nextGear = selectedDef().upgradeLabel(skill.name, upgrades + 1);
 		const spent = num(Math.round(preview.spent));
 		const odText = overdriveText(overdrive);
 		const boost = upgradeXPMultiplier(preview.upgrades, preview.overdrive).toFixed(2);

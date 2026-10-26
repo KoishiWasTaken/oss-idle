@@ -1,9 +1,11 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
-import AddonCodeCheck from './AddonCodeCheck';
+import { useState } from 'react';
+
+import CodeDiff from '@oss-idle/shared/display/CodeDiff';
+
 import CodeEditor from '../listing/CodeEditor';
 import CodeView from '../listing/CodeView';
-import CodeDiff from '@oss-idle/shared/display/CodeDiff';
+import AddonCodeCheck from './AddonCodeCheck';
 
 type Props = {
 	editing: boolean,

@@ -1,18 +1,19 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useMemo,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { useAction } from '@oss-idle/shared/hooks/useAction';
-import Auth from '../../online/auth';
-import PageBarActions from '../page/PageBarActions';
-import { useHasUpdate } from '../listing/useHasUpdate';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	installedSkins,
 	type SkinDAO,
 } from '../../db/schema/skin';
+import { library } from '../../library';
+import Auth from '../../online/auth';
 import {
 	deleteSkin,
 	getSkin,
@@ -21,18 +22,9 @@ import {
 	Skin as SkinDTO,
 } from '../../online/skins';
 import {
-	getManifest,
-	revealSkin,
-} from '../../osu/skin/skinFiles';
-import { library } from '../../library';
-import {
-	installedSource,
-	remoteSource,
-} from '../../osu/skin/sources';
-import {
+	importSkin,
 	readFolder,
 	readOsk,
-	importSkin,
 	type SkinFiles,
 } from '../../osu/skin/importSkin';
 import {
@@ -44,13 +36,23 @@ import {
 	updateInstalledSkin,
 } from '../../osu/skin/skinActions';
 import {
+	getManifest,
+	revealSkin,
+} from '../../osu/skin/skinFiles';
+import {
+	installedSource,
+	remoteSource,
+} from '../../osu/skin/sources';
+import {
 	pickFile,
 	pickFolder,
 } from '../../pickFile';
-import SkinView, { type SkinContent } from './SkinView';
+import { useHasUpdate } from '../listing/useHasUpdate';
+import PageBarActions from '../page/PageBarActions';
+import DefaultSkinRow from './DefaultSkinRow';
 import MySkinRow from './MySkinRow';
 import SkinDAORow from './SkinDAORow';
-import DefaultSkinRow from './DefaultSkinRow';
+import SkinView, { type SkinContent } from './SkinView';
 
 type Open =
 	| { kind: 'edit', skin: SkinDTO, content: SkinContent }

@@ -1,3 +1,4 @@
+import { statfs } from 'node:fs/promises';
 import {
 	freemem,
 	hostname,
@@ -5,7 +6,9 @@ import {
 	totalmem,
 } from 'node:os';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
+
 import { sql } from 'drizzle-orm';
+
 import { db } from './db/client';
 import { farmQuery } from './db/stats';
 import {
@@ -13,15 +16,17 @@ import {
 	env,
 	redisKeyPrefix,
 } from './env';
-import { redis } from './redis';
 import {
 	count,
+	DISK_KEEP_H,
+	DISK_KEY,
 	gaugeMax,
 	timing,
 } from './metrics';
-import { presenceCount } from './ws/presence';
 import { getPlaying } from './play';
 import { clientCount } from './queue';
+import { redis } from './redis';
+import { presenceCount } from './ws/presence';
 
 /**
  * Once a minute, one worker checks every service prod depends on and samples the
@@ -88,6 +93,15 @@ const check = async ({ name, run }: Probe) => {
 const info = (text: string, field: string) =>
 	Number(new RegExp(`^${field}:(\\S+)`, 'm').exec(text)?.[1] ?? 0);
 
+/** The disk maps, uploads and previews land on (all under the server's working dir). */
+const sampleDisk = async () => {
+	const fs = await statfs('.');
+	const hour = Math.floor(Date.now() / 3_600_000);
+	await redis.hset(DISK_KEY, hour, `${fs.bavail * fs.bsize} ${fs.blocks * fs.bsize}`);
+	const old = (await redis.hkeys(DISK_KEY)).filter(h => Number(h) <= hour - DISK_KEEP_H);
+	if (old.length) await redis.hdel(DISK_KEY, ...old);
+};
+
 const sampleHost = async () => {
 	const memUsed = 1 - freemem() / totalmem();
 	await gaugeMax('system', 'load1', loadavg()[0]);
@@ -104,6 +118,7 @@ const sampleHost = async () => {
 	await gaugeMax('activity', 'online', await presenceCount());
 	await gaugeMax('activity', 'clients', await clientCount());
 	await gaugeMax('activity', 'playing', await getPlaying());
+	await sampleDisk();
 };
 
 const tick = async () => {

@@ -1,7 +1,8 @@
 import Synced from '@oss-idle/shared/helpers/synced';
-import { rpc } from './client';
-import Auth from './auth';
+
 import { isCommunityOpen } from '../globals';
+import Auth from './auth';
+import { rpc } from './client';
 
 /** The accounts the signed-in player blocked: their #oss!idle lines show as
  *  `<block>`. Blocking happens on the web profile, so it's re-read whenever

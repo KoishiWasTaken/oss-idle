@@ -1,12 +1,15 @@
 import '../bugs/Bugs.css';
+
 import {
 	useEffect,
 	useState,
 } from 'react';
+
 import {
 	BUG_STATUS,
 	type BugStatus,
 } from '@oss-idle/shared/bugs';
+
 import {
 	allBugs,
 	type BugRow,

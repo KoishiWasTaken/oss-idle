@@ -1,14 +1,17 @@
+import './medals.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
+	type RefObject,
 	useCallback,
 	useEffect,
 	useRef,
 	useState,
-	type RefObject,
 } from 'react';
-import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
-import { inTextBox } from '../../input/Controls';
-import { Trans } from '@lingui/react/macro';
+
 import type { MedalUnlock } from '../../achievements/medalUnlocks';
+import { inTextBox } from '../../input/Controls';
+import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
 import { closeMedals } from '../../online/medalWatch';
 import {
 	lookKey,
@@ -16,7 +19,6 @@ import {
 } from './medalBitmaps';
 import MedalFocus from './MedalFocus';
 import MedalShowcase from './MedalShowcase';
-import './medals.css';
 
 const CLOSE_MS = 350;
 const KEYS = ['Enter', ' '];

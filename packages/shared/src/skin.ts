@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import {
-	mapped,
-	type ValueIn,
-} from './helpers/mapped.js';
+
 import {
 	semver,
 	tags,
 } from './addon.js';
+import {
+	mapped,
+	type ValueIn,
+} from './helpers/mapped.js';
 
 export const SkinStatuses = [
 	'UNPUBLISHED',

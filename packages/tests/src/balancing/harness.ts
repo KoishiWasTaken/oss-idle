@@ -1,19 +1,21 @@
-import { expect } from 'vitest';
-import {
-	Grades,
-	type Grade,
-} from '@oss-idle/shared/judgement';
-import type { HitRecord } from '@oss-idle/shared/sim/maniaGame';
-import type { ScoreState } from '@oss-idle/shared/sim/scoring';
-import type { SkillName } from '@oss-idle/shared/skills';
 import type { Beatmap } from 'osu-classes';
+import { expect } from 'vitest';
+
 import {
-	simulate,
-	analyzeSkill,
-	type SkillSpec,
-} from '../sim';
+	type Grade,
+	Grades,
+} from '@oss-idle/shared/grade';
 import sum from '@oss-idle/shared/helpers/sum';
 import avg from '@oss-idle/shared/math/avg';
+import type { SkillName } from '@oss-idle/shared/rulesets/mania/4k/skills';
+import type { HitRecord } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import type { ScoreState } from '@oss-idle/shared/rulesets/mania/scoring';
+
+import {
+	analyzeSkill,
+	simulate,
+	type SkillSpec,
+} from '../sim';
 import { getBeatmap } from './charts';
 
 /**

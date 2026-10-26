@@ -1,9 +1,9 @@
+import { testAccounts } from '../support/accounts';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import { testAccounts } from '../support/accounts';
 import {
 	difficultyOf,
 	upload,

@@ -1,5 +1,31 @@
 import './CharacterPage.css';
 
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import {
+	type ReactNode,
+	useRef,
+	useState,
+} from 'react';
+
+import { countryName } from '@oss-idle/shared/display/country';
+import num from '@oss-idle/shared/display/num';
+import {
+	editsCharacter,
+	GROUP_BADGE,
+} from '@oss-idle/shared/groups';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import type { ProfileSection as Section } from '@oss-idle/shared/profile';
+import { showsDivine } from '@oss-idle/shared/rebirth';
+import {
+	JUDGEMENT,
+	Judgements,
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import { countsOf } from '@oss-idle/shared/rulesets/ruleset';
+
 import {
 	getCharacter,
 	getCharacterCountPlayed,
@@ -7,58 +33,36 @@ import {
 	saveProfileOrder,
 } from '../../api/characters';
 import { getUser } from '../../api/users';
+import AccountStanding from '../../components/character/AccountStanding';
+import CharacterBeatmaps from '../../components/character/CharacterBeatmaps';
+import CharacterHistorical from '../../components/character/CharacterHistorical';
+import CharacterMedals from '../../components/character/CharacterMedals';
+import CharacterName from '../../components/character/CharacterName';
+import { CharacterRanks } from '../../components/character/CharacterRanks';
+import CharacterSkills from '../../components/character/CharacterSkills';
+import CharacterTitle from '../../components/character/CharacterTitle';
+import CharacterTopRanks from '../../components/character/CharacterTopRanks';
+import GroupBadge from '../../components/character/GroupBadge';
+import ProfileBanner from '../../components/character/ProfileBanner';
+import ProfileSection from '../../components/character/ProfileSection';
+import ProfileSocialBar from '../../components/character/ProfileSocialBar';
+import ProfileTabs from '../../components/character/ProfileTabs';
+import RankGraph from '../../components/character/RankGraph';
+import RestrictedProfileNotice from '../../components/character/RestrictedProfileNotice';
+import RulesetSwitch from '../../components/character/RulesetSwitch';
+import SupporterBadge from '../../components/character/SupporterBadge';
+import UserPage from '../../components/character/UserPage';
+import EditableProfilePicture from '../../components/EditableProfilePicture';
 import Flag from '../../components/Flag';
 import Link from '../../components/Link';
-import RestrictedProfileNotice from '../../components/character/RestrictedProfileNotice';
 import ProfilePicture from '../../components/ProfilePicture';
-import EditableProfilePicture from '../../components/EditableProfilePicture';
-import CharacterName from '../../components/character/CharacterName';
-import CharacterTitle from '../../components/character/CharacterTitle';
-import SupporterBadge from '../../components/character/SupporterBadge';
-import GroupBadge from '../../components/character/GroupBadge';
-import {
-	editsCharacter,
-	GROUP_BADGE,
-} from '@oss-idle/shared/groups';
-import AccountStanding from '../../components/character/AccountStanding';
-import ProfileBanner from '../../components/character/ProfileBanner';
 import {
 	refreshCurrentUser,
 	useCurrentUser,
 } from '../../hooks/useCurrentUser';
-import {
-	type ReactNode,
-	useRef,
-	useState,
-} from 'react';
-import {
-	JUDGEMENT,
-	Judgements,
-} from '@oss-idle/shared/judgement';
-import { showsDivine } from '@oss-idle/shared/rebirth';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import num from '@oss-idle/shared/display/num';
-import CharacterTotals from './CharacterTotals';
-import CharacterFigures from './CharacterFigures';
-import { CharacterRanks } from '../../components/character/CharacterRanks';
-import RankGraph from '../../components/character/RankGraph';
-import CharacterMedals from '../../components/character/CharacterMedals';
-import CharacterBeatmaps from '../../components/character/CharacterBeatmaps';
-import CharacterSkills from '../../components/character/CharacterSkills';
-import CharacterTopRanks from '../../components/character/CharacterTopRanks';
-import CharacterHistorical from '../../components/character/CharacterHistorical';
-import ProfileSocialBar from '../../components/character/ProfileSocialBar';
-import ProfileTabs from '../../components/character/ProfileTabs';
-import ProfileSection from '../../components/character/ProfileSection';
-import UserPage from '../../components/character/UserPage';
-import type { ProfileSection as Section } from '@oss-idle/shared/profile';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import { countryName } from '@oss-idle/shared/display/country';
 import { i18n } from '../../i18n';
+import CharacterFigures from './CharacterFigures';
+import CharacterTotals from './CharacterTotals';
 
 
 type Character = Awaited<ReturnType<typeof getCharacter>>;
@@ -88,7 +92,7 @@ export default function CharacterPage({ id, character, stats }: {
 	const [avatarOverride, setAvatarOverride] = useState<string | null>();
 	const blocks = useRef<HTMLDivElement>(null);
 
-	const countplayed = useAsync(() => getCharacterCountPlayed(id), [id]);
+	const countplayed = useAsync(() => getCharacterCountPlayed(id, character.ruleset), [id]);
 
 	const [order, setOrder] = useState(character.profileOrder);
 	const supporter = Boolean(me?.supporter);
@@ -110,15 +114,16 @@ export default function CharacterPage({ id, character, stats }: {
 			supporter={supporter}
 		/>,
 		skills: <CharacterSkills character={character} />,
-		ranks: <CharacterTopRanks id={id} countplayed={countplayed} />,
-		historical: <CharacterHistorical id={id} countplayed={countplayed} />,
-		beatmaps: <CharacterBeatmaps id={id} />,
-		medals: <CharacterMedals id={id} />,
+		ranks: <CharacterTopRanks id={id} ruleset={character.ruleset} countplayed={countplayed} />,
+		historical: <CharacterHistorical id={id} ruleset={character.ruleset} countplayed={countplayed} />,
+		beatmaps: <CharacterBeatmaps id={id} ruleset={character.ruleset} />,
+		medals: <CharacterMedals id={id} ruleset={character.ruleset} />,
 	};
 
 	return (
 		<main>
 			<RestrictedProfileNotice restricted={character.restricted} isSelf={isSelf} />
+			<RulesetSwitch id={id} shown={character.ruleset} picked={character.picked} />
 			<ProfileBanner
 				key={id}
 				characterId={character.id}
@@ -183,11 +188,11 @@ export default function CharacterPage({ id, character, stats }: {
 				<div className='character__stats_sep'></div>
 				<CharacterFigures stats={stats}>
 					{Judgements
-						.filter(j => j !== JUDGEMENT.DIVINE || showsDivine(stats[j]))
+						.filter(j => j !== JUDGEMENT.DIVINE || showsDivine(countsOf(stats)[j]))
 						.map(j => (
 							<div key={j} className='character__stats-area'>
 								<div className={`character__stats-label character__stats-judge judge-${j}`}>{j}</div>
-								<div className='character__stats-num'>{num(stats[j])}</div>
+								<div className='character__stats-num'>{num(countsOf(stats)[j])}</div>
 							</div>
 						))}
 				</CharacterFigures>

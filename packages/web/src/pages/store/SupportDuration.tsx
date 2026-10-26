@@ -1,5 +1,5 @@
-import { Plural } from '@lingui/react/macro';
 import { ph } from '@lingui/core/macro';
+import { Plural } from '@lingui/react/macro';
 
 /** "1 year, 2 months". */
 export default function SupportDuration({ months }: { months: number }) {

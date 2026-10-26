@@ -1,6 +1,6 @@
+import PlayManager from '../../online/playManager';
 import BeatmapAPI from './beatmap_api';
 import LightBeatmapSet from './LightBeatmapSet';
-import PlayManager from '../../online/playManager';
 
 /** A difficulty as song select's card, from the library or the catalog. */
 export const findCard = async (beatmapId: number, setId: number) => {

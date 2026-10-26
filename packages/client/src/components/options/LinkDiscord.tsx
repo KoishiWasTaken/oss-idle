@@ -1,9 +1,11 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import Auth from '../../online/auth';
 import { rpc } from '../../online/client';
 import Button from './controls/Button';

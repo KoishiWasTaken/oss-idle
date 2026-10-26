@@ -1,12 +1,13 @@
 import './News.css';
 
+import { Trans } from '@lingui/react/macro';
+
 import { isAdmin } from '@oss-idle/shared/groups';
 
 import type { listNews } from '../../api/news';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 import Link from '../../components/Link';
 import NewsCard, { articleToCard } from '../../components/NewsCard';
-import { Trans } from '@lingui/react/macro';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function News({ articles }: { articles: Awaited<ReturnType<typeof listNews>> }) {
 	const user = useCurrentUser();

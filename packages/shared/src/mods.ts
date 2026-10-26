@@ -1,14 +1,5 @@
 import { z } from 'zod';
-import {
-	JUDGEMENT,
-	Judgements,
-	type Judgement,
-} from './judgement.js';
-import {
-	SKILL,
-	Skills,
-	type SkillName,
-} from './skills.js';
+
 import { rateLabel } from './rate.js';
 
 /** osu!'s mods, the rate ones (Half/Double) left to rate.ts. In mod select order. */
@@ -59,41 +50,21 @@ export const modsScoreMultiplier = (mods: readonly Mod[]): number =>
 export const windowScale = (mods: readonly Mod[]): number =>
 	mods.includes('EZ') ? WINDOW_FACTOR : mods.includes('HR') ? 1 / WINDOW_FACTOR : 1;
 
-/** The worst judgement a play survives (SD: anything but a miss, PF: marvelous). */
-export const worstAllowed = (mods: readonly Mod[]): Judgement | undefined =>
-	mods.includes('PF') ? JUDGEMENT.MARVELOUS : mods.includes('SD') ? JUDGEMENT.BAD : undefined;
-
 /** SD and PF play the map again on a fail. */
-export const retriesOnFail = (mods: readonly Mod[]): boolean => worstAllowed(mods) !== undefined;
+export const retriesOnFail = (mods: readonly Mod[]): boolean =>
+	mods.includes('SD') || mods.includes('PF');
 
-/** Whether `judgement` fails a play held to `worst`. */
-export const failsOn = (judgement: Judgement, worst: Judgement | undefined): boolean =>
-	worst !== undefined && Judgements.indexOf(judgement) > Judgements.indexOf(worst);
-
-/** HR's small bonus on accuracy xp. */
-export const HR_ACCURACY_XP = 1.1;
 /** EZ's cut on every skill's xp. */
 export const EZ_XP = 0.5;
 
-/** What each skill's xp is multiplied by: NF earns nothing, EZ half, HR a bit more accuracy. */
-export const modXpMultipliers = (mods: readonly Mod[]): Record<SkillName, number> => {
-	const all = isRankedMods(mods) ? mods.includes('EZ') ? EZ_XP : 1 : 0;
-	return Object.fromEntries(Skills.map(s => [
-		s, s === SKILL.accuracy && mods.includes('HR') ? all * HR_ACCURACY_XP : all,
-	])) as Record<SkillName, number>;
-};
+/** What every skill's xp is multiplied by, before a ruleset's own mod bonuses: NF earns
+ *  nothing, EZ half. */
+export const modXpFactor = (mods: readonly Mod[]): number =>
+	isRankedMods(mods) ? mods.includes('EZ') ? EZ_XP : 1 : 0;
 
-/** The mods on top of a play's xp (read off `xpScore`, so the windows alone move nothing). */
-export const modXp = (
-	xp: Record<SkillName, number>,
-	mods: readonly Mod[],
-): Record<SkillName, number> => {
-	const multipliers = modXpMultipliers(mods);
-	for (const name of Object.keys(xp) as SkillName[]) {
-		xp[name] = Math.floor(xp[name] * multipliers[name]);
-	}
-	return xp;
-};
+/** {@link modXpFactor} on each of `skills`: a ruleset's multipliers with no bonus of its own. */
+export const evenModXp = <S extends string>(skills: readonly S[], mods: readonly Mod[]) =>
+	Object.fromEntries(skills.map(s => [s, modXpFactor(mods)])) as Record<S, number>;
 
 /** Mods whose plays earn none of the play medals (stars passed, full combos, the score
  *  feats...). A medal made for one of them can still read its plays. */
@@ -108,6 +79,10 @@ export const modsLabel = (mods: readonly Mod[]): string => mods.join('');
 /** A play's mods with its rate, as song select's Mods button shows them: HRSD x1.2. */
 export const playLabel = (mods: readonly Mod[], rate: number): string =>
 	[modsLabel(mods), rate === 1 ? '' : rateLabel(rate)].filter(Boolean).join(' ');
+
+/** A playlist lock as its button shows it: x1.2 +HRNF. */
+export const lockLabel = (rate: number, mods: readonly Mod[]): string =>
+	[rateLabel(rate), mods.length ? `+${modsLabel(mods)}` : ''].filter(Boolean).join(' ');
 
 /** Stored form: "HR,SD". */
 export const modsKey = (mods: readonly Mod[]): string => cleanMods(mods).join(',');

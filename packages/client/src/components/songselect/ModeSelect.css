@@ -1,0 +1,90 @@
+.mode-select {
+	position: fixed;
+	inset: 0;
+	z-index: var(--z-mod-select);
+}
+
+/* osu!'s: a light black over song select, the hovered mode in the Mode button's purple */
+.mode-select__panel {
+	--hover: rgba(163, 71, 214, 0.7);
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	min-width: 33vw;
+	background: rgba(0, 0, 0, 0.45);
+}
+
+.mode-select__row {
+	display: flex;
+	align-items: center;
+	gap: 2.5vh;
+	padding: 2vh 2vh;
+	border: none;
+	background: none;
+	color: #fff;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+.mode-select__row:hover {
+	background: var(--hover);
+}
+
+.mode-select__row:disabled,
+.mode-select__row.is-locked {
+	opacity: 0.3;
+	cursor: default;
+	pointer-events: none;
+}
+
+.mode-select__icon {
+	width: 13vh;
+	height: 13vh;
+	flex-shrink: 0;
+}
+
+.mode-select__name {
+	font-size: 4.2vh;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.mode-select__variants {
+	display: none;
+	flex: 1;
+	align-self: stretch;
+	gap: 1vh;
+}
+
+.mode-select__row.has-variants:hover .mode-select__name {
+	display: none;
+}
+
+.mode-select__row.has-variants:hover .mode-select__variants {
+	display: flex;
+}
+
+.mode-select__variant {
+	flex: 1;
+	border: none;
+	background: none;
+	color: #fff;
+	font-family: inherit;
+	font-size: 4.2vh;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+/* the variant played now, then the one under the pointer */
+.mode-select__variant.is-current {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-select__variant:hover {
+	background: rgba(255, 255, 255, 0.25);
+}
+
+.mode-select__variant:disabled {
+	opacity: 0.3;
+	cursor: default;
+}

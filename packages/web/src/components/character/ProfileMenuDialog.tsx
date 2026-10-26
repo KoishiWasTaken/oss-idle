@@ -1,8 +1,8 @@
-import RestrictDialog from './RestrictDialog';
-import SilenceDialog from './SilenceDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 import ReportDialog from './ReportDialog';
+import RestrictDialog from './RestrictDialog';
 import RollbackUpgradeDialog from './RollbackUpgradeDialog';
+import SilenceDialog from './SilenceDialog';
 
 export type ProfileDialog = 'report' | 'silence' | 'restrict' | 'delete' | 'rollback';
 

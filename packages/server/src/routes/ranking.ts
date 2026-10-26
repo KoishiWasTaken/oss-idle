@@ -1,11 +1,4 @@
 import {
-	Hono,
-	type Context,
-} from 'hono';
-import { HTTPException } from 'hono/http-exception';
-import { z } from 'zod';
-import type { SkillName } from '@oss-idle/shared/skills';
-import {
 	and,
 	desc,
 	eq,
@@ -15,22 +8,31 @@ import {
 	sql,
 } from 'drizzle-orm';
 import type { AnyMySqlColumn } from 'drizzle-orm/mysql-core';
-import { db } from '../db/client';
-import { sessionUserId } from '../auth/middleware';
-import { friendCharacterIds } from '../social';
 import {
-	progressOverview,
-	progressPage,
-	ProgressLines,
-} from '../medals';
-import { characters } from '../db/schema/character';
-import { character_totals } from '../db/schema/character_totals';
-import { users } from '../db/schema/user';
-import { bestPP } from '../db/schema/best_pp';
+	type Context,
+	Hono,
+} from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
+
+import {
+	GOOD_GRADE,
+	type GoodGrade,
+} from '@oss-idle/shared/grade';
+
+import { sessionUserId } from '../auth/middleware';
+import { db } from '../db/client';
 import {
 	beatmapListColumns,
 	beatmaps,
 } from '../db/schema/beatmap';
+import { characters } from '../db/schema/character';
+import { users } from '../db/schema/user';
+import {
+	ProgressLines,
+	progressOverview,
+	progressPage,
+} from '../medals';
 import {
 	gradesPage,
 	medalsPage,
@@ -40,72 +42,100 @@ import {
 	scorePage,
 	skillPage,
 } from '../rankings';
+import { rulesetQuery } from '../rulesets/request';
 import {
-	GOOD_GRADE,
-	Judgements,
-	type GoodGrade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
+	column,
+	type ServerRuleset,
+} from '../rulesets/ruleset';
+import { friendCharacterIds } from '../social';
 import {
 	idParam,
 	valid,
 } from '../validate';
 
 
-const isValidSkill = (str: string): str is ('overall' | SkillName) => `${str}Level` in characters;
+const isValidSkill = (
+	r: ServerRuleset,
+	str: string,
+) => str === 'overall' || r.def.skills.includes(str);
 
-export const skillRanking = (skill: string, page: number, country?: string, among?: number[]) => {
-	if (!isValidSkill(skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
-	return skillPage(skill, page, country, among);
+export const skillRanking = (
+	r: ServerRuleset,
+	skill: string,
+	page: number,
+	country?: string,
+	among?: number[],
+) => {
+	if (!isValidSkill(r, skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
+	return skillPage(r, skill, page, country, among);
 };
 
 const isValidGrade = (str: string): str is ('all' | GoodGrade) => 
 	str === 'all' || str in GOOD_GRADE;
 
-const gradesRanking = (grade: string, page: number, country?: string, among?: number[]) => {
+const gradesRanking = (
+	r: ServerRuleset,
+	grade: string,
+	page: number,
+	country?: string,
+	among?: number[],
+) => {
 	if (!isValidGrade(grade)) throw new HTTPException(400, { message: 'Invalid parameters' });
-	return gradesPage(grade, page, country, among);
+	return gradesPage(r, grade, page, country, among);
 };
 
 /** The same skills, ranked on what they have ever earned rather than what they
  *  hold: `overall` is the summed column. */
-const lifetimeRanking = (skill: string, page: number, country?: string, among?: number[]) => {
-	if (!isValidSkill(skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
-	return skillPage(`lifetime:${skill}`, page, country, among);
+const lifetimeRanking = (
+	r: ServerRuleset,
+	skill: string,
+	page: number,
+	country?: string,
+	among?: number[],
+) => {
+	if (!isValidSkill(r, skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
+	return skillPage(r, `lifetime:${skill}`, page, country, among);
 };
 
 /** How many times each skill has been prestiged; `overall` is the total. */
-const prestigeRanking = (skill: string, page: number, country?: string, among?: number[]) => {
-	if (!isValidSkill(skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
+const prestigeRanking = (
+	r: ServerRuleset,
+	skill: string,
+	page: number,
+	country?: string,
+	among?: number[],
+) => {
+	if (!isValidSkill(r, skill)) throw new HTTPException(400, { message: 'Invalid parameters' });
 	return skillPage(
-		skill === 'overall' ? 'prestige:total' : `prestige:${skill}`, page, country, among,
+		r, skill === 'overall' ? 'prestige:total' : `prestige:${skill}`, page, country, among,
 	);
 };
 
 const total = (column: AnyMySqlColumn) => sql<number>`sum(${column})`.mapWith(Number);
 
 /** Countries ranked on the summed pp of their players who have played ranked. */
-export const countryPage = (page: number) => db
+export const countryPage = ({ def, profile, totals }: ServerRuleset, page: number) => db
 	.select({
 		country: users.country,
 		players: sql<number>`count(*)`.mapWith(Number),
-		playCount: total(character_totals.playCount),
-		rankedScore: total(character_totals.rankedScore),
-		pp: total(characters.pp),
-		...Object.fromEntries(Judgements.map(j => [j, total(character_totals[j])])) as
-			Record<Judgement, ReturnType<typeof total>>,
+		playCount: total(totals.playCount),
+		rankedScore: total(totals.rankedScore),
+		pp: total(profile.pp),
+		...Object.fromEntries(def.judgements.map(j => [j, total(column(totals, j))])) as
+			Record<string, ReturnType<typeof total>>,
 	})
 	.from(characters)
-	.innerJoin(character_totals, eq(character_totals.id, characters.id))
+	.innerJoin(profile, eq(profile.id, characters.id))
+	.innerJoin(totals, eq(totals.id, characters.id))
 	.innerJoin(users, eq(users.id, characters.userId))
-	.where(and(gt(character_totals.playCount, 0), isNull(users.restrictedAt)))
+	.where(and(gt(totals.playCount, 0), isNull(users.restrictedAt)))
 	.groupBy(users.country)
-	.orderBy(desc(total(characters.pp)))
+	.orderBy(desc(total(profile.pp)))
 	.limit(PAGE_SIZE)
 	.offset((page - 1) * PAGE_SIZE);
 
 /** Every player's best pp plays, highest first. */
-const topPlaysPage = (page: number, among?: number[]) => db
+const topPlaysPage = ({ bestPP }: ServerRuleset, page: number, among?: number[]) => db
 	.select({
 		score: bestPP,
 		beatmap: beatmapListColumns,
@@ -140,46 +170,53 @@ const progressQuery = valid('query', z.object({
 }));
 
 export const rankingRoutes = new Hono()
-	.get('/country/:page', async c => c.json(await countryPage(idParam.parse(c.req.param('page')))))
+	.get('/country/:page', async c => c.json(
+		await countryPage(rulesetQuery(c), idParam.parse(c.req.param('page'))),
+	))
 	.get('/plays/:page', friendsQuery, async c => c.json(
-		await topPlaysPage(idParam.parse(c.req.param('page')), await amongFor(c)),
+		await topPlaysPage(rulesetQuery(c), idParam.parse(c.req.param('page')), await amongFor(c)),
 	))
 	.get('/countries', async c => c.json(
-		await playerCountries(),
+		await playerCountries(rulesetQuery(c)),
 	))
 	.get('/global/:page', friendsQuery, async c => c.json(await ppPage(
+		rulesetQuery(c),
 		idParam.parse(c.req.param('page')),
 		undefined,
 		await amongFor(c),
 	)))
 	.get('/global/country/:country/:page', friendsQuery, async c => c.json(
 		await ppPage(
+			rulesetQuery(c),
 			idParam.parse(c.req.param('page')), 
 			c.req.param('country'),
 			await amongFor(c)),
 	))
 	.get('/score/:page', friendsQuery, async c => c.json(
-		await scorePage(idParam.parse(c.req.param('page')), undefined, await amongFor(c)),
+		await scorePage(rulesetQuery(c), idParam.parse(c.req.param('page')), undefined, await amongFor(c)),
 	))
 	.get('/score/country/:country/:page', friendsQuery, async c => c.json(
 		await scorePage(
+			rulesetQuery(c),
 			idParam.parse(c.req.param('page')), 
 			c.req.param('country'),
 			await amongFor(c)),
 	))
 	.get('/medals/:page', friendsQuery, async c => c.json(
-		await medalsPage(idParam.parse(c.req.param('page')), undefined, await amongFor(c)),
+		await medalsPage(rulesetQuery(c), idParam.parse(c.req.param('page')), undefined, await amongFor(c)),
 	))
 	.get('/medals/country/:country/:page', friendsQuery, async c => c.json(
 		await medalsPage(
+			rulesetQuery(c),
 			idParam.parse(c.req.param('page')),
 			c.req.param('country'),
 			await amongFor(c)),
 	))
-	.get('/progress', async c => c.json(await progressOverview()))
+	.get('/progress', async c => c.json(await progressOverview(rulesetQuery(c))))
 	.get('/progress/:line/:page', progressQuery, async c => {
 		const line = z.enum(ProgressLines).parse(c.req.param('line'));
 		return c.json(await progressPage(
+			rulesetQuery(c),
 			line,
 			idParam.parse(c.req.param('page')),
 			PAGE_SIZE,
@@ -189,6 +226,7 @@ export const rankingRoutes = new Hono()
 	})
 	.get('/skill/:skill/page/:page', friendsQuery, async c => c.json(
 		await skillRanking(
+			rulesetQuery(c),
 			c.req.param('skill'), 
 			idParam.parse(c.req.param('page')),
 			undefined,
@@ -196,6 +234,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/skill/:skill/country/:country/page/:page', friendsQuery, async c => c.json(
 		await skillRanking(
+			rulesetQuery(c),
 			c.req.param('skill'), 
 			idParam.parse(c.req.param('page')), 
 			c.req.param('country'),
@@ -204,6 +243,7 @@ export const rankingRoutes = new Hono()
 	))
 	.get('/lifetime/:skill/page/:page', friendsQuery, async c => c.json(
 		await lifetimeRanking(
+			rulesetQuery(c),
 			c.req.param('skill'),
 			idParam.parse(c.req.param('page')),
 			undefined,
@@ -211,6 +251,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/lifetime/:skill/country/:country/page/:page', friendsQuery, async c => c.json(
 		await lifetimeRanking(
+			rulesetQuery(c),
 			c.req.param('skill'),
 			idParam.parse(c.req.param('page')),
 			c.req.param('country'),
@@ -218,6 +259,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/prestige/:skill/page/:page', friendsQuery, async c => c.json(
 		await prestigeRanking(
+			rulesetQuery(c),
 			c.req.param('skill'),
 			idParam.parse(c.req.param('page')),
 			undefined,
@@ -225,6 +267,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/prestige/:skill/country/:country/page/:page', friendsQuery, async c => c.json(
 		await prestigeRanking(
+			rulesetQuery(c),
 			c.req.param('skill'),
 			idParam.parse(c.req.param('page')),
 			c.req.param('country'),
@@ -232,6 +275,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/grades/:grade/page/:page', friendsQuery, async c => c.json(
 		await gradesRanking(
+			rulesetQuery(c),
 			c.req.param('grade'), 
 			idParam.parse(c.req.param('page')),
 			undefined,
@@ -239,6 +283,7 @@ export const rankingRoutes = new Hono()
 		)))
 	.get('/grades/:grade/country/:country/page/:page', friendsQuery, async c => c.json(
 		await gradesRanking(
+			rulesetQuery(c),
 			c.req.param('grade'), 
 			idParam.parse(c.req.param('page')), 
 			c.req.param('country'),

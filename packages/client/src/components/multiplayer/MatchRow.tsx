@@ -3,13 +3,15 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import type { PresenceEntry } from '@oss-idle/shared/community/presence';
 import {
+	type Match,
 	matchPlayers,
 	matchSize,
-	type Match,
 } from '@oss-idle/shared/multiplayer';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+
 import Glyph from './Glyph';
 
 /** One match in the lobby list. */

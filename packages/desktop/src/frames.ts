@@ -2,6 +2,7 @@ import {
 	BrowserWindow,
 	type WebFrameMain,
 } from 'electron';
+
 import { RENDERER_URL } from './config';
 
 // by hand: Node's URL gives app:// the opaque origin 'null', which data: frames share

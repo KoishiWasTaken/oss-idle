@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { Skills } from './skills.js';
+
+import { RULESET_IDS } from './rulesets/ids.js';
+
+/** The ruleset an action was bought in: its progression is that ruleset's alone. */
+const ruleset = z.enum(RULESET_IDS);
 
 /**
  * A character action a running play deferred. A play's outcome and its xp are
@@ -13,16 +17,19 @@ import { Skills } from './skills.js';
 export const pendingActionDTO = z.discriminatedUnion('type', [
 	z.object({
 		type: z.literal('upgrade'),
-		skill: z.enum(Skills),
+		ruleset,
+		skill: z.string(),
 		requestedAt: z.number().int(),
 	}),
 	z.object({
 		type: z.literal('prestige'),
-		skill: z.enum(Skills),
+		ruleset,
+		skill: z.string(),
 		requestedAt: z.number().int(),
 	}),
 	z.object({
 		type: z.literal('rebirth'),
+		ruleset,
 		name: z.string(),
 		requestedAt: z.number().int(),
 	}),

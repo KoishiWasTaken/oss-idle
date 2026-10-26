@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { fallback } from '@tanstack/zod-adapter';
+import { z } from 'zod';
 
 // Shared leaderboard search params. `-` prefix keeps this out of the route tree.
 // `fallback` guards bad URLs (?page=foo) instead of tripping an error boundary;

@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { addonViolations } from '@oss-idle/shared/addonRules';
 
 const rules = (source: string) => addonViolations(source).map(v => v.rule);

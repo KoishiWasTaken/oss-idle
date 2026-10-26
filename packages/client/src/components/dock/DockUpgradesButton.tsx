@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro';
+
 import { openPage } from '../../globals';
 
 /** The reason to open the dock while a play runs, and the way to the character

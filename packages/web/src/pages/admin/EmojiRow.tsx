@@ -1,14 +1,16 @@
 import { useState } from 'react';
+
 import {
 	type Emoji,
 	emojiName,
 } from '@oss-idle/shared/community/emoji';
-import Link from '../../components/Link';
+
 import {
 	deleteEmoji,
 	emojiSrc,
 	renameEmoji,
 } from '../../api/emoji';
+import Link from '../../components/Link';
 
 /** One emoji: its name renames it once the box loses focus (keyed by name: it starts over after). */
 export default function EmojiRow({ emoji, busy, run }: {

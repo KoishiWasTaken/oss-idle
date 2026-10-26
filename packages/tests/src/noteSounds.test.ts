@@ -1,13 +1,15 @@
 import '@oss-idle/shared/osu/controlPointPatch';
+
+import { BeatmapDecoder } from 'osu-parsers';
 import {
 	describe,
 	expect,
 	it,
 } from 'vitest';
-import { BeatmapDecoder } from 'osu-parsers';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
+
+import BasicBot from '@oss-idle/shared/rulesets/mania/bots/basic';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
 import { mapSampleName } from '@oss-idle/shared/sim/noteSounds';
-import BasicBot from '@oss-idle/shared/sim/bots/basic';
 
 const OSU = [
 	'osu file format v14', '', '[General]', 'AudioFilename: a.mp3', 'SampleSet: Normal', 'Mode: 3', '',

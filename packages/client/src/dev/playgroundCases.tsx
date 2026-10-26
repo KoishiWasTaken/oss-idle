@@ -1,87 +1,100 @@
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import type { ReactNode } from 'react';
-import SkillXPBar from '../components/SkillXPBar';
-import SkinPlayground from './SkinPlayground';
-import Skins from '../scenes/Skins';
-import SkillProgression from '../components/result/SkillProgression';
-import XpMultiplierToggle from '../components/songselect/XpMultiplierToggle';
-import UpgradeRow from '../components/upgrades/UpgradeRow';
-import UpgradesView from '../components/upgrades/UpgradesView';
-import UpgradesPreview from './UpgradesPreview';
-import WarmupGaugePreview from './WarmupGaugePreview';
-import SkillsView from '../components/skills/SkillsView';
-import { sampleCharacter } from './upgradeSample';
-import PrestigeView from '../components/character/PrestigeView';
-import ConfirmMenu from '../components/ConfirmMenu';
 import '../components/community/chat/Chat.css';
-import Chat from '../components/community/chat/Chat';
-import ChannelPicker from '../components/community/chat/ChannelPicker';
-import { log } from '../logs';
-import ChatText from '../components/community/chat/ChatText';
-import LinkMenu from '../components/community/LinkMenu';
-import DockPanel from '../components/dock/DockPanel';
-import DockPill from '../components/dock/DockPill';
-import PlayQueue from '../gameplay/playQueue';
-import { Playlist } from '../db/schema/playlist';
-import SongSelect from '../scenes/SongSelect';
-import PlayDock from '../components/dock/PlayDock';
-import SceneManager, { SCENE } from '../scenes/SceneManager';
-import { openPage } from '../globals';
-import PlayManager from '../online/playManager';
-import Multiplayer from '../online/multiplayer';
-import Entities from '../entity/entities';
-import Lobby from '../scenes/Lobby';
-import MatchSetup from '../scenes/MatchSetup';
-import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
-import Result from '../scenes/Result';
-import ModSelect from '../components/mods/ModSelect';
-import { selectedMods } from '../gameplay/playMods';
-import { selectedRate } from '../gameplay/playRate';
+import '../components/addons/addons.css';
+
+import type { ReactNode } from 'react';
+
+import { ADDON_KIND } from '@oss-idle/shared/addon';
+import type { Match } from '@oss-idle/shared/multiplayer';
+import type { SkillProgress } from '@oss-idle/shared/rulesets/mania/4k/bots/character';
+import { makeOrderedSkills } from '@oss-idle/shared/rulesets/mania/4k/skills/factory';
+import Skill from '@oss-idle/shared/rulesets/mania/4k/skills/skill';
 import {
 	JUDGEMENT,
 	Judgements,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/rulesets/mania/judgement';
 import type {
 	HitRecord,
 	ManiaGame,
-} from '@oss-idle/shared/sim/maniaGame';
+} from '@oss-idle/shared/rulesets/mania/maniaGame';
 import {
 	judge,
 	maniaWindows,
 	ScoreState,
-} from '@oss-idle/shared/sim/scoring';
+} from '@oss-idle/shared/rulesets/mania/scoring';
 import type {
 	JudgementCounts,
 	ScoreDTO,
 } from '@oss-idle/shared/score';
-import type { Match } from '@oss-idle/shared/multiplayer';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import Skill from '@oss-idle/shared/sim/skills/skill';
-import ShownMedals from '../components/medals/ShownMedals';
-import MedalCatalogue from './MedalCatalogue';
+
 import type { MedalUnlock } from '../achievements/medalUnlocks';
+import AddonView, {
+	detailOfDTO,
+	newAddonDetail,
+} from '../components/addons/AddonView';
+import PrestigeView from '../components/character/PrestigeView';
+import ChannelPicker from '../components/community/chat/ChannelPicker';
+import Chat from '../components/community/chat/Chat';
+import ChatText from '../components/community/chat/ChatText';
+import LinkMenu from '../components/community/LinkMenu';
+import ConfirmMenu from '../components/ConfirmMenu';
+import DirectLinkPanel from '../components/direct/DirectLinkPanel';
+import { directLink } from '../components/direct/directState';
+import DockPanel from '../components/dock/DockPanel';
+import DockPill from '../components/dock/DockPill';
+import PlayDock from '../components/dock/PlayDock';
+import ShownMedals from '../components/medals/ShownMedals';
+import ModSelect from '../components/mods/ModSelect';
+import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
+import PlaylistOverlay from '../components/PlaylistOverlay';
+import SkillProgression from '../components/result/SkillProgression';
+import SkillsView from '../components/skills/SkillsView';
+import SkillXPBar from '../components/SkillXPBar';
+import ModeSelect from '../components/songselect/ModeSelect';
+import XpMultiplierToggle from '../components/songselect/XpMultiplierToggle';
+import UpgradeRow from '../components/upgrades/UpgradeRow';
+import UpgradesView from '../components/upgrades/UpgradesView';
+import { Playlist } from '../db/schema/playlist';
+import {
+	GROUP_OPTION,
+	SETTINGS,
+} from '../db/settings';
+import Entities from '../entity/entities';
+import { selectedMods } from '../gameplay/playMods';
+import PlayQueue from '../gameplay/playQueue';
+import {
+	liveSpeedUpgrades,
+	selectedRate,
+} from '../gameplay/playRate';
+import { openPage } from '../globals';
+import { log } from '../logs';
 import {
 	closeMedals,
 	showMedals,
 	shownMedals,
 } from '../online/medalWatch';
+import Multiplayer from '../online/multiplayer';
+import PlayManager from '../online/playManager';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import Lobby from '../scenes/Lobby';
+import MatchSetup from '../scenes/MatchSetup';
+import Result from '../scenes/Result';
+import SceneManager, { SCENE } from '../scenes/SceneManager';
+import Skins from '../scenes/Skins';
+import SongSelect from '../scenes/SongSelect';
+import { sampleRepoAddon } from './addonSamples';
+import MedalCatalogue from './MedalCatalogue';
 import {
 	MEDALS_BACKFILL,
 	MEDALS_FIVE,
 	MEDALS_ONE,
 	MEDALS_THREE,
 } from './medalSamples';
-import '../components/addons/addons.css';
-import { ADDON_KIND } from '@oss-idle/shared/addon';
-import AddonView, {
-	detailOfDTO,
-	newAddonDetail,
-} from '../components/addons/AddonView';
-import { sampleRepoAddon } from './addonSamples';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
-import DirectLinkPanel from '../components/direct/DirectLinkPanel';
-import { directLink } from '../components/direct/directState';
+import SkinPlayground from './SkinPlayground';
+import { sampleCharacter } from './upgradeSample';
+import UpgradesPreview from './UpgradesPreview';
+import WarmupGaugePreview from './WarmupGaugePreview';
 
 const gain = (
 	skill: string,
@@ -155,6 +168,35 @@ const editedPlaylistQueue = async () => {
 	fakeQueue(`p${playlist.id}`);
 	await PlayQueue.playlistChanged();
 	await playlist.addBeatmap(6);
+};
+
+/** NF HR at x1.2 picked, with the speed to play it. */
+const pickLock = () => {
+	void selectedMods.set(['NF', 'HR']);
+	void selectedRate.set(1.2);
+	void liveSpeedUpgrades.set(10);
+};
+
+let locking: Promise<void> | undefined;
+
+/** A playlist holding `beatmapId` unlocked, at x1.2 and at x1.2 +NFHR. Once a load:
+ *  the stage sets a case up twice. */
+const lockedPlaylist = (beatmapId: number) => locking ??= (async () => {
+	const name = 'Playground: locked mods';
+	await (await Playlist.byName(name))?.deleteWithEntries();
+	const playlist = await Playlist.create(name);
+	await playlist.addBeatmap(beatmapId);
+	await playlist.addBeatmap(beatmapId, 1.2);
+	await playlist.addBeatmap(beatmapId, 1.2, ['NF', 'HR']);
+})();
+
+/** {@link lockedPlaylist} on the first map of the picked ruleset the server lists. */
+const lockedSongSelect = async () => {
+	const manifest = await BeatmapAPI.getManifest();
+	const beatmap = manifest.beatmaps
+		.flatMap(m => LightBeatmapSet.fromMetadata(m).beatmaps)
+		.find(b => b.inPickedRuleset());
+	if (beatmap) await lockedPlaylist(beatmap.metadata.id);
 };
 
 const sampleScore = (): ScoreDTO => ({
@@ -472,6 +514,15 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		render: () => <SongSelect />,
 	},
 	{
+		id: 'mode-select',
+		label: 'Song select - the Mode menu, as it opens over the Mode button at 1920x1080',
+		setup: () => void SceneManager.current.set(SCENE.SELECT),
+		render: () => (<>
+			<SongSelect />
+			<ModeSelect anchor={new DOMRect(200, 970, 105, 110)} onClose={() => {}} />
+		</>),
+	},
+	{
 		id: 'songselect-queue',
 		label: 'Queue carousel - as it sits over a play, with the dock',
 		// the real composition: the carousel is a page over the gameplay scene,
@@ -553,6 +604,26 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 			progression={spread(4, 12)}
 			beatmap={fakeQueue()[0]}
 		/>,
+	},
+	{
+		id: 'playlist-lock',
+		label: 'Playlist manager - locked at x1.2 and x1.2 +NFHR, NF HR at x1.2 picked',
+		setup: () => {
+			pickLock();
+			void lockedPlaylist(1);
+		},
+		render: () => <PlaylistOverlay beatmap={fakeQueue()[0]} onClose={() => {}} />,
+	},
+	{
+		id: 'songselect-playlist-lock',
+		label: 'Song select - By Playlist, a map unlocked, at x1.2 and at x1.2 +NFHR',
+		setup: () => {
+			pickLock();
+			void SETTINGS.groupby.set(GROUP_OPTION['By Playlist']);
+			void SceneManager.current.set(SCENE.SELECT);
+			void lockedSongSelect();
+		},
+		render: () => <SongSelect />,
 	},
 	{
 		id: 'mod-select',

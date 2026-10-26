@@ -1,28 +1,32 @@
-import { ph } from '@lingui/core/macro';
 import '../components/multiplayer/Multiplayer.css';
-import { useEffect } from 'react';
+
+import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { useEffect } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
 	matchPlayers,
 	matchSize,
 } from '@oss-idle/shared/multiplayer';
-import Background from './Background';
-import SceneManager, { SCENE } from './SceneManager';
-import Controls from '../input/Controls';
+
+import MatchSettings from '../components/multiplayer/MatchSettings';
+import ReadyButton from '../components/multiplayer/ReadyButton';
+import SlotRow from '../components/multiplayer/SlotRow';
+import useMultiplayerChat from '../components/multiplayer/useMultiplayerChat';
+import usePlayers from '../components/multiplayer/usePlayers';
+import UserCard from '../components/songselect/UserCard';
 import Entities from '../entity/entities';
+import Controls from '../input/Controls';
 import Multiplayer from '../online/multiplayer';
 import {
 	getCharacter,
 	getCharacterStats,
 } from '../online/services/characters';
-import UserCard from '../components/songselect/UserCard';
-import SlotRow from '../components/multiplayer/SlotRow';
-import MatchSettings from '../components/multiplayer/MatchSettings';
-import ReadyButton from '../components/multiplayer/ReadyButton';
-import usePlayers from '../components/multiplayer/usePlayers';
-import useMultiplayerChat from '../components/multiplayer/useMultiplayerChat';
+import { selectedRuleset } from '../rulesets/registry';
+import Background from './Background';
+import SceneManager, { SCENE } from './SceneManager';
 
 /** osu!'s Match Setup: the seats, the map, and the host's settings. */
 export default function MatchSetup() {
@@ -31,10 +35,11 @@ export default function MatchSetup() {
 	const players = usePlayers();
 	useMultiplayerChat();
 
+	const [ruleset] = useSynced(selectedRuleset);
 	const online_character = useAsync(async () => character.isGuest() ? undefined
-		: getCharacter(character.id), [character]);
+		: getCharacter(character.id, ruleset), [character, ruleset]);
 	const online_stats = useAsync(async () => character.isGuest() ? undefined
-		: getCharacterStats(character.id), [character]);
+		: getCharacterStats(character.id, ruleset), [character, ruleset]);
 
 	// kicked out, or the match went away
 	useEffect(() => { if (!match) SceneManager.set(SCENE.LOBBY); }, [match]);

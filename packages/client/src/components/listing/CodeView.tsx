@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
-import Prism from 'prismjs';
 import 'prism-themes/themes/prism-vsc-dark-plus.css';
+
+import Prism from 'prismjs';
+import { useMemo } from 'react';
 
 /** Read-only JS code, highlighted with the VSCode Dark+ theme. */
 export default function CodeView({ source }: { source: string }) {

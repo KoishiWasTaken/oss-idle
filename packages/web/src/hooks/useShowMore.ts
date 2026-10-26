@@ -1,8 +1,8 @@
 import {
+	type DependencyList,
 	useEffect,
 	useRef,
 	useState,
-	type DependencyList,
 } from 'react';
 
 type Page<T> = { items: T[]; hasMore: boolean };

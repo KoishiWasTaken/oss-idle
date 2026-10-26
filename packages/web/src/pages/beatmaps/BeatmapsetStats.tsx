@@ -1,16 +1,18 @@
-import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faClock,
 	faDrum,
 	faGripLines,
 	faMusic,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trans } from '@lingui/react/macro';
+
 import { length } from '@oss-idle/shared/display/length';
 import num, { bpm } from '@oss-idle/shared/display/num';
+
 import {
-	previewUrl,
 	type MapDiff,
+	previewUrl,
 } from '../../api/maps';
 import PreviewButton from './PreviewButton';
 

@@ -1,9 +1,10 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 	vi,
 } from 'vitest';
+
 import { remountAddon } from '@oss-idle/client/addons/runtime';
 import type { Addon } from '@oss-idle/client/db/schema/addon';
 

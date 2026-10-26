@@ -1,28 +1,31 @@
 import './PlayerMenu.css';
-import { useState } from 'react';
+
 import { useLingui } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { useState } from 'react';
+
 import Log from '@oss-idle/shared/helpers/log';
-import ContextMenu, { type ContextMenuOption } from '../ContextMenu';
-import PlayerCard from './PlayerCard';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
-	type MenuTarget,
-	menuFor,
-} from './state';
+	isWebOpen,
+	webUrl,
+} from '../../globals';
 import Auth from '../../online/auth';
 import {
 	addFriend,
 	friends,
 	removeFriend,
 } from '../../online/friends';
-import {
-	isWebOpen,
-	webUrl,
-} from '../../globals';
-import { openConversation } from '../../online/privateMessages';
 import Multiplayer from '../../online/multiplayer';
+import { openConversation } from '../../online/privateMessages';
 import Socket from '../../online/socket';
+import ContextMenu, { type ContextMenuOption } from '../ContextMenu';
 import ReportMessageDialog from './chat/ReportMessageDialog';
+import PlayerCard from './PlayerCard';
+import {
+	menuFor,
+	type MenuTarget,
+} from './state';
 
 /** What the host of our match can do to another player in it. */
 const hostActions = (

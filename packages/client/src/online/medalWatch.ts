@@ -1,9 +1,10 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import { MedalTiers } from '@oss-idle/shared/achievements/medal';
+import Synced from '@oss-idle/shared/helpers/synced';
 import type { MedalBatch } from '@oss-idle/shared/play';
+
 import {
-	medalUnlocks,
 	type MedalUnlock,
+	medalUnlocks,
 } from '../achievements/medalUnlocks';
 import Socket from './socket';
 

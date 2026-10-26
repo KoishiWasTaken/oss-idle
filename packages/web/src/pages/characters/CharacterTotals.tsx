@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react';
 import { Trans } from '@lingui/react/macro';
+import type { ReactNode } from 'react';
+
 import num from '@oss-idle/shared/display/num';
+
 import type { getCharacterStats } from '../../api/characters';
 import Grade from '../../components/score/Grade';
 import { headlineGrades } from './headlineGrades';

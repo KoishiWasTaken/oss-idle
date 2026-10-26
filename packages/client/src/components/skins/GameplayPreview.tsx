@@ -1,25 +1,26 @@
+import { Beatmap } from 'osu-classes';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { Beatmap } from 'osu-classes';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import { scrollSpeedToMs } from '@oss-idle/shared/osu/scroll_speed';
-import { type Grade } from '@oss-idle/shared/judgement';
+
+import { type Grade } from '@oss-idle/shared/grade';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { OSU_MODE } from '@oss-idle/shared/rulesets/ids';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { scrollSpeedToMs } from '@oss-idle/shared/rulesets/mania/scroll_speed';
+
 import { music } from '../../audio/MusicPlayer';
 import { SETTINGS } from '../../db/settings';
-import { DEBUG_BOT_LEVEL } from '../../gameplay/strainDebug';
-import GameplayRenderer, { strainLabels } from '../../gameplay/gameplayRenderer';
-import BeatmapStore from '../../osu/beatmap/beatmap_store';
-import { skinTestChart } from '../../gameplay/skinTestChart';
-import { currentSkin } from '../../osu/skin/Skin';
-import type Skin from '../../osu/skin/Skin';
-import { sizeCanvas } from '../../sizeCanvas';
+import GameplayRenderer from '../../gameplay/gameplayRenderer';
 import { makeGradePlacer } from '../../gameplay/gradeBadge';
+import { skinTestChart } from '../../gameplay/skinTestChart';
+import BeatmapStore from '../../osu/beatmap/beatmap_store';
+import type Skin from '../../osu/skin/Skin';
+import { currentSkin } from '../../osu/skin/Skin';
+import { loadPlayer } from '../../rulesets/registry';
+import { sizeCanvas } from '../../sizeCanvas';
 
 /**
  * A silent full-gameplay preview of the currently playing beatmap, synced to the
@@ -66,14 +67,21 @@ export default function GameplayPreview({ skin: shown }: { skin: Skin | undefine
 				return;
 			}
 			if (!alive || beatmap.hitObjects.length === 0) return;
+			// the test chart is 4K mania
+			const player = await loadPlayer(
+				beatmapInfo?.metadata.mode ?? OSU_MODE.mania, beatmapInfo?.metadata.keys ?? 4,
+			);
+			if (!alive || !player) return;
 
 			// a debug-level bot plays the map so notes get hit and the HUD comes alive;
 			// building the game runs its strain analysis, so bot.strainsAt feeds the gauges
-			const bot = new CharacterBot(makeOrderedSkills(DEBUG_BOT_LEVEL));
+			const bot = player.debugBot();
 			const game = new ManiaGame(beatmap, bot, { noFail: true });
 			const renderer = new GameplayRenderer(ctx, game, skinRef.current);
 			rendererRef.current = renderer;
-			const labels = strainLabels();
+			const strain = {
+				source: bot, gauges: player.strainGauges(),
+			};
 
 			if (beatmapInfo) void BeatmapStore.getBeatmapBackground(beatmap).then(url => {
 				if (!alive || !url) return;
@@ -109,10 +117,7 @@ export default function GameplayPreview({ skin: shown }: { skin: Skin | undefine
 				};
 				renderer.clear(vp);
 				const g = renderer.draw(now, vp, {
-					strain: {
-						bot,
-						labels,
-					},
+					strain,
 					onGrade: setGrade,
 				});
 				placeGrade(gradeRef.current, g);

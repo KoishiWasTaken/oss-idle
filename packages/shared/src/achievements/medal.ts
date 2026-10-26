@@ -1,6 +1,6 @@
 import {
-	GLYPHS,
 	type GlyphName,
+	GLYPHS,
 } from './glyphs.js';
 
 export const MedalTiers = ['bronze', 'silver', 'gold', 'platinum', 'divine'] as const;

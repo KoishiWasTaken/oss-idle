@@ -1,11 +1,13 @@
+import './LeaderboardFilters.css';
+
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	useRef,
 	useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import './LeaderboardFilters.css';
+
 import { blackout } from '../../globals';
 
 export type Filter = {

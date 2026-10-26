@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
 import './DesktopDone.css';
+
 import { Trans } from '@lingui/react/macro';
+import { useEffect } from 'react';
 
 /** The app's deep-link scheme. Builds from before the rename to oss!idle send no
  *  `scheme` and answer to the old one only. */

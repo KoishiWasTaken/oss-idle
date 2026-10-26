@@ -1,14 +1,16 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
-import type { UserDTO } from '@oss-idle/shared/user';
+import { useState } from 'react';
+
 import { MIN_SUPPORT } from '@oss-idle/shared/supporter';
-import Link from '../../components/Link';
-import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
-import { inGameBrowser } from '../../auth';
+import type { UserDTO } from '@oss-idle/shared/user';
+
 import {
 	openPortal,
 	startCheckout,
 } from '../../api/store';
+import { inGameBrowser } from '../../auth';
+import Link from '../../components/Link';
+import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
 import RecipientPicker, { type Recipient } from './RecipientPicker';
 import SupportSlider from './SupportSlider';
 

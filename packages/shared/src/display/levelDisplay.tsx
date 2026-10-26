@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
+
 import {
-	xpForLevel,
+	levelProgress,
 	xpGivesLevel,
-} from '../sim/skills/xp.js';
+} from '../xp.js';
 
 /**
  * How a level is drawn, everywhere in the game. One place on purpose: these
@@ -26,12 +27,6 @@ export const LEVEL_COLOUR_MAX = 110;
 export const levelClass = (level: number): string =>
 	`level_container level_${Math.min(Math.floor(level), LEVEL_COLOUR_MAX)}`;
 
-/** Progress through a level, as a fraction of what the next one costs. */
-export const levelProgress = (level: number, xp: number): number => {
-	const needed = xpForLevel(level);
-	if (!(needed > 0)) return 0;
-	return Math.min(1, Math.max(0, xp / needed));
-};
 
 /** A level and how far into it the character is, drawn by the rules above. */
 export const levelNode = (level: number, progress: number): ReactNode => {

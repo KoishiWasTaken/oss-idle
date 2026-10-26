@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { isZod } from './is_zod.js';
+
 import { __ } from '../i18n/translate.js';
 import clamp from '../math/clamp.js';
+import { isZod } from './is_zod.js';
 
 export type RawRGBColor = [number, number, number, number];
 

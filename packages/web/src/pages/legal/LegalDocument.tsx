@@ -1,6 +1,8 @@
 import './Legal.css';
-import { useState } from 'react';
+
 import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import type {
 	Bilingual,
 	Block,

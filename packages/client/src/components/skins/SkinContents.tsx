@@ -1,21 +1,23 @@
-import { useMemo } from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Plural,
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+import { useMemo } from 'react';
+
 import type { SkinFile } from '@oss-idle/shared/skin';
-import type OsuSkin from '../../osu/skin/OsuSkin';
+
 import {
 	maniaPaths,
 	SKIN_CATEGORIES,
-	skinCategory,
 	type SkinCategory,
+	skinCategory,
 } from '../../osu/skin/categories';
+import type OsuSkin from '../../osu/skin/OsuSkin';
+import { fileSize } from './fileSize';
 import SkinCategoryGroup from './SkinCategoryGroup';
 import SkinIniText from './SkinIniText';
-import { fileSize } from './fileSize';
 
 /** What a skin holds: its settings, then its files by the part of the game they skin. */
 export default function SkinContents({ osu, files }: { osu: OsuSkin, files: SkinFile[] }) {

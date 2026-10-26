@@ -2,18 +2,20 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import {
 	ADDON_KIND,
-	AddonTypes,
 	type AddonKind,
 	type AddonType,
+	AddonTypes,
 } from '@oss-idle/shared/addon';
 import { addonTypeLabel } from '@oss-idle/shared/display/addon';
-import IconField from '../listing/IconField';
+
 import {
 	addonIconUrl,
 	uploadAddonIcon,
 } from '../../online/addons';
+import IconField from '../listing/IconField';
 
 /** The editor's metadata, as typed. */
 export type AddonForm = {

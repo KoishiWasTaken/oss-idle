@@ -1,6 +1,6 @@
 import {
-	playLabel,
 	type Mod,
+	playLabel,
 } from '@oss-idle/shared/mods';
 
 /** A leaderboard row's mods, with its rate when it isn't x1. */

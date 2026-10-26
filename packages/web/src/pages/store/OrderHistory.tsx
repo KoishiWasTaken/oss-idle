@@ -1,14 +1,16 @@
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import Link from '../../components/Link';
+
 import { getOrders } from '../../api/store';
+import Link from '../../components/Link';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import SupportDuration from './SupportDuration';
 import { euros } from './euros';
+import SupportDuration from './SupportDuration';
 
 /** Every tag this account bought or was given. */
 export default function OrderHistory() {

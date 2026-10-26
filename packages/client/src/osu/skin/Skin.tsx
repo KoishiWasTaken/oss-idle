@@ -1,29 +1,30 @@
+import { type Grade } from '@oss-idle/shared/grade';
+import Log from '@oss-idle/shared/helpers/log';
 import Synced from '@oss-idle/shared/helpers/synced';
-import {
-	Judgements,
-	type Grade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
-import type { IdleIni } from '@oss-idle/shared/osuSkin/idleIni';
-import { ColorSchema } from '@oss-idle/shared/types/color';
 import { findImage } from '@oss-idle/shared/osuSkin/files';
+import type { IdleIni } from '@oss-idle/shared/osuSkin/idleIni';
+import {
+	type Judgement,
+	Judgements,
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import { ColorSchema } from '@oss-idle/shared/types/color';
+
 import { SkinDAO } from '../../db/schema/skin';
 import { SETTINGS } from '../../db/settings';
-import Log from '@oss-idle/shared/helpers/log';
-import OsuSkin from './OsuSkin';
 import {
 	BUILTIN,
 	OWN_GRADES,
 	RANKING_IMAGES,
 } from './builtin';
+import { defaultSource } from './defaultSkin';
 import {
 	HIT_COMMANDS,
 	loadManiaAssets,
 	type ManiaAssets,
 } from './maniaAssets';
-import { defaultSource } from './defaultSkin';
-import { installedSource } from './sources';
+import OsuSkin from './OsuSkin';
 import SkinGrade from './SkinGrade';
+import { installedSource } from './sources';
 
 let defaultSkin: Promise<OsuSkin> | undefined;
 /** oss!idle's own skin, which fills in whatever a player's skin lacks. */

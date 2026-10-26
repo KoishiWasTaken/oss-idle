@@ -1,13 +1,15 @@
 import '../pages/friends/Friends.css';
 import './leaderboard/PlayerLeaderboard.css';
-import type { ReactNode } from 'react';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import Link from './Link';
-import FriendChip from '../pages/friends/FriendChip';
+import type { ReactNode } from 'react';
+
 import type { getFriends } from '../api/social';
+import FriendChip from '../pages/friends/FriendChip';
+import Link from './Link';
 
 export type UserCard = Omit<Awaited<ReturnType<typeof getFriends>>[number], 'mutual'> & {
 	mutual?: boolean;

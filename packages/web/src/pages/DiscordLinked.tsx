@@ -1,4 +1,5 @@
 import './DesktopDone.css';
+
 import { Trans } from '@lingui/react/macro';
 
 /** Where the Discord link round-trip lands, in whatever browser it ran in. */

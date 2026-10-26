@@ -1,37 +1,40 @@
 import './Leaderboard.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react';
+
+import { countryName } from '@oss-idle/shared/display/country';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { ScoreDTO } from '@oss-idle/shared/score';
+
+import { music } from '../../audio/MusicPlayer';
 import {
 	Score,
 	scoresVersion,
 } from '../../db/schema/score';
-import ScoreEntry from './ScoreEntry';
-import PersonalBest from './PersonalBest';
-import UpdateButton from './UpdateButton';
-import BeatmapAPI from '../../osu/beatmap/beatmap_api';
-import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { music } from '../../audio/MusicPlayer';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { ScoreDTO } from '@oss-idle/shared/score';
-import { countryName } from '@oss-idle/shared/display/country';
-import {
-	getBeatmapScores,
-	type BoardPlayer,
-} from '../../online/services/scores';
 import {
 	SCORE_TAB,
 	ScoreTab,
 	SETTINGS,
 } from '../../db/settings';
-import Account from '../../online/account';
-import Dropdown, { DropdownOption } from '../dropdown/Dropdown';
 import { i18n } from '../../i18n';
-import { Trans } from '@lingui/react/macro';
+import Account from '../../online/account';
+import {
+	type BoardPlayer,
+	getBeatmapScores,
+} from '../../online/services/scores';
+import BeatmapAPI from '../../osu/beatmap/beatmap_api';
+import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
+import Dropdown, { DropdownOption } from '../dropdown/Dropdown';
+import PersonalBest from './PersonalBest';
+import ScoreEntry from './ScoreEntry';
+import UpdateButton from './UpdateButton';
 
 type Row = { score: Score | ScoreDTO, player?: BoardPlayer };
 

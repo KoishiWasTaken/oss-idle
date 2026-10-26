@@ -125,6 +125,10 @@ msgstr "{years, plural, one {# year} other {# years}}"
 msgid "#1 ranks"
 msgstr "#1 ranks"
 
+#: src/pages/levels/LevelVoterRow.tsx
+msgid "±{offset} from the median"
+msgstr "±{offset} from the median"
+
 #: src/pages/store/SupporterStatus.tsx
 msgid "<0>{amount}</0> of it went to <1>{players, plural, one {# other player} other {# other players}}</1>, covering <2><3/></2>."
 msgstr "<0>{amount}</0> of it went to <1>{players, plural, one {# other player} other {# other players}}</1>, covering <2><3/></2>."
@@ -152,6 +156,10 @@ msgstr "<0>Sign in</0> to propose a map or support someone else's."
 #: src/pages/store/Store.tsx
 msgid "<0>Sign in</0> to support oss!idle."
 msgstr "<0>Sign in</0> to support oss!idle."
+
+#: src/pages/levels/LevelVotes.tsx
+msgid "<0>Sign in</0> to vote."
+msgstr "<0>Sign in</0> to vote."
 
 #: src/pages/help/FAQ.tsx
 msgid "<0>Unranked:</0> signed in, on a map or difficulty that isn't ranked. Saved in your browser only, with no experience."
@@ -234,6 +242,10 @@ msgstr "Active Players"
 #: src/pages/store/SupporterPerks.tsx
 msgid "Add a chat emote of your own from your settings, and share it with everyone if you like."
 msgstr "Add a chat emote of your own from your settings, and share it with everyone if you like."
+
+#: src/pages/levels/LevelMapPicker.tsx
+msgid "Add a map: search a title, artist, mapper or difficulty"
+msgstr "Add a map: search a title, artist, mapper or difficulty"
 
 #: src/components/character/FriendButton.tsx
 msgid "add friend"
@@ -393,6 +405,10 @@ msgstr "Beatmaps"
 #: src/pages/Login.tsx
 msgid "Become a legendary mania player"
 msgstr "Become a legendary mania player"
+
+#: src/pages/levels/SkillVoteField.tsx
+msgid "below dan 1"
+msgstr "below dan 1"
 
 #: src/pages/PlayOssIdle.tsx
 msgid "Best for performance and idling."
@@ -571,6 +587,10 @@ msgstr "Create your own oss! character and watch it grow to become a<0/><1>legen
 msgid "Customisation"
 msgstr "Customisation"
 
+#: src/pages/levels/SkillVoteField.tsx
+msgid "dan {dan}"
+msgstr "dan {dan}"
+
 #: src/hooks/useRouteTitle.ts
 #: src/pages/admin/AdminNav.tsx
 msgid "dashboard"
@@ -681,6 +701,10 @@ msgstr "Drop {count} requests?"
 #: src/pages/beatmaps/MapRequests.tsx
 msgid "Drop this request?"
 msgstr "Drop this request?"
+
+#: src/pages/levels/LevelMapTarget.tsx
+msgid "e.g. for a 96-97% clear"
+msgstr "e.g. for a 96-97% clear"
 
 #: src/pages/help/FAQ.tsx
 msgid "Each ranked score is worth some pp. Your total adds up your best score on every map, sorted from best to worst, each one counting 5% less than the one before it, like on osu!."
@@ -939,6 +963,11 @@ msgstr "Length"
 msgid "level"
 msgstr "level"
 
+#: src/pages/beatmaps/MapsNav.tsx
+#: src/routes/maps/levels.tsx
+msgid "level calibration"
+msgstr "level calibration"
+
 #: src/pages/rankings/RankingsNav.tsx
 msgid "lifetime"
 msgstr "lifetime"
@@ -1091,6 +1120,14 @@ msgstr "medals"
 msgid "Medals"
 msgstr "Medals"
 
+#: src/pages/levels/SkillVoteField.tsx
+msgid "median <0>{median}</0> · {votes, plural, one {# vote} other {# votes}}"
+msgstr "median <0>{median}</0> · {votes, plural, one {# vote} other {# votes}}"
+
+#: src/pages/levels/LevelChart.tsx
+msgid "Median votes per map and skill, against the dans"
+msgstr "Median votes per map and skill, against the dans"
+
 #: src/Header.tsx
 msgid "menu"
 msgstr "menu"
@@ -1099,9 +1136,21 @@ msgstr "menu"
 msgid "Menu background"
 msgstr "Menu background"
 
+#: src/pages/levels/LevelChartLegend.tsx
+msgid "middle half of votes"
+msgstr "middle half of votes"
+
 #: src/pages/beatmaps/MapRequests.tsx
 msgid "mine"
 msgstr "mine"
+
+#: src/pages/beatmaps/RankedMaps.tsx
+msgid "Mode"
+msgstr "Mode"
+
+#: src/pages/levels/LevelMapCard.tsx
+msgid "Moderate the votes"
+msgstr "Moderate the votes"
 
 #: src/components/character/AccountStanding.tsx
 msgid "Moderator"
@@ -1186,6 +1235,14 @@ msgstr "No authorized clients."
 msgid "No builds yet. Check back soon!"
 msgstr "No builds yet. Check back soon!"
 
+#: src/pages/levels/LevelMapPicker.tsx
+msgid "No live difficulty matches."
+msgstr "No live difficulty matches."
+
+#: src/pages/levels/LevelVotes.tsx
+msgid "No maps to vote on yet."
+msgstr "No maps to vote on yet."
+
 #: src/pages/settings/ItchSettings.tsx
 msgid "No new donation on this itch.io account."
 msgstr "No new donation on this itch.io account."
@@ -1212,6 +1269,10 @@ msgstr "No player goes by that name."
 msgid "no title"
 msgstr "no title"
 
+#: src/pages/levels/SkillVoteField.tsx
+msgid "no votes yet"
+msgstr "no votes yet"
+
 #: src/pages/help/FAQ.tsx
 msgid "No. A play keeps running when you leave the gameplay screen, and a ranked one even when you close the game. You can come back to it from any device and watch the rest."
 msgstr "No. A play keeps running when you leave the gameplay screen, and a ranked one even when you close the game. You can come back to it from any device and watch the rest."
@@ -1219,6 +1280,10 @@ msgstr "No. A play keeps running when you leave the gameplay screen, and a ranke
 #: src/pages/help/FAQ.tsx
 msgid "No. Without signing in you play as a guest: everything is saved in your browser only and nothing is ranked. Sign in with osu! to get a character on the server, ranked scores, pp and a public profile."
 msgstr "No. Without signing in you play as a guest: everything is saved in your browser only and nothing is ranked. Sign in with osu! to get a character on the server, ranked scores, pp and a public profile."
+
+#: src/pages/levels/LevelVoteModeration.tsx
+msgid "Nobody voted on this map yet."
+msgstr "Nobody voted on this map yet."
 
 #: src/components/leaderboard/MedalProgressCard.tsx
 msgid "Nobody yet"
@@ -1608,6 +1673,10 @@ msgstr "Reject selected"
 msgid "rejected"
 msgstr "rejected"
 
+#: src/pages/levels/LevelVoterRow.tsx
+msgid "remove"
+msgstr "remove"
+
 #: src/components/character/ProfileBanner.tsx
 msgid "Remove"
 msgstr "Remove"
@@ -1615,6 +1684,14 @@ msgstr "Remove"
 #: src/components/character/FriendButton.tsx
 msgid "remove friend"
 msgstr "remove friend"
+
+#: src/pages/levels/LevelVoterRow.tsx
+msgid "remove on every map"
+msgstr "remove on every map"
+
+#: src/pages/levels/LevelMapCard.tsx
+msgid "Remove this map"
+msgstr "Remove this map"
 
 #: src/pages/beatmaps/RequestRow.tsx
 msgid "Remove your support"
@@ -1681,6 +1758,10 @@ msgstr "Restrict"
 msgid "Restrict {name}?"
 msgstr "Restrict {name}?"
 
+#: src/pages/levels/LevelVoterRow.tsx
+msgid "restricted"
+msgstr "restricted"
+
 #: src/pages/admin/AdminNav.tsx
 #: src/routes/admin/restrictions.tsx
 msgid "restricted accounts"
@@ -1738,6 +1819,10 @@ msgstr "save {saving}%"
 #: src/pages/beatmaps/MapClaims.tsx
 msgid "Saved. An admin will check your claims."
 msgstr "Saved. An admin will check your claims."
+
+#: src/pages/levels/LevelVotes.tsx
+msgid "Scale: level 30 is about dan 1, level 90 about dan 10, then +5 levels per dan (α 95, β 100, γ 105…)."
+msgstr "Scale: level 30 is about dan 1, level 90 about dan 10, then +5 levels per dan (α 95, β 100, γ 105…)."
 
 #: src/pages/beatmaps/requestPhase.ts
 msgid "scheduled"
@@ -2011,6 +2096,10 @@ msgstr "supporter tag"
 msgid "Supporter tag"
 msgstr "Supporter tag"
 
+#: src/pages/levels/LevelVoterRow.tsx
+msgid "sure? remove on every map"
+msgstr "sure? remove on every map"
+
 #: src/pages/admin/AdminNav.tsx
 #: src/pages/bugs/BugMessage.tsx
 #: src/routes/admin/team.tsx
@@ -2129,6 +2218,14 @@ msgstr "Total score"
 #: src/pages/characters/CharacterFigures.tsx
 msgid "Total Score"
 msgstr "Total Score"
+
+#: src/pages/levels/SkillVote.tsx
+msgid "Turn voting off for this skill"
+msgstr "Turn voting off for this skill"
+
+#: src/pages/levels/SkillVote.tsx
+msgid "Turn voting on for this skill"
+msgstr "Turn voting on for this skill"
 
 #: src/components/character/DeleteAccountDialog.tsx
 msgid "Type the osu! username to confirm."
@@ -2264,6 +2361,14 @@ msgstr "What is rebirth?"
 msgid "What is the difference between ranked, unranked and guest plays?"
 msgstr "What is the difference between ranked, unranked and guest plays?"
 
+#: src/pages/levels/LevelVotes.tsx
+msgid "What levels does a character need on each of these maps, for the result it asks for? Vote only the skills you can judge and leave the rest on ?. The chart updates with every vote."
+msgstr "What levels does a character need on each of these maps, for the result it asks for? Vote only the skills you can judge and leave the rest on ?. The chart updates with every vote."
+
+#: src/pages/levels/LevelMapTarget.tsx
+msgid "What the votes are for"
+msgstr "What the votes are for"
+
 #: src/pages/help/FAQ.tsx
 msgid "Which maps can be ranked?"
 msgstr "Which maps can be ranked?"
@@ -2371,6 +2476,10 @@ msgstr "Your own profile"
 #: src/pages/store/SupporterStatus.tsx
 msgid "Your supporter tag is valid until <0>{until}</0>."
 msgstr "Your supporter tag is valid until <0>{until}</0>."
+
+#: src/pages/levels/LevelChartLegend.tsx
+msgid "your vote"
+msgstr "your vote"
 
 #: src/pages/store/OrderHistory.tsx
 msgid "yourself"

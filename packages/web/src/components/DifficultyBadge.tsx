@@ -1,6 +1,8 @@
 import './DifficultyBadge.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import {
 	difficultyColor,
 	difficultyTextColor,

@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useReducer,
 } from 'react';
+
 import BeatmapStore from './beatmap_store';
 import type LightBeatmap from './LightBeatmap';
 

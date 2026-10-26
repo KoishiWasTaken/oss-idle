@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { unwrapArchive } from '@oss-idle/shared/osuSkin/files';
 
 const file = new Uint8Array([1]);

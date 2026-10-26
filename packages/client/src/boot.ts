@@ -1,7 +1,8 @@
 import { moveHost } from '@oss-idle/shared/hostMove';
+
 import {
-	STAGING,
 	devTools,
+	STAGING,
 } from './dev/devTools';
 
 // before the game's modules load: on the old host they would open the save it hands over

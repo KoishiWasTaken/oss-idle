@@ -1,15 +1,20 @@
 import { readFileSync } from 'node:fs';
+
 import type { Page } from '@playwright/test';
 import {
 	strFromU8,
 	unzipSync,
 } from 'fflate';
+
+import {
+	clicks,
+	silence,
+} from '../support/files';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import type Game from '../support/game';
-import { clicks } from '../support/files';
 
 /** The default skin's 4K column width (in its 480-high space) at the field's height, and
  *  the gap before the live preview's field. */
@@ -333,9 +338,12 @@ test.describe('editor', () => {
 		for (let i = 0; i < 10; i++) await page.keyboard.press('Control+Minus');
 		await expect(page.locator('.editor__speed')).toHaveText('50%');
 		await expect(page.locator('.editor__speed')).not.toHaveClass(/is-pending/);
-		const pitch = page.locator('.editor__stat', { hasText: 'Keep the pitch' });
-		await pitch.getByRole('button', { name: 'Off' }).click();
-		await pitch.getByRole('button', { name: 'On' }).click();
+		const pitch = page.getByRole('switch', { name: 'Keep the pitch' });
+		const kept = await pitch.getAttribute('aria-checked');
+		await pitch.click();
+		await expect(pitch).not.toHaveAttribute('aria-checked', kept!);
+		await pitch.click();
+		await expect(pitch).toHaveAttribute('aria-checked', kept!);
 		await expect(page.locator('.editor__speed')).not.toHaveClass(/is-pending/);
 		expect(await decodes()).toBe(0);
 
@@ -351,6 +359,8 @@ test.describe('editor', () => {
 		const played = await seconds();
 		expect(played).toBeGreaterThan(elapsed * 0.5 * 0.6);
 		expect(played).toBeLessThan(elapsed * 0.5 * 1.15);
+		await page.locator('.editor__speed-row').getByRole('button', { name: 'Reset' }).click();
+		await expect(page.locator('.editor__speed')).toHaveText('100%');
 	});
 
 	test('the metronome ticks every beat, the first of a bar higher', async ({ game, page }) => {
@@ -360,10 +370,9 @@ test.describe('editor', () => {
 		const ticks = async () =>
 			(await effectsPlayed(page)).filter(key => key.startsWith('editor:metronome'));
 
-		const metronome = page.locator('.editor__stat', { hasText: 'Metronome' });
-		await metronome.getByRole('button', {
-			name: 'Beats', exact: true,
-		}).click();
+		const metronome = page.locator('.editor__switch', { hasText: 'Metronome' });
+		await metronome.click();
+		await expect(metronome.locator('.editor__cycle')).toHaveText('Beats');
 		await page.keyboard.press('Space');
 		await page.waitForTimeout(2000);
 		await page.keyboard.press('Space');
@@ -434,7 +443,7 @@ test.describe('editor', () => {
 		await expect(index.locator('option')).toHaveText(['From the line', '2 · no files']);
 	});
 
-	test('the wheel moves along the beat lines, and zooms with ctrl', async ({ game, page }) => {
+	test('the wheel moves along the beat lines, ctrl zooms or snaps', async ({ game, page }) => {
 		await game.openMenu();
 		const { set, version } = await game.installEasiest();
 		await openEditor(game, set.title, version.id);
@@ -472,11 +481,23 @@ test.describe('editor', () => {
 		await page.waitForTimeout(150);
 		expect(await ms()).toBe(shifted);
 
+		// ctrl + wheel zooms over the columns, and goes through the snaps anywhere else
+		const box = (await page.locator('.editor__playfield').boundingBox())!;
+		await page.mouse.move(columnX(box, 1), box.y + box.height * 0.5);
 		await page.keyboard.down('Control');
 		await page.mouse.wheel(0, -100);
 		await page.keyboard.up('Control');
 		const zoom = await page.evaluate(() => localStorage.getItem('editor.zoom'));
 		expect(Number(zoom)).toBeGreaterThan(0.3);
+
+		await page.locator('.editor__tabs button', { hasText: 'Compose' }).click();
+		const snaps = page.locator('.editor__stat', { hasText: 'Beat snap' }).locator('.editor__divisors');
+		const snap = await snaps.locator('.is-active').innerText();
+		await snaps.hover();
+		await page.keyboard.down('Control');
+		await page.mouse.wheel(0, -100);
+		await page.keyboard.up('Control');
+		await expect(snaps.locator('.is-active')).not.toHaveText(snap);
 	});
 
 	test('notes are selected, cut, undone and pasted', async ({ game, page }) => {
@@ -618,6 +639,7 @@ test.describe('editor', () => {
 		await page.mouse.click(seek.x + seek.width * 0.5, seek.y + seek.height / 2);
 		await page.getByRole('button', { name: 'Add at the current time' }).click();
 		await expect(points).toHaveCount(before + 1);
+		await expect(points.last().getByLabel('BPM')).toBeFocused();
 
 		const bpm = points.last().getByLabel('BPM');
 		await bpm.fill('200');
@@ -721,11 +743,17 @@ test.describe('editor', () => {
 		const { set, version } = await game.installEasiest();
 		await openEditor(game, set.title, version.id);
 
-		const toggle = page.locator('.editor__stat', { hasText: 'Live preview' })
-			.locator('.editor__toggle');
-		await expect(toggle.getByRole('button', { name: 'On' })).toHaveClass(/is-active/);
-		await toggle.getByRole('button', { name: 'Off' }).click();
-		await expect(toggle.getByRole('button', { name: 'Off' })).toHaveClass(/is-active/);
+		const view = page.locator('.editor__tabs button', { hasText: 'View' });
+		await view.click();
+		const toggle = page.getByRole('switch', { name: 'Live preview' });
+		await expect(toggle).toHaveAttribute('aria-checked', 'true');
+		// P turns it off and on again
+		await page.keyboard.press('p');
+		await expect(toggle).toHaveAttribute('aria-checked', 'false');
+		await page.keyboard.press('p');
+		await expect(toggle).toHaveAttribute('aria-checked', 'true');
+		await toggle.click();
+		await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
 		// without it the field is back in the middle
 		const count = async () => Number(await page.locator('.editor__counts').getAttribute('data-notes'));
@@ -742,10 +770,9 @@ test.describe('editor', () => {
 			await game.card(version.id).click();
 			await game.expectScene('EDITOR', 3_000);
 		}).toPass({ timeout: 30_000 });
-		const previewOff = page.locator('.editor__stat', { hasText: 'Live preview' })
-			.getByRole('button', { name: 'Off' });
-		await expect(previewOff)
-			.toHaveClass(/is-active/);
+		await view.click();
+		await expect(page.getByRole('switch', { name: 'Live preview' }))
+			.toHaveAttribute('aria-checked', 'false');
 	});
 
 	test('SV points are added, changed and removed', async ({ game, page }) => {
@@ -758,6 +785,7 @@ test.describe('editor', () => {
 		await page.getByRole('button', { name: 'Add at the current time' }).click();
 		await expect(points).toHaveCount(1);
 		await expect(points.first().getByLabel('Speed')).toHaveValue('1');
+		await expect(points.first().getByLabel('Speed')).toBeFocused();
 
 		const speed = points.first().getByLabel('Speed');
 		await speed.fill('2');
@@ -826,6 +854,39 @@ test.describe('editor', () => {
 		});
 		await expect(row.locator('.editor__file')).toHaveText('cover.png');
 		await expect(issues.filter({ hasText: 'No background image' })).toHaveCount(0);
+	});
+
+	test('a dropped song starts a map, a dropped image is its background', async ({ game, page }) => {
+		const drop = (name: string, bytes: number[]) => page.evaluate(({ name, bytes }) => {
+			const transfer = new DataTransfer();
+			transfer.items.add(new File([new Uint8Array(bytes)], name));
+			window.dispatchEvent(new DragEvent('drop', { dataTransfer: transfer }));
+		}, {
+			name, bytes, 
+		});
+		// a 1x1 PNG
+		const png = [...Buffer.from(
+			'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+			'base64',
+		)];
+
+		await game.openMenu();
+		await drop('Dropped.wav', [...silence(5)]);
+		await game.expectScene('EDITOR');
+		const ask = page.locator('.editor__new-map');
+		await ask.getByLabel('Title', { exact: true }).fill('Dropped song');
+		await ask.getByRole('button', { name: 'Start mapping' }).click();
+		await expect(ask).toHaveCount(0);
+		await expect(page.locator('.editor__map .editor__title')).toHaveText('Dropped song');
+
+		await page.locator('.editor__tabs button', { hasText: 'Metadata' }).click();
+		const file = page.locator('.editor__labelled', { hasText: 'Background' }).locator('.editor__file');
+		// none yet: no need to ask
+		await drop('first.png', png);
+		await expect(file).toHaveText('first.png');
+		await drop('second.png', png);
+		await page.getByText('Replace', { exact: true }).click();
+		await expect(file).toHaveText('second.png');
 	});
 
 	test('whole-map modifiers, the offset, the seeks and the snaps', async ({ game, page }) => {
@@ -988,12 +1049,9 @@ test.describe('editor', () => {
 			name: 'K', exact: true,
 		})).toBeVisible();
 
-		const metronome = page.locator('.editor__stat', { hasText: 'Metronome' });
-		const beats = metronome.getByRole('button', {
-			name: 'Beats', exact: true,
-		});
+		const metronome = page.locator('.editor__switch', { hasText: 'Metronome' });
 		await page.keyboard.press('k');
-		await expect(beats).toHaveClass(/is-active/);
+		await expect(metronome.locator('.editor__cycle')).toHaveText('Beats');
 		await row.getByRole('button', { name: 'Reset' }).click();
 		await expect(row.getByRole('button', {
 			name: 'M', exact: true,

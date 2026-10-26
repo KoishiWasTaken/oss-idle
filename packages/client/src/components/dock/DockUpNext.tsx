@@ -1,10 +1,12 @@
+import { faForwardStep } from '@fortawesome/free-solid-svg-icons/faForwardStep';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trans } from '@lingui/react/macro';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import PlayQueue from '../../gameplay/playQueue';
 import Marquee from '../Marquee';
 import RatedVersion from '../RatedVersion';
-import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faForwardStep } from '@fortawesome/free-solid-svg-icons/faForwardStep';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import PlayQueue from '../../gameplay/playQueue';
 import DockCountdown from './DockCountdown';
 import DockCountdownBar from './DockCountdownBar';
 import DockSource from './DockSource';
@@ -22,7 +24,7 @@ export default function DockUpNext() {
 					{next
 						? <>
 							{next.set.metadata.artist} - {next.set.metadata.title}
-							<RatedVersion version={next.metadata.version} rate={next.lockedRate} />
+							<RatedVersion version={next.metadata.version} rate={next.lockedRate} mods={next.lockedMods} />
 						</>
 						: <span className="dock__upnext-none"><Trans>Nothing queued</Trans></span>}
 				</Marquee>

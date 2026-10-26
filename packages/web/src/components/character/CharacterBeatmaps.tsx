@@ -1,5 +1,8 @@
 import { Trans } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import {
 	getCharacterMapped,
 	getCharacterNbMapped,
@@ -10,13 +13,13 @@ import CharacterMapsSection from './CharacterMapsSection';
 
 /** osu!'s profile beatmaps: the maps the account made, ranked, loved and unranked, and
  *  the approved maps it proposed. Left out when there are none. */
-export default function CharacterBeatmaps({ id }: { id: string }) {
+export default function CharacterBeatmaps({ id, ruleset }: { id: string, ruleset: RulesetId }) {
 	const any = useAsync(async () => {
 		const counts = await Promise.all([
-			getCharacterNbMapped(id, 'ranked'),
-			getCharacterNbMapped(id, 'loved'),
-			getCharacterNbMapped(id, 'unranked'),
-			getCharacterNbRankedMaps(id),
+			getCharacterNbMapped(id, 'ranked', ruleset),
+			getCharacterNbMapped(id, 'loved', ruleset),
+			getCharacterNbMapped(id, 'unranked', ruleset),
+			getCharacterNbRankedMaps(id, ruleset),
 		]);
 		return counts.some(n => n > 0);
 	}, [id]);
@@ -25,27 +28,31 @@ export default function CharacterBeatmaps({ id }: { id: string }) {
 	return <div className='character__block'>
 		<div className='character__block-title'><Trans>Beatmaps</Trans></div>
 		<CharacterMapsSection
+			ruleset={ruleset}
 			title={<Trans>Ranked Beatmaps</Trans>}
-			count={() => getCharacterNbMapped(id, 'ranked')}
-			page={page => getCharacterMapped(id, 'ranked', page)}
+			count={() => getCharacterNbMapped(id, 'ranked', ruleset)}
+			page={page => getCharacterMapped(id, 'ranked', page, ruleset)}
 			deps={[id]}
 		/>
 		<CharacterMapsSection
+			ruleset={ruleset}
 			title={<Trans>Loved Beatmaps</Trans>}
-			count={() => getCharacterNbMapped(id, 'loved')}
-			page={page => getCharacterMapped(id, 'loved', page)}
+			count={() => getCharacterNbMapped(id, 'loved', ruleset)}
+			page={page => getCharacterMapped(id, 'loved', page, ruleset)}
 			deps={[id]}
 		/>
 		<CharacterMapsSection
+			ruleset={ruleset}
 			title={<Trans>Unranked Beatmaps</Trans>}
-			count={() => getCharacterNbMapped(id, 'unranked')}
-			page={page => getCharacterMapped(id, 'unranked', page)}
+			count={() => getCharacterNbMapped(id, 'unranked', ruleset)}
+			page={page => getCharacterMapped(id, 'unranked', page, ruleset)}
 			deps={[id]}
 		/>
 		<CharacterMapsSection
+			ruleset={ruleset}
 			title={<Trans>Proposed Beatmaps</Trans>}
-			count={() => getCharacterNbRankedMaps(id)}
-			page={page => getCharacterRankedMaps(id, page)}
+			count={() => getCharacterNbRankedMaps(id, ruleset)}
+			page={page => getCharacterRankedMaps(id, page, ruleset)}
 			deps={[id]}
 		/>
 	</div>;

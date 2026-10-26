@@ -1,13 +1,13 @@
 import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
+import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * A signed-in character's queue lives on the server, which chains it whether or

@@ -5,10 +5,12 @@
  *   npm -w @oss-idle/server run purge:intro:prod
  */
 import { eq } from 'drizzle-orm';
+
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
+
+import { purgeBeatmapScores } from '../scores';
 import { db } from './client';
 import { beatmaps } from './schema/beatmap';
-import { purgeBeatmapScores } from '../scores';
 
 const main = async () => {
 	const diffs = await db.select({ id: beatmaps.id })

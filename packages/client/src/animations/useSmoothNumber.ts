@@ -3,6 +3,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
+
 import {
 	SmoothNumber,
 	SmoothNumberOptions,

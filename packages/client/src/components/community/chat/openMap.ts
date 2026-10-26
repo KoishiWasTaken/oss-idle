@@ -1,16 +1,16 @@
+import { music } from '../../../audio/MusicPlayer';
 import {
 	isCommunityOpen,
 	isWebOpen,
 	openPage,
 	webUrl,
 } from '../../../globals';
-import { music } from '../../../audio/MusicPlayer';
+import Auth from '../../../online/auth';
+import BeatmapAPI from '../../../osu/beatmap/beatmap_api';
 import { isListed } from '../../../osu/beatmap/beatmap_api';
 import { findCard } from '../../../osu/beatmap/findCard';
-import Auth from '../../../online/auth';
-import { directLink } from '../../direct/directState';
-import BeatmapAPI from '../../../osu/beatmap/beatmap_api';
 import SceneManager, { SCENE } from '../../../scenes/SceneManager';
+import { directLink } from '../../direct/directState';
 import { queueSelection } from '../../songselect/selection';
 import type { MapRef } from './links';
 

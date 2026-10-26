@@ -1,35 +1,38 @@
-import { ph } from '@lingui/core/macro';
 import '../components/multiplayer/Multiplayer.css';
+
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import useKeyboardOwner from '../input/keyboardOwner';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
-	matchPlayers,
 	type Match,
+	matchPlayers,
 } from '@oss-idle/shared/multiplayer';
+
+import MusicControls from '../components/community/MusicControls';
+import CreateMatch from '../components/multiplayer/CreateMatch';
+import MatchRow from '../components/multiplayer/MatchRow';
+import PasswordPrompt from '../components/multiplayer/PasswordPrompt';
+import useMultiplayerChat from '../components/multiplayer/useMultiplayerChat';
+import usePlayers from '../components/multiplayer/usePlayers';
+import Checkbox from '../components/options/controls/Checkbox';
+import { Setting } from '../db/settings';
+import Controls from '../input/Controls';
+import useKeyboardOwner from '../input/keyboardOwner';
+import { friends } from '../online/friends';
+import Multiplayer from '../online/multiplayer';
+import BeatmapStore, { beatmapsVersion } from '../osu/beatmap/beatmap_store';
 import Background from './Background';
 import SceneManager, { SCENE } from './SceneManager';
-import Controls from '../input/Controls';
-import Checkbox from '../components/options/controls/Checkbox';
-import MusicControls from '../components/community/MusicControls';
-import MatchRow from '../components/multiplayer/MatchRow';
-import CreateMatch from '../components/multiplayer/CreateMatch';
-import PasswordPrompt from '../components/multiplayer/PasswordPrompt';
-import usePlayers from '../components/multiplayer/usePlayers';
-import useMultiplayerChat from '../components/multiplayer/useMultiplayerChat';
-import Multiplayer from '../online/multiplayer';
-import { friends } from '../online/friends';
-import { Setting } from '../db/settings';
-import BeatmapStore, { beatmapsVersion } from '../osu/beatmap/beatmap_store';
 
 const owned = new Setting('lobby.owned', false);
 const withFriends = new Setting('lobby.friends', false);

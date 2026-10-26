@@ -1,16 +1,18 @@
 import type { InferResponseType } from 'hono/client';
+
+import { unwrap } from '@oss-idle/shared/apiBase';
+import { skinFileName } from '@oss-idle/shared/osuSkin/files';
+import {
+	SkinCreateBody,
+	SkinUpdateBody,
+} from '@oss-idle/shared/skin';
+
 import {
 	apiUrl,
 	BASE_URL,
 	rpc,
 	withAuth,
 } from './client';
-import { unwrap } from '@oss-idle/shared/apiBase';
-import {
-	SkinCreateBody,
-	SkinUpdateBody,
-} from '@oss-idle/shared/skin';
-import { skinFileName } from '@oss-idle/shared/osuSkin/files';
 
 /** One catalog/own skin as listed, inferred from the route. */
 export type Skin = InferResponseType<typeof rpc.v1.skins.$get>[number];

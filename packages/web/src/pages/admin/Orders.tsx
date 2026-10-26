@@ -1,15 +1,17 @@
 import './Medals.css';
+
 import {
 	useCallback,
 	useEffect,
 	useState,
 } from 'react';
-import Link from '../../components/Link';
+
 import {
+	type AdminOrder,
 	listAllOrders,
 	refundUnused,
-	type AdminOrder,
 } from '../../api/store';
+import Link from '../../components/Link';
 import { euros } from '../store/euros';
 
 const day = (ms: number | undefined) => ms ? new Date(ms).toLocaleDateString() : '-';

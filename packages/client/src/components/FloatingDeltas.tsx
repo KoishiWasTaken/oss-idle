@@ -1,7 +1,10 @@
 import './FloatingDeltas.css';
+
 import { useEffect } from 'react';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import num from '@oss-idle/shared/display/num';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { playDeltas } from '../globals';
 
 /** Keep the node mounted until the animation has fully played out. */

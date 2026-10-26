@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import compareVersions from '@oss-idle/shared/helpers/compareVersions';
 
 type Item = { id: number, version: string };

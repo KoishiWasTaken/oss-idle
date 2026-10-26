@@ -1,34 +1,27 @@
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	desc,
 	eq,
 	like,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
 import {
 	ADDON_KIND,
 	ADDON_STATUS,
-	AddonTypes,
 	addonBuildResult,
 	addonCreateBody,
 	addonModerateBody,
-	addonUpdateBody,
+	AddonTypes,
 	type AddonUpdateBody,
+	addonUpdateBody,
 } from '@oss-idle/shared/addon';
 import {
 	addonViolations,
 	describeViolations,
 } from '@oss-idle/shared/addonRules';
-import { db } from '../db/client';
-import {
-	addons,
-	addonDownloads,
-	toAddonDTO,
-	toLiveAddonDTO,
-	type AddonRow,
-} from '../db/schema/addon';
-import { apiBaseUrl } from '../env';
+
 import {
 	applyBuild,
 	claimBuild,
@@ -37,23 +30,32 @@ import {
 	requireBuilder,
 	sameSecret,
 } from '../addonBuilds';
-import { users } from '../db/schema/user';
-import { requireAuth } from '../auth/middleware';
 import { requireActive } from '../auth/active';
 import { requireAdmin } from '../auth/admin';
-import { saveUploadedImage } from '../uploads';
-import {
-	idParam,
-	valid,
-} from '../validate';
-import { dailyLimit } from '../rateLimit';
-import { csv } from '../db/columns';
+import { requireAuth } from '../auth/middleware';
 import {
 	browseQuery,
 	countDownload,
 	owned,
 	withAuthor,
 } from '../authored';
+import { db } from '../db/client';
+import { csv } from '../db/columns';
+import {
+	addonDownloads,
+	type AddonRow,
+	addons,
+	toAddonDTO,
+	toLiveAddonDTO,
+} from '../db/schema/addon';
+import { users } from '../db/schema/user';
+import { apiBaseUrl } from '../env';
+import { dailyLimit } from '../rateLimit';
+import { saveUploadedImage } from '../uploads';
+import {
+	idParam,
+	valid,
+} from '../validate';
 
 // add-ons publish without review: publishes and icon uploads are capped per account, like skins'
 const ADDONS_PER_DAY = 5;

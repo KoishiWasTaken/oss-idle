@@ -3,16 +3,17 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import type {
 	ChartDoc,
 	Note,
 	TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 import {
 	fileUses,
 	soundNames,
 	soundNamesOf,
-} from '@oss-idle/shared/editor/hitsounds';
+} from '@oss-idle/shared/rulesets/mania/editor/hitsounds';
 
 const note = (time: number, hitSound = '0', sample = '0:0:0:0:'): Note => ({
 	time, column: 0, hitSound, sample,

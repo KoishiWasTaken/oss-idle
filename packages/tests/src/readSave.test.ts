@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest';
+
 import { readSave } from '@oss-idle/shared/save';
 
 /** An indexedDB whose open() fails with `name`, the way Chromium does: a missing database

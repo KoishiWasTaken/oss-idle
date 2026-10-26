@@ -1,4 +1,3 @@
-import type Stripe from 'stripe';
 import {
 	and,
 	eq,
@@ -7,12 +6,15 @@ import {
 	sql,
 	type SQLWrapper,
 } from 'drizzle-orm';
-import { db } from './db/client';
-import { users } from './db/schema/user';
-import { supporterOrders } from './db/schema/supporter_order';
+import type Stripe from 'stripe';
+
 import { refundCut } from '@oss-idle/shared/supporter';
-import { idOf } from './stripe';
+
 import { warnLateRefund } from './abby';
+import { db } from './db/client';
+import { supporterOrders } from './db/schema/supporter_order';
+import { users } from './db/schema/user';
+import { idOf } from './stripe';
 
 /** A refund landed, from the admin page or the Stripe dashboard: the order loses its time from
  *  the end ({@link refundCut}), and the tags bought after it move back by as much. */

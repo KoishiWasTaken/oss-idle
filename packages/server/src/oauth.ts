@@ -3,9 +3,7 @@ import {
 	randomBytes,
 	timingSafeEqual,
 } from 'node:crypto';
-import type { Context } from 'hono';
-import { Hono } from 'hono';
-import { createMiddleware } from 'hono/factory';
+
 import {
 	and,
 	eq,
@@ -14,19 +12,24 @@ import {
 	lt,
 	or,
 } from 'drizzle-orm';
+import type { Context } from 'hono';
+import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
+
 import {
 	parseScopes,
 	type Scope,
 } from '@oss-idle/shared/oauth';
+
 import { db } from './db/client';
 import {
+	type OAuthClientRow,
 	oauthClients,
 	oauthTokens,
-	type OAuthClientRow,
 } from './db/schema/oauth';
 import { isRestricted } from './db/schema/user';
-import { redis } from './redis';
 import { redisKeyPrefix } from './env';
+import { redis } from './redis';
 
 const ACCESS_TTL = 24 * 60 * 60; // seconds, osu!'s
 const REFRESH_TTL = 30 * 24 * 60 * 60;

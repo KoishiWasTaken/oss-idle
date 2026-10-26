@@ -1,10 +1,11 @@
+import './SharePreview.css';
+
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import './SharePreview.css';
 
 const SHOWN_MS = 2600;
 const FADE_MS = 300;

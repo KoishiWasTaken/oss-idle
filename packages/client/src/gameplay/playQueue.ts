@@ -1,9 +1,6 @@
-import Synced from '@oss-idle/shared/helpers/synced';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
 import { t } from '@lingui/core/macro';
+
+import Synced from '@oss-idle/shared/helpers/synced';
 import {
 	advanceQueue,
 	AUTOPILOT_MODE,
@@ -14,14 +11,19 @@ import {
 	type QueueState as ServerQueueState,
 	withRepeat,
 } from '@oss-idle/shared/queue';
-import Socket from '../online/socket';
-import Entities from '../entity/entities';
-import { canPlayAt } from './playRate';
-import { requeue } from './requeue';
+
 import {
 	Playlist,
 	PlaylistEntry,
 } from '../db/schema/playlist';
+import Entities from '../entity/entities';
+import Socket from '../online/socket';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import BeatmapStore from '../osu/beatmap/beatmap_store';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import { canPlayAt } from './playRate';
+import { requeue } from './requeue';
 
 export {
 	AUTOPILOT_MODE,
@@ -95,7 +97,7 @@ const playable = (entries: Queued[]): Queued[] =>
 	entries.filter(e => e.beatmap.metadata.runtime);
 
 const toEntry = ({ beatmap, repeat, played }: Queued): QueueEntry => ({
-	beatmapId: beatmap.metadata.id, rate: beatmap.lockedRate, repeat, played,
+	beatmapId: beatmap.metadata.id, rate: beatmap.lockedRate, mods: beatmap.lockedMods, repeat, played,
 });
 
 /** The entry at `at`, named as the server finds it among the map's copies. */
@@ -117,7 +119,7 @@ const playlistRows = (id: number): Promise<PlaylistEntry[]> => PlaylistEntry.que
 
 /** A playlist's entries in order, compared as a whole. */
 const contents = (rows: PlaylistEntry[]): string =>
-	rows.map(r => `${r.beatmapId}@${r.rate ?? 0}x${r.repeat}`).join();
+	rows.map(r => `${r.beatmapId}@${r.rate ?? 0}+${r.mods.join('')}x${r.repeat}`).join();
 
 /** A signed-in character's queue is the server's; a guest's lives here. */
 const online = (): boolean => {
@@ -139,8 +141,8 @@ const resolve = async (entries: QueueEntry[]): Promise<Queued[]> => {
 		const manifest = await BeatmapAPI.getManifest().catch(() => undefined);
 		if (manifest) add(manifest.beatmaps.map(m => LightBeatmapSet.fromMetadata(m)));
 	}
-	return entries.flatMap(({ beatmapId, rate, repeat, played }) => {
-		const beatmap = byId.get(beatmapId)?.at(rate);
+	return entries.flatMap(({ beatmapId, rate, mods, repeat, played }) => {
+		const beatmap = byId.get(beatmapId)?.at(rate, mods);
 		return beatmap ? [{
 			beatmap, repeat, played,
 		}] : [];
@@ -250,7 +252,8 @@ export default class PlayQueue {
 			playlistRows(id),
 		]);
 		const pool = playable(await resolve(rows.map(r => ({
-			beatmapId: r.beatmapId, rate: r.rate, repeat: r.repeat > 1 ? r.repeat : undefined,
+			beatmapId: r.beatmapId, rate: r.rate, mods: r.rate === undefined ? undefined : r.mods,
+			repeat: r.repeat > 1 ? r.repeat : undefined,
 		})))).filter(q => canPlayAt(q.beatmap.lockedRate));
 		const s = this.state.get();
 		if (!playlist || !s || playlistOf(s) !== id || !pool.length) return;

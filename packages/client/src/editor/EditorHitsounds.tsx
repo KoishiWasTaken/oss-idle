@@ -1,24 +1,26 @@
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
 import { useEffect } from 'react';
-import { ph } from '@lingui/core/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
+	type Addition,
 	ADDITIONS,
-	SAMPLE_SET_IDS,
 	hasAddition,
+	type NoteSample,
 	parsePointSound,
 	parseSample,
-	type Addition,
-	type NoteSample,
-} from '@oss-idle/shared/editor/hitsounds';
+	SAMPLE_SET_IDS,
+} from '@oss-idle/shared/rulesets/mania/editor/hitsounds';
+
 import { pickFiles } from '../pickFile';
+import EditorSoundFiles from './EditorSoundFiles';
 import { sampleFiles } from './save';
 import type EditorSession from './session';
-import EditorSoundFiles from './EditorSoundFiles';
 
 /** The value every one of `values` shares, or undefined when they differ. */
 const shared = <T,>(values: T[]): T | undefined =>

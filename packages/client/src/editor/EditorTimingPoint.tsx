@@ -1,21 +1,32 @@
+import '../components/options/controls/Checkbox.css';
+
 import { useLingui } from '@lingui/react/macro';
+
 import {
 	MAX_DIVISOR,
 	omitsFirstBarLine,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import EditorField from './EditorField';
-import '../components/options/controls/Checkbox.css';
 import type EditorSession from './session';
 
 const round = (n: number) => String(Math.round(n * 1000) / 1000);
 
-type Props = { session: EditorSession, point: TimingPoint, active: boolean };
+type Props = {
+	session: EditorSession,
+	point: TimingPoint,
+	active: boolean,
+	/** its BPM field takes the focus: the point was just added */
+	focused?: boolean,
+};
 
 /** One BPM point: its time (click the arrow to go there), BPM, beats per bar, the beat snap
  *  its section is mapped in (empty for none) and whether its first bar line shows (osu!'s
  *  omit first bar line, the other way round). */
-export default function EditorTimingPoint({ session, point, active }: Props) {
+export default function EditorTimingPoint({
+	session, point, active, focused,
+}: Props) {
 	const { t } = useLingui();
 	const bpm = round(60000 / point.beatLength);
 	const number = (value: string, use: (n: number) => void) => {
@@ -25,7 +36,13 @@ export default function EditorTimingPoint({ session, point, active }: Props) {
 	const update = (change: Partial<TimingPoint>) => session.updateTimingPoint(point, change);
 
 	return (
-		<div className={`editor__point ${active ? 'is-active' : ''}`}>
+		<div
+			className={`editor__point ${active ? 'is-active' : ''}`}
+			onMouseEnter={() => void session.hoveredPoint.set({
+				time: point.time, sv: false,
+			})}
+			onMouseLeave={() => void session.hoveredPoint.set(undefined)}
+		>
 			<button
 				className="editor__seek-to"
 				aria-label={t`Go there`}
@@ -48,6 +65,7 @@ export default function EditorTimingPoint({ session, point, active }: Props) {
 				key={`bpm:${bpm}`}
 				type="number"
 				label={t`BPM`}
+				autoFocus={focused}
 				value={bpm}
 				onCommit={v => number(v, n => update({ beatLength: 60000 / n }))}
 			/>

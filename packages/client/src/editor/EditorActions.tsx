@@ -1,18 +1,20 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import EditorShortcuts from './EditorShortcuts';
-import EditorAddonPanels from './EditorAddonPanels';
-import EditorChecks from './EditorChecks';
-import EditorSubmission from './EditorSubmission';
-import type EditorSession from './session';
+
 import {
 	actions,
 	keyLabel,
 	keysOf,
 } from './actions';
 import { commandListOpen } from './commandList';
+import EditorAddonPanels from './EditorAddonPanels';
+import EditorChecks from './EditorChecks';
 import EditorPanelResize from './EditorPanelResize';
+import EditorShortcuts from './EditorShortcuts';
+import EditorSubmission from './EditorSubmission';
+import type EditorSession from './session';
 
 /** The key an action answers to first, as the player bound it. */
 const keyOf = (id: string) => {

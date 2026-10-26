@@ -1,4 +1,5 @@
 import { repoCommitUrl } from '@oss-idle/shared/addon';
+
 import type { AdminAddon } from '../../api/addons';
 
 /** Where a repo add-on's build comes from. */

@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
 	createClient,
 	type OwnClient,

@@ -1,10 +1,12 @@
+import { Trans } from '@lingui/react/macro';
 import type {
 	CSSProperties,
 	MouseEvent,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
-import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
+
 import { medalTierName } from '@oss-idle/shared/display/medals';
+import { MEDAL_XP_BONUS } from '@oss-idle/shared/upgrades';
+
 import type { MedalUnlock } from '../../achievements/medalUnlocks';
 import MedalFace from './MedalFace';
 

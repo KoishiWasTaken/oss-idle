@@ -1,11 +1,13 @@
 import { Trans } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import { getFriends } from '../../api/social';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 import UserList, {
 	type UserFilter,
 	type UserSort,
 } from '../../components/UserList';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export type Friend = Awaited<ReturnType<typeof getFriends>>[number];
 

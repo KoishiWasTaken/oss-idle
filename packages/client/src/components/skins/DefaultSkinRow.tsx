@@ -1,9 +1,11 @@
 import { ph } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import ListingIcon from '../listing/ListingIcon';
-import { currentSkinDAO } from '../../osu/skin/Skin';
+
 import { SETTINGS } from '../../db/settings';
+import { currentSkinDAO } from '../../osu/skin/Skin';
+import ListingIcon from '../listing/ListingIcon';
 
 type Props = {
 	busy: boolean,

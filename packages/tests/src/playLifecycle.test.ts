@@ -1,17 +1,18 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
-	RESULT_ATTEMPTS,
 	isTerminal,
-	playReducer,
-	startPlay,
 	type PlayEffect,
 	type PlayEvent,
+	playReducer,
 	type PlayScoring,
 	type PlayState,
+	RESULT_ATTEMPTS,
+	startPlay,
 } from '@oss-idle/shared/sim/playLifecycle';
 
 /** Drive a play through a sequence, collecting everything it asked for. */

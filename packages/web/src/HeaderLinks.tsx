@@ -1,10 +1,10 @@
+import { useLingui } from '@lingui/react/macro';
+
 import Link from './components/Link';
 import {
 	useAdmin,
 	useModerator,
 } from './hooks/useAdmin';
-import { SKILL_SORT } from './components/leaderboard/PlayerSkillLeaderboard';
-import { useLingui } from '@lingui/react/macro';
 
 type Props = {
 	open: boolean;
@@ -52,7 +52,7 @@ export default function HeaderLinks({ open, onNavigate, showSub }: Props) {
 					</Link>
 					<Link
 						to='/rankings/skills/$skill'
-						params={{ skill: SKILL_SORT.overall }}
+						params={{ skill: 'overall' }}
 						search={{ page: 1 }}
 						className="topbar__sublink"
 					>

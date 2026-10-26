@@ -1,4 +1,5 @@
-import type { Judgement } from '@oss-idle/shared/judgement';
+import type { Judgement } from '@oss-idle/shared/rulesets/mania/judgement';
+
 import type Skin from './Skin';
 import { judgementKey } from './Skin';
 import { useSkinImage } from './useSkinImage';

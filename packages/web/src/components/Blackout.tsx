@@ -1,5 +1,7 @@
 import './Blackout.css';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { blackout } from '../globals';
 
 /** The shared dimming overlay element. The `Blackout` controller lives in

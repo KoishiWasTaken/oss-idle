@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import Nomination from '../../pages/admin/Nomination';
 
 export const Route = createFileRoute('/admin/nomination')({

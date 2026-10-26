@@ -1,13 +1,15 @@
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import EditorScrollPoint from './EditorScrollPoint';
-import type EditorSession from './session';
 import { pointsAround } from './pointWindow';
+import type EditorSession from './session';
 
 
 /** The SV tab: the scroll speed points around the current time - an SV-heavy map
@@ -16,6 +18,11 @@ export default function EditorScroll({ session }: { session: EditorSession }) {
 	useSynced(session.revision);
 	// re-renders when the point in effect changes, not every tick
 	const [, setActive] = useState(() => session.scrollAt(session.now()));
+	// the point just added, whose speed field takes the focus once
+	const [added, setAdded] = useState<number>();
+
+	useEffect(() => setAdded(undefined), [added]);
+	useEffect(() => () => void session.hoveredPoint.set(undefined), [session]);
 
 	useEffect(() => {
 		const timer = setInterval(() => setActive(session.scrollAt(session.now())), 250);
@@ -28,7 +35,7 @@ export default function EditorScroll({ session }: { session: EditorSession }) {
 
 	return (
 		<div className="editor__stat editor__timing">
-			<button className="editor__action" onClick={() => session.addScrollPoint()}>
+			<button className="editor__action" onClick={() => setAdded(session.addScrollPoint())}>
 				<Trans>Add at the current time</Trans>
 			</button>
 			<span className="editor__point editor__point--scroll editor__point--head">
@@ -43,6 +50,7 @@ export default function EditorScroll({ session }: { session: EditorSession }) {
 					session={session}
 					point={point}
 					active={point === active}
+					focused={point.time === added}
 				/>
 			))}
 			{points.length > shown.length && (

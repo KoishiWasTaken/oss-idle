@@ -1,13 +1,15 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import {
 	multiplierOf,
 	scrollBeatLength,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import {
 	constantScroll,
 	linearScroll,

@@ -1,11 +1,13 @@
+import './IdleLogo.css';
+
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
+
 import { music } from '../audio/MusicPlayer';
 import { logoPulse } from './logoPulse';
-import './IdleLogo.css';
 
 interface Props {
 	size?: number | string

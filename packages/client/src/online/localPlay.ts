@@ -1,30 +1,32 @@
 import { Beatmap } from 'osu-classes';
+
+import type { Grade } from '@oss-idle/shared/grade';
 import Synced from '@oss-idle/shared/helpers/synced';
-import {
-	LEAD_IN_MS,
-	ManiaGame,
-	type ReplayOffset,
-} from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot, { type SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import Memory from '@oss-idle/shared/sim/skills/memory';
-import { hasUnlock } from '@oss-idle/shared/rebirth';
-import { tireSkill } from '@oss-idle/shared/fatigue';
-import type { Grade } from '@oss-idle/shared/judgement';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import Character from '../db/schema/character';
-import { Score } from '../db/schema/score';
-import { ScoreXP } from '../db/schema/score_xp';
-import { logPlayFinished } from '../logs';
-import calculatePP from '../osu/pp';
-import { rateFor } from '../gameplay/playRate';
-import { selectedMods } from '../gameplay/playMods';
 import {
 	isRankedMods,
 	type Mod,
 } from '@oss-idle/shared/mods';
-import { xpScore } from '@oss-idle/shared/sim/xpScore';
+import type { SkillGain } from '@oss-idle/shared/play';
+import { LEAD_IN_MS } from '@oss-idle/shared/play';
+import { hasUnlock } from '@oss-idle/shared/rebirth';
+import type {
+	ManiaGame,
+	ReplayOffset,
+} from '@oss-idle/shared/rulesets/mania/maniaGame';
+
+import Character from '../db/schema/character';
+import { Score } from '../db/schema/score';
+import { ScoreXP } from '../db/schema/score_xp';
+import { selectedMods } from '../gameplay/playMods';
+import { rateFor } from '../gameplay/playRate';
 import { debugXpMultiplier } from '../globals';
+import { logPlayFinished } from '../logs';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import {
+	chartDef,
+	loadPlayer,
+} from '../rulesets/registry';
+import type { PlayBot } from '../rulesets/ruleset';
 import Socket from './socket';
 
 /** Song-time gap between the accuracy/grade checkpoints the dock reads. */
@@ -59,7 +61,7 @@ type LocalRun = {
 	game: ManiaGame;
 	/** the analysis that produced it, so the strain HUD shows the play being
 	 *  watched rather than a second, different one */
-	bot: CharacterBot;
+	bot: PlayBot;
 	tired?: Tiredness;
 	offsets: ReplayOffset[];
 	startedAt: number;
@@ -89,7 +91,7 @@ export type LocalResult = {
 	beatmap: LightBeatmap;
 	failed: boolean;
 	score?: Score;
-	gains?: SkillProgress[];
+	gains?: SkillGain[];
 };
 
 /**
@@ -115,30 +117,6 @@ let starting: { beatmapId: number, run: Promise<LocalRun> } | undefined;
 
 export const currentLocalPlay = (): LocalRun | undefined => current;
 
-/**
- * The character's skills as they are right now, detached.
- *
- * The bot would otherwise hold the live instances, and it reads them again at
- * finalise - through `applyProgression`, whose xp multiplier comes off
- * `upgrades`/`overdrive`. Buying an upgrade during a play would then pay out on
- * the play already in flight, which is the very thing the deferred purchases
- * exist to prevent. This is what the server does with `loadCharacterSkills`.
- */
-const snapshotSkills = (character: Character, timesPlayed: number, tired?: Tiredness) => {
-	const skills = makeOrderedSkills();
-	for (const skill of skills) {
-		const live = character.skills.find(s => s.name === skill.name);
-		if (!live) continue;
-		void skill.level.set(live.level.get());
-		void skill.xp.set(live.xp.get());
-		void skill.upgrades.set(live.upgrades.get());
-		void skill.overdrive.set(live.overdrive.get());
-		void skill.prestige.set(live.prestige.get());
-		if (skill instanceof Memory) void skill.timesPlayed.set(timesPlayed);
-		if (tired) tireSkill(skill, tired.fatigue, tired.warmup);
-	}
-	return skills;
-};
 
 /** Where the play has got to, in song time. */
 const positionOf = (run: LocalRun): number => Date.now() - run.startedAt - LEAD_IN_MS;
@@ -204,16 +182,21 @@ const simulate = async (
 	const timesPlayed = await Score.countPlays(
 		character.id,
 		beatmapId,
-		character.memoryResetAt,
+		character.progress.memoryResetAt,
 		character.memoryForgets(),
 	);
 
 	const rate = rateFor(character, beatmap.lockedRate);
-	const mods = selectedMods.get();
+	const mods = beatmap.lockedMods ?? selectedMods.get();
 	const options = {
 		divine: hasUnlock(character.generation, 'DIVINE'), rate, mods,
 	};
-	const bot = new CharacterBot(snapshotSkills(character, timesPlayed, tired));
+	// the bot holds a copy of the skills: the live ones read again at finalise would
+	// pay a purchase made mid-play out on this play (the server copies them too)
+	const player = await loadPlayer(beatmap.metadata.mode, beatmap.metadata.keys);
+	if (!player) throw new Error(`no local play for ${beatmap.metadata.mode}/${beatmap.metadata.keys}`);
+	const bot = player.bot(character.skills, timesPlayed, tired);
+	const { ManiaGame } = await import('@oss-idle/shared/rulesets/mania/maniaGame');
 	const game = new ManiaGame(chart, bot, options);
 
 	// walk to the end in steps, checkpointing accuracy and grade on the way -
@@ -305,7 +288,9 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 	const game = run.game;
 	const failed = game.score.failed;
 
-	const pp = await calculatePP(game.score, run.chart, run.rate, run.mods).catch(() => 0);
+	const { default: calculatePP } = await import('../osu/pp');
+	const def = chartDef(run.beatmap.metadata.mode, run.beatmap.metadata.keys);
+	const pp = await calculatePP(def, game.score, run.chart, run.rate, run.mods).catch(() => 0);
 	const c = game.score.counts;
 	const score = new Score({
 		characterId: Number(character.id),
@@ -324,20 +309,21 @@ export const finalizeLocalPlay = async (token: string): Promise<void> => {
 	});
 
 	let saved = score;
-	let gains: SkillProgress[] | undefined;
+	let gains: SkillGain[] | undefined;
 	// a failed play is never saved or paid for; an unranked one is saved but
 	// earns nothing, the same rules the scene used to apply
 	if (!failed) {
 		saved = await score.add().catch(() => score);
 		if (run.mode === 'guest' && isRankedMods(run.mods)) {
-			gains = run.bot.applyProgression(
-				run.beatmap.metadata.total_length / run.rate,
-				xpScore(run.chart, game, {
-					divine: hasUnlock(character.generation, 'DIVINE'), rate: run.rate, mods: run.mods,
-				}),
-				debugXpMultiplier.get(),
-				run.mods,
-			);
+			gains = run.bot.gains({
+				chart: run.chart,
+				game,
+				length: run.beatmap.metadata.total_length / run.rate,
+				rate: run.rate,
+				mods: run.mods,
+				divine: hasUnlock(character.generation, 'DIVINE'),
+				multiplier: debugXpMultiplier.get(),
+			});
 			// the bot earned it on its own copy of the skills, so hand the gains to
 			// the live ones - which may have moved since the play started
 			for (const gain of gains) {

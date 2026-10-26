@@ -1,17 +1,19 @@
-import {
-	useMemo,
-	useState,
-} from 'react';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+import {
+	useMemo,
+	useState,
+} from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import type {
 	CheckId,
 	Issue,
-} from '@oss-idle/shared/editor/checks';
+} from '@oss-idle/shared/rulesets/mania/editor/checks';
+
 import { clock } from './clock';
 import type EditorSession from './session';
 

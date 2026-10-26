@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import {
 	applyQueueEdit,
 	AUTOPILOT_MODE,
@@ -32,6 +33,16 @@ describe('server play queue', () => {
 			beatmapId: 1, rate: 1.2,
 		};
 		expect(rotateQueue([a, fast, b], fast)).toEqual([a, b, fast]);
+	});
+
+	it('tells locked mods apart at the same locked rate', () => {
+		const fast = {
+			beatmapId: 1, rate: 1.2,
+		};
+		const hard = {
+			...fast, mods: ['HR' as const],
+		};
+		expect(rotateQueue([hard, fast, b], fast)).toEqual([hard, b, fast]);
 	});
 
 	it('edits by entry, keeping the ones a device does not know', () => {

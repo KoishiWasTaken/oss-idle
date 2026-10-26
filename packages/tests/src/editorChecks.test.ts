@@ -1,16 +1,17 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
+
 import type {
 	ChartDoc,
 	Note,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 import {
 	checkChart,
 	type CheckInput,
-} from '@oss-idle/shared/editor/checks';
+} from '@oss-idle/shared/rulesets/mania/editor/checks';
 
 const note = (time: number, column: number, end?: number): Note => ({
 	time, column, end, hitSound: '0', sample: '0:0:0:0:',

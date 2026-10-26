@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
 
 export default function RequestActions({
 	setId, mine, admin, open, busy, onResolve, onIngest, onDelete,

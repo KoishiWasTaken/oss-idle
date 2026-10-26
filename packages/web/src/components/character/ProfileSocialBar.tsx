@@ -1,11 +1,13 @@
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+
 import {
 	type Group,
 	isAdmin,
 } from '@oss-idle/shared/groups';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { osuUserUrl } from '@oss-idle/shared/osu/profile';
+
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import OutLink from '../OutLink';
 import FriendButton from './FriendButton';

@@ -1,6 +1,5 @@
 import type Synced from '@oss-idle/shared/helpers/synced';
-import SceneManager from '../scenes/SceneManager';
-import PlayManager from '../online/playManager';
+
 import { music } from '../audio/MusicPlayer';
 import {
 	isCommunityOpen,
@@ -8,7 +7,9 @@ import {
 	isWebOpen,
 	openPage,
 } from '../globals';
+import PlayManager from '../online/playManager';
 import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import SceneManager from '../scenes/SceneManager';
 
 /**
  * What the game was doing, for the frame profiler's reports: the state now, and

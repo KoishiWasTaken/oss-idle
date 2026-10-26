@@ -1,7 +1,8 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
 import { z } from 'zod';
-import { msg } from '@lingui/core/macro';
+
 import Authorize from '../../pages/oauth/Authorize';
 
 const authorizeSearch = z.object({

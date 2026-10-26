@@ -1,12 +1,13 @@
+import { eq } from 'drizzle-orm';
 import {
 	int,
 	mysqlTable,
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import { eq } from 'drizzle-orm';
-import { characters } from './character';
+
 import { db } from '../client';
+import { characters } from './character';
 
 /** Permanent record of a character's previous names: one row per rename,
  *  holding the name that was replaced. */

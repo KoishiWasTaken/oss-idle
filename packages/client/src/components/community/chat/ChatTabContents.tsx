@@ -1,43 +1,45 @@
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
 	type RefObject,
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { ph } from '@lingui/core/macro';
-import { Trans } from '@lingui/react/macro';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import clock from '@oss-idle/shared/display/clock';
+
 import { ANNOUNCE_CHANNEL } from '@oss-idle/shared/community/wire';
-import Socket from '../../../online/socket';
-import Auth from '../../../online/auth';
+import clock from '@oss-idle/shared/display/clock';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { music } from '../../../audio/MusicPlayer';
+import { SITE_URL } from '../../../globals';
 import {
-	LOGS_CHANNEL,
 	logLines,
+	LOGS_CHANNEL,
 } from '../../../logs';
-import {
-	chatTabs,
-	pmContact,
-} from './state';
+import Auth from '../../../online/auth';
+import { blocked } from '../../../online/blocks';
+import { emojiSrc } from '../../../online/emoji';
 import {
 	conversations,
 	sendPm,
 } from '../../../online/privateMessages';
-import { blocked } from '../../../online/blocks';
+import Socket from '../../../online/socket';
+import {
+	menuFor,
+	type MenuTarget,
+} from '../state';
 import ChatText from './ChatText';
-import useEmojiSuggest from './useEmojiSuggest';
-import { emojiSrc } from '../../../online/emoji';
 import { mapLink } from './links';
 import {
 	MENTION_COLOR,
 	mentionsMe,
 } from './mentions';
-import { SITE_URL } from '../../../globals';
 import {
-	type MenuTarget,
-	menuFor,
-} from '../state';
+	chatTabs,
+	pmContact,
+} from './state';
+import useEmojiSuggest from './useEmojiSuggest';
 
 /** A line as the log renders it; no `name` = a system line, coloured whole. */
 type LogLine = {

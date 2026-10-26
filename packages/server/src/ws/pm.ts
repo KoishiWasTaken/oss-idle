@@ -1,22 +1,24 @@
 import { randomUUID } from 'node:crypto';
+
+import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
 import {
 	MAX_CHAT_LENGTH,
 	type PrivateMessage,
 } from '@oss-idle/shared/community/wire';
+import { MAKISEBOT_USER_ID } from '@oss-idle/shared/groups';
+
 import { getUserById } from '../db/schema/user';
 import {
 	blockedEitherWay,
 	follows,
 } from '../social';
-import { areOnline } from './presence';
 import {
 	isMuted,
 	rateLimited,
 } from './chat';
 import { hub } from './hub';
-import { MAKISEBOT_USER_ID } from '@oss-idle/shared/groups';
-import { makiseBotReply } from '@oss-idle/shared/community/makiseBot';
 import { botPm } from './makiseBot';
+import { areOnline } from './presence';
 
 /** Whether `to` takes this message: online, no block either way, and - if they
  *  only take messages from the people they added - `from` is one of them. */

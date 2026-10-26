@@ -4,10 +4,12 @@ import {
 	eq,
 	gte,
 } from 'drizzle-orm';
+
 import cubic_bezier from '@oss-idle/shared/math/cubic_bezier';
 import lerp from '@oss-idle/shared/math/lerp';
+
 import { db } from './db/client';
-import { scores } from './db/schema/score';
+import type { ServerRuleset } from './rulesets/ruleset';
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 const RECENT_LIMIT = 50;
@@ -15,7 +17,11 @@ const PLAYS_FOR_FULL_BLOCK = 25;
 const MIN_FACTOR = 0.25;
 const BLOCK_CB = cubic_bezier(.6, 0, .6, 1);
 
-export const recentMapPlays = async (characterId: number, beatmapId: number): Promise<number> => {
+export const recentMapPlays = async (
+	{ score: scores }: ServerRuleset,
+	characterId: number,
+	beatmapId: number,
+): Promise<number> => {
 	const since = new Date(Date.now() - WINDOW_MS);
 	const rows = await db
 		.select({ beatmapId: scores.beatmapId })

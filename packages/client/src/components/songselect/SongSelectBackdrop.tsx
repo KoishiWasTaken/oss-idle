@@ -1,8 +1,9 @@
-import Background from '../../scenes/Background';
-import Triangles from '../Triangles';
 import { useParallax } from '@oss-idle/shared/hooks/useParallax';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { SETTINGS } from '../../db/settings';
+import Background from '../../scenes/Background';
+import Triangles from '../Triangles';
 
 /**
  * The scene's own scenery: the beatmap backdrop, the triangles and the scrim.

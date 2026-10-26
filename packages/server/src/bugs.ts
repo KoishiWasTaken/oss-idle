@@ -6,28 +6,30 @@ import {
 	inArray,
 	sql,
 } from 'drizzle-orm';
+
 import {
 	BUG_STATUS,
 	type BugMessageBody,
 	type BugReportBody,
 	type BugStatus,
 } from '@oss-idle/shared/bugs';
+
 import { db } from './db/client';
 import {
 	bugMessages,
 	bugReports,
 } from './db/schema/bug_report';
-import { users } from './db/schema/user';
 import { characters } from './db/schema/character';
+import { users } from './db/schema/user';
+import { publish } from './discord/publish';
 import {
 	apiBaseUrl,
 	clientUrl,
 	env,
 	isProd,
 } from './env';
-import { hub } from './ws/hub';
 import { teamAnnounce } from './ws/chat';
-import { publish } from './discord/publish';
+import { hub } from './ws/hub';
 
 /** A message the reporter hasn't opened the report since: one from the team. */
 const unread = sql<number>`exists(

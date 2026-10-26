@@ -3,13 +3,15 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import {
 	type Emoji,
 	emojiUsable,
 } from '@oss-idle/shared/community/emoji';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { emoji } from '../../../online/emoji';
+
 import Auth from '../../../online/auth';
+import { emoji } from '../../../online/emoji';
 import {
 	emojiQuery,
 	matchEmoji,

@@ -1,6 +1,7 @@
+import type { LibraryEntry } from '@oss-idle/shared/desktop';
 import { normalizePath } from '@oss-idle/shared/osuSkin/files';
 import type { SkinFile } from '@oss-idle/shared/skin';
-import type { LibraryEntry } from '@oss-idle/shared/desktop';
+
 import {
 	entryById,
 	freeName,

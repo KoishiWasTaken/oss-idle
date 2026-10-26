@@ -1,7 +1,9 @@
-import type { CheckId } from '@oss-idle/shared/editor/checks';
-import { fileIdsOf } from '@oss-idle/shared/editor/chart';
 import type { BeatmapStatus } from '@oss-idle/shared/beatmap';
 import Synced from '@oss-idle/shared/helpers/synced';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+import { fileIdsOf } from '@oss-idle/shared/rulesets/mania/editor/chart';
+import type { CheckId } from '@oss-idle/shared/rulesets/mania/editor/checks';
+
 import API from '../online/api';
 import {
 	BASE_URL,
@@ -55,21 +57,24 @@ export type OwnSet = {
 	reviewNote?: string,
 };
 
-/** The player's own set a chart's BeatmapSetID names; undefined when it names none of theirs. */
-export const ownSetOf = async (text: string): Promise<OwnSet | undefined> => {
+/** The player's own set a chart's BeatmapSetID names, where it stands in `ruleset`;
+ *  undefined when it names none of theirs. */
+export const ownSetOf = async (text: string, ruleset: RulesetId): Promise<OwnSet | undefined> => {
 	const { setId } = fileIdsOf(text);
 	if (setId === undefined) return undefined;
-	const res = await API.fetch(`${BASE_URL}/v1/beatmap/upload/of/${setId}`, withAuth());
+	const path = `${BASE_URL}/v1/beatmap/upload/of/${setId}?ruleset=${ruleset}`;
+	const res = await API.fetch(path, withAuth());
 	return res.ok ? res.json() : undefined;
 };
 
-/** Put the set in the ranking queue (`submit`), take it back out (`withdraw`), or unrank
- *  the player's own ranked map (`unrank`). */
+/** Put the set in `ruleset`'s ranking queue (`submit`), take it back out (`withdraw`), or
+ *  unrank the player's own ranked map there (`unrank`). */
 export const rankAction = async (
 	setId: number,
 	action: 'submit' | 'withdraw' | 'unrank',
+	ruleset: RulesetId,
 ): Promise<string | undefined> => {
-	const path = `${BASE_URL}/v1/beatmap/upload/${setId}/${action}`;
+	const path = `${BASE_URL}/v1/beatmap/upload/${setId}/${action}?ruleset=${ruleset}`;
 	const res = await API.fetch(path, withAuth({ method: 'POST' }));
 	if (res.ok) uploads.set(uploads.get() + 1);
 	return res.ok ? undefined : String((await res.json().catch(() => ({}))).code ?? res.status);

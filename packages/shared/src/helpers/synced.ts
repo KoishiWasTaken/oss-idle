@@ -3,6 +3,7 @@ import {
 	useEffect,
 	useState,
 } from 'react';
+
 import Listener from './listener.js';
 import Log from './log.js';
 
@@ -21,24 +22,28 @@ export default class Synced<T> {
 		protected current: T,
 	) {}
 
-	async sync(callback: SyncedCallback<T>): Promise<void> {
-		this.listener.on(callback);
+	/** Calls `callback` now and on every change; resolves to what stops it. */
+	async sync(callback: SyncedCallback<T>): Promise<() => void> {
+		const stop = this.listener.on(callback);
 
 		try {
 			await callback(this.current, this.previous);
 		} catch (e) {
 			Log.errorPopup(String(e));
 		}
+		return stop;
 	}
 
-	forceSync(callback: ForceSyncedCallback<T>): void {
-		this.listener.on(callback);
+	/** {@link sync} without waiting on `callback`; returns what stops it. */
+	forceSync(callback: ForceSyncedCallback<T>): () => void {
+		const stop = this.listener.on(callback);
 		
 		try {
 			callback(this.current, this.previous);
 		} catch (e) {
 			Log.errorPopup(String(e));
 		}
+		return stop;
 	}
 	
 	public desync(callback: SyncedCallback<T>): void {

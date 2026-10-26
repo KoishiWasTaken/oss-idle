@@ -1,11 +1,13 @@
+import './dock.css';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import PlayManager from '../../online/playManager';
+
 import PlayQueue from '../../gameplay/playQueue';
-import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import { openPage } from '../../globals';
+import PlayManager from '../../online/playManager';
+import SceneManager, { SCENE } from '../../scenes/SceneManager';
 import DockPanel from './DockPanel';
 import DockPill from './DockPill';
-import './dock.css';
 
 /**
  * The app-level dock: the one place that says what the character is playing and

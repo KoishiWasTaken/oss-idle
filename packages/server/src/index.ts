@@ -1,17 +1,25 @@
-import { backfillRateStars } from './beatmaps/rateStars';
-import { serve } from '@hono/node-server';
-import type { Server } from 'node:http';
 import { appendFile } from 'node:fs/promises';
+import type { Server } from 'node:http';
+
+import { serve } from '@hono/node-server';
+
 import Logfile from '@oss-idle/shared/helpers/logfile';
+
+import { sweepAbby } from './abby';
 import { app } from './app';
+import { backfillRateStars } from './beatmaps/rateStars';
+import { separateStagingMapIds } from './beatmaps/storage';
+import { sweepRankedMaps } from './beatmaps/sweep';
 import { closeOnDrain } from './drain';
 import {
 	env,
 	isProd,
 	port,
 } from './env';
-import { separateStagingMapIds } from './beatmaps/storage';
-import { redis } from './redis';
+import { activateServerI18n } from './i18n';
+import { checkMedalRules } from './medals';
+import { countLoggedErrors } from './metrics';
+import { startMonitor } from './monitor';
 import { sweepDuePlays } from './play';
 import {
 	leaveOrPlayOn,
@@ -19,27 +27,25 @@ import {
 	sweepQueues,
 } from './queue';
 import {
-	roundsStarted,
-	sweepMatches,
-} from './ws/multiplayer';
-import { sweepRankedMaps } from './beatmaps/sweep';
-import {
 	ensureRankings,
 	sweepRankHistory,
 } from './rankings';
-import { registerWs } from './ws/routes';
+import { redis } from './redis';
+import { loadRulesets } from './rulesets/registry';
+import { sweepThanks } from './supporter';
 import { hub } from './ws/hub';
-import { countLoggedErrors } from './metrics';
-import { startMonitor } from './monitor';
+import {
+	roundsStarted,
+	sweepMatches,
+} from './ws/multiplayer';
 import {
 	sweepAdoption,
 	sweepPresence,
 } from './ws/presence';
-import { activateServerI18n } from './i18n';
-import { sweepAbby } from './abby';
-import { sweepThanks } from './supporter';
+import { registerWs } from './ws/routes';
 
 activateServerI18n();
+await loadRulesets();
 
 // the sweeps and socket heartbeats are fire-and-forget: a database or Redis blip in
 // one must not end the worker, and every socket it holds with it
@@ -67,6 +73,8 @@ injectWebSocket(server);
 // Staging shares prod's beatmap files: its new maps count from 2e9, prod's from 1e9.
 if (!isProd) void separateStagingMapIds();
 
+
+checkMedalRules();
 
 // Build the Redis ranking index from MySQL when it is missing or no longer
 // matches it (one cluster worker wins the lock; the rest return immediately).

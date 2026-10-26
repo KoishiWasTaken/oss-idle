@@ -1,13 +1,14 @@
 import {
 	Fragment,
-	useState,
 	type ReactNode,
+	useState,
 } from 'react';
-import { Asset } from '../../router';
+
 import Link from '../../components/Link';
+import { Asset } from '../../router';
 import {
-	LANGUAGES,
 	type Language,
+	LANGUAGES,
 } from './samples';
 
 export type TocItem = { id: string; title: string; children?: TocItem[] };

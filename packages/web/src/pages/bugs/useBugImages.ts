@@ -2,7 +2,9 @@ import {
 	type ClipboardEvent,
 	useState,
 } from 'react';
+
 import { BUG_IMAGES_MAX } from '@oss-idle/shared/bugs';
+
 import { uploadBugImage } from '../../api/bugs';
 
 /** The screenshots going with a report or a reply: picked, or pasted into its text. */

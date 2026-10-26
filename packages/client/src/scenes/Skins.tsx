@@ -1,12 +1,14 @@
 import '../components/skins/skins.css';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { openPage } from '../globals';
+
 import Page from '../components/page/Page';
-import ManageSkinsView from '../components/skins/ManageSkinsView';
 import BrowseSkinsView from '../components/skins/BrowseSkinsView';
+import ManageSkinsView from '../components/skins/ManageSkinsView';
+import { openPage } from '../globals';
 
 export type SkinsView = 'manage' | 'browse';
 

@@ -1,4 +1,5 @@
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import PlayManager from '../../online/playManager';
 
 /** The countdown to the next map, filling up. Drawn by one CSS animation set

@@ -1,17 +1,19 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import { skillProfiler } from '@oss-idle/shared/sim/profiler';
-import {
-	simulate,
-	uniform,
-} from './sim';
+
+import { skillProfiler } from '@oss-idle/shared/rulesets/mania/4k/profiler';
+
 import {
 	CHARTS,
 	loadBeatmap,
 } from './balancing/charts';
+import {
+	simulate,
+	uniform,
+} from './sim';
 
 /**
  * Score-generation benchmark - its own suite, excluded from `npm test` (run with

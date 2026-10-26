@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import {
 	boolean,
 	datetime,
@@ -6,10 +7,11 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import type { UserDTO } from '@oss-idle/shared/user';
+
 import type { Group } from '@oss-idle/shared/groups';
+import type { UserDTO } from '@oss-idle/shared/user';
+
 import { db } from '../client';
-import { eq } from 'drizzle-orm';
 
 export const users = mysqlTable('user', {
 	id: int().primaryKey(), // osu! user ID

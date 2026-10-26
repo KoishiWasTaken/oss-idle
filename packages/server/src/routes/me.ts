@@ -1,41 +1,32 @@
-import { Hono } from 'hono';
-import { count } from '../metrics';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	eq,
 } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
+
+import { editsCharacter } from '@oss-idle/shared/groups';
 import {
 	characterNameBody,
 	onboardingBody,
 } from '@oss-idle/shared/onboarding';
-import { db } from '../db/client';
-import {
-	characters,
-	characterToDTO,
-	currentCharacterOf,
-	type CharacterRow,
-} from '../db/schema/character';
-import { requireAuth } from '../auth/middleware';
-import { requireActive } from '../auth/active';
-import { users } from '../db/schema/user';
-import { saveUploadedImage } from '../uploads';
-import {
-	clientUrl,
-	env,
-} from '../env';
-import { publish } from '../discord/publish';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
-import { reindexCharacter } from '../rankings';
-import { characterNameHistory } from '../db/schema/name_history';
-import { getPlays } from '../db/schema/beatmaps_played';
+import type { PendingAction } from '@oss-idle/shared/pendingAction';
+import {
+	profileOrderBody,
+	USER_PAGE_MAX,
+	userPageBody,
+} from '@oss-idle/shared/profile';
+import { rebirthBody } from '@oss-idle/shared/rebirth';
+import { RULESET_IDS } from '@oss-idle/shared/rulesets/ids';
 import {
 	prestigeBody,
 	upgradeBody,
 } from '@oss-idle/shared/upgrades';
-import { rebirthBody } from '@oss-idle/shared/rebirth';
-import { isPlaying } from '../play';
+
+import { requireActive } from '../auth/active';
+import { requireAuth } from '../auth/middleware';
 import {
 	assertActionAvailable,
 	assertNewestGeneration,
@@ -43,28 +34,46 @@ import {
 	performRebirth,
 	performUpgrade,
 } from '../character/actions';
+import { characterDTOOf } from '../character/dto';
+import { assertNameAvailable } from '../character/names';
 import {
 	applyPendingAction,
 	queuePendingAction,
 } from '../character/pending';
-import { assertNameAvailable } from '../character/names';
 import { announceCharacter } from '../character/push';
-import { pushMedals } from '../medals';
-import { characterMedals } from '../db/schema/character_medal';
-import type { PendingAction } from '@oss-idle/shared/pendingAction';
-import type { UserRow } from '../db/schema/user';
+import { db } from '../db/client';
+import { getPlays } from '../db/schema/beatmaps_played';
 import {
-	profileOrderBody,
-	USER_PAGE_MAX,
-	userPageBody,
-} from '@oss-idle/shared/profile';
+	type CharacterRow,
+	characters,
+	currentCharacterOf,
+	profileOf,
+} from '../db/schema/character';
+import { characterNameHistory } from '../db/schema/name_history';
+import type { UserRow } from '../db/schema/user';
+import { users } from '../db/schema/user';
+import { publish } from '../discord/publish';
+import {
+	clientUrl,
+	env,
+} from '../env';
+import { pushMedals } from '../medals';
+import { count } from '../metrics';
+import { isPlaying } from '../play';
+import { reindexCharacter } from '../rankings';
+import { ENABLED_RULESETS } from '../rulesets/enabled';
+import {
+	enabledRulesets,
+	rulesetOfBeatmap,
+	selectedRuleset,
+} from '../rulesets/registry';
 import { isSupporter } from '../supporter';
+import { saveUploadedImage } from '../uploads';
 import {
 	renderUserPage,
 	userPageOf,
 } from '../userPage';
 import { valid } from '../validate';
-import { editsCharacter } from '@oss-idle/shared/groups';
 
 const characterId = z.number().int().positive();
 const characterRenameBody = characterNameBody.extend({ characterId: characterId.optional() });
@@ -72,6 +81,8 @@ const characterRenameBody = characterNameBody.extend({ characterId: characterId.
 const characterSelectBody = z.object({ characterId });
 
 const titleBody = z.object({ medalId: z.string().max(32).optional() });
+
+const rulesetBody = z.object({ ruleset: z.enum(RULESET_IDS) });
 
 const previewBody = z.object({ raw: z.string().max(USER_PAGE_MAX) });
 /** Which character an image goes on: the current one unless named. */
@@ -99,14 +110,15 @@ export const meRoutes = new Hono()
 	// The account's character, or null when onboarding is still needed.
 	.get('/character', requireAuth, async c => {
 		const row = await currentCharacterOf(c.get('userId'));
-		return c.json(row ? characterToDTO(row.character, row.user.avatarUrl, row.user.country) : null);
+		return c.json(row ? await characterDTOOf(row.character, row.user) : null);
 	})
 
 	// How many plays of this map still train the current character's memory.
 	.get('/memory/:beatmap', requireAuth, async c => {
 		const { row } = await currentCharacter(c.get('userId'));
 		const beatmapId = characterId.parse(Number(c.req.param('beatmap')));
-		return c.json({ plays: await getPlays(row.id, beatmapId) });
+		const r = await rulesetOfBeatmap(beatmapId);
+		return c.json({ plays: r ? await getPlays(r, row.id, beatmapId) : 0 });
 	})
 
 	// Onboarding: create the account's character once, always fresh.
@@ -137,7 +149,7 @@ export const meRoutes = new Hono()
 			.set({ currentCharacter: characterId })
 			.where(eq(users.id, userId));
 
-		await reindexCharacter(characterId);
+		for (const r of enabledRulesets()) await reindexCharacter(r, characterId);
 
 		const [row] = await db.select().from(characters).where(eq(characters.id, characterId)).limit(1);
 
@@ -159,7 +171,7 @@ export const meRoutes = new Hono()
 		});
 
 		count('activity', 'signups');
-		return c.json(characterToDTO(row!, user.avatarUrl, user.country), 201);
+		return c.json(await characterDTOOf(row!, user), 201);
 	})
 
 	// Rename the account's current character (same rules as creation). The old
@@ -185,7 +197,7 @@ export const meRoutes = new Hono()
 			row.name = name;
 		}
 
-		const dto = characterToDTO(row, owner.avatarUrl, owner.country);
+		const dto = await characterDTOOf(row, owner);
 		announceCharacter(dto);
 		return c.json(dto);
 	})
@@ -229,11 +241,13 @@ export const meRoutes = new Hono()
 		const [user] = await db.select().from(users).where(eq(users.id, c.get('userId'))).limit(1);
 		const id = user?.currentCharacter;
 		if (!id) throw new HTTPException(409, { message: 'No character' });
+		// medal ids are unique across rulesets: any ruleset's medal can be the title
 		if (medalId) {
-			const [held] = await db.select().from(characterMedals)
-				.where(and(eq(characterMedals.characterId, id), eq(characterMedals.medalId, medalId)))
-				.limit(1);
-			if (!held) throw new HTTPException(403, { message: 'Medal not held' });
+			const held = await Promise.all(enabledRulesets().map(async ({ medals }) => (await db
+				.select().from(medals)
+				.where(and(eq(medals.characterId, id), eq(medals.medalId, medalId)))
+				.limit(1))[0]));
+			if (!held.some(Boolean)) throw new HTTPException(403, { message: 'Medal not held' });
 		}
 		await db.update(characters).set({ title: medalId ?? null }).where(eq(characters.id, id));
 		return c.json({ title: medalId });
@@ -272,8 +286,9 @@ export const meRoutes = new Hono()
 		const { user, row } = await currentCharacter(c.get('userId'));
 		const { skill } = c.req.valid('json');
 
+		const r = selectedRuleset(row);
 		const deferred = await queueWhilePlaying(row, {
-			type: 'upgrade', skill, requestedAt: Date.now(),
+			type: 'upgrade', ruleset: r.def.id, skill, requestedAt: Date.now(),
 		});
 		// parked, not refused: the client spends it locally now and the server
 		// does it for real when the play ends
@@ -284,7 +299,7 @@ export const meRoutes = new Hono()
 			});
 		}
 
-		const { spent, ratio } = await performUpgrade(row, skill);
+		const { spent, ratio } = await performUpgrade(r, row.id, skill);
 		return c.json({
 			character: await characterById(row.id, user), spent, ratio,
 		});
@@ -300,9 +315,9 @@ export const meRoutes = new Hono()
 			.select()
 			.from(characters)
 			.where(eq(characters.userId, userId))
-			.orderBy(characters.generation);
+			.orderBy(characters.id);
 
-		return c.json(rows.map(row => characterToDTO(row, user.avatarUrl, user.country)));
+		return c.json(await Promise.all(rows.map(row => characterDTOOf(row, user))));
 	})
 
 	// Switch which of the account's characters is live.
@@ -326,7 +341,7 @@ export const meRoutes = new Hono()
 			.set({ currentCharacter: characterId })
 			.where(eq(users.id, userId));
 
-		return c.json(characterToDTO(row, user.avatarUrl, user.country));
+		return c.json(await characterDTOOf(row, user));
 	})
 
 	// Prestige one skill: its level, xp, upgrades and overdrive go, and it keeps a
@@ -336,10 +351,11 @@ export const meRoutes = new Hono()
 		const { user, row } = await currentCharacter(c.get('userId'));
 		const { skill } = c.req.valid('json');
 
+		const r = selectedRuleset(row);
 		const deferred = await queueWhilePlaying(row, {
-			type: 'prestige', skill, requestedAt: Date.now(),
+			type: 'prestige', ruleset: r.def.id, skill, requestedAt: Date.now(),
 		});
-		if (deferred === 'none') await performPrestige(row, skill);
+		if (deferred === 'none') await performPrestige(r, row.id, skill);
 
 		return c.json({
 			queued: deferred === 'queued',
@@ -359,10 +375,12 @@ export const meRoutes = new Hono()
 		// a log - after the player was told the rebirth would happen. Keeping your
 		// own name displaces the old character instead, so it needs no check.
 		if (name !== row.name) await assertNameAvailable(user.id, name, user.username);
-		await assertNewestGeneration(row);
+		const r = selectedRuleset(row);
+		if (!r.def.rebirth) throw new HTTPException(409, { message: 'No rebirth in this ruleset' });
+		await assertNewestGeneration(r, row, (await profileOf(r, row.id)).generation);
 
 		const deferred = await queueWhilePlaying(row, {
-			type: 'rebirth', name, requestedAt: Date.now(),
+			type: 'rebirth', ruleset: r.def.id, name, requestedAt: Date.now(),
 		});
 		// nothing was created yet: the answer is the character they still have
 		if (deferred === 'queued') {
@@ -379,10 +397,28 @@ export const meRoutes = new Hono()
 			}, 201);
 		}
 
-		const created = await performRebirth(user, row, name);
+		const created = await performRebirth(r, user, row, name);
 		return c.json({
 			queued: false, character: await characterById(created, user),
 		}, 201);
+	})
+
+	// Pick the ruleset the character plays: song select, the profile and the level shown
+	// everywhere follow it. Mods and rate may not exist in the other one, so they clear.
+	.put('/ruleset', requireAuth, valid('json', rulesetBody), async c => {
+		const { user, row } = await currentCharacter(c.get('userId'));
+		const { ruleset } = c.req.valid('json');
+		if (!ENABLED_RULESETS.includes(ruleset)) throw new HTTPException(404, { message: 'No such ruleset' });
+		if (row.rulesetLock && row.rulesetLock !== ruleset) {
+			throw new HTTPException(409, { message: 'This character only plays the ruleset it was reborn in' });
+		}
+		await assertNotPlaying(row.id);
+		await db.update(characters)
+			.set({
+				ruleset, playMods: null, playRate: 1,
+			})
+			.where(eq(characters.id, row.id));
+		return c.json(await characterById(row.id, user));
 	})
 
 ;
@@ -392,9 +428,10 @@ export const meRoutes = new Hono()
  *  the player's other screens are looking at the same character. */
 const characterById = async (id: number, user: UserRow) => {
 	const [row] = await db.select().from(characters).where(eq(characters.id, id)).limit(1);
-	const dto = characterToDTO(row!, user.avatarUrl, user.country);
+	const dto = await characterDTOOf(row!, user);
 	announceCharacter(dto);
-	void pushMedals(id).catch(e => console.error('[me] medals failed for', id, e));
+	void pushMedals(selectedRuleset(row!), id)
+		.catch(e => console.error('[me] medals failed for', id, e));
 	return dto;
 };
 
@@ -416,8 +453,10 @@ const queueWhilePlaying = async (
 	// checked against the character as it will be - what is already parked spends
 	// first - and checked inside the lock that appends, so two clicks in the same
 	// breath cannot both pass
-	await queuePendingAction(row.id, action, (locked, parked) =>
-		assertActionAvailable(locked, action, parked));
+	const r = selectedRuleset(row);
+	const profile = await profileOf(r, row.id);
+	await queuePendingAction(row.id, action, (_locked, parked) =>
+		assertActionAvailable(r, profile, action, parked));
 
 	// The play may have finished between the check above and the append, in which
 	// case its finalise has already looked for parked actions and found none.
@@ -463,7 +502,7 @@ const setCharacterImages = async (
 		.from(characters)
 		.where(eq(characters.id, id))
 		.limit(1);
-	const dto = characterToDTO(row!, owner.avatarUrl, owner.country);
+	const dto = await characterDTOOf(row!, owner);
 	announceCharacter(dto);
 	return dto;
 };

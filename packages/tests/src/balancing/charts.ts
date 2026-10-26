@@ -1,12 +1,13 @@
 import {
-	readFileSync,
-	writeFileSync,
 	existsSync,
 	mkdirSync,
+	readFileSync,
+	writeFileSync,
 } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { BeatmapDecoder } from 'osu-parsers';
+
 import type { Beatmap } from 'osu-classes';
+import { BeatmapDecoder } from 'osu-parsers';
 
 /** Production beatmap API - the row carries the full `.osu` in its `chart` field. */
 const API = 'https://api.oss.idle.rhythmgamers.net/v1/beatmap';

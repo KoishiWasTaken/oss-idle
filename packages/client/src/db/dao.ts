@@ -4,14 +4,16 @@ import initSqlJs, {
 	type SqlValue,
 } from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+
 import {
 	LEGACY_SAVE_DB,
+	openSave,
+	readSave,
 	SAVE_DB,
 	SAVE_KEY,
 	SAVE_STORE,
-	openSave,
-	readSave,
 } from '@oss-idle/shared/save';
+
 import { migrate } from './migrations';
 // import { debugMode } from '../globals';
 

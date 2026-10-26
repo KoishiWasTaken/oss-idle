@@ -2,8 +2,10 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import { desktop } from '@oss-idle/shared/desktop';
 import Log from '@oss-idle/shared/helpers/log';
+
 import Button from './controls/Button';
 
 export default function MoveInstall() {

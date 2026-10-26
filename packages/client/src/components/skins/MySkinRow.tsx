@@ -1,11 +1,13 @@
 import { Trans } from '@lingui/react/macro';
-import { SKIN_STATUS } from '@oss-idle/shared/skin';
-import ListingIcon from '../listing/ListingIcon';
+
 import { skinStatusLabel } from '@oss-idle/shared/display/skin';
+import { SKIN_STATUS } from '@oss-idle/shared/skin';
+
 import {
 	Skin,
 	skinIconUrl,
 } from '../../online/skins';
+import ListingIcon from '../listing/ListingIcon';
 
 type Props = {
 	skin: Skin,

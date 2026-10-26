@@ -2,6 +2,7 @@ import {
 	difficultyColor,
 	isDarkDifficulty,
 } from '@oss-idle/shared/display/difficulty';
+
 import type { VersionMetadata } from '../../osu/beatmap/beatmap_api';
 
 /** A set's difficulties, easiest first. */

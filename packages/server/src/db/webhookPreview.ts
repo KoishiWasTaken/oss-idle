@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import '@oss-idle/shared/osu/controlPointPatch';
+
 import { env } from '../env';
 
 /**

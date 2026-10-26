@@ -1,10 +1,13 @@
 import './SupporterHeart.css';
-import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trans } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Auth from '../online/auth';
+
 import { SITE_URL } from '../globals';
+import Auth from '../online/auth';
 
 /** osu!'s main menu heart: full for supporters, empty (a link to the store) for anyone else. */
 export default function SupporterHeart() {

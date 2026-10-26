@@ -1,7 +1,8 @@
+import { Trans } from '@lingui/react/macro';
 import { useEffect } from 'react';
+
 import { logout } from '../api/logout';
 import { refreshCurrentUser } from '../hooks/useCurrentUser';
-import { Trans } from '@lingui/react/macro';
 
 export default function Logout() {
 	useEffect(() => {

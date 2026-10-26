@@ -2,17 +2,17 @@ import {
 	Plural,
 	Trans,
 } from '@lingui/react/macro';
+
 import HoverCardRow from '@oss-idle/shared/display/HoverCardRow';
 import { levelFromXp } from '@oss-idle/shared/display/levelDisplay';
 import num from '@oss-idle/shared/display/num';
 import { overdriveText } from '@oss-idle/shared/display/overdrive';
 import {
-	upgradeXPMultiplier,
 	type UpgradePurchase,
+	upgradeXPMultiplier,
 } from '@oss-idle/shared/upgrades';
 
 import SkillPerk from './SkillPerk';
-import type { SkillName } from '@oss-idle/shared/skills';
 
 const Arrow = () => <span className="ladder-tip__arrow"> → </span>;
 
@@ -27,7 +27,7 @@ export default function UpgradeTooltip({
 	minLevel,
 	preview,
 }: {
-	skill: SkillName,
+	skill: string,
 	level: number,
 	xp: number,
 	upgrades: number,

@@ -1,28 +1,21 @@
 import Synced from '@oss-idle/shared/helpers/synced';
+import type { SkillGain } from '@oss-idle/shared/play';
+
 import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import {
-	Column,
 	DAO,
 	integer,
-	real,
 	table,
+	text,
 } from '../dao';
 import type { Score } from './score';
-
-const gainColumns = Object.fromEntries(
-	Skills.map(s => [s, real().default(0)]),
-) as Record<SkillName, Column<number, true>>;
 
 const t = table('score_xp', {
 	scoreId:     integer().primaryKey(),
 	characterId: integer(),
 	beatmapId:   integer(),
 	playedAt:    integer(),
-	...gainColumns,
+	/** JSON: xp per skill, by the play's ruleset's skill names */
+	gains:       text().default('{}'),
 }, {
 	indexes: {
 		idx_score_xp_character: 'characterId',
@@ -36,6 +29,11 @@ export const xpGainsVersion = new Synced(0);
 /** One play's per-skill XP gains, keyed by its local score row. */
 export class ScoreXP extends DAO(t) {
 
+	/** What the play gained on `skill`. */
+	public gainOf(skill: string): number {
+		return (JSON.parse(this.gains) as Record<string, number | undefined>)[skill] ?? 0;
+	}
+
 	async add() {
 		await super.add();
 		void xpGainsVersion.set(xpGainsVersion.get() + 1);
@@ -46,7 +44,7 @@ export class ScoreXP extends DAO(t) {
 	 *  never reached the local DB or the play gained nothing. */
 	static async record(
 		score: Score,
-		gains: readonly SkillProgress[] | undefined,
+		gains: readonly SkillGain[] | undefined,
 	): Promise<void> {
 		if (!score.id || !gains?.some(g => g.gained > 0)) return;
 		const skillGains = Object.fromEntries(
@@ -57,7 +55,7 @@ export class ScoreXP extends DAO(t) {
 			characterId: score.characterId,
 			beatmapId:   score.beatmapId,
 			playedAt:    score.playedAt,
-			...skillGains,
+			gains:       JSON.stringify(skillGains),
 		}).add();
 	}
 

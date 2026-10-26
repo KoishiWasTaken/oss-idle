@@ -1,10 +1,11 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import {
 	fallback,
 	zodValidator,
 } from '@tanstack/zod-adapter';
 import { z } from 'zod';
-import { msg } from '@lingui/core/macro';
+
 import MapRequests from '../../pages/beatmaps/MapRequests';
 
 const requestSearch = z.object({

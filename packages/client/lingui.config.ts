@@ -1,8 +1,9 @@
 import { defineConfig } from '@lingui/conf';
 import { formatter } from '@lingui/format-po';
+
 import {
-	SUPPORTED_LOCALES,
 	DEFAULT_LOCALE,
+	SUPPORTED_LOCALES,
 } from '@oss-idle/shared/i18n/locales';
 
 // Scoped to the game client's own source, so its catalog never bleeds into the

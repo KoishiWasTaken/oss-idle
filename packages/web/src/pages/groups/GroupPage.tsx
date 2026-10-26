@@ -1,11 +1,14 @@
 import './GroupPage.css';
-import type { ReactNode } from 'react';
+
 import { Trans } from '@lingui/react/macro';
+import type { ReactNode } from 'react';
+
 import {
-	GROUP_BADGE,
 	type Group,
+	GROUP_BADGE,
 } from '@oss-idle/shared/groups';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import { getGroupMembers } from '../../api/groups';
 import UserList, {
 	type UserFilter,

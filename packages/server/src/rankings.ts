@@ -1,43 +1,40 @@
-import { rankValue } from '@oss-idle/shared/scoreOrder';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
-import { effectiveLevelOf } from '@oss-idle/shared/sim/skills/levelCurve';
 import {
 	and,
 	count,
 	desc,
 	eq,
-	isNull,
 	inArray,
+	isNull,
 	ne,
 } from 'drizzle-orm';
+
+import { medalWeight } from '@oss-idle/shared/achievements/catalogue';
 import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
+	type GoodGrade,
+	GoodGrades,
+} from '@oss-idle/shared/grade';
 import { MAKISEBOT_ID } from '@oss-idle/shared/groups';
-import { redis } from './redis';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+import { rankValue } from '@oss-idle/shared/scoreOrder';
+import { effectiveLevelOf } from '@oss-idle/shared/xp';
+
 import { db } from './db/client';
 import {
 	characters,
+	profileDTO,
+	type ProfileRow,
 	RANK_HISTORY_DAYS,
-	type CharacterRow,
 	type RankBoard,
 	type RankHistory,
+	skillOf,
 } from './db/schema/character';
-import { character_totals } from './db/schema/character_totals';
+import { getMedals } from './db/schema/character_medal';
 import { users } from './db/schema/user';
-import { best } from './db/schema/best';
-import {
-	characterMedals,
-	getMedals,
-} from './db/schema/character_medal';
-import { medalWeight } from '@oss-idle/shared/achievements/catalogue';
-import { recordProgress } from './medals';
 import { redisKeyPrefix } from './env';
-import {
-	GoodGrades,
-	type GoodGrade,
-} from '@oss-idle/shared/judgement';
+import { recordProgress } from './medals';
+import { redis } from './redis';
+import { enabledRulesets } from './rulesets/registry';
+import type { ServerRuleset } from './rulesets/ruleset';
 
 /**
  * Player rankings, kept in Redis sorted sets instead of recomputed on every
@@ -59,31 +56,44 @@ import {
 // then xp, so it orders identically to (level, xp) without packing two numbers.
 /** Boards built on a skill: what it holds now, what it has ever earned, and how
  *  many times it has been prestiged. `overall`/`total` are the summed columns. */
-type LifetimeMetric = `lifetime:${SkillName | 'overall'}`;
-type PrestigeMetric = `prestige:${SkillName | 'total'}`;
-type GlobalMetric = 'pp' | 'score' | 'overall' | SkillName | GoodGrade | 'allgrades'
-	| LifetimeMetric | PrestigeMetric | 'medals';
+type LifetimeMetric = `lifetime:${string}`;
+type PrestigeMetric = `prestige:${string}`;
+// a skill board is named after the ruleset's skill
+type GlobalMetric = 'pp' | 'score' | 'overall' | GoodGrade | 'allgrades'
+	| LifetimeMetric | PrestigeMetric | 'medals' | (string & {});
 type CountryMetric = GlobalMetric;
 
-const PREFIX = `${redisKeyPrefix}ranking:`;
+// Every ruleset has its own boards: nothing ranks across rulesets.
+const ROOT = `${redisKeyPrefix}ranking:`;
 // Meta keys live outside PREFIX so the rebuild's `${PREFIX}*` wipe can't delete
 // the build lock out from under itself (which would let a second worker rebuild
 // in parallel).
 const META = `${redisKeyPrefix}rankmeta:`;
 // Bump when the set layout changes so the next deploy rebuilds from MySQL.
-const SCHEMA = 12;  // the medal board, and every character's best counters recorded
-const builtKey = `${META}built:v${SCHEMA}`;
-const lockKey = `${META}lock:v${SCHEMA}`;
+const SCHEMA = 13;  // boards per ruleset
+const builtKey = (r: ServerRuleset) => `${META}built:v${SCHEMA}:${r.def.id}`;
+const lockKey = (r: ServerRuleset) => `${META}lock:v${SCHEMA}:${r.def.id}`;
 
 const suffix = (country?: string) => country === undefined ? '' : `:c:${country || '__'}`;
-const globalKey = (m: GlobalMetric) => `${PREFIX}${m}`;
-const countryKey = (m: CountryMetric, country: string) => `${PREFIX}${m}${suffix(country)}`;
-// One sorted set per beatmap (and per beatmap+country), scored by best score
-// then accuracy. Score alone is not enough now that divine exists: it is capped
-// at 1M and raises accuracy instead, so every top play would tie on score and
-// the earlier one would keep the place forever.
-const beatmapKey = (beatmapId: number, country?: string) =>
-	`${PREFIX}bm:${beatmapId}${suffix(country)}`;
+
+/** A ruleset's board keys. */
+const keysOf = (r: ServerRuleset) => {
+	const PREFIX = `${ROOT}${r.def.id}:`;
+	return {
+		PREFIX,
+		globalKey: (m: GlobalMetric) => `${PREFIX}${m}`,
+		countryKey: (m: CountryMetric, country: string) => `${PREFIX}${m}${suffix(country)}`,
+		// One sorted set per beatmap (and per beatmap+country), scored by best score
+		// then accuracy. Score alone is not enough now that divine exists: it is capped
+		// at 1M and raises accuracy instead, so every top play would tie on score and
+		// the earlier one would keep the place forever.
+		beatmapKey: (beatmapId: number, country?: string) => `${PREFIX}bm:${beatmapId}${suffix(country)}`,
+		// Reverse index: the score id currently in the set for each character on a
+		// beatmap. Lets a re-index ZREM the now-stale member, and a rank query rebuild
+		// the member without a DB hit. Wiped/rebuilt with the sets (shares PREFIX).
+		beatmapIds: (beatmapId: number) => `${PREFIX}bm:${beatmapId}:ids`,
+	};
+};
 
 // The sort value comes from shared/scoreOrder, the same rule that decides which
 // of two plays is a character's best - they have to agree, so they are one thing.
@@ -101,10 +111,6 @@ const ID_MAX = 10n ** BigInt(ID_WIDTH) - 1n;
 const beatmapMember = (characterId: number, scoreId: number | bigint) =>
 	`${(ID_MAX - BigInt(scoreId)).toString().padStart(ID_WIDTH, '0')}:${characterId}`;
 const memberCharacterId = (member: string) => Number(member.slice(member.indexOf(':') + 1));
-// Reverse index: the score id currently in the set for each character on a
-// beatmap. Lets a re-index ZREM the now-stale member, and a rank query rebuild
-// the member without a DB hit. Wiped/rebuilt with the sets (shares PREFIX).
-const beatmapIds = (beatmapId: number) => `${PREFIX}bm:${beatmapId}:ids`;
 
 export { PAGE_SIZE };
 
@@ -113,72 +119,75 @@ type Indexer = { zadd: (key: string, score: number, member: string) => unknown }
 
 /** Add/refresh every set entry for one character in a single pipeline. */
 function index(
+	r: ServerRuleset,
 	pipeline: Indexer,
 	data: Awaited<ReturnType<typeof getCharacterFields>>,
 	medals: string[],
 ) {
 	if (!data) return;
+	const { globalKey, countryKey } = keysOf(r);
 
 	const member = String(data.character.id);
-	const weight = medalWeight(medals);
+	const weight = medalWeight(r.def.medals, medals);
 	pipeline.zadd(globalKey('medals'), weight, member);
 	pipeline.zadd(countryKey('medals', data.user.country), weight, member);
-	pipeline.zadd(globalKey('pp'), Number(data.character.pp), member);
-	pipeline.zadd(globalKey('score'), data.character_totals?.rankedScore ?? 0, member);
-	pipeline.zadd(globalKey('overall'), data.character.overallTotalXp, member);
-	pipeline.zadd(countryKey('pp', data.user.country), Number(data.character.pp), member);
+	pipeline.zadd(globalKey('pp'), Number(data.profile.pp), member);
+	pipeline.zadd(globalKey('score'), data.totals?.rankedScore ?? 0, member);
+	pipeline.zadd(globalKey('overall'), data.profile.overallTotalXp, member);
+	pipeline.zadd(countryKey('pp', data.user.country), Number(data.profile.pp), member);
 	pipeline.zadd(
 		countryKey('score', data.user.country),
-		data.character_totals?.rankedScore ?? 0,
+		data.totals?.rankedScore ?? 0,
 		member,
 	);
-	pipeline.zadd(countryKey('overall', data.user.country), data.character.overallTotalXp, member);
+	pipeline.zadd(countryKey('overall', data.user.country), data.profile.overallTotalXp, member);
 	// skill boards rank on the level the listings show, so the page reads in the
 	// same order as its own numbers
 	let prestiges = 0;
-	for (const skill of Skills) {
-		const level = effectiveLevelOf(
-			data.character[`${skill}Level`],
-			data.character[`${skill}Xp`],
-			data.character[`${skill}Prestige`],
-		);
+	for (const skill of r.def.skills) {
+		const columns = skillOf(data.profile, skill);
+		const level = effectiveLevelOf(columns.level, columns.xp, columns.prestige);
 		pipeline.zadd(globalKey(skill), level, member);
 		pipeline.zadd(countryKey(skill, data.user.country), level, member);
 
 		// what the skill has ever earned - spending never takes from this
-		const lifetime = data.character[`${skill}LifetimeXp`];
+		const lifetime = columns.lifetimeXp;
 		pipeline.zadd(globalKey(`lifetime:${skill}`), lifetime, member);
 		pipeline.zadd(countryKey(`lifetime:${skill}`, data.user.country), lifetime, member);
 
-		const prestige = data.character[`${skill}Prestige`];
+		const prestige = columns.prestige;
 		prestiges += prestige;
 		pipeline.zadd(globalKey(`prestige:${skill}`), prestige, member);
 		pipeline.zadd(countryKey(`prestige:${skill}`, data.user.country), prestige, member);
 	}
 	// the summed columns: lifetime overall is already the sum of the skills'
-	pipeline.zadd(globalKey('lifetime:overall'), data.character.overallLifetimeXp, member);
+	pipeline.zadd(globalKey('lifetime:overall'), data.profile.overallLifetimeXp, member);
 	pipeline.zadd(
 		countryKey('lifetime:overall', data.user.country),
-		data.character.overallLifetimeXp,
+		data.profile.overallLifetimeXp,
 		member,
 	);
 	pipeline.zadd(globalKey('prestige:total'), prestiges, member);
 	pipeline.zadd(countryKey('prestige:total', data.user.country), prestiges, member);
 	let allgrades = 0;
 	for (const grade of GoodGrades) {
-		pipeline.zadd(globalKey(grade), data.character_totals?.[grade] ?? 0, member);
-		pipeline.zadd(countryKey(grade, data.user.country), data.character_totals?.[grade] ?? 0, member);
-		allgrades += data.character_totals?.[grade] ?? 0;
+		pipeline.zadd(globalKey(grade), data.totals?.[grade] ?? 0, member);
+		pipeline.zadd(countryKey(grade, data.user.country), data.totals?.[grade] ?? 0, member);
+		allgrades += data.totals?.[grade] ?? 0;
 	}
 	pipeline.zadd(globalKey('allgrades'), allgrades, member);
 	pipeline.zadd(countryKey('allgrades', data.user.country), allgrades, member);
 }
 
-const getCharacterFields = async (id: number) => {
+/** A character with its profile and totals in the ruleset, or nothing if it never played it. */
+const getCharacterFields = async ({ profile, totals }: ServerRuleset, id: number) => {
 	const [row] = await db
-		.select()
+		.select({
+			character: characters, profile, totals, user: users,
+		})
 		.from(characters)
-		.leftJoin(character_totals, eq(character_totals.id, characters.id))
+		.innerJoin(profile, eq(profile.id, characters.id))
+		.leftJoin(totals, eq(totals.id, characters.id))
 		.innerJoin(users, eq(users.id, characters.userId))
 		.where(eq(characters.id, id))
 		.limit(1);
@@ -191,27 +200,30 @@ const visible = and(isNull(users.restrictedAt), ne(characters.id, MAKISEBOT_ID))
 
 /** Re-index one character after its metrics change. Called once per finalized
  *  play and on character creation. */
-export const reindexCharacter = async (id: number) => {
-	const character = await getCharacterFields(id);
+export const reindexCharacter = async (r: ServerRuleset, id: number) => {
+	const character = await getCharacterFields(r, id);
 	if (!character || character.user.restrictedAt || id === MAKISEBOT_ID) return;
-	await recordProgress(id);
+	await recordProgress(r, id);
 	const pipeline = redis.pipeline();
-	index(pipeline, character, (await getMedals(id)).map(m => m.medalId));
+	index(r, pipeline, character, (await getMedals(r, id)).map(m => m.medalId));
 	await pipeline.exec();
-	await refreshTodayRank(character.character, character.user.country);
+	await refreshTodayRank(r, character.profile, character.user.country);
 };
 
 type BoardRanks = Partial<Record<RankBoard, number>>;
 type Highest = NonNullable<RankHistory['highest']>;
 
 /** The Redis key behind each profile rank board. */
-const boardKeys = (country: string): [RankBoard, string][] => [
-	['pp', globalKey('pp')],
-	['country', countryKey('pp', country)],
-	['score', globalKey('score')],
-	['overall', globalKey('overall')],
-	...Skills.map((s): [RankBoard, string] => [s, globalKey(s)]),
-];
+const boardKeys = (r: ServerRuleset, country: string): [RankBoard, string][] => {
+	const { globalKey, countryKey } = keysOf(r);
+	return [
+		['pp', globalKey('pp')],
+		['country', countryKey('pp', country)],
+		['score', globalKey('score')],
+		['overall', globalKey('overall')],
+		...r.def.skills.map((s): [RankBoard, string] => [s, globalKey(s)]),
+	];
+};
 
 /** `highest` with every board `ranks` beats moved to `at`. */
 const withHighest = (highest: Highest = {}, ranks: BoardRanks, at: number): Highest => {
@@ -224,8 +236,8 @@ const withHighest = (highest: Highest = {}, ranks: BoardRanks, at: number): High
 	return next;
 };
 
-const ranksOf = async (id: number, country: string): Promise<BoardRanks> => {
-	const keys = boardKeys(country);
+const ranksOf = async (r: ServerRuleset, id: number, country: string): Promise<BoardRanks> => {
+	const keys = boardKeys(r, country);
 	const pipeline = redis.pipeline();
 	for (const [, key] of keys) pipeline.zrevrank(key, String(id));
 	const res = await pipeline.exec();
@@ -238,8 +250,12 @@ const ranksOf = async (id: number, country: string): Promise<BoardRanks> => {
 /** A pp change moves today's rank: rewrite the current day's history sample
  *  (append it if the daily sweep hasn't reached this character yet), and
  *  record any new highest rank. */
-const refreshTodayRank = async (row: Pick<CharacterRow, 'id' | 'rankHistory'>, country: string) => {
-	const boards = await ranksOf(row.id, country);
+const refreshTodayRank = async (
+	r: ServerRuleset,
+	row: Pick<ProfileRow, 'id' | 'rankHistory'>,
+	country: string,
+) => {
+	const boards = await ranksOf(r, row.id, country);
 	const rank = boards.pp;
 	if (rank === undefined) return;
 	const today = new Date().toISOString().slice(0, 10);
@@ -250,13 +266,13 @@ const refreshTodayRank = async (row: Pick<CharacterRow, 'id' | 'rankHistory'>, c
 		? [...previous.ranks.slice(0, -1), rank]
 		: [...previous.ranks, rank].slice(-RANK_HISTORY_DAYS);
 	await db
-		.update(characters)
+		.update(r.profile)
 		.set({
 			rankHistory: {
 				date: today, ranks, highest: withHighest(previous.highest, boards, Date.now()),
 			},
 		})
-		.where(eq(characters.id, row.id));
+		.where(eq(r.profile.id, row.id));
 };
 
 /** 1-based rank, or undefined when the character is not in the set. */
@@ -265,47 +281,52 @@ const rankIn = async (key: string, id: number): Promise<number | undefined> => {
 	return r === null ? undefined : r + 1;
 };
 
-export const globalRank = (m: GlobalMetric, id: number) => rankIn(globalKey(m), id);
+export const globalRank = (r: ServerRuleset, m: GlobalMetric, id: number) =>
+	rankIn(keysOf(r).globalKey(m), id);
 
 /** The share of players with pp that rank at or above this character, in percent. */
-export const ppTopPercent = async (id: number): Promise<number | undefined> => {
-	const key = globalKey('pp');
+export const ppTopPercent = async (r: ServerRuleset, id: number): Promise<number | undefined> => {
+	const key = keysOf(r).globalKey('pp');
 	const [rank, players] = await Promise.all([rankIn(key, id), redis.zcount(key, '(0', '+inf')]);
 	return rank && players ? 100 * rank / players : undefined;
 };
 
 /** {@link globalRank} for many characters in one round trip, in order. */
 export const globalRanks = async (
+	r: ServerRuleset,
 	m: GlobalMetric,
 	ids: number[],
 ): Promise<(number | undefined)[]> => {
 	if (!ids.length) return [];
+	const { globalKey } = keysOf(r);
 	const pipeline = redis.pipeline();
 	for (const id of ids) pipeline.zrevrank(globalKey(m), String(id));
 	const res = await pipeline.exec();
 	return (res ?? []).map(([err, r]) => err || r === null ? undefined : (r as number) + 1);
 };
 export const countryRank = (
+	r: ServerRuleset,
 	m: CountryMetric,
-	country: string, 
+	country: string,
 	id: number,
-) => rankIn(countryKey(m, country), id);
+) => rankIn(keysOf(r).countryKey(m, country), id);
 
 /** The single skill this character ranks highest in, globally. */
-export async function bestSkillRank(id: number): Promise<{
-	skill: SkillName; 
-	rank: number 
+export async function bestSkillRank(r: ServerRuleset, id: number): Promise<{
+	skill: string;
+	rank: number
 } | undefined> {
+	const { globalKey } = keysOf(r);
 	const pipeline = redis.pipeline();
-	for (const s of Skills) pipeline.zrevrank(globalKey(s), String(id));
+	for (const s of r.def.skills) pipeline.zrevrank(globalKey(s), String(id));
 	const res = await pipeline.exec();
 
-	let best: { skill: SkillName; rank: number } | undefined;
+	let best: { skill: string; rank: number } | undefined;
 	res?.forEach(([err, value], i) => {
 		if (err || value === null) return;
 		const rank = (value as number) + 1;
 		if (!best || rank < best.rank) best = {
-			skill: Skills[i], rank, 
+			skill: r.def.skills[i], rank, 
 		};
 	});
 	return best;
@@ -319,22 +340,26 @@ const pageIds = async (key: string, page: number): Promise<number[]> => {
 };
 
 /** Hydrate ranked ids into the joined rows the listings render, in rank order. */
-async function hydrate(ids: number[]) {
+async function hydrate({ def, profile, totals }: ServerRuleset, ids: number[]) {
 	if (ids.length === 0) return [];
 	const rows = await db
 		.select({
 			character: characters,
-			character_totals,
+			profile,
+			totals,
 			// the account row holds private ids (Discord, Stripe): only what the boards show
 			user: {
 				id: users.id, country: users.country, avatarUrl: users.avatarUrl,
 			},
 		})
 		.from(characters)
-		.innerJoin(character_totals, eq(character_totals.id, characters.id))
+		.innerJoin(profile, eq(profile.id, characters.id))
+		.innerJoin(totals, eq(totals.id, characters.id))
 		.innerJoin(users, eq(users.id, characters.userId))
 		.where(inArray(characters.id, ids));
-	const byId = new Map(rows.map(r => [r.character.id, r]));
+	const byId = new Map(rows.map(r => [r.character.id, {
+		...r, profile: profileDTO(r.profile, def),
+	}]));
 	return ids.map(id => byId.get(id)).filter((r): r is NonNullable<typeof r> => !!r);
 }
 
@@ -356,76 +381,89 @@ const amongPageIds = async (key: string, page: number, among: number[]): Promise
 		.map(r => r.id);
 };
 
-const hydratePage = async (key: string, page: number, among?: number[]) =>
-	hydrate(among ? await amongPageIds(key, page, among) : await pageIds(key, page));
+const hydratePage = async (r: ServerRuleset, key: string, page: number, among?: number[]) =>
+	hydrate(r, among ? await amongPageIds(key, page, among) : await pageIds(key, page));
 
 /** Countries that have at least one player, with their player count, most
  *  populated first. Cached briefly - the list changes only when a new country's
  *  first player joins, and a few minutes of staleness on a filter list is fine. */
-let countriesCache: { at: number; rows: { country: string; count: number }[] } | undefined;
+type CountryCount = { country: string; count: number };
+const countriesCache = new Map<string, { at: number; rows: CountryCount[] }>();
 const COUNTRIES_TTL = 5 * 60 * 1000;
 
-export async function playerCountries(): Promise<{ country: string; count: number }[]> {
-	if (countriesCache && Date.now() - countriesCache.at < COUNTRIES_TTL) return countriesCache.rows;
+export async function playerCountries(r: ServerRuleset): Promise<CountryCount[]> {
+	const cached = countriesCache.get(r.def.id);
+	if (cached && Date.now() - cached.at < COUNTRIES_TTL) return cached.rows;
 	const rows = await db
 		.select({
-			country: users.country, count: count(), 
+			country: users.country, count: count(),
 		})
-		.from(characters)
+		.from(r.profile)
+		.innerJoin(characters, eq(characters.id, r.profile.id))
 		.innerJoin(users, eq(users.id, characters.userId))
 		.groupBy(users.country)
 		.orderBy(desc(count()));
-	countriesCache = {
-		at: Date.now(), rows, 
-	};
+	countriesCache.set(r.def.id, {
+		at: Date.now(), rows,
+	});
 	return rows;
 }
 
 const metricKey = (
-	m: GlobalMetric, 
+	r: ServerRuleset,
+	m: GlobalMetric,
 	country?: string,
-) => country === undefined ? globalKey(m) : countryKey(m, country);
+) => country === undefined ? keysOf(r).globalKey(m) : keysOf(r).countryKey(m, country);
 
 export const skillPage = (
+	r: ServerRuleset,
 	skill: GlobalMetric,
 	page: number,
 	country?: string,
 	among?: number[],
-) => hydratePage(metricKey(skill, country), page, among);
+) => hydratePage(r, metricKey(r, skill, country), page, among);
 export const gradesPage = (
-	grade: GoodGrade | 'all', 
+	r: ServerRuleset,
+	grade: GoodGrade | 'all',
 	page: number,
 	country?: string,
 	among?: number[],
-) => hydratePage(metricKey(grade === 'all' ? 'allgrades' : grade, country), page, among);
+) => hydratePage(r, metricKey(r, grade === 'all' ? 'allgrades' : grade, country), page, among);
 export const ppPage = (
+	r: ServerRuleset,
 	page: number,
 	country?: string,
 	among?: number[],
-) => hydratePage(metricKey('pp', country), page, among);
+) => hydratePage(r, metricKey(r, 'pp', country), page, among);
 export const scorePage = (
-	page: number, 
+	r: ServerRuleset,
+	page: number,
 	country?: string,
 	among?: number[],
-) => hydratePage(metricKey('score', country), page, among);
+) => hydratePage(r, metricKey(r, 'score', country), page, among);
 
-const medalCounts = (ids: number[]) => db
+const medalCounts = ({ medals }: ServerRuleset, ids: number[]) => db
 	.select({
-		id: characterMedals.characterId, n: count(),
+		id: medals.characterId, n: count(),
 	})
-	.from(characterMedals)
-	.where(inArray(characterMedals.characterId, ids))
-	.groupBy(characterMedals.characterId);
+	.from(medals)
+	.where(inArray(medals.characterId, ids))
+	.groupBy(medals.characterId);
 
 /** The medal board, each row with its medals held and the board's value. */
-export const medalsPage = async (page: number, country?: string, among?: number[]) => {
-	const key = metricKey('medals', country);
-	const rows = await hydratePage(key, page, among);
+export const medalsPage = async (
+	r: ServerRuleset,
+	page: number,
+	country?: string,
+	among?: number[],
+) => {
+	const key = metricKey(r, 'medals', country);
+	const rows = await hydratePage(r, key, page, among);
 	if (!rows.length) return [];
 	const ids = rows.map(r => r.character.id);
 	const pipeline = redis.pipeline();
 	for (const id of ids) pipeline.zscore(key, String(id));
-	const [scores, counts] = await Promise.all([pipeline.exec(), medalCounts(ids)]);
+	const [scores, counts] = await Promise.all([pipeline.exec(), medalCounts(r, ids)]);
 	const held = new Map(counts.map(r => [r.id, r.n]));
 	return rows.map((row, i) => ({
 		...row,
@@ -438,31 +476,42 @@ export const medalsPage = async (page: number, country?: string, among?: number[
 /** Per-beatmap leaderboard: the character ids with a best on this map, in score
  *  order (global or within one country). The route hydrates the `best` rows. */
 export const beatmapPageIds = async (
+	r: ServerRuleset,
 	beatmapId: number,
 	page: number,
 	country?: string,
 ): Promise<number[]> => {
 	const start = (page - 1) * PAGE_SIZE;
-	const members = await redis.zrevrange(beatmapKey(beatmapId, country), start, start + PAGE_SIZE - 1);
+	const members = await redis.zrevrange(
+		keysOf(r).beatmapKey(beatmapId, country), start, start + PAGE_SIZE - 1,
+	);
 	return members.map(memberCharacterId);
 };
 
 export async function beatmapRank(
-	beatmapId: number, 
-	characterId: number, 
+	r: ServerRuleset,
+	beatmapId: number,
+	characterId: number,
 	country?: string,
 ): Promise<number | undefined> {
+	const { beatmapKey, beatmapIds } = keysOf(r);
 	const id = await redis.hget(beatmapIds(beatmapId), String(characterId));
 	if (id === null) return undefined;
-	const r = await redis.zrevrank(
+	const rank = await redis.zrevrank(
 		beatmapKey(beatmapId, country),
 		beatmapMember(characterId, BigInt(id)),
 	);
-	return r === null ? undefined : r + 1;
+	return rank === null ? undefined : rank + 1;
 }
 
 /** Re-index a character's best on one beatmap after a play improves it. */
-export async function reindexBeatmap(characterId: number, beatmapId: number): Promise<void> {
+export async function reindexBeatmap(
+	r: ServerRuleset,
+	characterId: number,
+	beatmapId: number,
+): Promise<void> {
+	const { best } = r;
+	const { beatmapKey, beatmapIds } = keysOf(r);
 	const [row] = await db
 		.select({
 			id: best.id, score: best.score, accuracy: best.accuracy, country: users.country, 
@@ -490,10 +539,16 @@ export async function reindexBeatmap(characterId: number, beatmapId: number): Pr
 
 /** Take a character off every ranking and every beatmap leaderboard (a restriction). */
 export const unindexCharacter = async (id: number): Promise<void> => {
-	const character = await getCharacterFields(id);
+	for (const r of enabledRulesets()) await unindexCharacterIn(r, id);
+};
+
+const unindexCharacterIn = async (r: ServerRuleset, id: number): Promise<void> => {
+	const { best } = r;
+	const { beatmapKey, beatmapIds } = keysOf(r);
+	const character = await getCharacterFields(r, id);
 	if (!character) return;
 	const pipeline = redis.pipeline();
-	index({ zadd: (key, _score, member) => pipeline.zrem(key, member) }, character, []);
+	index(r, { zadd: (key, _score, member) => pipeline.zrem(key, member) }, character, []);
 	const bests = await db
 		.select({
 			id: best.id, beatmapId: best.beatmapId,
@@ -511,42 +566,52 @@ export const unindexCharacter = async (id: number): Promise<void> => {
 
 /** Put a character back on every board (a restriction lifted). */
 export const reindexCharacterEverywhere = async (id: number): Promise<void> => {
-	await reindexCharacter(id);
-	const bests = await db
-		.select({ beatmapId: best.beatmapId })
-		.from(best)
-		.where(eq(best.characterId, id));
-	for (const b of bests) await reindexBeatmap(id, b.beatmapId);
+	for (const r of enabledRulesets()) {
+		await reindexCharacter(r, id);
+		const bests = await db
+			.select({ beatmapId: r.best.beatmapId })
+			.from(r.best)
+			.where(eq(r.best.characterId, id));
+		for (const b of bests) await reindexBeatmap(r, id, b.beatmapId);
+	}
 };
 
 /** Drop a beatmap's leaderboard sets (global, per-country and the reverse
  *  index). For unranking: the map's scores are gone, so the index must go too. */
-export async function unindexBeatmap(beatmapId: number): Promise<void> {
+export async function unindexBeatmap(r: ServerRuleset, beatmapId: number): Promise<void> {
+	const { PREFIX, beatmapKey } = keysOf(r);
 	await redis.del(beatmapKey(beatmapId));
 	for await (const key of scanKeys(`${PREFIX}bm:${beatmapId}:*`)) await redis.del(key);
 }
 
-/** Rebuild every set from MySQL. One DB pass, pipelined in chunks. */
-export async function rebuildAll(): Promise<void> {
+/** Rebuild every set of a ruleset from MySQL. One DB pass, pipelined in chunks. */
+export async function rebuildAll(r: ServerRuleset): Promise<void> {
+	const {
+		profile, totals, medals, best,
+	} = r;
+	const { PREFIX, beatmapKey, beatmapIds } = keysOf(r);
 	for await (const key of scanKeys(`${PREFIX}*`)) await redis.del(key);
 
 	const rows = await db
-		.select()
+		.select({
+			character: characters, profile, totals, user: users,
+		})
 		.from(characters)
-		.leftJoin(character_totals, eq(character_totals.id, characters.id))
+		.innerJoin(profile, eq(profile.id, characters.id))
+		.leftJoin(totals, eq(totals.id, characters.id))
 		.innerJoin(users, eq(users.id, characters.userId))
 		.where(visible)
-		.orderBy(desc(characters.pp));
+		.orderBy(desc(profile.pp));
 	const held = new Map<number, string[]>();
-	for (const m of await db.select().from(characterMedals)) {
+	for (const m of await db.select().from(medals)) {
 		held.set(m.characterId, [...held.get(m.characterId) ?? [], m.medalId]);
 	}
 
-	for (const row of rows) await recordProgress(row.character.id);
+	for (const row of rows) await recordProgress(r, row.character.id);
 
 	let pipeline = redis.pipeline();
 	for (let i = 0; i < rows.length; i++) {
-		index(pipeline, rows[i], held.get(rows[i].character.id) ?? []);
+		index(r, pipeline, rows[i], held.get(rows[i].character.id) ?? []);
 		if (i % 200 === 199) {
 			await pipeline.exec();
 			pipeline = redis.pipeline();
@@ -589,25 +654,31 @@ const boardRanks = async (key: string) =>
  *  the rest and later calls return immediately). Ranks also move when others
  *  pass or drop, so the highest ranks can't wait for the character's own play. */
 export const sweepRankHistory = async (): Promise<void> => {
+	for (const r of enabledRulesets()) await sweepRankHistoryOf(r);
+};
+
+const sweepRankHistoryOf = async (r: ServerRuleset): Promise<void> => {
+	const { profile } = r;
 	const today = new Date().toISOString().slice(0, 10);
-	const doneKey = `${META}rankhistory:v2:${today}`;
+	const doneKey = `${META}rankhistory:v3:${r.def.id}:${today}`;
 	if (await redis.exists(doneKey)) return;
 	const got = await redis.set(`${doneKey}:lock`, '1', 'EX', 600, 'NX');
 	if (got !== 'OK') return;
 	try {
 		const rows = await db
 			.select({
-				id: characters.id, rankHistory: characters.rankHistory, country: users.country,
+				id: profile.id, rankHistory: profile.rankHistory, country: users.country,
 			})
-			.from(characters)
+			.from(profile)
+			.innerJoin(characters, eq(characters.id, profile.id))
 			.innerJoin(users, eq(users.id, characters.userId));
-		const keys = new Set(rows.flatMap(row => boardKeys(row.country).map(([, key]) => key)));
+		const keys = new Set(rows.flatMap(row => boardKeys(r, row.country).map(([, key]) => key)));
 		const boards = new Map<string, Map<number, number>>();
 		for (const key of keys) boards.set(key, await boardRanks(key));
 		const now = Date.now();
 
 		for (const row of rows) {
-			const ranks: BoardRanks = Object.fromEntries(boardKeys(row.country)
+			const ranks: BoardRanks = Object.fromEntries(boardKeys(r, row.country)
 				.map(([board, key]) => [board, boards.get(key)?.get(row.id)]));
 			const rank = ranks.pp;
 			if (rank === undefined) continue;
@@ -618,7 +689,7 @@ export const sweepRankHistory = async (): Promise<void> => {
 			const moved = JSON.stringify(highest) !== JSON.stringify(previous.highest ?? {});
 			if (previous.date === today && !moved) continue;
 			await db
-				.update(characters)
+				.update(profile)
 				.set({
 					rankHistory: {
 						date: today,
@@ -628,7 +699,7 @@ export const sweepRankHistory = async (): Promise<void> => {
 						highest,
 					},
 				})
-				.where(eq(characters.id, row.id));
+				.where(eq(profile.id, row.id));
 		}
 		await redis.set(doneKey, '1', 'EX', 2 * 86_400);
 	} finally {
@@ -647,15 +718,17 @@ async function* scanKeys(match: string): AsyncGenerator<string> {
 
 /** Whether the pp board holds exactly MySQL's characters at their pp. Fails
  *  when the database was swapped under the index (a restore, a staging clone). */
-const indexMatchesDb = async () => {
+const indexMatchesDb = async (r: ServerRuleset) => {
+	const { profile } = r;
 	const rows = await db
 		.select({
-			id: characters.id, pp: characters.pp,
+			id: profile.id, pp: profile.pp,
 		})
-		.from(characters)
+		.from(profile)
+		.innerJoin(characters, eq(characters.id, profile.id))
 		.innerJoin(users, eq(users.id, characters.userId))
 		.where(visible);
-	const scores = await redis.zrange(globalKey('pp'), 0, -1, 'WITHSCORES');
+	const scores = await redis.zrange(keysOf(r).globalKey('pp'), 0, -1, 'WITHSCORES');
 	if (scores.length !== rows.length * 2) return false;
 	const indexed = new Map<string, number>();
 	for (let i = 0; i < scores.length; i += 2) indexed.set(scores[i], Number(scores[i + 1]));
@@ -665,14 +738,16 @@ const indexMatchesDb = async () => {
 /** Build the sets on boot unless they are already built for this schema and
  *  still match MySQL, elected to a single cluster worker. */
 export async function ensureRankings(): Promise<void> {
-	if (await redis.exists(builtKey) && await indexMatchesDb()) return;
-	const got = await redis.set(lockKey, '1', 'EX', 300, 'NX');
-	if (got !== 'OK') return;
-	try {
-		await rebuildAll();
-		await redis.set(builtKey, '1');
-		console.log('Rankings index built.');
-	} finally {
-		await redis.del(lockKey);
+	for (const r of enabledRulesets()) {
+		if (await redis.exists(builtKey(r)) && await indexMatchesDb(r)) continue;
+		const got = await redis.set(lockKey(r), '1', 'EX', 300, 'NX');
+		if (got !== 'OK') continue;
+		try {
+			await rebuildAll(r);
+			await redis.set(builtKey(r), '1');
+			console.log(`Rankings index built for ${r.def.id}.`);
+		} finally {
+			await redis.del(lockKey(r));
+		}
 	}
 }

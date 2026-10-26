@@ -1,21 +1,23 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+import { useState } from 'react';
+
 import {
-	MEDALS,
-	medalLook,
 	type MedalDef,
+	medalLook,
 } from '@oss-idle/shared/achievements/catalogue';
-import { medalName } from '@oss-idle/shared/display/medals';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
 	getCharacter,
 	getCharacterMedals,
 } from '../../api/characters';
 import { setTitle } from '../../api/users';
 import MedalIcon from '../../components/character/MedalIcon';
+import { medalName } from '../../rulesets';
+import { allMedals } from '../../rulesets';
 
 /** Pick which held medal's name shows under the character's name. */
 export default function TitleSettings({ id }: { id: string }) {
@@ -35,7 +37,7 @@ export default function TitleSettings({ id }: { id: string }) {
 		{
 			value: '', label: t`no title`,
 		},
-		...MEDALS.filter(m => held.has(m.id)).map(m => ({
+		...allMedals().filter(m => held.has(m.id)).map(m => ({
 			value: m.id, label: medalName(m.id), medal: m,
 		})),
 	];

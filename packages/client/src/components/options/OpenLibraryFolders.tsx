@@ -1,8 +1,10 @@
 import { Trans } from '@lingui/react/macro';
-import Log from '@oss-idle/shared/helpers/log';
+
 import type { LibraryKind } from '@oss-idle/shared/desktop';
-import Button from './controls/Button';
+import Log from '@oss-idle/shared/helpers/log';
+
 import { library } from '../../library';
+import Button from './controls/Button';
 
 /** The maps, skins and add-ons folders, opened in the file explorer (desktop). */
 export default function OpenLibraryFolders() {

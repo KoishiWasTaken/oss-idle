@@ -1,7 +1,8 @@
 import { desktop } from '@oss-idle/shared/desktop';
+
 import {
-	devTools,
 	type DevTool,
+	devTools,
 } from './devTools';
 
 /**

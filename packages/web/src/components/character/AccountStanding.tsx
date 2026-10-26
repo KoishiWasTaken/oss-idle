@@ -1,13 +1,16 @@
 import './AccountStanding.css';
+
 import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { useModerator } from '../../hooks/useAdmin';
+
 import { getStanding } from '../../api/restrictions';
+import { useModerator } from '../../hooks/useAdmin';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import SanctionLength from './SanctionLength';
 
 /** osu-web's Account Standing block, for the player and the moderators, once there is

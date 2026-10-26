@@ -1,8 +1,9 @@
 import {
+	type PointerEvent,
 	useEffect,
 	useRef,
-	type PointerEvent,
 } from 'react';
+
 import { panelWidths } from './visualSetting';
 
 const MIN_WIDTH = 220;

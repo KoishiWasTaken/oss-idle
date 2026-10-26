@@ -1,10 +1,8 @@
 import {
-	compareGradeGT,
-	type Grade,
-	Grades,
-	type Judgement,
-	Judgements,
-} from '@oss-idle/shared/judgement';
+	and,
+	desc,
+	eq,
+} from 'drizzle-orm';
 import {
 	type AnyMySqlColumn,
 	boolean,
@@ -17,31 +15,37 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import { characters } from './character';
-import type { ScoreDTO } from '@oss-idle/shared/score';
+
+import {
+	compareGradeGT,
+	type Grade,
+	Grades,
+} from '@oss-idle/shared/grade';
 import { parseMods } from '@oss-idle/shared/mods';
+import type { RulesetDef } from '@oss-idle/shared/rulesets/ruleset';
+import type { ScoreDTO } from '@oss-idle/shared/score';
+
+import type { ServerRuleset } from '../../rulesets/ruleset';
 import { db } from '../client';
 import { profilePage } from '../profilePage';
-import {
-	eq,
-	and,
-	desc,
-} from 'drizzle-orm';
 import {
 	beatmapListColumns,
 	beatmaps,
 } from './beatmap';
-import { beatmapset } from './beatmapset';
+import {
+	beatmapset,
+	setColumns,
+} from './beatmapset';
+import { characters } from './character';
 
 const judgeColumn = () => int().notNull().default(0);
 
-type JudgeColumns = { [K in Judgement]: ReturnType<typeof judgeColumn> };
+/** A count column per judgement of the ruleset. */
+export const judgeColumns = <J extends string>(judgements: readonly J[]) => Object.fromEntries(
+	judgements.map(judge => [judge, judgeColumn()]),
+) as { [K in J]: ReturnType<typeof judgeColumn> };
 
-export const judgeColumns = Object.fromEntries(
-	Judgements.map(judge => [judge, judgeColumn()]),
-) as JudgeColumns;
-
-export const scoreTableDefinition = {
+export const scoreColumns = <J extends string>(judgements: readonly J[]) => ({
 	id: int().autoincrement().primaryKey(),
 	characterId: int().notNull()
 		.references(() => characters.id, { onDelete: 'cascade' }),
@@ -53,7 +57,7 @@ export const scoreTableDefinition = {
 		precision: 10, scale: 5, 
 	}).notNull(),
 	maxCombo: int().notNull(),
-	...judgeColumns,
+	...judgeColumns(judgements),
 	grade: mysqlEnum(Grades).notNull(),
 	pp: decimal({
 		precision: 10, scale: 3, 
@@ -72,13 +76,13 @@ export const scoreTableDefinition = {
 	}),
 	// modsKey: "HR,SD"
 	mods: varchar({ length: 16 }).notNull().default(''),
-};
+});
 
 type ScoreCols = { characterId: AnyMySqlColumn; beatmapId: AnyMySqlColumn };
 
-// Shared across the score / best / best_pp tables (all built from
-// scoreTableDefinition): index names are table-scoped in MySQL, so reuse is fine.
-// `score` keeps a plain index - a character can have many plays per beatmap.
+// Shared across a ruleset's score / best / best_pp tables: index names are
+// table-scoped in MySQL, so reuse is fine. `score` keeps a plain index - a
+// character can have many plays per beatmap.
 export const scoreIndexes = (table: ScoreCols & { playedAt: AnyMySqlColumn }) => [
 	index('character_beatmap_idx').on(table.characterId, table.beatmapId),
 	index('beatmap_idx').on(table.beatmapId),
@@ -87,29 +91,37 @@ export const scoreIndexes = (table: ScoreCols & { playedAt: AnyMySqlColumn }) =>
 	index('character_playedat_idx').on(table.characterId, table.playedAt),
 ];
 
-export const scores = mysqlTable('score', scoreTableDefinition, scoreIndexes);
+/** A ruleset's plays. */
+export const scoreTable = <J extends string>(name: string, judgements: readonly J[]) =>
+	mysqlTable(name as 'score', scoreColumns(judgements), scoreIndexes);
+
+/** The columns every ruleset's score table has: what code outside the rulesets reads. */
+export type ScoreTable = ReturnType<typeof scoreTable<never>>;
 
 // `best` / `best_pp` hold at most one row per (character, beatmap), so that
 // composite is their primary key. Their `id` is not autoincrement - it points
 // at the winning row in `score`.
-export const bestTableDefinition = {
-	...scoreTableDefinition,
+export const bestColumns = <J extends string>(
+	judgements: readonly J[],
+	scores: { id: AnyMySqlColumn },
+) => ({
+	...scoreColumns(judgements),
 	id: int().notNull().references(() => scores.id, { onDelete: 'cascade' }),
-};
+});
 
 export const bestConstraints = (table: ScoreCols) => [
 	primaryKey({ columns: [table.characterId, table.beatmapId] }),
 	index('beatmap_idx').on(table.beatmapId),
 ];
 
-export type ScoreRow = typeof scores.$inferSelect;
-export type NewScoreRow = typeof scores.$inferInsert;
+export type ScoreRow = ScoreTable['$inferSelect'];
+export type NewScoreRow = ScoreTable['$inferInsert'];
 
-export function toScoreDTO(row: ScoreRow): ScoreDTO {
-	const judgements = Object.fromEntries(
-		Judgements.map(j => [j, row[j]]),
-	) as ScoreDTO['judgements'];
+/** A row's judgement counts, read by its ruleset's judgements. */
+export const judgementsOf = (row: ScoreRow, def: RulesetDef) =>
+	Object.fromEntries(def.judgements.map(j => [j, (row as Record<string, unknown>)[j] as number]));
 
+export function toScoreDTO(row: ScoreRow, def: RulesetDef): ScoreDTO {
 	return {
 		id: row.id,
 		beatmapId: row.beatmapId,
@@ -118,7 +130,7 @@ export function toScoreDTO(row: ScoreRow): ScoreDTO {
 		maxCombo: row.maxCombo,
 		pfc: row.pfc,
 		score: row.score,
-		judgements,
+		judgements: judgementsOf(row, def),
 		accuracy: parseFloat(row.accuracy),
 		pp: parseFloat(row.pp),
 		ur: parseFloat(row.ur),
@@ -131,52 +143,63 @@ export function toScoreDTO(row: ScoreRow): ScoreDTO {
 /** The best grade a character ever set on a map, at any rate: a slowed play's cut score
  *  never makes it the best, so the best row's grade can sit below it. */
 export const bestGradeOn = async (
+	{ score }: ServerRuleset,
 	characterId: number,
 	beatmapId: number,
 ): Promise<Grade | undefined> => {
 	const rows = await db
-		.selectDistinct({ grade: scores.grade })
-		.from(scores)
-		.where(and(eq(scores.characterId, characterId), eq(scores.beatmapId, beatmapId)));
+		.selectDistinct({ grade: score.grade })
+		.from(score)
+		.where(and(eq(score.characterId, characterId), eq(score.beatmapId, beatmapId)));
 	return rows.reduce<Grade | undefined>(
 		(top, { grade }) => (!top || compareGradeGT(grade, top) ? grade : top), undefined,
 	);
 };
 
-export const getScoreById = async (id: number) => {
+export const getScoreById = async ({ score }: ServerRuleset, id: number) => {
 	const [row] = await db
 		.select()
-		.from(scores)
-		.where(eq(scores.id, id))
+		.from(score)
+		.where(eq(score.id, id))
 		.limit(1);
 	return row;
 };
 
-export const getCharacterScores = (characterId: number, beatmapId: number) => db
+export const getCharacterScores = (
+	{ score }: ServerRuleset,
+	characterId: number,
+	beatmapId: number,
+) => db
 	.select()
-	.from(scores)
+	.from(score)
 	.where(
 		and(
-			eq(scores.characterId, characterId),
-			eq(scores.beatmapId, beatmapId),
+			eq(score.characterId, characterId),
+			eq(score.beatmapId, beatmapId),
 		));
 
-export const getAllCharacterScores = (characterId: number) => db
+export const getAllCharacterScores = ({ score }: ServerRuleset, characterId: number) => db
 	.select()
-	.from(scores)
-	.where(eq(scores.characterId, characterId));
+	.from(score)
+	.where(eq(score.characterId, characterId));
 	
-export const recentScoreRows = (characterId: number, offset: number, limit: number) => db
+export const recentScoreRows = (
+	r: ServerRuleset,
+	characterId: number,
+	offset: number,
+	limit: number,
+) => db
 	.select({
-		score: scores, beatmap: beatmapListColumns, beatmapset,
+		score: r.score, beatmap: beatmapListColumns, beatmapset: setColumns(r),
 	})
-	.from(scores)
-	.innerJoin(beatmaps, eq(beatmaps.id, scores.beatmapId))
+	.from(r.score)
+	.innerJoin(beatmaps, eq(beatmaps.id, r.score.beatmapId))
 	.innerJoin(beatmapset, eq(beatmapset.id, beatmaps.setId))
-	.where(eq(scores.characterId, characterId))
-	.orderBy(desc(scores.playedAt))
+	.innerJoin(r.setStatus, eq(r.setStatus.setId, beatmapset.id))
+	.where(eq(r.score.characterId, characterId))
+	.orderBy(desc(r.score.playedAt))
 	.offset(offset)
 	.limit(limit);
 
-export const getRecentCharacterScores = (characterId: number, page: number = 1) =>
-	profilePage(page, (offset, limit) => recentScoreRows(characterId, offset, limit));
+export const getRecentCharacterScores = (t: ServerRuleset, characterId: number, page: number = 1) =>
+	profilePage(page, (offset, limit) => recentScoreRows(t, characterId, offset, limit));

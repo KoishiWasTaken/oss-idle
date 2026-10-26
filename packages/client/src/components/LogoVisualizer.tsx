@@ -2,9 +2,10 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import { music } from '../audio/MusicPlayer';
-import { logoPulse } from './logoPulse';
 import { sizeCanvas } from '../sizeCanvas';
+import { logoPulse } from './logoPulse';
 
 interface Props {
 	/** diameter of the logo this wraps, in px */

@@ -1,38 +1,40 @@
 import { ph } from '@lingui/core/macro';
 import {
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
-import Markdown from '@oss-idle/shared/display/Markdown';
-import useKeyboardOwner from '../../input/keyboardOwner';
-import {
 	Plural,
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
+
+import {
+	type AddonType,
+	AddonTypes,
+} from '@oss-idle/shared/addon';
+import { addonTypeLabel } from '@oss-idle/shared/display/addon';
+import Markdown from '@oss-idle/shared/display/Markdown';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { installAddon } from '../../addons/runtime';
 import {
 	Addon as InstalledAddon,
 	addonsVersion,
 } from '../../db/schema/addon';
-import { installAddon } from '../../addons/runtime';
+import useKeyboardOwner from '../../input/keyboardOwner';
+import Account from '../../online/account';
 import {
-	AddonTypes,
-	type AddonType,
-} from '@oss-idle/shared/addon';
-import { addonTypeLabel } from '@oss-idle/shared/display/addon';
-import {
+	type Addon,
 	addonIconUrl,
 	browseAddons,
 	recordAddonDownload,
-	type Addon,
 } from '../../online/addons';
-import Account from '../../online/account';
-import ListingIcon from '../listing/ListingIcon';
-import AddonView, { detailOfDTO } from './AddonView';
 import ConfirmMenu, { type Confirm } from '../ConfirmMenu';
+import ListingIcon from '../listing/ListingIcon';
 import type { PageAction } from '../page/pageBar';
+import AddonView, { detailOfDTO } from './AddonView';
 
 type Sort = 'created' | 'updated' | 'downloads';
 

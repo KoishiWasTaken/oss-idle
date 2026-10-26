@@ -1,6 +1,7 @@
 import { useLingui } from '@lingui/react/macro';
-import Nav from '../../components/Nav';
+
 import Link from '../../components/Link';
+import Nav from '../../components/Nav';
 import { useAdmin } from '../../hooks/useAdmin';
 
 /** The admin pages as tabs; the GMT only gets the moderation ones. */

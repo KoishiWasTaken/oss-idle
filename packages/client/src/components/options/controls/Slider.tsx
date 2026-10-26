@@ -1,8 +1,11 @@
+import './Slider.css';
+
 import { ReactNode } from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { isChanged } from '../../../db/settings';
-import './Slider.css';
 
 interface Props {
 	/** Backing value. Pass a shared `Synced` so the slider stays subscribable. */

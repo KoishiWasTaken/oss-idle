@@ -1,6 +1,7 @@
-import { useLingui } from '@lingui/react/macro';
 import { faListUl } from '@fortawesome/free-solid-svg-icons/faListUl';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
+import { useLingui } from '@lingui/react/macro';
+
 import { openPage } from '../../globals';
 import DockIconButton from './DockIconButton';
 

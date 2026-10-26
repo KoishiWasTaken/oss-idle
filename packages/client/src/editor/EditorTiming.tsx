@@ -1,16 +1,18 @@
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { inEffect } from '@oss-idle/shared/editor/chart';
-import EditorTimingPoint from './EditorTimingPoint';
+import { inEffect } from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import EditorBpmTools from './EditorBpmTools';
-import type EditorSession from './session';
+import EditorTimingPoint from './EditorTimingPoint';
 import { pointsAround } from './pointWindow';
+import type EditorSession from './session';
 
 /** Up to this many BPM points are all listed; more, and those around the current time. */
 const LIST_ALL = 40;
@@ -23,6 +25,11 @@ export default function EditorTiming({ session }: { session: EditorSession }) {
 	// re-renders when the point in effect changes, not every tick
 	const [active, setActive] = useState(() => inEffect(session.timing, session.now()));
 	const list = useRef<HTMLDivElement>(null);
+	// the point just added, whose BPM field takes the focus once
+	const [added, setAdded] = useState<number>();
+
+	useEffect(() => setAdded(undefined), [added]);
+	useEffect(() => () => void session.hoveredPoint.set(undefined), [session]);
 
 	useEffect(() => {
 		const follow = () => setActive(inEffect(session.timing, session.now()));
@@ -39,7 +46,7 @@ export default function EditorTiming({ session }: { session: EditorSession }) {
 
 	return (
 		<div className="editor__stat editor__timing editor__timing--points">
-			<button className="editor__action" onClick={() => session.addTimingPoint()}>
+			<button className="editor__action" onClick={() => setAdded(session.addTimingPoint())}>
 				<Trans>Add at the current time</Trans>
 			</button>
 			<EditorBpmTools session={session} />
@@ -59,6 +66,7 @@ export default function EditorTiming({ session }: { session: EditorSession }) {
 						session={session}
 						point={point}
 						active={point === active}
+						focused={point.time === added}
 					/>
 				))}
 			</div>

@@ -2,12 +2,16 @@ import {
 	difficultyColor,
 	starsText,
 } from '@oss-idle/shared/display/difficulty';
-import Link from '../../components/Link';
-import type { MapDiff } from '../../api/maps';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
 
-/** One dot per difficulty, coloured by star rating, like osu!'s picker. */
-export default function DifficultyPicker({ setId, diffs, current }: {
+import type { MapDiff } from '../../api/maps';
+import Link from '../../components/Link';
+import ModeIcon from '../../components/ModeIcon';
+
+/** One mode icon per difficulty, coloured by star rating, like osu!'s picker. */
+export default function DifficultyPicker({ setId, ruleset, diffs, current }: {
 	setId: number;
+	ruleset: RulesetId;
 	diffs: MapDiff[];
 	current: number;
 }) {
@@ -16,12 +20,14 @@ export default function DifficultyPicker({ setId, diffs, current }: {
 			key={d.id}
 			to='/maps/$id'
 			params={{ id: String(setId) }}
-			search={{ diff: d.id }}
+			search={{
+				ruleset, diff: d.id,
+			}}
 			resetScroll={false}
 			className={`mapset__picker-diff ${d.id === current ? 'active' : ''}`}
 			title={`${d.version} (${starsText(d.sr)}★)`}
 		>
-			<span style={{ backgroundColor: difficultyColor(d.sr) }} />
+			<span style={{ color: difficultyColor(d.sr) }}><ModeIcon ruleset={ruleset} /></span>
 		</Link>)}
 	</div>;
 }

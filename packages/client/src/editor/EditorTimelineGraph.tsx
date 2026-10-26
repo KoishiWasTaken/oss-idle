@@ -2,13 +2,15 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import type EditorSession from './session';
 import {
 	densityOf,
 	straysOf,
 	volumeOf,
 } from './timelineGraph';
-import type EditorSession from './session';
 
 /** The playfield lanes' colours: timing points red, scroll speed points green. */
 const MARK_COLORS = {
@@ -45,6 +47,7 @@ export default function EditorTimelineGraph({ session, marks }: {
 		song?: object, length: number, w: number, volume: Float32Array,
 	}>(undefined);
 	useSynced(session.revision);
+	const [hovered] = useSynced(session.hoveredPoint);
 	const {
 		notes, length, song, timing, scroll,
 	} = session;
@@ -88,5 +91,15 @@ export default function EditorTimelineGraph({ session, marks }: {
 		return () => observer.disconnect();
 	}, [notes, length, song, marks, timing, scroll]);
 
-	return <canvas ref={ref} className="editor__timeline-graph" />;
+	return (
+		<>
+			<canvas ref={ref} className="editor__timeline-graph" />
+			{hovered && length > 0 && (
+				<span
+					className={`editor__hovered-point ${hovered.sv ? 'is-sv' : ''}`}
+					style={{ left: `${hovered.time / length * 100}%` }}
+				/>
+			)}
+		</>
+	);
 }

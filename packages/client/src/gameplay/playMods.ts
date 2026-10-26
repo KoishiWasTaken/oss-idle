@@ -1,9 +1,10 @@
 import Synced from '@oss-idle/shared/helpers/synced';
 import {
 	cleanMods,
-	toggleMod,
 	type Mod,
+	toggleMod,
 } from '@oss-idle/shared/mods';
+
 import { SETTINGS } from '../db/settings';
 import type { PlayContext } from '../online/play';
 

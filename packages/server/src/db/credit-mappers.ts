@@ -1,15 +1,17 @@
 import 'dotenv/config';
+
 import {
 	and,
 	isNotNull,
 	isNull,
 } from 'drizzle-orm';
+
+import { creditMapper } from '../beatmaps/credit';
 import {
 	db,
 	pool,
 } from './client';
 import { beatmapset } from './schema/beatmapset';
-import { creditMapper } from '../beatmaps/credit';
 
 /**
  * Credits every set taken from osu! that has no owner yet to its mapper's account

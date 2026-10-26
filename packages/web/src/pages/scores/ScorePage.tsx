@@ -1,27 +1,30 @@
 import './ScorePage.css';
-import { Trans } from '@lingui/react/macro';
+
 import { ph } from '@lingui/core/macro';
-import { JUDGEMENT } from '@oss-idle/shared/judgement';
-import { showsDivine } from '@oss-idle/shared/rebirth';
+import { Trans } from '@lingui/react/macro';
+
+import accuracy from '@oss-idle/shared/display/accuracy';
 import {
 	difficultyColor,
 	difficultyTextColor,
 	starsText,
 } from '@oss-idle/shared/display/difficulty';
-import accuracy from '@oss-idle/shared/display/accuracy';
 import num from '@oss-idle/shared/display/num';
 import rank from '@oss-idle/shared/display/rank';
-import type { getScore } from '../../api/scores';
+import { showsDivine } from '@oss-idle/shared/rebirth';
+import { JUDGEMENT } from '@oss-idle/shared/rulesets/mania/judgement';
+
 import { coverBackground } from '../../api/maps';
+import type { getScore } from '../../api/scores';
+import Flag from '../../components/Flag';
 import Link from '../../components/Link';
 import MapperLink from '../../components/MapperLink';
-import Flag from '../../components/Flag';
 import ProfilePicture from '../../components/ProfilePicture';
-import ScoreMods from '../../components/score/ScoreMods';
 import ScoreDial from '../../components/score/ScoreDial';
+import ScoreMods from '../../components/score/ScoreMods';
 import ScoreTower from '../../components/score/ScoreTower';
-import { JUDGEMENT_COLUMNS } from '../beatmaps/judgementColumns';
 import { i18n } from '../../i18n';
+import { JUDGEMENT_COLUMNS } from '../beatmaps/judgementColumns';
 
 /** osu!web's score page (scores-show): the map, the grade dial and score, then the stats. */
 export default function ScorePage({ show }: { show: Awaited<ReturnType<typeof getScore>> }) {

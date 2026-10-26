@@ -1,6 +1,10 @@
-import Prism from 'prismjs';
+// Prism first: its language components register on the global it sets
+import 'prismjs';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-json';
+
+import Prism from 'prismjs';
+
 import type { Sample } from './content';
 
 /** The two languages of osu!'s examples. */

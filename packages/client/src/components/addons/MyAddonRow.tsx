@@ -1,12 +1,14 @@
 import { Trans } from '@lingui/react/macro';
+
 import {
 	ADDON_BUILD_STATUS,
 	ADDON_STATUS,
 } from '@oss-idle/shared/addon';
 import { addonStatusLabel } from '@oss-idle/shared/display/addon';
+
 import {
-	addonIconUrl,
 	type Addon,
+	addonIconUrl,
 } from '../../online/addons';
 import ListingIcon from '../listing/ListingIcon';
 

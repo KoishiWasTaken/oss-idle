@@ -1,13 +1,16 @@
-import { ph } from '@lingui/core/macro';
 import './PlayOssIdle.css';
+
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
 	detectPlatform,
 	fetchManifest,
 	PLATFORM_LABEL,
 	resolveDownload,
 } from '../download';
-import { Trans } from '@lingui/react/macro';
 
 /**
  * The "Play oss!idle" entry point: choose between playing in the browser or

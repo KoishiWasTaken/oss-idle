@@ -1,8 +1,10 @@
 import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import type {
-	EditorTool,
 	default as EditorSession,
+	EditorTool,
 } from './session';
 
 /** The tools a left click on the field works with, big enough to switch by mouse (Tab

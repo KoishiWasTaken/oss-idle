@@ -1,4 +1,3 @@
-import type { Bilingual } from './types';
 import {
 	ADDRESS,
 	EMAIL,
@@ -8,6 +7,7 @@ import {
 	STATUS,
 	VAT_NUMBER,
 } from '../identity';
+import type { Bilingual } from './types';
 
 export const notice: Bilingual = {
 	en: {

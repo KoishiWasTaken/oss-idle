@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
+import { reportReasonLabel } from '@oss-idle/shared/display/social';
 import {
 	REPORT_REASON,
 	type ReportReason,
 } from '@oss-idle/shared/social';
-import { reportReasonLabel } from '@oss-idle/shared/display/social';
+
 import { report } from '../../api/social';
 import ConfirmDialog from './ConfirmDialog';
 

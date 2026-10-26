@@ -5,11 +5,12 @@ import {
 	primaryKey,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { characters } from './character';
 
 /** The best value each character ever reached on a medal line, so a lost #1 or
  *  a prestige never takes a place on the progress boards back. */
-export const characterProgress = mysqlTable('character_progress', {
+export const progressTable = (name: string) => mysqlTable(name as 'character_progress', {
 	characterId: int().notNull()
 		.references(() => characters.id, { onDelete: 'cascade' }),
 	line: varchar({ length: 16 }).notNull(),
@@ -19,3 +20,5 @@ export const characterProgress = mysqlTable('character_progress', {
 }, table => [
 	primaryKey({ columns: [table.characterId, table.line] }),
 ]);
+
+export type ProgressTable = ReturnType<typeof progressTable>;

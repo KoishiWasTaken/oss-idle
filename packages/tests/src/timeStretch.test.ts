@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { timeStretch } from '../../client/src/audio/timeStretch';
 
 const RATE = 44100;

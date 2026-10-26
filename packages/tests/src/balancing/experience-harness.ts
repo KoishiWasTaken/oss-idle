@@ -1,8 +1,10 @@
 import { expect } from 'vitest';
+
 import {
-	Skills,
 	type SkillName,
-} from '@oss-idle/shared/skills';
+	Skills,
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
+
 import {
 	simulateXP,
 	type SkillSpec,

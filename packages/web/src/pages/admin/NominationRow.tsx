@@ -1,21 +1,23 @@
 import { useState } from 'react';
+
 import {
-	type Nomination,
-	type NominationPatch,
-	nominationOszUrl,
-} from '../../api/maps';
-import NominationCover from './NominationCover';
-import NominationDiffs from './NominationDiffs';
-import { phaseOf } from './nominationStatus';
-import {
-	isApproved,
-	type BeatmapStatus,
 	type ApprovedStatus,
+	type BeatmapStatus,
+	isApproved,
 	type MapTag,
 } from '@oss-idle/shared/beatmap';
-import NominationMeta from './NominationMeta';
-import NominationCategory from './NominationCategory';
+
+import {
+	type Nomination,
+	nominationOszUrl,
+	type NominationPatch,
+} from '../../api/maps';
 import { formatDate } from './formatDate';
+import NominationCategory from './NominationCategory';
+import NominationCover from './NominationCover';
+import NominationDiffs from './NominationDiffs';
+import NominationMeta from './NominationMeta';
+import { phaseOf } from './nominationStatus';
 
 /** ISO timestamp -> value for an <input type="datetime-local"> (local time). */
 const toLocalInput = (iso: string | null): string => {

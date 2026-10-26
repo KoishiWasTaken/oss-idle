@@ -1,5 +1,5 @@
-import { redis } from '../redis';
 import { redisKeyPrefix } from '../env';
+import { redis } from '../redis';
 
 /**
  * One-time code handoff for desktop OAuth. The browser callback can't set a

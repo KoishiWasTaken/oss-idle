@@ -1,6 +1,7 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { msg } from '@lingui/core/macro';
+
 import { getTopPlays } from '../../api/rankings';
 import PlaysRankings from '../../pages/rankings/TopPlays';
 import { pageSearch } from '../-rankingSearch';

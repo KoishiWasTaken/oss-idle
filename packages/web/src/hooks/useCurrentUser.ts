@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import type { UserDTO } from '@oss-idle/shared/user';
+
 import { desktop } from '@oss-idle/shared/desktop';
+import type { UserDTO } from '@oss-idle/shared/user';
+
 import {
 	apiUrl,
 	withAuth,

@@ -1,6 +1,6 @@
 import {
-	medalSvg,
 	type MedalLook,
+	medalSvg,
 } from '@oss-idle/shared/achievements/medal';
 
 /** px of the cached bitmap: crisp at the biggest a medal is shown */

@@ -1,5 +1,6 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import type { AddonStatus } from '@oss-idle/shared/addon';
+import Synced from '@oss-idle/shared/helpers/synced';
+
 import {
 	boolean,
 	DAO,

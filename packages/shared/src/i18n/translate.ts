@@ -1,6 +1,6 @@
 import {
-	i18n as i18nSingleton,
 	type I18n,
+	i18n as i18nSingleton,
 } from '@lingui/core';
 import { generateMessageId } from '@lingui/message-utils/generateMessageId';
 

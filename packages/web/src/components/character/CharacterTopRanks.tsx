@@ -1,6 +1,9 @@
 import { Trans } from '@lingui/react/macro';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import num from '@oss-idle/shared/display/num';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import {
 	getCharacterBestPP,
 	getCharacterFirstPlaces,
@@ -8,18 +11,19 @@ import {
 	getCharacterRecent,
 } from '../../api/characters';
 import { useShowMore } from '../../hooks/useShowMore';
-import ShowMoreLink from '../ShowMoreLink';
 import ScoreRow from '../score/ScoreRow';
+import ShowMoreLink from '../ShowMoreLink';
 
 /** The profile's Ranks block: best performance, first places and recent scores. */
-export default function CharacterTopRanks({ id, countplayed }: {
+export default function CharacterTopRanks({ id, ruleset, countplayed }: {
 	id: string;
+	ruleset: RulesetId;
 	countplayed?: number;
 }) {
-	const bestpp = useShowMore(page => getCharacterBestPP(id, page), [id]);
-	const countfirstplaces = useAsync(() => getCharacterNbFirstPlaces(id), [id]);
-	const firstplaces = useShowMore(page => getCharacterFirstPlaces(id, page), [id]);
-	const recentscores = useShowMore(page => getCharacterRecent(id, page), [id]);
+	const bestpp = useShowMore(page => getCharacterBestPP(id, page, ruleset), [id, ruleset]);
+	const countfirstplaces = useAsync(() => getCharacterNbFirstPlaces(id, ruleset), [id, ruleset]);
+	const firstplaces = useShowMore(page => getCharacterFirstPlaces(id, page, ruleset), [id, ruleset]);
+	const recentscores = useShowMore(page => getCharacterRecent(id, page, ruleset), [id, ruleset]);
 
 	return <div className='character__block character__block-skills'>
 		<div className='character__block-title'><Trans>Ranks</Trans></div>

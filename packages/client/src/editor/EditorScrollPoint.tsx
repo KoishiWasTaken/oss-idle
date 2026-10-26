@@ -1,18 +1,28 @@
 import { useLingui } from '@lingui/react/macro';
+
 import {
 	multiplierOf,
 	scrollBeatLength,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import EditorField from './EditorField';
 import type EditorSession from './session';
 
-type Props = { session: EditorSession, point: TimingPoint, active: boolean };
+type Props = {
+	session: EditorSession,
+	point: TimingPoint,
+	active: boolean,
+	/** its speed field takes the focus: the point was just added */
+	focused?: boolean,
+};
 
 const round = (n: number) => String(Math.round(n * 1000) / 1000);
 
 /** One SV point: its time (click the arrow to go there) and multiplier. */
-export default function EditorScrollPoint({ session, point, active }: Props) {
+export default function EditorScrollPoint({
+	session, point, active, focused,
+}: Props) {
 	const { t } = useLingui();
 	const multiplier = round(multiplierOf(point));
 	const positive = (value: string, use: (n: number) => void) => {
@@ -22,7 +32,13 @@ export default function EditorScrollPoint({ session, point, active }: Props) {
 	const update = (change: Partial<TimingPoint>) => session.updateScrollPoint(point, change);
 
 	return (
-		<div className={`editor__point editor__point--scroll ${active ? 'is-active' : ''}`}>
+		<div
+			className={`editor__point editor__point--scroll ${active ? 'is-active' : ''}`}
+			onMouseEnter={() => void session.hoveredPoint.set({
+				time: point.time, sv: true,
+			})}
+			onMouseLeave={() => void session.hoveredPoint.set(undefined)}
+		>
 			<button
 				className="editor__seek-to"
 				aria-label={t`Go there`}
@@ -41,6 +57,7 @@ export default function EditorScrollPoint({ session, point, active }: Props) {
 				key={`speed:${multiplier}`}
 				type="number"
 				label={t`Speed`}
+				autoFocus={focused}
 				value={multiplier}
 				onCommit={v => positive(v, n => update({ beatLength: scrollBeatLength(n) }))}
 			/>

@@ -1,21 +1,23 @@
 import {
-	useEffect,
-	useState,
-} from 'react';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import type { Emoji } from '@oss-idle/shared/community/emoji';
+
 import {
 	emojiSrc,
 	listEmoji,
 	updateMyEmoji,
 } from '../../api/emoji';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 import Link from '../../components/Link';
-import { useAction } from './useAction';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import EmojiSettingsButtons from './EmojiSettingsButtons';
+import { useAction } from './useAction';
 
 /** A supporter's own chat emoji: one, for themselves or shared with everyone. */
 export default function EmojiSettings() {

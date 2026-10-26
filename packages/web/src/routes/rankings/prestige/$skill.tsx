@@ -1,12 +1,13 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { msg } from '@lingui/core/macro';
+
 import {
 	getCountryPrestigeRanking,
 	getPrestigeRanking,
 } from '../../../api/rankings';
-import SkillsRankings from '../../../pages/rankings/Skills';
 import { SkillSort } from '../../../components/leaderboard/PlayerSkillLeaderboard';
+import SkillsRankings from '../../../pages/rankings/Skills';
 import { pageCountrySearch } from '../../-rankingSearch';
 
 export const Route = createFileRoute('/rankings/prestige/$skill')({

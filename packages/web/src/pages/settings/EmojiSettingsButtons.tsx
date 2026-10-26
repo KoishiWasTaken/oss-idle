@@ -1,10 +1,12 @@
-import { useRef } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useRef } from 'react';
+
 import {
 	type Emoji,
 	emojiName,
 	emojiNameOf,
 } from '@oss-idle/shared/community/emoji';
+
 import {
 	deleteMyEmoji,
 	setMyEmoji,

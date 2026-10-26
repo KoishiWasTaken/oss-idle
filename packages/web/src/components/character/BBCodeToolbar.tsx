@@ -1,6 +1,3 @@
-import type { RefObject } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faBold,
 	faHeading,
@@ -13,6 +10,9 @@ import {
 	faStrikethrough,
 	type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import type { RefObject } from 'react';
 
 /** osu!web's BBCode editor buttons: each wraps the selection in its tags. */
 export default function BBCodeToolbar({ textarea, onChange }: {

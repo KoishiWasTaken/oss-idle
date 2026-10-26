@@ -1,17 +1,19 @@
 import { BeatmapDecoder } from 'osu-parsers';
+
 import {
-	multiplierOf,
-	writeChart,
 	type Chart,
 	type ChartDoc,
+	multiplierOf,
 	type Note,
-} from '@oss-idle/shared/editor/chart';
-import RuntimeNote from '@oss-idle/shared/sim/runtimeNote';
+	writeChart,
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+import RuntimeNote from '@oss-idle/shared/rulesets/mania/runtimeNote';
 import {
-	ScrollModel,
-	buildBarlines,
 	type Barline,
-} from '@oss-idle/shared/sim/scroll';
+	buildBarlines,
+	ScrollModel,
+} from '@oss-idle/shared/rulesets/mania/scroll';
+
 import type { StageField } from '../gameplay/render/stage';
 
 const SKIPPED = {

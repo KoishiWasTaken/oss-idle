@@ -1,6 +1,9 @@
 import './PlayerGrid.css';
+
 import { useLingui } from '@lingui/react/macro';
+
 import type { PresenceEntry } from '@oss-idle/shared/community/presence';
+
 import PlayerCard from './PlayerCard';
 import { menuFor } from './state';
 

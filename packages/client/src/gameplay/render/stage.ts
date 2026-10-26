@@ -1,14 +1,15 @@
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import type { Sprite } from '../../osu/skin/maniaAssets';
+import {
+	type Field,
+	type Frame,
+	posY,
+} from './frame';
 import {
 	frameAt,
 	type StageLayout,
 } from './stageLayout';
-import {
-	posY,
-	type Field,
-	type Frame,
-} from './frame';
 
 /** What the stage layers draw: a game's, or a chart's in the editor's preview. */
 export type StageField = Field & Pick<ManiaGame, 'holdStart' | 'holdEnd' | 'songStartMs'>;

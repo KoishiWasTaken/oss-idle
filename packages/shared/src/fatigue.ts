@@ -1,23 +1,16 @@
 import cubic_bezier from './math/cubic_bezier.js';
 import lerp from './math/lerp.js';
-import type Skill from './sim/skills/skill.js';
-import Memory from './sim/skills/memory.js';
-import { makeOrderedSkills } from './sim/skills/factory.js';
-import {
-	xpGivesLevel,
-	xpToLevel,
-} from './sim/skills/xp.js';
-import { PHYSICAL_SKILLS } from './skills.js';
 
 /** The character's fatigue in strained minutes, as of `at` (ms). */
 export type Fatigue = { at: number, minutes: number };
 
 // The character tires a minute per minute its physical skills are strained and
-// rests REST_RATE per other minute, played or idle: one fully strained map takes
-// 2-3 easy ones to rest. From fresh, nonstop full strain starts to tell after
-// 5 hours and reaches the floor at 7. Strain stops counting at STRAIN_CAP: every
+// rests REST_RATE per other minute played and a minute per minute idle, the gaps
+// between queued maps included: one fully strained map takes 2-3 easy ones to
+// rest. From fresh, nonstop full strain starts to tell after 5 hours and reaches
+// the floor at 7. Strain stops counting at STRAIN_CAP: every
 // curve below is clamped to end by then.
-const REST_RATE = 0.4;
+const REST_RATE = 0.2;
 const STRAIN_CAP = 7 * 60;
 const ONSET_MINUTES = 5 * 60;
 const FULL_MINUTES = 7 * 60;
@@ -44,7 +37,7 @@ const COLD_LEVEL = 100;
 
 /** The fatigue left at `now`, rested since the last play. */
 export const restedFatigue = (fatigue: Fatigue | undefined, now: number): number =>
-	Math.max(0, (fatigue?.minutes ?? 0) - REST_RATE * Math.max(0, now - (fatigue?.at ?? now)) / 60_000);
+	Math.max(0, (fatigue?.minutes ?? 0) - Math.max(0, now - (fatigue?.at ?? now)) / 60_000);
 
 /** How far `minutes` are from `from` to `to`, eased: 0 before, 1 from `to` on. */
 const ease = (minutes: number, from: number, to: number): number =>
@@ -149,25 +142,9 @@ export const afterPlay = (
 	};
 };
 
-/** A physical skill at fatigue `fatigue` and warm-up `warm` plays at the level part of the xp behind its level reaches. */
-export const tireSkill = (skill: Skill, fatigue: number, warm = 1) => {
-	if (!PHYSICAL_SKILLS.includes(skill.name)) return;
-	const cold = lerp(1, COLD_FLOOR, Math.min(1, skill.level.get() / COLD_LEVEL));
-	const kept = lerp(1, PLAY_FLOOR, fatigue) * lerp(cold, 1, warm);
-	if (kept >= 1) return;
-	const { level, xp } = xpGivesLevel((xpToLevel(skill.level.get()) + skill.xp.get()) * kept);
-	skill.level.set(level);
-	skill.xp.set(xp);
+/** The share of the xp behind its level a physical skill at `level` plays with, at
+ *  fatigue `fatigue` and warm-up `warm`. */
+export const keptShare = (level: number, fatigue: number, warm = 1): number => {
+	const cold = lerp(1, COLD_FLOOR, Math.min(1, level / COLD_LEVEL));
+	return lerp(1, PLAY_FLOOR, fatigue) * lerp(cold, 1, warm);
 };
-
-/** A tired copy of `skills`, leaving the originals as they are. */
-export const tiredSkills = (skills: Skill[], fatigue: number, warm: number): Skill[] =>
-	makeOrderedSkills().map(copy => {
-		const skill = skills.find(s => s.name === copy.name)!;
-		copy.apply(skill.state());
-		if (copy instanceof Memory && skill instanceof Memory) {
-			copy.timesPlayed.set(skill.timesPlayed.get());
-		}
-		tireSkill(copy, fatigue, warm);
-		return copy;
-	});

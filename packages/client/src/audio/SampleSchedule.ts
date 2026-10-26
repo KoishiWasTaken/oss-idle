@@ -1,5 +1,5 @@
-import { effects } from './EffectPlayer';
 import type { SampleEvent } from '../osu/beatmap/storyboard';
+import { effects } from './EffectPlayer';
 
 /**
  * Look-ahead scheduler for a fixed list of timed effects-channel samples

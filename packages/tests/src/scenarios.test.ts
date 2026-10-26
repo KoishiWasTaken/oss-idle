@@ -2,23 +2,12 @@ import {
 	describe,
 	it,
 } from 'vitest';
-import {
-	Expectation,
-	runScenario,
-} from './balancing/harness';
+
 import {
 	SKILL,
 	type SkillName,
-} from '@oss-idle/shared/skills';
-import {
-	LEVEL,
-	Profile,
-	PROFILE,
-} from './balancing/experience';
-import {
-	Bundle,
-	MASTERY,
-} from './balancing/mastery';
+} from '@oss-idle/shared/rulesets/mania/4k/skills';
+
 import {
 	CHARTS,
 	EZ,
@@ -27,6 +16,19 @@ import {
 	IX,
 	loadBeatmap,
 } from './balancing/charts';
+import {
+	LEVEL,
+	PROFILE,
+	Profile,
+} from './balancing/experience';
+import {
+	Expectation,
+	runScenario,
+} from './balancing/harness';
+import {
+	Bundle,
+	MASTERY,
+} from './balancing/mastery';
 
 await Promise.all(Object.values(CHARTS).map(loadBeatmap));
 

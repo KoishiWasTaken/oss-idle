@@ -2,8 +2,10 @@ import {
 	ph,
 	t,
 } from '@lingui/core/macro';
+
 import Synced from '@oss-idle/shared/helpers/synced';
-import BeatmapAPI, { type Metadata } from '../../osu/beatmap/beatmap_api';
+
+import { music } from '../../audio/MusicPlayer';
 import {
 	isWebOpen,
 	message,
@@ -11,9 +13,9 @@ import {
 	webUrl,
 } from '../../globals';
 import Auth from '../../online/auth';
-import { music } from '../../audio/MusicPlayer';
-import LightBeatmapSet from '../../osu/beatmap/LightBeatmapSet';
+import BeatmapAPI, { type Metadata } from '../../osu/beatmap/beatmap_api';
 import { findCard } from '../../osu/beatmap/findCard';
+import LightBeatmapSet from '../../osu/beatmap/LightBeatmapSet';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
 
 export type DirectDisplay = 'ranked' | 'loved' | 'unranked' | 'all';

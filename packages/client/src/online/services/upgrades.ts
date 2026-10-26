@@ -1,16 +1,14 @@
-import {
-	SKILL,
-	type SkillName,
-} from '@oss-idle/shared/skills';
 import { applyUpgrade } from '@oss-idle/shared/upgrades';
-import { rpc } from '../client';
-import Entities from '../../entity/entities';
+
 import type Character from '../../db/schema/character';
+import Entities from '../../entity/entities';
+import { selectedProgression } from '../../rulesets/registry';
+import { rpc } from '../client';
 import { sendCharacterAction } from './characterAction';
 
 /** Buy the live character's next upgrade: guests locally, signed-in via the
  *  server. Returns true when it landed. */
-export const purchaseUpgrade = async (skillName: SkillName): Promise<boolean> => {
+export const purchaseUpgrade = async (skillName: string): Promise<boolean> => {
 	const character = Entities.character.get();
 	if (character.id === 0) return false;
 
@@ -31,7 +29,7 @@ export const purchaseUpgrade = async (skillName: SkillName): Promise<boolean> =>
 /** Run the purchase against the character in hand, with the shared math. */
 const spendLocally = async (
 	character: Character,
-	skillName: SkillName,
+	skillName: string,
 ): Promise<boolean> => {
 	const skill = character.skills.find(s => s.name === skillName);
 	if (!skill) return false;
@@ -43,9 +41,7 @@ const spendLocally = async (
 	} catch {
 		return false;
 	}
-	if (skillName === SKILL.memory) {
-		character.memoryForgetAt = JSON.stringify([...character.memoryForgets(), Date.now()]);
-	}
+	selectedProgression()?.afterUpgrade(character, skillName);
 	await character.spendXP(skillName, spent);
 	return true;
 };

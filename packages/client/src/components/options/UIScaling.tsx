@@ -1,5 +1,7 @@
 import { Trans } from '@lingui/react/macro';
+
 import { desktop } from '@oss-idle/shared/desktop';
+
 import { SETTINGS } from '../../db/settings';
 import Dropdown from '../dropdown/Dropdown';
 

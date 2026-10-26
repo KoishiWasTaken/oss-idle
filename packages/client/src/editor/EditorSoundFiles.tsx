@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
 import {
 	ph,
 	plural,
 } from '@lingui/core/macro';
-import { fileUses } from '@oss-idle/shared/editor/hitsounds';
-import { library } from '../library';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import { useState } from 'react';
+
+import { fileUses } from '@oss-idle/shared/rulesets/mania/editor/hitsounds';
+
 import ConfirmMenu from '../components/ConfirmMenu';
+import { library } from '../library';
 import {
 	pickFile,
 	pickFiles,

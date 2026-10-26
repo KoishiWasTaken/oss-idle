@@ -1,10 +1,8 @@
 import { Trans } from '@lingui/react/macro';
-import {
-	skillDescription,
-	skillName,
-	upgradeLabel,
-} from '@oss-idle/shared/display/skills';
+
 import SkillLevel from '@oss-idle/shared/display/SkillLevel';
+
+import { selectedDef } from '../../rulesets/registry';
 import SkillPerk from '../upgrades/SkillPerk';
 import SkillEquation from './SkillEquation';
 import type { SkillStats } from './skillStats';
@@ -30,13 +28,13 @@ export default function SkillRow({
 	return (
 		<div className={`skill-row ${s.total > 1 ? '' : 'is-base'}`}>
 			<div className="skill-row__skill">
-				<span className="skill-row__name">{skillName(name)}</span>
+				<span className="skill-row__name">{selectedDef().skillName(name)}</span>
 				<span className="skill-row__lv">
 					<Trans>Lv<SkillLevel level={s.level} xp={s.xp} prestige={s.prestige} lifetimeXp={lifetimeXp} /></Trans>
 				</span>
-				<span className="skill-row__desc">{skillDescription(name)}</span>
+				<span className="skill-row__desc">{selectedDef().skillDescription(name)}</span>
 				<span className="skill-row__gear">
-					<span>{upgradeLabel(name, s.upgrades)}</span>
+					<span>{selectedDef().upgradeLabel(name, s.upgrades)}</span>
 					<span className="skill-row__perk">
 						<SkillPerk skill={name} upgrades={s.upgrades} next={s.upgrades} />
 					</span>

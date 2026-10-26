@@ -1,8 +1,5 @@
-import {
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
 import { ScoreXP } from './db/schema/score_xp';
+import { selectedDef } from './rulesets/registry';
 import {
 	UNLOCKS,
 	XP_INSIGHT_TIER,
@@ -18,8 +15,8 @@ export type BeatmapXPInsight = {
 	/** when the play behind the data happened (history source) */
 	playedAt: number;
 	total: number;
-	bySkill: Partial<Record<SkillName, number>>;
-	top?: { skill: SkillName, gained: number };
+	bySkill: Record<string, number>;
+	top?: { skill: string, gained: number };
 };
 
 type XPInsightProvider = {
@@ -35,11 +32,11 @@ const historyProvider: XPInsightProvider = {
 	load: async (characterId) => {
 		const insights = new Map<number, BeatmapXPInsight>();
 		for (const [beatmapId, row] of await ScoreXP.latestByBeatmap(characterId)) {
-			const bySkill: Partial<Record<SkillName, number>> = {};
+			const bySkill: Record<string, number> = {};
 			let total = 0;
 			let top: BeatmapXPInsight['top'];
-			for (const skill of Skills) {
-				const gained = row[skill];
+			for (const skill of selectedDef().skills) {
+				const gained = row.gainOf(skill);
 				if (gained <= 0) continue;
 				bySkill[skill] = gained;
 				total += gained;

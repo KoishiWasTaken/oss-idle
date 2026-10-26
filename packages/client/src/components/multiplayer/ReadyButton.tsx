@@ -1,12 +1,14 @@
-import { useState } from 'react';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
-	matchPlayers,
 	type Match,
+	matchPlayers,
 } from '@oss-idle/shared/multiplayer';
+
 import Multiplayer from '../../online/multiplayer';
 import ConfirmMenu from '../ConfirmMenu';
 import OverChat from './OverChat';

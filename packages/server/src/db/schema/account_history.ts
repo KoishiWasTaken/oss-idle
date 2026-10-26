@@ -6,7 +6,9 @@ import {
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import { SANCTIONS } from '@oss-idle/shared/standing';
+
 import { users } from './user';
 
 /** osu-web's `user_account_history`: every silence and restriction, for the Account Standing. */

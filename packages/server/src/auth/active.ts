@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
+
 import { isRestricted } from '../db/schema/user';
 import { requireAuth } from './middleware';
 

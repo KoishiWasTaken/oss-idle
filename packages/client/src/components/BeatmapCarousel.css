@@ -91,16 +91,18 @@
 .bm-card[data-hover] {
 	--pop-hover: -82px;
 }
-.bm-card.is-active ~ .bm-card {
+/* which side of the active and hovered rows a row is on, set from JS: sibling
+   selectors restyled every mounted card each time one mounted */
+.bm-card[data-active-side="below"] {
 	--shift-active: var(--spread);
 }
-.bm-card:has(~ .bm-card.is-active) {
+.bm-card[data-active-side="above"] {
 	--shift-active: calc(-1 * var(--spread));
 }
-.bm-card[data-hover] ~ .bm-card {
+.bm-card[data-hover-side="below"] {
 	--shift-hover: var(--spread);
 }
-.bm-card:has(~ .bm-card[data-hover]) {
+.bm-card[data-hover-side="above"] {
 	--shift-hover: calc(-1 * var(--spread));
 }
 

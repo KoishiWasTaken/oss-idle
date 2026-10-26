@@ -1,7 +1,9 @@
 import './SupporterBadge.css';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+
 import Link from '../Link';
 
 /** The profile's supporter pill: one heart per support level. */

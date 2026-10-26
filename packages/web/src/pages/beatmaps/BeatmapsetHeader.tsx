@@ -1,28 +1,31 @@
+import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import { ph } from '@lingui/core/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
-import { bignum } from '@oss-idle/shared/display/num';
+
+import { osuSetUrl } from '@oss-idle/shared/beatmap';
 import { dateAgo } from '@oss-idle/shared/display/ago';
 import {
 	difficultyColor,
 	difficultyTextColor,
 	starsText,
 } from '@oss-idle/shared/display/difficulty';
-import { osuSetUrl } from '@oss-idle/shared/beatmap';
-import OutLink from '../../components/OutLink';
-import MapperLink from '../../components/MapperLink';
+import { bignum } from '@oss-idle/shared/display/num';
+
 import {
 	coverBackground,
 	type MapDiff,
 	type Mapset,
 } from '../../api/maps';
-import DifficultyPicker from './DifficultyPicker';
+import MapperLink from '../../components/MapperLink';
+import OutLink from '../../components/OutLink';
 import BeatmapsetStats from './BeatmapsetStats';
+import DifficultyPicker from './DifficultyPicker';
 import DownloadButton from './DownloadButton';
+import MapsetRulesetTabs from './MapsetRulesetTabs';
 
 /** osu!'s beatmap header: the cover, the difficulties, who made it, then its stats. */
 export default function BeatmapsetHeader({ mapset, diff }: { mapset: Mapset; diff: MapDiff }) {
@@ -35,7 +38,8 @@ export default function BeatmapsetHeader({ mapset, diff }: { mapset: Mapset; dif
 	return <div className='mapset__header'>
 		<div className='mapset__cover' style={{ backgroundImage: cover }} />
 		<div className='mapset__main'>
-			<DifficultyPicker setId={set.id} diffs={mapset.diffs} current={diff.id} />
+			<MapsetRulesetTabs setId={set.id} current={mapset.ruleset} rulesets={mapset.rulesets} />
+			<DifficultyPicker setId={set.id} ruleset={mapset.ruleset} diffs={mapset.diffs} current={diff.id} />
 			<div className='mapset__version'>
 				{diff.version}
 				<span className='mapset__stars' style={{

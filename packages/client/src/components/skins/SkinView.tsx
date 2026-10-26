@@ -1,45 +1,51 @@
 import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import {
+	lazy,
+	Suspense,
 	useEffect,
 	useMemo,
 	useState,
 } from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import PageBarActions from '../page/PageBarActions';
-import {
-	editorBarActions,
-	type PageAction,
-} from '../page/pageBar';
+import { z } from 'zod';
+
 import {
 	type SkinCreateBody,
 	type SkinFile,
 	skinUpdateBody,
 } from '@oss-idle/shared/skin';
-import { z } from 'zod';
+
 import {
 	type SkinDetail,
 	skinIconUrl,
 	uploadSkinIcon,
 } from '../../online/skins';
-import type { SkinSource } from '../../osu/skin/OsuSkin';
-import { memorySource } from '../../osu/skin/sources';
 import {
 	manifestOf,
 	readFolder,
 	readOsk,
 	type SkinFiles,
 } from '../../osu/skin/importSkin';
+import type { SkinSource } from '../../osu/skin/OsuSkin';
+import { memorySource } from '../../osu/skin/sources';
 import {
 	pickFile,
 	pickFolder,
 } from '../../pickFile';
 import IconField from '../listing/IconField';
-import SkinReadMeta from './SkinReadMeta';
-import GameplayPreview from './GameplayPreview';
+import {
+	editorBarActions,
+	type PageAction,
+} from '../page/pageBar';
+import PageBarActions from '../page/PageBarActions';
 import SkinContents from './SkinContents';
+import SkinReadMeta from './SkinReadMeta';
 import { useSourceSkin } from './useSourceSkin';
+
+// the engine and the renderer load with the preview, not with the page
+const GameplayPreview = lazy(() => import('./GameplayPreview'));
 
 /** A skin's files and where to read them. */
 export type SkinContent = { files: SkinFile[], source: SkinSource };
@@ -187,7 +193,7 @@ export default function SkinView({
 
 					<div className='skin-view__preview'>
 						<span><Trans>Preview</Trans></span>
-						<GameplayPreview skin={skin} />
+						<Suspense fallback={null}><GameplayPreview skin={skin} /></Suspense>
 					</div>
 				</div>
 

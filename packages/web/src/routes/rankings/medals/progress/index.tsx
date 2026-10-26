@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { getProgressOverview } from '../../../../api/rankings';
 import MedalProgress from '../../../../pages/rankings/MedalProgress';
 

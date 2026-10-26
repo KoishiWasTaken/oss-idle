@@ -2,15 +2,18 @@ import './Medals.css';
 import './AdminList.css';
 import '../search/Search.css';
 import './Emoji.css';
+
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import { emojiNameOf } from '@oss-idle/shared/community/emoji';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
 	addEmoji,
 	listEmoji,

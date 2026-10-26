@@ -1,4 +1,5 @@
 import type { BugStatus } from '@oss-idle/shared/bugs';
+
 import { useBugStatusLabels } from './useBugStatusLabels';
 
 export default function BugStatusPill({ status }: { status: BugStatus }) {

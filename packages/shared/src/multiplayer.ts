@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { rateSchema } from './rate.js';
+
 import { modsSchema } from './mods.js';
+import { rateSchema } from './rate.js';
 import { scoreDTO } from './score.js';
 
 /**

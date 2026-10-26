@@ -17,8 +17,9 @@
  */
 
 import { VERSION } from '@oss-idle/shared/version';
-import { SITE_URL } from '../globals';
+
 import { SETTINGS } from '../db/settings';
+import { SITE_URL } from '../globals';
 import { devTools } from './devTools';
 import { flash } from './flash';
 import {

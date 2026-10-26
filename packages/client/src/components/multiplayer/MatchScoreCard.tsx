@@ -1,8 +1,10 @@
 import { useLingui } from '@lingui/react/macro';
+
 import type { PresenceEntry } from '@oss-idle/shared/community/presence';
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
-import useSmoothNumber from '../../animations/useSmoothNumber';
+
 import { linear } from '../../animations/smoothNumber';
+import useSmoothNumber from '../../animations/useSmoothNumber';
 
 /** standings arrive once a second: the score ticks up steadily between them */
 const SCORE_GLIDE = {

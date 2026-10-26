@@ -1,13 +1,15 @@
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
+
 import Link from './components/Link';
-import { Asset } from './router';
-import { useCurrentUser } from './hooks/useCurrentUser';
 import { useCurrentCharacter } from './hooks/useCurrentCharacter';
+import { useCurrentUser } from './hooks/useCurrentUser';
+import { Asset } from './router';
 
 /** The header's avatar and its menu. A restricted account's avatar is marked, like osu!web's. */
 export default function UserMenu({ open, onOpenChange, onOpen }: {

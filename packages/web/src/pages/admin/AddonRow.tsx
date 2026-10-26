@@ -3,11 +3,12 @@ import {
 	ADDON_STATUS,
 	type AddonStatus,
 } from '@oss-idle/shared/addon';
+import Markdown from '@oss-idle/shared/display/Markdown';
+
 import {
 	addonIconUrl,
 	type AdminAddon,
 } from '../../api/addons';
-import Markdown from '@oss-idle/shared/display/Markdown';
 import AddonRepoLine from './AddonRepoLine';
 import AddonRowCode from './AddonRowCode';
 import { formatDate } from './formatDate';

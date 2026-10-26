@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { renderProfileCard } from '../../server/src/profileCard';
 
 describe('profile card', () => {

@@ -1,7 +1,7 @@
 import {
+	type DependencyList,
 	useEffect,
 	useState,
-	type DependencyList,
 } from 'react';
 
 /**

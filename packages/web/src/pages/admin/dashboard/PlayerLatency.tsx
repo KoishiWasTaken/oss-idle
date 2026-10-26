@@ -1,8 +1,8 @@
 import type { AdminMetrics } from '../../../api/admin';
-import Panel from './Panel';
-import TimeChart from './TimeChart';
 import { ms } from './format';
 import { serverName } from './hosts';
+import Panel from './Panel';
+import TimeChart from './TimeChart';
 
 type Props = { metrics: AdminMetrics };
 

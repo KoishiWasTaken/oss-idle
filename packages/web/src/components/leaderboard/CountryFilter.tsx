@@ -1,10 +1,12 @@
-import useAsync from '@oss-idle/shared/hooks/useAsync';
+import { useLingui } from '@lingui/react/macro';
+
 import { countryName } from '@oss-idle/shared/display/country';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import { getCountries } from '../../api/rankings';
 import { i18n } from '../../i18n';
 import LeaderboardFilters from './LeaderboardFilters';
 import { useFriendsFilter } from './useFriendsFilter';
-import { useLingui } from '@lingui/react/macro';
 
 /** The shared "select a country" filter for the public leaderboards, with the
  *  friends switch beside it. Pulls the live country list from the server so it

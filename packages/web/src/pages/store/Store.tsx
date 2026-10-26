@@ -1,16 +1,19 @@
 import './Store.css';
+
 import { Trans } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
+import { getSupporterStatus } from '../../api/store';
 import Link from '../../components/Link';
 import {
 	useAuthLoaded,
 	useCurrentUser,
 } from '../../hooks/useCurrentUser';
-import { getSupporterStatus } from '../../api/store';
-import SupporterStatus from './SupporterStatus';
-import SupporterTag from './SupporterTag';
 import OrderHistory from './OrderHistory';
 import SupporterPerks from './SupporterPerks';
+import SupporterStatus from './SupporterStatus';
+import SupporterTag from './SupporterTag';
 
 /** The store: the supporter tag, and the account's orders. */
 export default function Store({ tab, paid }: { tab: 'products' | 'orders'; paid: boolean }) {

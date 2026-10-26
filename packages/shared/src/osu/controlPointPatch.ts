@@ -1,6 +1,6 @@
 import {
-	ControlPointInfo,
 	ControlPointGroup,
+	ControlPointInfo,
 } from 'osu-classes';
 
 /**

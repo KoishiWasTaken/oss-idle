@@ -1,11 +1,12 @@
-import { MEDALS } from '@oss-idle/shared/achievements/catalogue';
 import {
-	medalUnlocks,
 	type MedalUnlock,
+	medalUnlocks,
 } from '../achievements/medalUnlocks';
+import { selectedDef } from '../rulesets/registry';
 
 /** built on demand: the names need Lingui's locale, set after load */
-export const medalSamples = (): MedalUnlock[] => medalUnlocks(MEDALS.map(m => m.id));
+export const medalSamples = (): MedalUnlock[] =>
+	medalUnlocks(selectedDef().medals.medals.map(m => m.id));
 
 const pick = (...ids: string[]) => () => medalSamples().filter(m => ids.includes(m.id));
 

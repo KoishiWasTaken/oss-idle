@@ -68,9 +68,43 @@
 }
 
 .mapset__picker-diff span {
-	width: 20px;
-	height: 20px;
-	border-radius: 50%;
+	display: flex;
+	font-size: 22px;
+}
+
+/* osu!'s mode tabs over the picker */
+.mapset__modes {
+	display: flex;
+	gap: 18px;
+	margin-bottom: 8px;
+}
+
+.mapset__mode {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-bottom: 4px;
+	border-bottom: 3px solid transparent;
+	color: hsl(var(--hsl-l1));
+	font-size: 14px;
+	text-decoration: none;
+}
+
+.mapset__mode.active,
+.mapset__mode:hover {
+	border-bottom-color: hsl(var(--hsl-h1));
+	color: hsl(var(--hsl-c1));
+}
+
+.mapset__mode.is-empty {
+	opacity: 0.4;
+}
+
+.mapset__mode-count {
+	padding: 0 6px;
+	border-radius: 999px;
+	background-color: #00000066;
+	font-size: 12px;
 }
 
 .mapset__version {

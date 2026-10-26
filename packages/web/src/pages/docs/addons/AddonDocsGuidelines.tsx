@@ -1,4 +1,5 @@
 import { ADDON_RULES } from '@oss-idle/shared/addonRules';
+
 import Link from '../../../components/Link';
 
 /** The code rules the game enforces, the guidelines, and publishing. */

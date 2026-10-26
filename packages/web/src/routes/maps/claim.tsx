@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { msg } from '@lingui/core/macro';
+import { createFileRoute } from '@tanstack/react-router';
+
 import MapClaims from '../../pages/beatmaps/MapClaims';
 
 export const Route = createFileRoute('/maps/claim')({

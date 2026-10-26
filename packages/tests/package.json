@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run --exclude src/scenarios.test.ts --exclude src/experience.test.ts --exclude src/benchmark.test.ts",
-    "test:watch": "vitest --exclude src/scenarios.test.ts --exclude src/experience.test.ts --exclude src/benchmark.test.ts",
+    "test": "vitest run --exclude src/golden.test.ts --exclude src/scenarios.test.ts --exclude src/experience.test.ts --exclude src/benchmark.test.ts",
+    "test:watch": "vitest --exclude src/golden.test.ts --exclude src/scenarios.test.ts --exclude src/experience.test.ts --exclude src/benchmark.test.ts",
+    "golden": "vitest run src/golden.test.ts",
     "testplay": "vitest run src/scenarios.test.ts",
     "testplay:watch": "vitest src/scenarios.test.ts",
     "testxp": "vitest run src/experience.test.ts",

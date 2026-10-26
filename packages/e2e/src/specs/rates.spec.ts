@@ -1,13 +1,13 @@
 import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
+import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * Playback rates: each Speed upgrade unlocks one step faster and one slower, picked
@@ -18,12 +18,15 @@ test.describe('rates', () => {
 
 	test.beforeEach(async () => {
 		[erin] = await testAccounts('rates');
-		await query('UPDATE `character` SET speed_upgrades = 10 WHERE id = ?', [erin.characterId]);
+		await query(
+			'INSERT INTO mania4k_character (id, speed_upgrades) VALUES (?, 10) ON DUPLICATE KEY UPDATE speed_upgrades = 10',
+			[erin.characterId],
+		);
 	});
 
 	type Row = { rate: string, sr: string | null, score: number };
 	const latestScore = async () => (await query<Row>(
-		'SELECT rate, sr, score FROM score WHERE character_id = ? ORDER BY id DESC LIMIT 1',
+		'SELECT rate, sr, score FROM mania4k_score WHERE character_id = ? ORDER BY id DESC LIMIT 1',
 		[erin.characterId],
 	))[0];
 
@@ -47,7 +50,7 @@ test.describe('rates', () => {
 		await double.click();
 		await expect(page.locator('.rate-stepper__value')).toHaveText('x1.5');
 		await page.keyboard.press('2');
-		await expect(page.locator('.select-footer__active')).toHaveText('x1.5');
+		await expect(page.locator('.is-mods .select-footer__active')).toHaveText('x1.5');
 
 		await game.playCard(version.id);
 		const play = await game.waitForPlay();
@@ -71,9 +74,9 @@ test.describe('rates', () => {
 		await game.start();
 		await page.keyboard.press('Control+Equal');
 		await page.keyboard.press('Control+Equal');
-		await expect(page.locator('.select-footer__active')).toHaveText('x1.1');
+		await expect(page.locator('.is-mods .select-footer__active')).toHaveText('x1.1');
 		for (let i = 0; i < 4; i++) await page.keyboard.press('Control+Minus');
-		await expect(page.locator('.select-footer__active')).toHaveText('x0.9');
+		await expect(page.locator('.is-mods .select-footer__active')).toHaveText('x0.9');
 		// the cards follow the rate
 		const { set, version } = await game.installEasiest();
 		await game.search(set.title);

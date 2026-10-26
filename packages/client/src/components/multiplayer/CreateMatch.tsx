@@ -1,14 +1,14 @@
 import { ph } from '@lingui/core/macro';
 import {
-	useRef,
-	useState,
-} from 'react';
-import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
-import OverChat from './OverChat';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useRef,
+	useState,
+} from 'react';
+
+import Log from '@oss-idle/shared/helpers/log';
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 import {
@@ -17,12 +17,14 @@ import {
 	MAX_SLOTS,
 	MIN_SLOTS,
 } from '@oss-idle/shared/multiplayer';
-import Log from '@oss-idle/shared/helpers/log';
-import Checkbox from '../options/controls/Checkbox';
-import Dropdown from '../dropdown/Dropdown';
+
 import Entities from '../../entity/entities';
+import useKeyboardOwner, { LAYER } from '../../input/keyboardOwner';
 import Multiplayer from '../../online/multiplayer';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import Dropdown from '../dropdown/Dropdown';
+import Checkbox from '../options/controls/Checkbox';
+import OverChat from './OverChat';
 
 const SIZES = Array.from({ length: MAX_SLOTS - MIN_SLOTS + 1 }, (_, i) => i + MIN_SLOTS);
 

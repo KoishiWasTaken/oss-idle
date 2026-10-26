@@ -1,18 +1,24 @@
 import './MapsetDiffsPopup.css';
+
 import {
 	useEffect,
 	useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+
 import type { PanelDiff } from '@oss-idle/shared/beatmap';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import DifficultyBadge from './DifficultyBadge';
-import ManiaIcon from './ManiaIcon';
 import Link from './Link';
+import ModeIcon from './ModeIcon';
 
 export const POPUP_FADE_MS = 150;
 
 type Props = {
 	setId: number,
+	/** the ruleset the difficulties are in */
+	ruleset: RulesetId,
 	diffs: PanelDiff[],
 	/** the panel it opens under */
 	anchor: HTMLElement | null,
@@ -23,7 +29,7 @@ type Props = {
 
 /** osu!web's difficulty list under a set's panel, easiest first: each one links to it. */
 export default function MapsetDiffsPopup({
-	setId, diffs, anchor, visible, onEnter, onLeave,
+	setId, ruleset, diffs, anchor, visible, onEnter, onLeave,
 }: Props) {
 	const [mounted, setMounted] = useState(false);
 	const [opaque, setOpaque] = useState(false);
@@ -64,10 +70,12 @@ export default function MapsetDiffsPopup({
 							key={diff.id}
 							to='/maps/$id'
 							params={{ id: String(setId) }}
-							search={{ diff: diff.id }}
+							search={{
+								ruleset, diff: diff.id,
+							}}
 							className='beatmaps-popup-item'
 						>
-							<span className='beatmaps-popup-item__icon'><ManiaIcon /></span>
+							<span className='beatmaps-popup-item__icon'><ModeIcon ruleset={ruleset} /></span>
 							<DifficultyBadge stars={diff.sr} />
 							<span className='beatmaps-popup-item__version'>{diff.version}</span>
 						</Link>

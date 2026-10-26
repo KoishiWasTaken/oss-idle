@@ -1,7 +1,7 @@
 import DockQueueButton from './DockQueueButton';
 import DockTransport from './DockTransport';
-import DockUpNext from './DockUpNext';
 import DockUpgradesButton from './DockUpgradesButton';
+import DockUpNext from './DockUpNext';
 
 type Props = {
 	/** the scene under it has a bottom bar to stay clear of */

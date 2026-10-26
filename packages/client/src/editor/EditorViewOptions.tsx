@@ -2,32 +2,37 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
+import { SETTINGS } from '../db/settings';
+import type LightBeatmap from '../osu/beatmap/LightBeatmap';
+import EditorLiveMapping from './EditorLiveMapping';
+import EditorPlacingOptions from './EditorPlacingOptions';
+import type EditorSession from './session';
 import {
+	type Choice,
 	choices,
 	slider,
-	type Choice,
+	toggle,
 } from './viewControls';
-import EditorPlacingOptions from './EditorPlacingOptions';
-import EditorLiveMapping from './EditorLiveMapping';
-import type EditorSession from './session';
-import type LightBeatmap from '../osu/beatmap/LightBeatmap';
-import {
-	currentVisuals,
-	visualOptions,
-} from './visualSetting';
 import type {
 	FieldOptions,
 	FrequencyScale,
 	VisualOptions,
 	WaveformFilter,
 } from './visualOptions';
+import {
+	currentVisuals,
+	visualOptions,
+} from './visualSetting';
 
 /** The view tab: how the field is drawn (as Quaver's view menu), and the song behind it
  *  (waveform, spectrogram). */
 export default function EditorViewOptions({ session }: { session: EditorSession }) {
 	const { t } = useLingui();
 	useSynced(visualOptions);
+	const [preview] = useSynced(SETTINGS.editorPreview);
 	useSynced(session.revision);
 	const others: Choice<LightBeatmap | undefined>[] = [
 		[undefined, t`None`],
@@ -51,7 +56,6 @@ export default function EditorViewOptions({ session }: { session: EditorSession 
 			...spectrogram, ...patch, 
 		}, 
 	});
-	const onOff: Choice<boolean>[] = [[true, t`On`], [false, t`Off`]];
 	const filters: Choice<WaveformFilter>[] = [['none', t`None`], ['low', t`Lows`], ['high', t`Highs`]];
 	const details: Choice<number>[] = [
 		[512, t`Fast`], [1024, t`Normal`], [2048, t`Fine`], [4096, t`Finest`],
@@ -81,6 +85,10 @@ export default function EditorViewOptions({ session }: { session: EditorSession 
 	return (
 		<>
 			<div className='editor__commands-group'><Trans>Field</Trans></div>
+			<div className='editor__stat editor__switches'>
+				{toggle(<Trans>Live preview</Trans>, preview, on => void SETTINGS.editorPreview.set(on))}
+				{toggle(<Trans>Bookmarks</Trans>, field.bookmarks, bookmarks => setField({ bookmarks }))}
+			</div>
 			{others.length > 1 && (
 				<div className='editor__stat'>
 					<span className='ladder-sum__label'><Trans>Reference difficulty</Trans></span>
@@ -105,17 +113,12 @@ export default function EditorViewOptions({ session }: { session: EditorSession 
 				<span className='ladder-sum__label'><Trans>Beat lines</Trans></span>
 				{choices(lineColours, field.snapColours, snapColours => setField({ snapColours }))}
 			</div>
-			<div className='editor__stat'>
-				<span className='ladder-sum__label'><Trans>Bookmarks</Trans></span>
-				{choices(onOff, field.bookmarks, bookmarks => setField({ bookmarks }))}
-			</div>
 
 			<EditorPlacingOptions />
 
 			<div className='editor__commands-group'><Trans>Waveform</Trans></div>
-			<div className='editor__stat'>
-				<span className='ladder-sum__label'><Trans>Show</Trans></span>
-				{choices(onOff, waveform.visible, visible => setWaveform({ visible }))}
+			<div className='editor__stat editor__switches'>
+				{toggle(<Trans>Show</Trans>, waveform.visible, visible => setWaveform({ visible }))}
 			</div>
 			<div className='editor__stat'>
 				<span className='ladder-sum__label'><Trans>Brightness</Trans></span>
@@ -137,9 +140,8 @@ export default function EditorViewOptions({ session }: { session: EditorSession 
 			</div>
 
 			<div className='editor__commands-group'><Trans>Spectrogram</Trans></div>
-			<div className='editor__stat'>
-				<span className='ladder-sum__label'><Trans>Show</Trans></span>
-				{choices(onOff, spectrogram.visible, visible => setSpectrogram({ visible }))}
+			<div className='editor__stat editor__switches'>
+				{toggle(<Trans>Show</Trans>, spectrogram.visible, visible => setSpectrogram({ visible }))}
 			</div>
 			{spectrogram.visible && <>
 				<div className='editor__stat'>

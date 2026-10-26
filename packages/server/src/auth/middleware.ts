@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { createMiddleware } from 'hono/factory';
 import { getCookie } from 'hono/cookie';
+import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
+
 import { verifySession } from './jwt';
 
 export const SESSION_COOKIE = 'session';

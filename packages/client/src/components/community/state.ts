@@ -1,10 +1,11 @@
-import Synced from '@oss-idle/shared/helpers/synced';
+import type { PresenceEntry } from '@oss-idle/shared/community/presence';
+import type { ChatLine } from '@oss-idle/shared/community/wire';
 import {
 	mapped,
 	type ValueIn,
 } from '@oss-idle/shared/helpers/mapped';
-import type { PresenceEntry } from '@oss-idle/shared/community/presence';
-import type { ChatLine } from '@oss-idle/shared/community/wire';
+import Synced from '@oss-idle/shared/helpers/synced';
+
 import { Setting } from '../../db/settings';
 import { isCommunityOpen } from '../../globals';
 import {

@@ -1,15 +1,17 @@
-import { useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import Log from '@oss-idle/shared/helpers/log';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import Button from './controls/Button';
-import DownloadAllWarning from './DownloadAllWarning';
+
 import type { Metadata } from '../../osu/beatmap/beatmap_api';
 import {
 	bulkDownload,
 	missingSets,
 	stopDownloadAll,
 } from '../../osu/beatmap/downloadAll';
+import Button from './controls/Button';
+import DownloadAllWarning from './DownloadAllWarning';
 
 /** oss!supporter: every bundled or every ranked beatmap in one go, after a warning
  *  on its size. */

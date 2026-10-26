@@ -1,4 +1,5 @@
 import type { PrivateMessage as Message } from '@oss-idle/shared/community/wire';
+
 import {
 	DAO,
 	integer,

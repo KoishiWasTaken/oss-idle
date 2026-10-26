@@ -2,9 +2,10 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
+import { coverBackground } from '../../api/maps';
 import MatchGameScore from './MatchGameScore';
 import type { HistoryGame } from './types';
-import { coverBackground } from '../../api/maps';
 
 /** A map played in the match: its cover, when, and every player's score. */
 export default function MatchGame({ game }: { game: HistoryGame }) {

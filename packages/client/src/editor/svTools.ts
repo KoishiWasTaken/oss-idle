@@ -4,7 +4,7 @@ import {
 	scrollBeatLength,
 	snapLines,
 	type TimingPoint,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
 
 /** A stretch of song time, [from, to]. */
 export type Range = { from: number, to: number };

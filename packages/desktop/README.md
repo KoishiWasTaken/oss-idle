@@ -92,9 +92,21 @@ is **user-initiated**, reusing the client's existing version poll:
    *Restart & install*, driven by `update.onStatus` and ending in `quitAndInstall`.
 
 `autoDownload` is off (the player chooses); a fetched update also auto-applies on
-the next quit. Auto-update only runs in packaged builds. **Signing note:** macOS
+the next quit. On Windows *Restart & install* runs the installer with `--force-run`: it
+shows only a small "updating" window with its progress bar, then starts the
+game (it also un-silences the `/S --force-run` older builds ask for). An update applied
+on quit stays silent. Auto-update only runs in packaged builds. **Signing note:** macOS
 auto-update requires a signed + notarized app; Windows NSIS updates work unsigned
 (with a SmartScreen prompt) - sign for production.
+
+## Installer (Windows)
+
+The NSIS installer is electron-builder's assisted one with its window replaced by our
+own screens (`installer.nsh`): a borderless 720x420 window with welcome (install folder),
+installing and ready (play, desktop shortcut) pages, and a 460x150 window for updates. Each page is a bitmap rendered from
+`build/installer/art.html` by `build/installer/render.mjs`, which also prints the
+hotspots `installer.nsh` places its controls on; re-render and update those numbers
+together. The uninstaller keeps the one-click confirm-and-go.
 
 ## Moving the install (Windows)
 

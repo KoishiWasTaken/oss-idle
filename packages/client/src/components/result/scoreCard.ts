@@ -2,19 +2,21 @@ import {
 	ph,
 	t,
 } from '@lingui/core/macro';
-import accuracy from '@oss-idle/shared/display/accuracy';
-import type { Mod } from '@oss-idle/shared/mods';
-import { MOD_LOOK } from '@oss-idle/shared/display/mods';
-import { rateShort } from '../mods/rateShort';
-import num, { bignum } from '@oss-idle/shared/display/num';
+
 import {
-	GLYPHS,
 	type GlyphName,
+	GLYPHS,
 } from '@oss-idle/shared/achievements/glyphs';
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import type Skin from '../../osu/skin/Skin';
+import accuracy from '@oss-idle/shared/display/accuracy';
+import { MOD_LOOK } from '@oss-idle/shared/display/mods';
+import num, { bignum } from '@oss-idle/shared/display/num';
+import type { Mod } from '@oss-idle/shared/mods';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import { drawHpGraph } from '../../gameplay/drawHpGraph';
 import { drawDevianceGraph } from '../../gameplay/hitError';
+import type Skin from '../../osu/skin/Skin';
+import { rateShort } from '../mods/rateShort';
 
 export type ScoreCard = {
 	title?: string,

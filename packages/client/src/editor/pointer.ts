@@ -1,5 +1,5 @@
-import { shifted } from '@oss-idle/shared/editor/edits';
-import type { Note } from '@oss-idle/shared/editor/chart';
+import type { Note } from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import type { Overlay } from './painter';
 import type EditorSession from './session';
 
@@ -10,12 +10,13 @@ export type PointerAt = { column: number, x: number, time: number, inside: boole
 type Drag =
 	| { kind: 'place', column: number, time: number, end?: number }
 	| { kind: 'box', from: number, ahead: number, x: number, toX: number, add: boolean }
-	| { kind: 'move', time: number, column: number, dt: number, dc: number }
+	| { kind: 'move', time: number, column: number, dt: number, dc: number, keepOffset: boolean }
 	| { kind: 'resize', note: Note, end: number };
 
 /**
  * What the mouse does to the chart, by the session's tool. Select: click a note to
- * select it (ctrl adds it or takes it out) and drag to move the selection; drag a long
+ * select it (ctrl adds it or takes it out) and drag to move the selection onto the beat
+ * lines (shift keeps each note's offset from them); drag a long
  * note's end to resize it; drag from an empty spot for a box (ctrl adds to the selection).
  * Note: click to place a note, on a note to remove it. Note + LN: the same, and drag up
  * for a long note. With any tool, a drag from outside the columns is a box, and a right
@@ -37,11 +38,14 @@ export default class EditorPointer {
 	private readonly box = {
 		from: 0, ahead: 0, left: 0, right: 0,
 	};
-	private moved?: { dt: number, dc: number, selected: Set<Note>, of: Note[], notes: Note[] };
+	private moved?: {
+		dt: number, dc: number, keepOffset: boolean, selected: Set<Note>, of: Note[], notes: Note[],
+	};
 
 	public overlay(): Overlay {
 		const shown = this.shown;
 		shown.ghost = shown.box = shown.moving = undefined;
+		shown.point = this.session.hoveredPoint.get();
 		const drag = this.drag;
 		switch (drag?.kind) {
 			case 'place':
@@ -55,7 +59,7 @@ export default class EditorPointer {
 				this.box.right = Math.max(drag.x, drag.toX);
 				return shown;
 			case 'move':
-				shown.moving = this.movedBy(drag.dt, drag.dc);
+				shown.moving = this.movedBy(drag.dt, drag.dc, drag.keepOffset);
 				return shown;
 			case 'resize':
 				shown.moving = this.resized(drag.note, drag.end);
@@ -83,14 +87,15 @@ export default class EditorPointer {
 	}
 
 	/** The selection shifted by the drag, worked out again only when the drag moves. */
-	private movedBy(dt: number, dc: number): Note[] {
+	private movedBy(dt: number, dc: number, keepOffset: boolean): Note[] {
 		const { selected, notes: of } = this.session;
 		const moved = this.moved;
-		if (moved?.dt === dt && moved.dc === dc && moved.selected === selected && moved.of === of) {
+		if (moved?.dt === dt && moved.dc === dc && moved.keepOffset === keepOffset
+			&& moved.selected === selected && moved.of === of) {
 			return moved.notes;
 		}
 		this.moved = {
-			dt, dc, selected, of, notes: shifted(this.session.selection, dt, dc),
+			dt, dc, keepOffset, selected, of, notes: this.session.shiftedSelection(dt, dc, keepOffset),
 		};
 		return this.moved.notes;
 	}
@@ -134,7 +139,7 @@ export default class EditorPointer {
 		}
 		if (!this.session.selected.has(note)) this.session.select([note]);
 		this.drag = {
-			kind: 'move', time: this.session.snap(at.time), column: at.column, dt: 0, dc: 0,
+			kind: 'move', time: this.session.snap(at.time), column: at.column, dt: 0, dc: 0, keepOffset: false,
 		};
 	}
 
@@ -143,13 +148,13 @@ export default class EditorPointer {
 	}
 
 	/** Follow the pointer; returns whether what the drag shows changed. */
-	public move(at: PointerAt): boolean {
+	public move(at: PointerAt, shift: boolean): boolean {
 		this.hover = at;
 		const drag = this.drag;
 		switch (drag?.kind) {
 			case 'place': return this.placeTo(drag, at);
 			case 'box': return this.boxTo(drag, at);
-			case 'move': return this.moveTo(drag, at);
+			case 'move': return this.moveTo(drag, at, shift);
 			case 'resize': return this.resizeTo(drag, at);
 		}
 		return false;
@@ -172,12 +177,13 @@ export default class EditorPointer {
 		return changed;
 	}
 
-	private moveTo(drag: Extract<Drag, { kind: 'move' }>, at: PointerAt): boolean {
+	private moveTo(drag: Extract<Drag, { kind: 'move' }>, at: PointerAt, keepOffset: boolean): boolean {
 		const dt = this.session.snap(at.time) - drag.time;
 		const dc = this.session.columnShift(at.column - drag.column);
-		const changed = dt !== drag.dt || dc !== drag.dc;
+		const changed = dt !== drag.dt || dc !== drag.dc || keepOffset !== drag.keepOffset;
 		drag.dt = dt;
 		drag.dc = dc;
+		drag.keepOffset = keepOffset;
 		return changed;
 	}
 
@@ -201,7 +207,7 @@ export default class EditorPointer {
 			const to = this.session.now() + box.ahead;
 			this.session.selectBox(Math.min(box.from, to), Math.max(box.from, to), first, last, drag.add);
 		} else if (drag?.kind === 'move' && (drag.dt || drag.dc)) {
-			this.session.moveSelection(drag.dt, drag.dc);
+			this.session.moveSelection(drag.dt, drag.dc, drag.keepOffset);
 		} else if (drag?.kind === 'resize') {
 			this.session.resizeHold(drag.note, drag.end);
 		}

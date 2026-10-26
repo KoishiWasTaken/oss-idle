@@ -15,6 +15,7 @@ vi.mock('../../server/src/env', () => ({
 	},
 	clientUrl: 'https://game',
 	redisKeyPrefix: 'test:',
+	isProd: false,
 }));
 vi.mock('../../server/src/redis', () => ({
 	redis: {

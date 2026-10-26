@@ -1,8 +1,9 @@
 import { useNavigate } from '@tanstack/react-router';
+
+import type { getMedalRanking } from '../../api/rankings';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
 import MedalBoardTabs from '../../components/leaderboard/MedalBoardTabs';
 import PlayerMedalLeaderboard from '../../components/leaderboard/PlayerMedalLeaderboard';
-import type { getMedalRanking } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 type Players = Awaited<ReturnType<typeof getMedalRanking>>;

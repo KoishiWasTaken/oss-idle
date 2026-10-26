@@ -1,148 +1,103 @@
 import { randomUUID } from 'node:crypto';
-import { count } from './metrics';
-import '@oss-idle/shared/osu/controlPointPatch';
-import { BeatmapDecoder } from 'osu-parsers';
+
 import {
-	LEAD_IN_MS,
-	ManiaGame,
-	unstableRate,
-	type ReplayOffset,
-} from '@oss-idle/shared/sim/maniaGame';
-import CharacterBot from '@oss-idle/shared/sim/bots/character';
-import { makeOrderedSkills } from '@oss-idle/shared/sim/skills/factory';
-import { hasUnlock } from '@oss-idle/shared/rebirth';
+	STATUS,
+	type Status,
+} from '@oss-idle/shared/community/presence';
+import type { Grade } from '@oss-idle/shared/grade';
 import {
-	MINDBLOCK_SKILLS,
-	PHYSICAL_SKILLS,
-	Skills,
-	type SkillName,
-} from '@oss-idle/shared/skills';
-import {
-	boardDifficulty,
-	hasUnrankedBoard,
-	recordUnrankedScore,
-} from './beatmaps/unrankedBoard';
-import {
-	compareGradeGT,
-	compareGradeGTE,
-	GRADE,
-	Judgements,
-	type Grade,
-	type Judgement,
-} from '@oss-idle/shared/judgement';
-import type { ScoreDTO } from '@oss-idle/shared/score';
+	cleanMods,
+	isRankedMods,
+	type Mod,
+	modsKey,
+	parseMods,
+	retriesOnFail,
+} from '@oss-idle/shared/mods';
 import type {
 	PlayDeltas,
 	PlayResult,
 	PlayState,
 } from '@oss-idle/shared/play';
-import {
-	getCharacterById,
-	type CharacterRow,
-} from './db/schema/character';
-import { isRestricted } from './db/schema/user';
-import { getCharacterTotals } from './db/schema/character_totals';
-import {
-	bestGradeOn,
-	type NewScoreRow,
-	type ScoreRow,
-} from './db/schema/score';
-import Memory from '@oss-idle/shared/sim/skills/memory';
-import {
-	calculatePP,
-	starsAt,
-} from './pp';
-import { allowedRate } from '@oss-idle/shared/rate';
-import {
-	cleanMods,
-	countsForMedals,
-	isRankedMods,
-	modXp,
-	modsKey,
-	parseMods,
-	retriesOnFail,
-	type Mod,
-} from '@oss-idle/shared/mods';
-import { xpScore } from '@oss-idle/shared/sim/xpScore';
+import { LEAD_IN_MS } from '@oss-idle/shared/play';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+import type { ScoreDTO } from '@oss-idle/shared/score';
+
 import {
 	getBeatmap,
 	getLiveBeatmap,
 } from './beatmaps';
-import { update as updatePresence } from './ws/presence';
+import {
+	boardDifficulty,
+	hasUnrankedBoard,
+	recordUnrankedScore,
+} from './beatmaps/unrankedBoard';
+import { applyPendingAction } from './character/pending';
+import { pushCharacter } from './character/push';
+import { playerFor } from './character/ruleset';
+import {
+	type CharacterRow,
+	profileOf,
+} from './db/schema/character';
+import { getCharacterTotals } from './db/schema/character_totals';
+import {
+	type NewScoreRow,
+	type ScoreRow,
+	toScoreDTO,
+} from './db/schema/score';
+import { isRestricted } from './db/schema/user';
+import {
+	isProd,
+	redisKeyPrefix,
+} from './env';
+import { addFatigue } from './fatigue';
+import { awardMedals } from './medals';
+import { count } from './metrics';
+import {
+	calculatePP,
+	starsAt,
+} from './pp';
 import { playEnded } from './queue';
-import { hub } from './ws/hub';
-import {
-	STATUS,
-	type Status,
-} from '@oss-idle/shared/community/presence';
-import { getPlays } from './db/schema/beatmaps_played';
-import {
-	mindblockFactor,
-	recentMapPlays,
-} from './mindblock';
-import {
-	addFatigue,
-	playStrain,
-} from './fatigue';
-import {
-	fatigueLevel,
-	fatigueXp,
-	restedFatigue,
-	tireSkill,
-	warmup,
-	warmupBar,
-	warmupTrend,
-} from '@oss-idle/shared/fatigue';
-import {
-	applySkillXp,
-	submitScore,
-} from './scores';
 import {
 	globalRank,
 	reindexBeatmap,
 	reindexCharacter,
 } from './rankings';
-import {
-	isProd,
-	redisKeyPrefix,
-} from './env';
 import { redis } from './redis';
-import { applyPendingAction } from './character/pending';
-import { pushCharacter } from './character/push';
+import type { PlaySample } from './rulesets/play';
 import {
-	awardMedals,
-	medalMultiplier,
-} from './medals';
-import type { Beatmap } from 'osu-classes';
-import type { ScoreState } from '@oss-idle/shared/sim/scoring';
+	rulesetFor,
+	rulesetOfChart,
+} from './rulesets/registry';
+import type { ServerRuleset } from './rulesets/ruleset';
+import {
+	applySkillXp,
+	submitScore,
+} from './scores';
+import { hub } from './ws/hub';
+import { update as updatePresence } from './ws/presence';
+
+export type { PlaySample };
 
 /** A finished play's result stays fetchable this long (resume / cross-tab). */
 const RESULT_TTL_MS = 10 * 60 * 1000;
 const RESULT_BREATH_TTL_MS = 5 * 1000;
 const ONLINE_TTL = 60 * 60 * 1000;
 
-const decoder = new BeatmapDecoder();
-
 /** How far ahead of the live position the client may know its replay. The client
  *  streams offsets in; the server reveals only those whose note is within this
  *  window of the live position, so a cheater can't read the whole outcome up front. */
 const STREAM_BUFFER_MS = 5000;
 
-/** Song-time gap between the checkpoints kept for the live poll and the
- *  multiplayer scoreboard. */
-const SAMPLE_STEP_MS = 250;
-
-/** [song time, accuracy, grade, score, combo, failed] - a failed play's score
- *  and combo stay where they were when it failed. */
-export type PlaySample = [number, number, Grade, number?, number?, boolean?];
-
 /** A play's full server-side state. `offsets`/`reveals` are parallel and sorted by
  *  reveal time (the offset's note nominal time), so streaming is a simple cursor. */
 type Pending = {
 	token: string,
+	/** the map's ruleset: the play scores, levels and ranks there */
+	ruleset: RulesetId,
 	characterId: number,
 	beatmapId: number,
-	offsets: ReplayOffset[],
+	/** read only by the ruleset's client */
+	offsets: unknown[],
 	reveals: number[],
 	startedAt: number,
 	/** when the play really ends: a failed one, at its fail. Never sent out */
@@ -151,7 +106,7 @@ type Pending = {
 	/** the map's last note, where every viewer is told the play ends */
 	songEndMs?: number,
 	draft: NewScoreRow,
-	skillXp: Record<SkillName, number>,
+	skillXp: Record<string, number>,
 	/** the play's minutes and those its physical skills were strained, for fatigue once it pays */
 	strain?: { minutes: number, strained: number },
 	/** how tired the character played it, 0 rested to 1 exhausted */
@@ -183,7 +138,7 @@ type Gains = Awaited<ReturnType<typeof applySkillXp>>;
 /** The finished result. `notify` drives the one-shot idle-poll popup: true only
  *  when finalised server-side (the sweep), so a result a client already saw on
  *  its own result screen isn't re-surfaced as a "missed" score. */
-type StoredResult =
+type StoredResult = { ruleset: RulesetId, player: number } & (
 	| { token: string; failed: true; notify: boolean; failProgress?: number; failSeconds?: number }
 	| {
 		token: string;
@@ -192,7 +147,15 @@ type StoredResult =
 		gains: Gains;
 		deltas: PlayDeltas;
 		notify: boolean;
-	};
+	});
+
+/** A result before it is stored with its ruleset. */
+type ParsedResult = StoredResult extends infer T
+	? T extends unknown ? Omit<T, 'ruleset' | 'player'> : never
+	: never;
+
+/** Plays and results stored before rulesets were 4K ones. */
+const BEFORE_RULESETS = { ruleset: 'mania4k' } as const;
 
 const PLAYING_KEY = `${redisKeyPrefix}playing`;
 const ONLINE_KEY = `${redisKeyPrefix}online`;
@@ -291,11 +254,11 @@ return out
 /** Debug xp scaling, applied once as the play is stored so every later read -
  *  result screen, totals, rankings - agrees on what the play was worth. */
 const scaleXp = (
-	xp: Record<SkillName, number>,
+	xp: Record<string, number>,
 	multiplier: number,
-): Record<SkillName, number> => {
+): Record<string, number> => {
 	if (multiplier <= 1) return xp;
-	for (const name of Object.keys(xp) as SkillName[]) xp[name] = Math.floor(xp[name] * multiplier);
+	for (const name of Object.keys(xp)) xp[name] = Math.floor(xp[name] * multiplier);
 	return xp;
 };
 
@@ -315,13 +278,14 @@ export async function getOnline(): Promise<number> {
 }
 
 type OffsetChunk = {
-	offsets: ReplayOffset[],
+	offsets: unknown[],
 	next: number,
 	done: boolean,
 };
 
 type RankedStartPlayResult = {
 	status: 'ranked',
+	ruleset: RulesetId,
 	joined: boolean,
 	token: string,
 	/** what is actually being played - a join can differ from the requested map */
@@ -354,32 +318,6 @@ type StartPlayResult = RankedStartPlayResult
 	| { status: 'refused' }
 	| { status: 'restricted' };
 
-/** Build the character's skills, loaded with their level/XP (and play count for
- *  Memory) so the simulation runs at the character's current state, tired. */
-export async function loadCharacterSkills(
-	character: CharacterRow,
-	beatmapId: number,
-	/** how tired the character is, 0 rested to 1 exhausted */
-	fatigue = 0,
-	/** how warmed up, 0 cold to 1 warm */
-	warm = 1,
-) {
-	const skills = makeOrderedSkills();
-	for (const skill of skills) {
-		skill.level.set(character[`${skill.name}Level`]);
-		skill.xp.set(character[`${skill.name}Xp`]);
-		skill.upgrades.set(character[`${skill.name}Upgrades`]);
-		skill.overdrive.set(character[`${skill.name}Overdrive`]);
-		skill.prestige.set(character[`${skill.name}Prestige`]);
-		tireSkill(skill, fatigue, warm);
-
-		if (skill instanceof Memory) {
-			skill.timesPlayed.set(await getPlays(character.id, beatmapId));
-		}
-	}
-	return skills;
-}
-
 /** When each character's play ends - moved by a skip or a debug finish - or
  *  undefined once it is over. */
 export const playEnds = async (characterIds: number[]): Promise<(number | undefined)[]> => {
@@ -390,14 +328,18 @@ export const playEnds = async (characterIds: number[]): Promise<(number | undefi
 };
 
 /** A live play's start and checkpoints, for the multiplayer scoreboard. */
-type Timeline = Pick<Pending, 'startedAt' | 'endsAt' | 'samples' | 'draft' | 'failedAt'>;
+type Timeline = Pick<
+	Pending, 'ruleset' | 'startedAt' | 'endsAt' | 'samples' | 'draft' | 'failedAt'
+>;
 export const playTimeline = async (characterId: number): Promise<Timeline | undefined> =>
 	readPlay(characterId);
 
 /** Read the active play (if any) without claiming it. */
 async function readPlay(characterId: number): Promise<Pending | undefined> {
 	const raw = await redis.get(playKey(characterId));
-	return raw ? (JSON.parse(raw) as Pending) : undefined;
+	return raw ? {
+		...BEFORE_RULESETS, ...JSON.parse(raw) as Pending, 
+	} : undefined;
 }
 
 /** True while the character has a live (not-yet-ended) play. */
@@ -429,6 +371,7 @@ const modsOf = (p: Pending): Mod[] => parseMods(p.draft.mods);
 
 const joinResult = (p: Pending): StartPlayResult => ({
 	status: 'ranked',
+	ruleset: p.ruleset,
 	joined: true,
 	token: p.token,
 	beatmapId: p.beatmapId,
@@ -440,7 +383,7 @@ const joinResult = (p: Pending): StartPlayResult => ({
 	fatigue: p.fatigue ?? 0,
 	warmup: p.warmup ?? 1,
 	warmupBar: p.warmupBar,
-	warmupTrend: p.strain && warmupTrend(p.strain.minutes, p.strain.strained),
+	warmupTrend: p.strain && rulesetFor(p.ruleset).play.warmupTrend(p.strain),
 	...chunkFrom(p, 0),
 });
 
@@ -475,19 +418,26 @@ export type PlayOptions = {
 	board?: boolean,
 };
 
-/** How tired and warmed up the character plays right now. */
-const tiredness = (character: CharacterRow) => {
-	const tired = restedFatigue(character.fatigue ?? undefined, Date.now());
-	return {
-		fatigue: fatigueLevel(tired),
-		warmup: warmup(tired, character.staminaUpgrades),
-		warmupBar: warmupBar(tired, character.staminaUpgrades),
+/** How tired and warmed up the character plays right now, in a ruleset. */
+const tiredness = async (r: ServerRuleset, character: CharacterRow) =>
+	r.play.tiredness(await profileOf(r, character.id));
+
+/** A local play: tired as the character is in the map's ruleset, or the one it picked. */
+const unranked = async (character: CharacterRow, r = rulesetFor(character.ruleset)) => ({
+	status: 'unranked' as const, ...await tiredness(r, character),
+});
+
+/** The ruleset that plays the map, and the character that plays it for `character`: a
+ *  reborn character's other rulesets are played by an earlier one, for this play. None
+ *  when no ruleset here plays the map (it is the client's own) or no character may. */
+const whoPlays = async (character: CharacterRow, beatmapId: number) => {
+	const chart = await getBeatmap(beatmapId);
+	const r = chart && rulesetOfChart(chart.mode, chart.keys);
+	const player = r && await playerFor(character, r);
+	return r && player && {
+		r, player,
 	};
 };
-
-const unranked = (character: CharacterRow) => ({
-	status: 'unranked' as const, ...tiredness(character),
-});
 
 export async function startPlay(
 	character: CharacterRow,
@@ -504,6 +454,10 @@ export async function startPlay(
 	// a solo NF play is the client's own, like any unranked one
 	const mods = cleanMods(options.mods ?? []);
 	if (!options.round && !isRankedMods(mods)) return unranked(character);
+
+	const who = await whoPlays(character, beatmapId);
+	if (!who) return unranked(character);
+	const { r, player } = who;
 
 	// Provisional 60s lock so a near-simultaneous cold start is held off while
 	// this one simulates. Atomic across workers (see ACQUIRE_PLAY).
@@ -529,200 +483,91 @@ export async function startPlay(
 		);
 		return { status: 'refused' };
 	}
+	const profile = await profileOf(r, player.id);
 	const play = {
-		...options, mods, rate: allowedRate(options.rate ?? 1, character.speedUpgrades),
+		...options, mods, rate: r.play.allowedRate(profile, options.rate ?? 1),
 	};
-	const beatmap = await getLiveBeatmap(beatmapId);
-	if (beatmap) return simulateAndStore(character, beatmapId, beatmap, play);
+	const beatmap = await getLiveBeatmap(r, beatmapId);
+	if (beatmap) return simulateAndStore(r, character, player, beatmapId, beatmap, play);
 	// A player's unranked map with a leaderboard (or one a supporter opens) plays like a
 	// ranked one, onto that board only.
 	const board = await boardDifficulty(beatmapId, character.userId);
 	if (board) {
-		return simulateAndStore(character, beatmapId, board, {
+		return simulateAndStore(r, character, player, beatmapId, board, {
 			...play, board: true,
 		});
 	}
 	// Any other unranked diff, or one whose set isn't live, plays like an unknown map: local play, no submit.
 	await redis.zrem(PLAYING_KEY, String(character.id));
-	return unranked(character);
+	return unranked(character, r);
 }
 
-/** The xp a finished play is worth: mindblock and the bonus for a first X.
- *  Exported so the score replay awards xp by the same rules a live play does,
- *  rather than keeping a second copy of them. */
-export const getServerXP = async (
-	character: CharacterRow,
-	bot: CharacterBot,
-	beatmap: Awaited<ReturnType<typeof getBeatmap>>,
-	chart: Beatmap,
-	score: ScoreState,
-	rate = 1,
-	/** the map's stars at that rate */
-	stars = Number(beatmap.sr),
-	mods: readonly Mod[] = [],
-	fatigue = 0,
-) => {
-	const topGrade = await bestGradeOn(character.id, beatmap.id);
-
-	// the play's real duration: a rate shortens or stretches it
-	const skillXp = bot.getSkillsXP(chart.totalLength / rate, score);
-
-	// Mindblock: grinding the same map recently dulls its technique XP (stamina /
-	// memory exempt). Read from the persisted history, before this play is stored.
-	const recentPlays = await recentMapPlays(character.id, beatmap.id);
-	const block = mindblockFactor(recentPlays);
-	if (block < 1) {
-		for (const name of MINDBLOCK_SKILLS) skillXp[name] = Math.floor(skillXp[name] * block);
-	}
-
-	// Fatigue: physical skills strained for hours on any maps tire.
-	for (const name of PHYSICAL_SKILLS) {
-		skillXp[name] = Math.floor(skillXp[name] * fatigueXp(fatigue));
-	}
-
-	const medals = await medalMultiplier(character.id);
-	for (const name of Object.keys(skillXp) as SkillName[]) {
-		skillXp[name] = Math.floor(skillXp[name] * medals);
-	}
-
-	if (compareGradeGTE(score.grade, GRADE.X) 
-		&& (!topGrade || compareGradeGT(score.grade, topGrade))) {
-		skillXp.accuracy += Math.floor(1000 * stars);
-	}
-
-	return modXp(skillXp, mods);
-};
-
-/** Where a simulated play ends in song time, and the fail it records. A round plays
- *  on past its fail to the map's end; a fail with EZ tells no medal how far it got. */
-const playEnd = (game: ManiaGame, round: boolean, mods: Mod[], rate: number) => {
-	const failedAt = game.score.failed ? game.score.failedIndex : undefined;
-	const lastNoteEnd = game.notes.reduce((m, n) => Math.max(m, n.hold ? n.endTime : n.time), 0);
-	const failSongTime = failedAt ? game.hits[failedAt - 1].time : lastNoteEnd;
-	const fail: Pick<Pending, 'failedAt' | 'failProgress' | 'failSeconds'> = failedAt ? {
-		failedAt,
-		...countsForMedals(mods) ? {
-			failProgress: failSongTime / lastNoteEnd, failSeconds: failSongTime / rate / 1000,
-		} : {},
-	} : {};
-	return {
-		lastNoteEnd, endSongTime: round ? lastNoteEnd : failSongTime, fail,
-	};
-};
-
 /** Run the authoritative simulation, compute the score + XP, and store the play.
- *  The provisional lock is already held; this promotes it to the real end time. */
+ *  The provisional lock is already held; this promotes it to the real end time.
+ *  `character`'s devices run the play; `player` plays it and earns it - another of
+ *  the account's characters when `character` doesn't play the ruleset. */
 async function simulateAndStore(
+	r: ServerRuleset,
 	character: CharacterRow,
+	player: CharacterRow,
 	beatmapId: number,
 	beatmap: Awaited<ReturnType<typeof getBeatmap>>,
 	{
 		xpMultiplier = 1, rate = 1, mods = [], round = false, board = false,
 	}: PlayOptions,
 ): Promise<StartPlayResult> {
-	const { fatigue, warmup: warm, warmupBar: bar } = tiredness(character);
-	const skills = await loadCharacterSkills(character, beatmapId, fatigue, warm);
-
-	const chart = decoder.decodeFromString(beatmap.chart);
-	const bot = new CharacterBot(skills);
-	const options = {
-		divine: hasUnlock(character.generation, 'DIVINE'), rate, mods, playOn: round,
-	};
-	const game = new ManiaGame(chart, bot, options);
-	// advance to the end in steps, checkpointing accuracy/grade along the way
-	// (update judges incrementally, so stepping does no extra work) - the live
-	// state poll reads these back for the resume banner
-	const samples: PlaySample[] = [];
-	let frozen: PlaySample | undefined;
-	const sample = (t: number) => {
-		const { accuracy, grade, score, combo, failed } = game.score;
-		// a round plays on past a fail, its score with it
-		frozen ??= failed && !round ? [t, accuracy, grade, Math.round(score), combo, true] : undefined;
-		samples.push(frozen
-			? [t, accuracy, grade, frozen[3], frozen[4], true]
-			: [t, accuracy, grade, Math.round(score), combo, failed]);
-	};
-	for (let t = 0; t <= game.songEndMs; t += SAMPLE_STEP_MS) {
-		game.update(t);
-		sample(t);
-	}
-	game.update(game.songEndMs + 1000); // past the end so every note is judged
-	sample(game.songEndMs + 1000);
-
-	const score = game.score;
-
-	const pp = calculatePP(score, beatmap.chart, rate, mods);
+	const profile = await profileOf(r, player.id);
+	const tired = r.play.tiredness(profile);
+	const { fatigue, warmup: warm, warmupBar: bar } = tired;
 	const stars = rate === 1 ? Number(beatmap.sr) : starsAt(beatmap.chart, rate);
-	const c = score.counts;
+	const played = await r.play.simulate(r, {
+		character: player, profile, beatmapId, chart: beatmap.chart, sr: stars, rate, mods, round, board, tired,
+	});
+
+	const pp = calculatePP(r.def, played, beatmap.chart, rate, mods);
 
 	const draft: NewScoreRow = {
-		characterId: character.id,
+		characterId: player.id,
 		beatmapId,
-		score: Math.round(score.score),
-		accuracy: String(score.accuracy),
-		maxCombo: score.maxCombo,
-		...(Object.fromEntries(Judgements.map(j => [j, c[j]])) as Record<Judgement, number>),
-		grade: score.grade,
+		score: played.score,
+		accuracy: String(played.accuracy),
+		maxCombo: played.maxCombo,
+		...played.counts,
+		grade: played.grade,
 		pp: String(pp),
-		ur: String(unstableRate(game.hits)),
-		pfc: c.MISS === 0 && c.BAD === 0 && c.GOOD === 0,
+		ur: String(played.ur),
+		pfc: played.pfc,
 		playedAt: new Date(),
 		rate: String(rate),
 		sr: String(stars),
 		mods: modsKey(mods),
 	};
 
-	const { lastNoteEnd, endSongTime, fail } = playEnd(game, round, mods, rate);
 	const startedAt = Date.now();
-	const endsAt = startedAt + LEAD_IN_MS + endSongTime;
-
-	// Sort the offsets by reveal time (their note's nominal time) so the client can
-	// stream them in with a simple forward cursor and never learn the outcome early.
-	const noteById = new Map(game.notes.map(n => [n.getId(), n]));
-	const revealOf = (o: ReplayOffset) => {
-		const note = noteById.get(o.id)!;
-		return o.tail ? note.endTime : note.time;
-	};
-	const ordered = game.replayOffsets()
-		.map(o => ({
-			o, reveal: revealOf(o), 
-		}))
-		.sort((a, b) => a.reveal - b.reveal);
+	const endsAt = startedAt + LEAD_IN_MS + played.endSongTime;
 
 	const token = randomUUID();
 	const entry: Pending = {
 		token,
+		ruleset: r.def.id,
 		characterId: character.id,
 		beatmapId,
-		offsets: ordered.map(x => x.o),
-		reveals: ordered.map(x => x.reveal),
+		offsets: played.offsets,
+		reveals: played.reveals,
 		startedAt,
 		endsAt,
-		songStartMs: game.songStartMs,
-		songEndMs: lastNoteEnd,
+		songStartMs: played.songStartMs,
+		songEndMs: played.lastNoteEnd,
 		draft,
-		samples,
-		skillXp: board ? noXp() : scaleXp(await getServerXP(
-			character,
-			bot,
-			beatmap,
-			chart,
-			xpScore(chart, game, options),
-			rate,
-			stars,
-			mods,
-			fatigue,
-		), xpMultiplier),
+		samples: played.samples,
+		skillXp: scaleXp(played.skillXp, xpMultiplier),
 		fatigue,
 		warmup: warm,
 		warmupBar: bar,
-		...fail,
-		...board ? { board: 'unranked' as const } : {
-			strain: {
-				minutes: chart.totalLength / rate / 60_000,
-				strained: playStrain(bot, chart.totalLength / rate),
-			},
-		},
+		...played.failedAt ? {
+			failedAt: played.failedAt, failProgress: played.failProgress, failSeconds: played.failSeconds,
+		} : {},
+		...board ? { board: 'unranked' as const } : { strain: played.strain },
 	};
 	if (!isRankedMods(mods)) entry.unranked = true;
 	await redis.set(playKey(character.id), JSON.stringify(entry));
@@ -744,6 +589,7 @@ async function simulateAndStore(
 
 	return {
 		status: 'ranked',
+		ruleset: r.def.id,
 		joined: false,
 		token,
 		beatmapId,
@@ -755,7 +601,7 @@ async function simulateAndStore(
 		fatigue,
 		warmup: warm,
 		warmupBar: bar,
-		warmupTrend: entry.strain && warmupTrend(entry.strain.minutes, entry.strain.strained),
+		warmupTrend: entry.strain && r.play.warmupTrend(entry.strain),
 		...chunkFrom(entry, 0),
 	};
 }
@@ -771,25 +617,29 @@ const getAndDeletePlay = async(characterId: number): Promise<Pending | undefined
 		String(characterId),
 	) as string | undefined;
 	if (!result) return;
-	return JSON.parse(result) as Pending;
+	return {
+		...BEFORE_RULESETS, ...JSON.parse(result) as Pending, 
+	};
 };
-
-const noXp = () => Object.fromEntries(Skills.map(s => [s, 0])) as Record<SkillName, number>;
 
 /** A play on an unranked map's leaderboard: onto the board, nothing else moves. Dropped
  *  when the map lost its board mid-play (updated, ranked or taken down). */
-const parseUnrankedResult = async (play: Pending, notify: boolean): Promise<StoredResult> => {
+const parseUnrankedResult = async (
+	r: ServerRuleset,
+	play: Pending,
+	notify: boolean,
+): Promise<ParsedResult> => {
 	if (!await hasUnrankedBoard(play.draft.beatmapId)) {
 		return {
 			token: play.token, failed: true, notify,
 		};
 	}
 	play.draft.playedAt = new Date();
-	const row = await recordUnrankedScore(play.draft);
+	const row = await recordUnrankedScore(r, play.draft);
 	return {
 		token: play.token,
 		failed: false,
-		score: scoreRowToDTO(row),
+		score: scoreRowToDTO(r, row),
 		gains: [],
 		deltas: {
 			rank: 0, rankedScore: 0, pp: 0,
@@ -798,8 +648,10 @@ const parseUnrankedResult = async (play: Pending, notify: boolean): Promise<Stor
 	};
 };
 
-const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredResult> => {
-	const characterId = play.characterId;
+const parsePlayResult = async (play: Pending, notify: boolean): Promise<ParsedResult> => {
+	// the character the play earns for: the session's own, or the one it played as
+	const characterId = play.draft.characterId;
+	const r = rulesetFor(play.ruleset);
 
 	if (play.failedAt) {
 		return {
@@ -810,13 +662,13 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 			failSeconds: play.failSeconds,
 		};
 	}
-	if (play.board === 'unranked') return parseUnrankedResult(play, notify);
+	if (play.board === 'unranked') return parseUnrankedResult(r, play, notify);
 
 	if (play.unranked) {
 		return {
 			token: play.token,
 			failed: false,
-			score: scoreRowToDTO({
+			score: scoreRowToDTO(r, {
 				...play.draft, id: 0,
 			} as ScoreRow),
 			gains: [],
@@ -829,7 +681,7 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 
 	// Unranked mid-play (admin toggle): drop the result instead of resurrecting
 	// a score for a map whose progression was just purged.
-	const beatmap = await getLiveBeatmap(play.draft.beatmapId);
+	const beatmap = await getLiveBeatmap(r, play.draft.beatmapId);
 	if (!beatmap) {
 		return {
 			token: play.token,
@@ -838,18 +690,18 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 		};
 	}
 
-	const before = await profileSnapshot(characterId);
+	const before = await profileSnapshot(r, characterId);
 
 	play.draft.playedAt = new Date();
-	const row = await submitScore(play.draft);
-	const gains = await applySkillXp(characterId, play.skillXp);
+	const row = await submitScore(r, play.draft);
+	const gains = await applySkillXp(r, characterId, play.skillXp);
 	if (play.strain) {
-		await addFatigue(characterId, play.strain.minutes, play.strain.strained, Date.now());
+		await addFatigue(r, characterId, play.strain.minutes, play.strain.strained, Date.now());
 	}
-	await reindexCharacter(characterId);
-	await reindexBeatmap(characterId, play.draft.beatmapId);
+	await reindexCharacter(r, characterId);
+	await reindexBeatmap(r, characterId, play.draft.beatmapId);
 
-	const after = await profileSnapshot(characterId);
+	const after = await profileSnapshot(r, characterId);
 	const deltas: PlayDeltas = {
 		// positive = climbed; unknown before/after (fresh index) counts as no move
 		rank: before.rank !== undefined && after.rank !== undefined
@@ -862,7 +714,7 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 	return {
 		token: play.token,
 		failed: false,
-		score: scoreRowToDTO(row),
+		score: scoreRowToDTO(r, row),
 		gains,
 		deltas,
 		notify,
@@ -871,15 +723,15 @@ const parsePlayResult = async (play: Pending, notify: boolean): Promise<StoredRe
 
 /** The profile metrics a play can move, read around a submit to compute the
  *  result-screen deltas. */
-const profileSnapshot = async (characterId: number) => {
-	const [character, totals, rank] = await Promise.all([
-		getCharacterById(characterId),
-		getCharacterTotals(characterId),
-		globalRank('pp', characterId),
+const profileSnapshot = async (r: ServerRuleset, characterId: number) => {
+	const [profile, totals, rank] = await Promise.all([
+		profileOf(r, characterId),
+		getCharacterTotals(r, characterId),
+		globalRank(r, 'pp', characterId),
 	]);
 	return {
 		rankedScore: totals.rankedScore,
-		pp: Number(character?.pp ?? 0),
+		pp: Number(profile.pp),
 		rank,
 	};
 };
@@ -905,7 +757,9 @@ export async function finalizePlay(
 		status: STATUS.idle, nowPlaying: undefined,
 	});
 
-	const result = await parsePlayResult(play, serverSide);
+	const result: StoredResult = {
+		...await parsePlayResult(play, serverSide), ruleset: play.ruleset, player: play.draft.characterId,
+	};
 
 	// The play is over, so anything it deferred runs now - after its xp landed,
 	// and whether or not it landed any (a failed play and an unranked-mid-play
@@ -964,16 +818,16 @@ const ScoreResult = (result: StoredResult): PlayResult => ({
 /** The result as sent, with the medals it unlocked when the screen asking is
  *  about to show it (see awardMedals). */
 const resultWithMedals = async (
-	characterId: number,
 	result: StoredResult,
 	medals: boolean,
 ): Promise<PlayResult> => {
+	const { ruleset, player: characterId } = result;
 	const sent = ScoreResult(result);
 	if (!medals || !sent.ok) return sent;
 	const fail = result.failed ? {
 		failedAt: result.failProgress, failedSeconds: result.failSeconds,
 	} : {};
-	const unlocked = await awardMedals(characterId, fail).catch(e => {
+	const unlocked = await awardMedals(rulesetFor(ruleset), characterId, fail).catch(e => {
 		console.error('[play] medals failed for', characterId, e);
 		return undefined;
 	});
@@ -991,7 +845,9 @@ export async function fetchResult(
 
 	const cached = await redis.get(resultKey(characterId));
 	if (cached) {
-		const result = JSON.parse(cached) as StoredResult;
+		const result = {
+			...BEFORE_RULESETS, player: characterId, ...JSON.parse(cached) as object,
+		} as StoredResult;
 		if (!result.notify && !forceSee) return CacheMissResult;
 		else if (result.notify) {
 			redis.set(resultKey(characterId), JSON.stringify({
@@ -999,7 +855,7 @@ export async function fetchResult(
 			}), 'KEEPTTL');
 		}
 		if (result.token === token) {
-			return resultWithMedals(characterId, result, medals);
+			return resultWithMedals(result, medals);
 		}
 	}
 
@@ -1009,7 +865,7 @@ export async function fetchResult(
 
 	const result = (await finalizePlay(characterId));
 	
-	return result ? resultWithMedals(characterId, result, medals) : UnfinalizedResult;
+	return result ? resultWithMedals(result, medals) : UnfinalizedResult;
 }
 
 /** Player quit: drop the play without submitting (token must match). Every
@@ -1135,21 +991,9 @@ export async function sweepDuePlays(): Promise<void> {
 	}
 }
 
-function scoreRowToDTO(row: ScoreRow): ScoreDTO {
+function scoreRowToDTO(r: ServerRuleset, row: ScoreRow): ScoreDTO {
 	return {
-		id: row.id,
-		characterId: row.characterId,
-		beatmapId: row.beatmapId,
-		score: row.score,
-		accuracy: Number(row.accuracy),
-		maxCombo: row.maxCombo,
-		judgements: Object.fromEntries(Judgements.map(j => [j, row[j]])) as Record<Judgement, number>,
-		grade: row.grade,
-		pp: Number(row.pp),
-		ur: Number(row.ur),
-		pfc: row.pfc,
-		rate: Number(row.rate),
-		mods: parseMods(row.mods),
+		...toScoreDTO(row, r.def),
 		playedAt: (row.playedAt ?? new Date()).getTime(),
 	};
 }

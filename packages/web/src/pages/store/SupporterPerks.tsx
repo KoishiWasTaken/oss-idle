@@ -1,26 +1,27 @@
-import { ph } from '@lingui/core/macro';
-import { Trans } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
+import { faCloudArrowDown } from '@fortawesome/free-solid-svg-icons/faCloudArrowDown';
 import { faComment } from '@fortawesome/free-solid-svg-icons/faComment';
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
 import { faFaceSmile } from '@fortawesome/free-solid-svg-icons/faFaceSmile';
+import { faFlask } from '@fortawesome/free-solid-svg-icons/faFlask';
+import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { faHeartPulse } from '@fortawesome/free-solid-svg-icons/faHeartPulse';
 import { faImage } from '@fortawesome/free-solid-svg-icons/faImage';
-import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
-import { faMusic } from '@fortawesome/free-solid-svg-icons/faMusic';
-import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
-import { faRankingStar } from '@fortawesome/free-solid-svg-icons/faRankingStar';
-import { faCloudArrowDown } from '@fortawesome/free-solid-svg-icons/faCloudArrowDown';
 import { faMoon } from '@fortawesome/free-solid-svg-icons/faMoon';
+import { faMusic } from '@fortawesome/free-solid-svg-icons/faMusic';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons/faPenToSquare';
-import { maxPendingRequests } from '@oss-idle/shared/beatmapRequest';
+import { faRankingStar } from '@fortawesome/free-solid-svg-icons/faRankingStar';
+import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import { SUPPORTER_UPLOAD_BONUS } from '@oss-idle/shared/beatmap';
+import { maxPendingRequests } from '@oss-idle/shared/beatmapRequest';
 import {
 	AWAY_HOURS,
 	SUPPORTER_AWAY_HOURS,
 } from '@oss-idle/shared/queue';
-import { faDiscord } from '@fortawesome/free-brands-svg-icons/faDiscord';
-import { faFlask } from '@fortawesome/free-solid-svg-icons/faFlask';
 
 /** What a supporter tag gives. */
 export default function SupporterPerks() {

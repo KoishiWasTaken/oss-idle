@@ -1,21 +1,23 @@
 import {
-	useEffect,
-	useState,
-} from 'react';
-import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+import {
+	useEffect,
+	useState,
+} from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import {
-	MAX_MATCH_NAME,
 	type Match,
+	MAX_MATCH_NAME,
 } from '@oss-idle/shared/multiplayer';
-import Checkbox from '../options/controls/Checkbox';
+
+import Multiplayer from '../../online/multiplayer';
 import Dropdown from '../dropdown/Dropdown';
+import Checkbox from '../options/controls/Checkbox';
 import MatchBeatmap from './MatchBeatmap';
 import PasswordPrompt from './PasswordPrompt';
-import Multiplayer from '../../online/multiplayer';
 
 // oss!idle has no mods, teams or win conditions yet: shown, with only the default
 const freeMods = new Synced(false);

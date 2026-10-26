@@ -1,12 +1,13 @@
+import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
+
+import { rpc } from '../../online/client';
 import BeatmapAPI, { type Metadata } from '../../osu/beatmap/beatmap_api';
 import BeatmapStore, { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
-import { rpc } from '../../online/client';
 import {
-	directDisplay,
 	type DirectDisplay,
+	directDisplay,
 } from './directState';
 
 /** The catalog's sets the display lists: ranked ones, loved ones, or both. */

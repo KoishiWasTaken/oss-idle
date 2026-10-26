@@ -2,11 +2,13 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
-import type { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import { drawDevianceGraph } from './hitError';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+import type { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+
 import { currentSkin } from '../osu/skin/Skin';
 import { sizeCanvas } from '../sizeCanvas';
+import { drawDevianceGraph } from './hitError';
 
 /**
  * Result-screen canvas plotting hit deviation over the course of the song.

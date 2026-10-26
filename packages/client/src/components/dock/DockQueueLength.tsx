@@ -1,7 +1,9 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { length } from '@oss-idle/shared/display/length';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import PlayQueue from '../../gameplay/playQueue';
 import { selectedRate } from '../../gameplay/playRate';
 

@@ -3,9 +3,9 @@ import {
 	iniColour,
 	iniNumber,
 	iniNumbers,
-	versionNumber,
 	type Rgba,
 	type SkinIni,
+	versionNumber,
 } from './ini.js';
 
 /** How a long note body fills its length. */

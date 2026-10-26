@@ -1,4 +1,5 @@
 import Synced from '@oss-idle/shared/helpers/synced';
+
 import Character from '../db/schema/character';
 
 export default class Entities {

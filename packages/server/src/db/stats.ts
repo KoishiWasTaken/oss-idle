@@ -1,13 +1,4 @@
 import {
-	drizzle,
-	type MySql2Database,
-} from 'drizzle-orm/mysql2';
-import {
-	createPool,
-	type Pool,
-	type RowDataPacket,
-} from 'mysql2';
-import {
 	and,
 	asc,
 	count,
@@ -23,7 +14,19 @@ import {
 	mysqlTable,
 	tinytext,
 } from 'drizzle-orm/mysql-core';
+import {
+	drizzle,
+	type MySql2Database,
+} from 'drizzle-orm/mysql2';
+import {
+	createPool,
+	type Pool,
+	type RowDataPacket,
+} from 'mysql2';
+
 import { env } from '../env';
+import { chartsOf } from '../rulesets/enabled';
+import type { ServerRuleset } from '../rulesets/ruleset';
 
 /**
  * Read-only window onto the farm's `stats` database, which already mirrors every
@@ -69,13 +72,11 @@ const statsDb: MySql2Database<Record<string, never>> = drizzle(statsPool, {
 	casing: 'snake_case',
 });
 
-// Only 4K mania is playable in oss!idle, so nothing else is offered. Every osu!
+// Only what the ruleset plays is offered. Every osu!
 // status is searchable though - a graveyard map is as rankable here as a ranked
 // one, and anything the mirror doesn't carry can still be submitted by id.
-const searchable = and(
-	eq(osuAllBeatmaps.mode, 3),
-	eq(osuAllBeatmaps.diffSize, 4),
-);
+const searchable = (r: ServerRuleset) =>
+	chartsOf(r.def.id, osuAllBeatmaps.mode, osuAllBeatmaps.diffSize);
 
 export type BeatmapsetHit = {
 	setId: number;
@@ -96,7 +97,11 @@ export type BeatmapsetHit = {
  * player would type it. Results are one row per set, the maps osu! itself ranked
  * or loved first, then the newest.
  */
-export const searchManiaSets = async (query: string, limit = 12): Promise<BeatmapsetHit[]> => {
+export const searchManiaSets = async (
+	r: ServerRuleset,
+	query: string,
+	limit = 12,
+): Promise<BeatmapsetHit[]> => {
 	const words = query.trim().split(/\s+/).filter(Boolean).slice(0, 6);
 	if (!words.length) return [];
 
@@ -122,7 +127,7 @@ export const searchManiaSets = async (query: string, limit = 12): Promise<Beatma
 			approved,
 		})
 		.from(osuAllBeatmaps)
-		.where(and(searchable, ...matches))
+		.where(and(searchable(r), ...matches))
 		.groupBy(osuAllBeatmaps.beatmapsetId)
 		.orderBy(desc(approved), desc(osuAllBeatmaps.beatmapsetId))
 		.limit(limit);
@@ -140,7 +145,10 @@ export const searchManiaSets = async (query: string, limit = 12): Promise<Beatma
 };
 
 /** The 4K mania difficulties of one set, cheapest source for a request preview. */
-export const getManiaSet = async (setId: number): Promise<BeatmapsetHit | undefined> => {
+export const getManiaSet = async (
+	r: ServerRuleset,
+	setId: number,
+): Promise<BeatmapsetHit | undefined> => {
 	const rows = await statsDb
 		.select({
 			artist: osuAllBeatmaps.artist,
@@ -150,7 +158,7 @@ export const getManiaSet = async (setId: number): Promise<BeatmapsetHit | undefi
 			approved: osuAllBeatmaps.approved,
 		})
 		.from(osuAllBeatmaps)
-		.where(and(searchable, eq(osuAllBeatmaps.beatmapsetId, setId)))
+		.where(and(searchable(r), eq(osuAllBeatmaps.beatmapsetId, setId)))
 		.orderBy(asc(osuAllBeatmaps.difficultyrating));
 
 	if (!rows.length) return undefined;

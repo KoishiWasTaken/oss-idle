@@ -1,33 +1,31 @@
-import { Trans } from '@lingui/react/macro';
-import { useSyncedAll } from '@oss-idle/shared/hooks/useSyncedAll';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { medalXPMultiplier } from '@oss-idle/shared/achievements/catalogue';
-import {
-	EZ_XP,
-	HR_ACCURACY_XP,
-} from '@oss-idle/shared/mods';
-import type Character from '../../db/schema/character';
-import { getCharacterMedals } from '../../online/services/characters';
-import SkillRow from './SkillRow';
-import {
-	skillStats,
-	type MedalBoost,
-} from './skillStats';
 import '../upgrades/ladder.css';
 import './skills.css';
+
+import { Trans } from '@lingui/react/macro';
+
+import { medalXPMultiplier } from '@oss-idle/shared/achievements/catalogue';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import { useSyncedAll } from '@oss-idle/shared/hooks/useSyncedAll';
+
+import type Character from '../../db/schema/character';
+import { getCharacterMedals } from '../../online/services/characters';
+import { selectedDef } from '../../rulesets/registry';
+import SkillRow from './SkillRow';
+import {
+	type MedalBoost,
+	skillStats,
+} from './skillStats';
 
 const medalBoost = async (id: number): Promise<MedalBoost> => {
 	const ids = (await getCharacterMedals(id)).held.map(m => m.id);
 	return {
-		held: ids.length, multiplier: medalXPMultiplier(ids), 
+		held: ids.length, multiplier: medalXPMultiplier(selectedDef().medals, ids), 
 	};
 };
 
 export default function SkillsView({ character }: { character: Character }) {
 	const online = character.id !== 0 && !character.isGuest();
 	const medals = useAsync(() => online ? medalBoost(character.id) : undefined, [character.id]);
-	const ez = EZ_XP;
-	const hr = HR_ACCURACY_XP;
 
 	useSyncedAll(
 		() => character.skills.flatMap(s => [s.level, s.xp, s.upgrades, s.overdrive, s.prestige]),
@@ -51,17 +49,11 @@ export default function SkillsView({ character }: { character: Character }) {
 						key={`${character.id}:${s.skill.name}`}
 						s={s}
 						scale={scale}
-						lifetimeXp={character[`${s.skill.name}LifetimeXp`]}
+						lifetimeXp={character.lifetimeXp(s.skill.name)}
 					/>
 				))}
 			</div>
-			<p className="ladder__hint">
-				<Trans>
-					On top of these, each play's XP changes depending on mods (EZ x{ez} on every
-					skill, HR x{hr} on Accuracy) and drops when you replay the same map
-					many times in a day due to mindblock (except Speed, Stamina, Jack Speed and Memory).
-				</Trans>
-			</p>
+			<p className="ladder__hint">{selectedDef().skillsNote()}</p>
 		</div>
 	);
 }

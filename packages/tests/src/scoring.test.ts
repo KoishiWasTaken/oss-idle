@@ -1,24 +1,25 @@
 import {
 	describe,
-	it,
 	expect,
+	it,
 } from 'vitest';
-import {
-	ScoreState,
-	maniaWindows,
-	DIVINE_WINDOW,
-	judge,
-	judgeHold,
-	MAX_HP,
-	computeHpMultiplier,
-	maxHpIncrease,
-	type HpObject,
-} from '@oss-idle/shared/sim/scoring';
+
+import { GRADE } from '@oss-idle/shared/grade';
 import {
 	JUDGEMENT,
-	GRADE,
 	type Judgement,
-} from '@oss-idle/shared/judgement';
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import {
+	computeHpMultiplier,
+	DIVINE_WINDOW,
+	type HpObject,
+	judge,
+	judgeHold,
+	maniaWindows,
+	MAX_HP,
+	maxHpIncrease,
+	ScoreState,
+} from '@oss-idle/shared/rulesets/mania/scoring';
 
 /** Build a finished {@link ScoreState} by feeding `[judgement, count]` runs in order. */
 function play(hp:number, od: number, maxObjects: number, runs: [Judgement, number][]): ScoreState {

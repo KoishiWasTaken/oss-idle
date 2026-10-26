@@ -1,9 +1,10 @@
 import { useLingui } from '@lingui/react/macro';
+
 import {
 	bindKeys,
+	type EditorAction,
 	keyLabel,
 	keysOf,
-	type EditorAction,
 } from './actions';
 
 type Props = {

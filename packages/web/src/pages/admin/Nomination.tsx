@@ -6,18 +6,20 @@ import {
 	useRef,
 	useState,
 } from 'react';
+
 import type { MapTag } from '@oss-idle/shared/beatmap';
+import { useAction } from '@oss-idle/shared/hooks/useAction';
+
 import {
-	type Nomination,
-	type NominationPatch,
 	deleteNomination,
 	listNominations,
+	type Nomination,
+	type NominationPatch,
 	setDiffRanked,
 	setDiffTags,
 	updateNomination,
 	uploadBeatmap,
 } from '../../api/maps';
-import { useAction } from '@oss-idle/shared/hooks/useAction';
 import Link from '../../components/Link';
 import NominationRow from './NominationRow';
 import {

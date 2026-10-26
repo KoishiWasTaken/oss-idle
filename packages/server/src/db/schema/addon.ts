@@ -7,18 +7,20 @@ import {
 	unique,
 	varchar,
 } from 'drizzle-orm/mysql-core';
+
 import {
 	ADDON_BUILD_STATUS,
 	ADDON_KIND,
-	ADDON_TYPE,
-	parseAddonTypes,
 	ADDON_STATUS,
+	ADDON_TYPE,
 	type AddonBuildStatus,
 	type AddonKind,
 	type AddonStatus,
+	parseAddonTypes,
 } from '@oss-idle/shared/addon';
-import { users } from './user';
+
 import { splitTags } from '../columns';
+import { users } from './user';
 
 export const addons = mysqlTable('addons', {
 	id: int().autoincrement().primaryKey(),

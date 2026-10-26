@@ -1,11 +1,13 @@
 import { Trans } from '@lingui/react/macro';
-import Dropdown from '../dropdown/Dropdown';
-import { SETTINGS } from '../../db/settings';
+
 import {
-	SUPPORTED_LOCALES,
-	LOCALE_LABELS,
 	type Locale,
+	LOCALE_LABELS,
+	SUPPORTED_LOCALES,
 } from '@oss-idle/shared/i18n/locales';
+
+import { SETTINGS } from '../../db/settings';
+import Dropdown from '../dropdown/Dropdown';
 
 const LANGUAGE_OPTIONS = SUPPORTED_LOCALES.map((locale) => ({
 	value: locale as Locale,

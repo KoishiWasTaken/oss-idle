@@ -1,14 +1,15 @@
 import type { Page } from '@playwright/test';
+
+import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * Friends, private messages, block and report, between two signed-in test

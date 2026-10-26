@@ -1,6 +1,10 @@
+import './direct.css';
+
 import { useLingui } from '@lingui/react/macro';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import BeatmapAPI from '../../osu/beatmap/beatmap_api';
 import BeatmapStore, { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
 import DirectPanel from './DirectPanel';
@@ -12,7 +16,6 @@ import {
 	goToMap,
 	openMapPage,
 } from './directState';
-import './direct.css';
 
 /** oss!direct panel for a map link: the set on the right, over any scene. */
 export default function DirectLinkPanel() {

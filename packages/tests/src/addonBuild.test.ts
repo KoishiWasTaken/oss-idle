@@ -9,6 +9,7 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+
 import {
 	afterAll,
 	beforeAll,
@@ -16,6 +17,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { readInside } from '../../server/src/addonBuild';
 
 // what a build container can leave in the work dir, for the host to read back

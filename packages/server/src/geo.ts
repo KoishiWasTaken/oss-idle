@@ -1,10 +1,12 @@
+import { getConnInfo } from '@hono/node-server/conninfo';
+import type { Context } from 'hono';
 import maxmind, {
 	type CityResponse,
 	type Reader,
 } from 'maxmind';
-import { getConnInfo } from '@hono/node-server/conninfo';
-import type { Context } from 'hono';
+
 import type { MapPoint } from '@oss-idle/shared/community/presence';
+
 import { COUNTRY_CENTROIDS } from './countryCentroids';
 import { env } from './env';
 

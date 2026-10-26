@@ -1,4 +1,5 @@
 import { Plural } from '@lingui/react/macro';
+
 import Link from '../../components/Link';
 import { BUILDS } from './builds';
 

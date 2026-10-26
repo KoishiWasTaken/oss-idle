@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { peaksOf } from '@oss-idle/client/editor/songVisuals';
 
 describe('the waveform', () => {

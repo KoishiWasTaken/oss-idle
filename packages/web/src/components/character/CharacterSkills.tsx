@@ -1,6 +1,5 @@
 import { Trans } from '@lingui/react/macro';
-import type { SkillName } from '@oss-idle/shared/skills';
-import { extractSkills } from '@oss-idle/shared/osu/level';
+
 import type { getCharacter } from '../../api/characters';
 import { SkillBar } from './SkillBar';
 
@@ -10,15 +9,16 @@ export default function CharacterSkills({ character }: {
 }) {
 	return <div className='character__block character__block-skills'>
 		<div className='character__block-title'><Trans>Skills</Trans></div>
-		<div className='main-skill'><SkillBar skill={'overall' as SkillName} progress={{
-			level: character.overallLevel, xp: character.overallXp,
-			lifetimeXp: character.overallLifetimeXp,
+		<div className='main-skill'><SkillBar ruleset={character.ruleset} skill={'overall'} progress={{
+			level: character.profile.overallLevel, xp: character.profile.overallXp,
+			lifetimeXp: character.profile.overallLifetimeXp,
 		}} /></div>
 		<ul className='skills'>
-			{Object.entries(extractSkills(character))
+			{Object.entries(character.profile.skills)
 				.map(([skill, progress]) => <SkillBar
 					key={skill}
-					skill={skill as SkillName}
+					ruleset={character.ruleset}
+					skill={skill}
 					progress={progress}
 				/>)}
 		</ul>

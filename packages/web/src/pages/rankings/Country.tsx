@@ -1,15 +1,19 @@
 import '../../components/leaderboard/PlayerLeaderboard.css';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
 import { Trans } from '@lingui/react/macro';
-import { countryName } from '@oss-idle/shared/display/country';
-import rank from '@oss-idle/shared/display/rank';
-import num from '@oss-idle/shared/display/num';
+
 import accuracy from '@oss-idle/shared/display/accuracy';
-import hitAccuracy from '@oss-idle/shared/osu/hitAccuracy';
+import { countryName } from '@oss-idle/shared/display/country';
+import num from '@oss-idle/shared/display/num';
+import rank from '@oss-idle/shared/display/rank';
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+import hitAccuracy from '@oss-idle/shared/rulesets/mania/hitAccuracy';
+import { countsOf } from '@oss-idle/shared/rulesets/ruleset';
+
 import type { getCountryRanking } from '../../api/rankings';
 import Flag from '../../components/Flag';
-import Link from '../../components/Link';
 import Pager from '../../components/leaderboard/Pager';
+import Link from '../../components/Link';
 import { i18n } from '../../i18n';
 import RankingsNav from './RankingsNav';
 
@@ -48,7 +52,7 @@ export default function CountryRankings({ page, countries }: {
 								</div></td>
 								<td className='dimmed'>{num(country.players)}</td>
 								<td className='dimmed'>{num(country.playCount)}</td>
-								<td className='dimmed'>{accuracy(hitAccuracy(country))}</td>
+								<td className='dimmed'>{accuracy(hitAccuracy(countsOf(country)))}</td>
 								<td className='dimmed'>{num(country.rankedScore)}</td>
 								<td className='dimmed'>{num(Math.round(country.pp / country.players))}</td>
 								<td className='current'>{num(Math.round(country.pp))}</td>

@@ -6,6 +6,7 @@ import {
 	StoryboardVideo,
 } from 'osu-classes';
 import { StoryboardDecoder } from 'osu-parsers';
+
 import BeatmapStore from './beatmap_store';
 import type LightBeatmap from './LightBeatmap';
 

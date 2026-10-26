@@ -1,14 +1,16 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRotate } from '@fortawesome/free-solid-svg-icons/faRotate';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useState,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import HoverCard from '@oss-idle/shared/display/HoverCard';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import PlayQueue from '../../gameplay/playQueue';
+
 import { playlistsVersion } from '../../db/schema/playlist';
+import PlayQueue from '../../gameplay/playQueue';
 
 // add-ons write playlists straight into the save, which bumps no version
 const RECHECK_MS = 2_000;

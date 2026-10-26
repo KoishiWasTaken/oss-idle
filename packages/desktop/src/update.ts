@@ -8,14 +8,16 @@ import {
 	autoUpdater,
 	NsisUpdater,
 } from 'electron-updater';
+
 // eslint-disable-next-line @stylistic/max-len
 import type { DesktopUpdateStatus } from '@oss-idle/shared/desktop' with { 'resolution-mode': 'import' };
-import { broadcast } from './frames';
-import { updateDir } from './install';
+
 import {
 	DESKTOP_SCHEME,
 	STAGING,
 } from './config';
+import { broadcast } from './frames';
+import { updateDir } from './install';
 
 /**
  * In-app self-update. The feed (provider/url) is read from the `app-update.yml`
@@ -116,7 +118,8 @@ export function installUpdate(): void {
 		return;
 	}
 	if (autoUpdater instanceof NsisUpdater) autoUpdater.installDirectory = updateDir();
-	autoUpdater.quitAndInstall();
+	// the installer shows only its small update window, then starts the game
+	autoUpdater.quitAndInstall(false, true);
 }
 
 /** Staging: the LAN server's release streams, name → the origin serving its feed. */

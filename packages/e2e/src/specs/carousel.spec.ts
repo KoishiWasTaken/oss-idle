@@ -1,10 +1,10 @@
+import { testAccounts } from '../support/accounts';
+import { jpeg } from '../support/files';
 import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import { testAccounts } from '../support/accounts';
-import { jpeg } from '../support/files';
 
 /**
  * Song select's carousel: every row, group headers included, rides osu!'s arc.

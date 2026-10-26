@@ -1,8 +1,9 @@
 import {
+	type DependencyList,
 	useEffect,
 	useReducer,
-	type DependencyList,
 } from 'react';
+
 import type Synced from '../helpers/synced.js';
 
 /** Re-render when any of the Synced `list()` returns changes; the list is rebuilt when `deps` change. */

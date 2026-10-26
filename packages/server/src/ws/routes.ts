@@ -1,40 +1,74 @@
-import type { ZodError } from 'zod';
-import { count } from '../metrics';
-import type { Hono } from 'hono';
-import type { Context } from 'hono';
-import { getCookie } from 'hono/cookie';
+import { randomUUID } from 'node:crypto';
+
 import {
 	createNodeWebSocket,
 	type NodeWebSocket,
 } from '@hono/node-ws';
+import { eq } from 'drizzle-orm';
+import type { Hono } from 'hono';
+import type { Context } from 'hono';
+import { getCookie } from 'hono/cookie';
+import type { WSContext } from 'hono/ws';
+import type { ZodError } from 'zod';
+
 import {
 	clientMessage,
 	DEFAULT_CHANNEL,
 } from '@oss-idle/shared/community/wire';
 import { VERSION } from '@oss-idle/shared/version';
+
+import { verifySession } from '../auth/jwt';
+import { SESSION_COOKIE } from '../auth/middleware';
+import { characterDTOOf } from '../character/dto';
+import { db } from '../db/client';
 import {
-	characterToDTO,
-	currentCharacterOf,
 	type CharacterRow,
+	characters,
+	currentCharacterOf,
 } from '../db/schema/character';
 import type { UserRow } from '../db/schema/user';
-import { SESSION_COOKIE } from '../auth/middleware';
-import { randomUUID } from 'node:crypto';
 import {
 	clientUrl,
 	isProd,
 	redisKeyPrefix,
 } from '../env';
-import { redis } from '../redis';
-import { verifySession } from '../auth/jwt';
 import {
 	clientIp,
 	geoLookup,
 	type GeoResult,
 	validTimezone,
 } from '../geo';
-import type { WSContext } from 'hono/ws';
+import { pushMedals } from '../medals';
+import { count } from '../metrics';
+import {
+	isPlaying,
+	livePlayPresence,
+	playState,
+} from '../play';
+import {
+	comeBack,
+	queueState,
+	socketClosed,
+} from '../queue';
+import { redis } from '../redis';
+import { selectedRuleset } from '../rulesets/registry';
+import { touchActive } from '../social';
+import {
+	chatHistory,
+	handleChat,
+	nameColor,
+} from './chat';
 import { hub } from './hub';
+import {
+	handleMultiplayer,
+	MatchFeed,
+	ownMatch,
+} from './multiplayer';
+import {
+	handlePlay,
+	PlayFeed,
+} from './play';
+import { handlePm } from './pm';
 import {
 	areOnline,
 	join,
@@ -43,34 +77,7 @@ import {
 	touch,
 	update,
 } from './presence';
-import {
-	chatHistory,
-	handleChat,
-	nameColor,
-} from './chat';
-import {
-	isPlaying,
-	livePlayPresence,
-	playState,
-} from '../play';
-import {
-	handlePlay,
-	PlayFeed,
-} from './play';
-import { touchActive } from '../social';
-import {
-	comeBack,
-	queueState,
-	socketClosed,
-} from '../queue';
 import { handleQueue } from './queue';
-import { pushMedals } from '../medals';
-import { handlePm } from './pm';
-import {
-	handleMultiplayer,
-	MatchFeed,
-	ownMatch,
-} from './multiplayer';
 
 /** How often a live connection refreshes its presence last-seen (well under the
  *  sweep TTL) so a clean session is never pruned. */
@@ -197,7 +204,7 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 				// last managed to read
 				hub.sendLocal(ws, {
 					type: 'character',
-					character: characterToDTO(character, user.avatarUrl, user.country),
+					character: await characterDTOOf(character, user),
 				});
 				hub.sendLocal(ws, {
 					type: 'chat:history', lines: await chatHistory(DEFAULT_CHANNEL, CHAT_HISTORY),
@@ -276,7 +283,10 @@ export const registerWs = (app: Hono): Pick<NodeWebSocket, 'injectWebSocket'> =>
 					const id = bound(ws);
 					if (!(await isPlaying(id))) await update(id, { status: msg.status });
 				} else if (msg.type === 'medals:check') {
-					await pushMedals(bound(ws));
+					const id = bound(ws);
+					const [row] = await db.select({ ruleset: characters.ruleset })
+						.from(characters).where(eq(characters.id, id)).limit(1);
+					if (row) await pushMedals(selectedRuleset(row), id);
 				} else if (msg.type === 'version') {
 					hub.noteVersion(ws, msg.version);
 					await recordAdoption(bound(ws), msg.version, msg.platform);

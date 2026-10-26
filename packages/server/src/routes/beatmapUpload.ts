@@ -1,35 +1,42 @@
-import { Hono } from 'hono';
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import {
 	and,
 	eq,
 	ne,
 } from 'drizzle-orm';
+import type { Context } from 'hono';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
 import { INTRO_SET_ID } from '@oss-idle/shared/beatmap';
-import { db } from '../db/client';
-import { beatmapset } from '../db/schema/beatmapset';
+
 import { requireActive } from '../auth/active';
 import { requireAuth } from '../auth/middleware';
+import { invalidateCatalog } from '../beatmaps/catalog';
 import { ingestOsz } from '../beatmaps/ingest';
+import {
+	statusesOf,
+	statusIn,
+} from '../beatmaps/setStatus';
 import { deleteSetFiles } from '../beatmaps/storage';
 import {
 	openBoard,
 	wipeUnrankedScores,
 } from '../beatmaps/unrankedBoard';
-import { isSupporter } from '../supporter';
 import {
-	UploadRefused,
 	gateUpload,
 	ownSetOfFile,
 	submitForRank,
 	unrankOwn,
+	UploadRefused,
 	uploadTarget,
 	withdrawFromRank,
 } from '../beatmaps/upload';
-import { redis } from '../redis';
+import { db } from '../db/client';
+import { beatmapset } from '../db/schema/beatmapset';
 import { redisKeyPrefix } from '../env';
-import { invalidateCatalog } from '../beatmaps/catalog';
+import { redis } from '../redis';
+import { rulesetQuery } from '../rulesets/request';
+import { isSupporter } from '../supporter';
 import { idParam } from '../validate';
 
 
@@ -100,11 +107,12 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 	.get('/of/:fileSetId', requireAuth, async c => {
 		try {
 			const set = await ownSetOfFile(idParam.parse(c.req.param('fileSetId')), c.get('userId'));
+			const status = await statusIn(rulesetQuery(c), set.id);
 			return c.json({
 				setId: set.id,
-				status: set.status,
-				scheduled: !!set.rankedAt && set.rankedAt.getTime() > Date.now(),
-				reviewNote: set.reviewNote ?? undefined,
+				status: status?.status ?? 'unranked',
+				scheduled: !!status?.rankedAt && status.rankedAt.getTime() > Date.now(),
+				reviewNote: status?.reviewNote ?? undefined,
 			});
 		} catch (e) {
 			return refused(c, e);
@@ -112,7 +120,7 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 	})
 	.post('/:setId/unrank', requireAuth, async c => {
 		try {
-			await unrankOwn(idParam.parse(c.req.param('setId')), c.get('userId'));
+			await unrankOwn(rulesetQuery(c), idParam.parse(c.req.param('setId')), c.get('userId'));
 			await invalidateCatalog();
 			return c.json({ ok: true });
 		} catch (e) {
@@ -122,7 +130,8 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 	.post('/:setId/submit', requireActive, async c => {
 		try {
 			const userId = c.get('userId');
-			await locked(userId, () => submitForRank(idParam.parse(c.req.param('setId')), userId));
+			const r = rulesetQuery(c);
+			await locked(userId, () => submitForRank(r, idParam.parse(c.req.param('setId')), userId));
 			return c.json({ ok: true });
 		} catch (e) {
 			return refused(c, e);
@@ -130,7 +139,7 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 	})
 	.post('/:setId/withdraw', requireAuth, async c => {
 		try {
-			await withdrawFromRank(idParam.parse(c.req.param('setId')), c.get('userId'));
+			await withdrawFromRank(rulesetQuery(c), idParam.parse(c.req.param('setId')), c.get('userId'));
 			return c.json({ ok: true });
 		} catch (e) {
 			return refused(c, e);
@@ -139,10 +148,11 @@ export const beatmapUploadRoutes = new Hono<{ Variables: { userId: number } }>()
 	.delete('/:setId', requireAuth, async c => {
 		const userId = c.get('userId');
 		const id = idParam.parse(c.req.param('setId'));
-		const [res] = await db.update(beatmapset).set({ deletedAt: new Date() }).where(and(
+		// unranked in every ruleset: a ruleset that ranked or queued it keeps it
+		const unranked = (await statusesOf(id)).every(([, s]) => s.status === 'unranked');
+		const [res] = unranked ? await db.update(beatmapset).set({ deletedAt: new Date() }).where(and(
 			eq(beatmapset.id, id), ne(beatmapset.id, INTRO_SET_ID), eq(beatmapset.ownerUserId, userId),
-			eq(beatmapset.status, 'unranked'),
-		));
+		)) : [{ affectedRows: 0 }];
 		if (!res.affectedRows) throw new HTTPException(404, { message: 'Not one of your unranked maps' });
 		await wipeUnrankedScores(id);
 		await deleteSetFiles(id);

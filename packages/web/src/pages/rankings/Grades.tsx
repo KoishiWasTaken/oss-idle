@@ -1,8 +1,10 @@
 import { useNavigate } from '@tanstack/react-router';
-import { GoodGrade } from '@oss-idle/shared/judgement';
+
+import { GoodGrade } from '@oss-idle/shared/grade';
+
+import type { getGradesRanking } from '../../api/rankings';
 import CountryFilter from '../../components/leaderboard/CountryFilter';
 import PlayerGradesLeaderboard from '../../components/leaderboard/PlayerGradesLeaderboard';
-import type { getGradesRanking } from '../../api/rankings';
 import RankingsNav from './RankingsNav';
 
 type Players = Awaited<ReturnType<typeof getGradesRanking>>;

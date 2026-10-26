@@ -1,8 +1,8 @@
-import Synced from '@oss-idle/shared/helpers/synced';
 import {
 	desktop,
 	type DesktopUpdateStatus,
 } from '@oss-idle/shared/desktop';
+import Synced from '@oss-idle/shared/helpers/synced';
 
 /**
  * In-game self-update state for the desktop app. We check the update feed on

@@ -1,6 +1,6 @@
 import {
-	useMemo,
 	type CSSProperties,
+	useMemo,
 } from 'react';
 
 type Props = {

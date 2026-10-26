@@ -1,8 +1,8 @@
-import { type CarouselItem } from '../BeatmapCarousel';
-import CardContextMenu from './CardContextMenu';
-import PlaylistOverlay from '../PlaylistOverlay';
 import PlayQueue from '../../gameplay/playQueue';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
+import { type CarouselItem } from '../BeatmapCarousel';
+import PlaylistOverlay from '../PlaylistOverlay';
+import CardContextMenu from './CardContextMenu';
 
 type Props = {
 	/** the right-clicked card's menu target */

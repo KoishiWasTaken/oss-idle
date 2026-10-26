@@ -1,9 +1,11 @@
-import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import {
 	ADDON_BUILD_STATUS,
 	repoCommitUrl,
 } from '@oss-idle/shared/addon';
+
 import type { OwnAddon } from '../../online/addons';
 
 /** Where a repo add-on's builds stand: the last one, its log. */

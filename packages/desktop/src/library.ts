@@ -1,6 +1,8 @@
-import { shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { shell } from 'electron';
+
 // eslint-disable-next-line object-curly-newline -- false positive from the import attribute
 import type {
 	LibraryChange,

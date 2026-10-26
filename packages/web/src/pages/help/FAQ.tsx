@@ -1,14 +1,17 @@
 import './FAQ.css';
+
 import { Trans } from '@lingui/react/macro';
+
 import {
+	BASE_MAX_UPGRADES,
 	MEDAL_XP_BONUS,
 	PRESTIGE_MIN_LEVEL,
 	PRESTIGE_XP_BONUS,
 	REBIRTH_MIN_OVERALL_LEVEL,
 	UPGRADE_LEVELS,
 	UPGRADE_XP_BONUS,
-	BASE_MAX_UPGRADES,
 } from '@oss-idle/shared/upgrades';
+
 import Link from '../../components/Link';
 
 const upgradeBonus = UPGRADE_XP_BONUS * 100;

@@ -1,5 +1,6 @@
 import Synced from '@oss-idle/shared/helpers/synced';
 import type { QueuePrefs } from '@oss-idle/shared/queue';
+
 import {
 	SETTINGS,
 	wasStored,

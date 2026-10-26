@@ -1,9 +1,11 @@
 import './GroupBadge.css';
-import Link from '../Link';
+
 import {
-	GROUP_BADGE,
 	type Group,
+	GROUP_BADGE,
 } from '@oss-idle/shared/groups';
+
+import Link from '../Link';
 
 /** osu!web's group badge: the group's short name in its colour, its full name on hover, leading
  *  to the group page. */

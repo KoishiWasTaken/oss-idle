@@ -1,31 +1,29 @@
 import { Trans } from '@lingui/react/macro';
-import Skill from '@oss-idle/shared/sim/skills/skill';
-import {
-	skillName,
-	upgradeDescription,
-	upgradeLabel,
-} from '@oss-idle/shared/display/skills';
-import SkillLevel from '@oss-idle/shared/display/SkillLevel';
+
 import { overdriveText } from '@oss-idle/shared/display/overdrive';
+import SkillLevel from '@oss-idle/shared/display/SkillLevel';
+import SkillState from '@oss-idle/shared/rulesets/skillState';
+
+import { selectedDef } from '../../rulesets/registry';
 import ConfirmMenu from '../ConfirmMenu';
-import { useUpgrade } from './useUpgrade';
-import UpgradeTrack from './UpgradeTrack';
 import UpgradeAction from './UpgradeAction';
 import UpgradeTooltip from './UpgradeTooltip';
+import UpgradeTrack from './UpgradeTrack';
+import { useUpgrade } from './useUpgrade';
 
 export default function UpgradeRow({
 	skill,
 	locked,
 	lifetimeXp,
 }: {
-	skill: Skill,
+	skill: SkillState,
 	locked: boolean,
 	/** xp ever earned on the skill, shown as a level behind it on hover */
 	lifetimeXp?: number,
 }) {
 	const u = useUpgrade(skill, locked);
 	const from = u.minLevel - u.cost;
-	const at = u.level + u.xp / Skill.xpForLevel(u.level);
+	const at = u.level + u.xp / SkillState.xpForLevel(u.level);
 	const progress = Math.min(1, Math.max(0, (at - from) / u.cost));
 	const factor = u.multiplier.toFixed(2);
 	const state = u.maxed ? 'is-maxed' : u.preview ? 'is-ready' : '';
@@ -33,7 +31,7 @@ export default function UpgradeRow({
 	return (
 		<div className={`ladder-row ${state}`}>
 			<div className="ladder-row__skill">
-				<span className="ladder-row__name">{skillName(skill.name)}</span>
+				<span className="ladder-row__name">{selectedDef().skillName(skill.name)}</span>
 				<span className="ladder-row__lv">
 					<Trans>XP Lv<SkillLevel
 						level={u.level} xp={u.xp} prestige={u.prestige} lifetimeXp={lifetimeXp} xpLevel
@@ -44,13 +42,13 @@ export default function UpgradeRow({
 				</span>
 				{u.overdrive > 0 && <span className="ladder-row__od">{overdriveText(u.overdrive)}</span>}
 			</div>
-			<div className="ladder-row__ladder" title={upgradeDescription(skill.name)}>
+			<div className="ladder-row__ladder" title={selectedDef().upgradeDescription(skill.name)}>
 				<div className="ladder-row__gear">
-					<span className="ladder-row__now">{upgradeLabel(skill.name, u.upgrades)}</span>
+					<span className="ladder-row__now">{selectedDef().upgradeLabel(skill.name, u.upgrades)}</span>
 					{!u.maxed && (
 						<span className="ladder-row__next">
 							<span className="ladder-row__arrow">›</span>
-							{upgradeLabel(skill.name, u.upgrades + 1)}
+							{selectedDef().upgradeLabel(skill.name, u.upgrades + 1)}
 						</span>
 					)}
 					<span className="ladder-row__count">{u.upgrades}/{u.max}</span>

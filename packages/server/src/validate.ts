@@ -1,5 +1,5 @@
-import type { ValidationTargets } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import type { ValidationTargets } from 'hono';
 import { z } from 'zod';
 
 export const idParam = z.coerce.number().int().positive();

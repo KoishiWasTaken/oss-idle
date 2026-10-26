@@ -1,13 +1,16 @@
 import '../components/direct/direct.css';
+
 import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { openPage } from '../globals';
-import Page from '../components/page/Page';
-import DirectView from '../components/direct/DirectView';
+
 import { directDisplay } from '../components/direct/directState';
+import DirectView from '../components/direct/DirectView';
+import Page from '../components/page/Page';
+import { openPage } from '../globals';
 
 /** oss!direct: every approved or player's map, downloadable from inside the game. */
 export default function Direct() {

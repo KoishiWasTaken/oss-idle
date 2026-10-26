@@ -1,22 +1,24 @@
+import './IntroScreen.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
+
 import { music } from '../audio/MusicPlayer';
-import { acquireWakeLock } from '../responsive/wakeLock';
-import BeatmapSet from '../osu/beatmap/beatmap_set';
-import BeatmapStore from '../osu/beatmap/beatmap_store';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
 import { SETTINGS } from '../db/settings';
-import './IntroScreen.css';
-import SceneManager, { SCENE } from './SceneManager';
 import {
 	isMobile,
 	isStandalone,
 } from '../globals';
-import { Trans } from '@lingui/react/macro';
+import BeatmapSet from '../osu/beatmap/beatmap_set';
+import BeatmapStore from '../osu/beatmap/beatmap_store';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { acquireWakeLock } from '../responsive/wakeLock';
 import { menuWarmed } from '../warmup/menuWarmed';
+import SceneManager, { SCENE } from './SceneManager';
 
 const INTRO_MS = 2500;
 const SONG_KICK = 2450;
@@ -27,7 +29,7 @@ async function pickStartupBeatmap(): Promise<{
 }> {
 	if (!SETTINGS.osuMusicTheme.get()) {
 		const playable = (await BeatmapStore.getAllSets())
-			.flatMap(set => set.getPlayableBeatmaps());
+			.flatMap(set => set.getPickedBeatmaps());
 		if (playable.length) return { 
 			beatmap: playable[Math.floor(Math.random() * playable.length)], 
 			random: true, 

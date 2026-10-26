@@ -2,6 +2,7 @@ import {
 	isAdmin,
 	isModerator,
 } from '@oss-idle/shared/groups';
+
 import { useCurrentUser } from './useCurrentUser';
 
 export function useAdmin(): boolean {

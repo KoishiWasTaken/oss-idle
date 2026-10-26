@@ -41,6 +41,8 @@
 	--z-ticker: 9600;
 	--z-over-chat: 9610;
 	--z-community-controls: 9700;
+	/* emoji tooltips over the community overlay and the ticker */
+	--z-chat-tooltip: 9720;
 	--z-supporter-heart: 9750;
 	--z-medal: 9800;
 	--z-restricted: 9900;

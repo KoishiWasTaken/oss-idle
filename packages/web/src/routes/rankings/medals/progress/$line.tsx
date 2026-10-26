@@ -1,6 +1,7 @@
+import { msg } from '@lingui/core/macro';
 import { createFileRoute } from '@tanstack/react-router';
 import { zodValidator } from '@tanstack/zod-adapter';
-import { msg } from '@lingui/core/macro';
+
 import { getProgressRanking } from '../../../../api/rankings';
 import MedalProgressLine from '../../../../pages/rankings/MedalProgressLine';
 import { pageCountrySearch } from '../../../-rankingSearch';

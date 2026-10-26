@@ -1,12 +1,14 @@
-import {
-	useState,
-	type ReactNode,
-} from 'react';
-import { Trans } from '@lingui/react/macro';
 import './page.css';
+
+import { Trans } from '@lingui/react/macro';
 import {
-	PageBarSlot,
+	type ReactNode,
+	useState,
+} from 'react';
+
+import {
 	type PageAction,
+	PageBarSlot,
 } from './pageBar';
 import PageBarButton from './PageBarButton';
 

@@ -1,7 +1,8 @@
 import type {
 	Chart,
 	ChartDoc,
-} from '@oss-idle/shared/editor/chart';
+} from '@oss-idle/shared/rulesets/mania/editor/chart';
+
 import type { EditorSkins } from './editorSkins';
 import type { Overlay } from './painter';
 import type { VisualOptions } from './visualOptions';

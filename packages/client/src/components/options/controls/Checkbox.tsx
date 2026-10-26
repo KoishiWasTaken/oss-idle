@@ -1,8 +1,11 @@
+import './Checkbox.css';
+
 import { ReactNode } from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { isChanged } from '../../../db/settings';
-import './Checkbox.css';
 
 interface Props {
 	/** Backing flag. Pass a shared `Synced` so the toggle stays subscribable. */

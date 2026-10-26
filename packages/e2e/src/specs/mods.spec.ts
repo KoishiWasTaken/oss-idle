@@ -1,13 +1,13 @@
 import {
+	type Account,
+	query,
+	testAccounts,
+} from '../support/accounts';
+import {
 	expect,
 	test,
 } from '../support/fixtures';
 import Game from '../support/game';
-import {
-	query,
-	testAccounts,
-	type Account,
-} from '../support/accounts';
 
 /**
  * osu!'s other mods: EZ and HR widen and tighten the hit windows, NF never fails
@@ -22,7 +22,7 @@ test.describe('mods', () => {
 
 	type Row = { mods: string };
 	const scoreRows = async () => query<Row>(
-		'SELECT mods FROM score WHERE character_id = ? ORDER BY id DESC',
+		'SELECT mods FROM mania4k_score WHERE character_id = ? ORDER BY id DESC',
 		[kim.characterId],
 	);
 
@@ -54,7 +54,7 @@ test.describe('mods', () => {
 		await expect(lit).toHaveText(['No Fail', 'Hard Rock']);
 		await expect(page.locator('.mod-select__unranked')).toBeVisible();
 		await page.keyboard.press('2');
-		await expect(page.locator('.select-footer__active')).toHaveText('NFHR');
+		await expect(page.locator('.is-mods .select-footer__active')).toHaveText('NFHR');
 
 		await page.keyboard.press('F1');
 		await page.keyboard.press('1');

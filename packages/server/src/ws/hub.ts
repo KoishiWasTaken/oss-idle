@@ -1,12 +1,14 @@
 import type { WSContext } from 'hono/ws';
+
 import {
 	DEFAULT_CHANNEL,
-	LEGACY_DEFAULT_CHANNEL,
 	knowsLegacyChannel,
+	LEGACY_DEFAULT_CHANNEL,
 	type ServerMessage,
 } from '@oss-idle/shared/community/wire';
-import { redis } from '../redis';
+
 import { redisKeyPrefix } from '../env';
+import { redis } from '../redis';
 
 /**
  * The WebSocket fan-out layer - feature-agnostic. Presence and chat are just

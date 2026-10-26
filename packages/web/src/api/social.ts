@@ -1,4 +1,5 @@
 import type { ReportBody } from '@oss-idle/shared/social';
+
 import {
 	rpc,
 	unwrap,

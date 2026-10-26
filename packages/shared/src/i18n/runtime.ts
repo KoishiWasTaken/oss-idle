@@ -1,8 +1,9 @@
 import {
-	setupI18n,
 	type I18n,
 	type Messages,
+	setupI18n,
 } from '@lingui/core';
+
 import {
 	DEFAULT_LOCALE,
 	type Locale,

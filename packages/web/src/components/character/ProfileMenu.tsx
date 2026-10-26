@@ -1,25 +1,28 @@
 import './ProfileMenu.css';
-import { useState } from 'react';
-import { useLingui } from '@lingui/react/macro';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import {
 	faBan,
 	faEllipsisVertical,
 	faRotateLeft,
 	faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
-import {
-	useAdmin,
-	useModerator,
-} from '../../hooks/useAdmin';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLingui } from '@lingui/react/macro';
+import { useState } from 'react';
+
 import useAsync from '@oss-idle/shared/hooks/useAsync';
+
 import {
 	block,
 	getRelation,
 	unblock,
 } from '../../api/social';
-import SanctionItems from './SanctionItems';
+import {
+	useAdmin,
+	useModerator,
+} from '../../hooks/useAdmin';
 import ProfileMenuDialog, { type ProfileDialog } from './ProfileMenuDialog';
+import SanctionItems from './SanctionItems';
 
 /** osu!web's ⋮ menu on someone else's profile: block and report, silence and restrict for the
  *  moderators, account deletion and upgrade rollback for admins. */

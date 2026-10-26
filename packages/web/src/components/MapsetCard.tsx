@@ -1,26 +1,5 @@
-import { ph } from '@lingui/core/macro';
 import './MapsetCard.css';
-import {
-	memo,
-	useEffect,
-	useRef,
-	useState,
-	type MouseEvent,
-} from 'react';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { dateAgo } from '@oss-idle/shared/display/ago';
-import { bignum } from '@oss-idle/shared/display/num';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { difficultyColor } from '@oss-idle/shared/display/difficulty';
-import {
-	mapDownloadLink,
-	type MapCover,
-	type PanelDiff,
-} from '@oss-idle/shared/beatmap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import {
 	faCircleCheck,
 	faCirclePlay,
@@ -28,6 +7,31 @@ import {
 	faPause,
 	faPlay,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ph } from '@lingui/core/macro';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import {
+	memo,
+	type MouseEvent,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
+
+import {
+	type MapCover,
+	mapDownloadLink,
+	type PanelDiff,
+} from '@oss-idle/shared/beatmap';
+import { dateAgo } from '@oss-idle/shared/display/ago';
+import { difficultyColor } from '@oss-idle/shared/display/difficulty';
+import { bignum } from '@oss-idle/shared/display/num';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
 import {
 	coverBackground,
 	previewUrl,
@@ -38,10 +42,11 @@ import {
 	stopPreview,
 	togglePreview,
 } from '../preview';
+import { ENABLED_RULESETS } from '../rulesets';
 import Link from './Link';
 import MapperLink from './MapperLink';
-import ManiaIcon from './ManiaIcon';
 import MapsetDiffsPopup from './MapsetDiffsPopup';
+import ModeIcon from './ModeIcon';
 
 export type Mapset = MapCover & {
 	title: string;
@@ -90,7 +95,11 @@ const dateOf = (mapset: Mapset) => mapset.status === 'unranked' ? mapset.created
  * Memo'd: the search page re-renders its parents per keystroke, and re-rendering
  * every mounted card per key made typing stutter itself.
  */
-function MapsetCard({ mapset }: { mapset: Mapset }) {
+function MapsetCard({ mapset, ruleset = ENABLED_RULESETS[0] }: {
+	mapset: Mapset,
+	/** the ruleset the listing is in: its difficulties, its icon */
+	ruleset?: RulesetId,
+}) {
 	const { t } = useLingui();
 	const panel = useRef<HTMLDivElement>(null);
 	const timer = useRef(0);
@@ -99,7 +108,7 @@ function MapsetCard({ mapset }: { mapset: Mapset }) {
 	const mine = playing?.setId === mapset.id ? playing : undefined;
 	const diffs = [...mapset.diffs ?? []].sort((a, b) => a.sr - b.sr);
 	const link = {
-		to: '/maps/$id', params: { id: String(mapset.id) }, 
+		to: '/maps/$id', params: { id: String(mapset.id) }, search: { ruleset },
 	} as const;
 
 	useEffect(() => () => {
@@ -134,6 +143,7 @@ function MapsetCard({ mapset }: { mapset: Mapset }) {
 		>
 			<MapsetDiffsPopup
 				setId={mapset.id}
+				ruleset={ruleset}
 				diffs={diffs}
 				anchor={panel.current}
 				visible={popup}
@@ -201,7 +211,7 @@ function MapsetCard({ mapset }: { mapset: Mapset }) {
 						</span>
 						{diffs.length > 0 && (
 							<span className='list__beatmap_extra list__beatmap_extra--dots'>
-								<span className='list__beatmap_mode'><ManiaIcon /></span>
+								<span className='list__beatmap_mode'><ModeIcon ruleset={ruleset} /></span>
 								{diffs.length > MAX_DOTS
 									? <span className='list__beatmap_count'>{diffs.length}</span>
 									: diffs.map(diff => (

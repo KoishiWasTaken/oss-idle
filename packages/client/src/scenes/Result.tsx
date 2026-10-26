@@ -1,54 +1,57 @@
-import ResultMods from '../components/result/ResultMods';
-import accuracy from '@oss-idle/shared/display/accuracy';
-import DevianceGraph from '../gameplay/DevianceGraph';
-import HpGraph from '../gameplay/HpGraph';
-import { Score } from '../db/schema/score';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import BeatmapAPI from '../osu/beatmap/beatmap_api';
-import { ManiaGame } from '@oss-idle/shared/sim/maniaGame';
-import Background from './Background';
 import './Result.css';
-import Controls from '../input/Controls';
-import Multiplayer from '../online/multiplayer';
-import PlayManager from '../online/playManager';
-import MatchRanking from '../components/multiplayer/MatchRanking';
-import useMatchRanking from '../components/multiplayer/useMatchRanking';
-import SceneManager from './SceneManager';
-import type { SkillProgress } from '@oss-idle/shared/sim/bots/character';
-import Character from '../db/schema/character';
-import useSmoothNumber from '../animations/useSmoothNumber';
-import { currentSkin } from '../osu/skin/Skin';
-import { useGradeUrl } from '../osu/skin/SkinGrade';
-import SkinJudgement from '../osu/skin/SkinJudgement';
+
 import { Trans } from '@lingui/react/macro';
-import {
-	Judgement,
-	JUDGEMENT,
-} from '@oss-idle/shared/judgement';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { ScoreDTO } from '@oss-idle/shared/score';
 import {
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
-import { flushBeatmapScores } from '../online/services/scores';
+
+import accuracy from '@oss-idle/shared/display/accuracy';
+import num from '@oss-idle/shared/display/num';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+import type { SkillGain } from '@oss-idle/shared/play';
+import type { MedalBatch } from '@oss-idle/shared/play';
+import { showsDivine } from '@oss-idle/shared/rebirth';
+import {
+	JUDGEMENT,
+	Judgement,
+} from '@oss-idle/shared/rulesets/mania/judgement';
+import { ManiaGame } from '@oss-idle/shared/rulesets/mania/maniaGame';
+import { ScoreDTO } from '@oss-idle/shared/score';
+
+import useSmoothNumber from '../animations/useSmoothNumber';
+import MatchRanking from '../components/multiplayer/MatchRanking';
+import useMatchRanking from '../components/multiplayer/useMatchRanking';
+import CountUp, { COUNT_UP_MS } from '../components/result/CountUp';
+import ResultMeta from '../components/result/ResultMeta';
+import ResultMods from '../components/result/ResultMods';
+import ShareScoreButton from '../components/result/ShareScoreButton';
+import SkillProgression from '../components/result/SkillProgression';
+import Character from '../db/schema/character';
+import { Score } from '../db/schema/score';
+import DevianceGraph from '../gameplay/DevianceGraph';
+import HpGraph from '../gameplay/HpGraph';
+import { currentScore } from '../globals';
+import Controls from '../input/Controls';
+import { showMedals } from '../online/medalWatch';
+import Multiplayer from '../online/multiplayer';
+import PlayManager from '../online/playManager';
 import {
 	flushCharacter,
 	flushCharacterStats,
 	getCharacter,
 } from '../online/services/characters';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
-import num from '@oss-idle/shared/display/num';
-import CountUp, { COUNT_UP_MS } from '../components/result/CountUp';
-import ResultMeta from '../components/result/ResultMeta';
-import ShareScoreButton from '../components/result/ShareScoreButton';
-import SkillProgression from '../components/result/SkillProgression';
-import { currentScore } from '../globals';
-import { showsDivine } from '@oss-idle/shared/rebirth';
-import { showMedals } from '../online/medalWatch';
-import type { MedalBatch } from '@oss-idle/shared/play';
+import { flushBeatmapScores } from '../online/services/scores';
+import BeatmapAPI from '../osu/beatmap/beatmap_api';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import { currentSkin } from '../osu/skin/Skin';
+import { useGradeUrl } from '../osu/skin/SkinGrade';
+import SkinJudgement from '../osu/skin/SkinJudgement';
+import Background from './Background';
 import { launchPlay } from './launchPlay';
+import SceneManager from './SceneManager';
 
 /** Two per row. Divine pairs with marvelous at the top and pushes perfect down
  *  beside great; without divine the pairing is left exactly as it was. */
@@ -73,7 +76,7 @@ type Props = {
 	game?: ManiaGame,
 	/** per-skill XP progression to show (local play computes it, ranked play gets
 	 *  it from the server); omitted when the play awards no XP */
-	progression?: SkillProgress[],
+	progression?: SkillGain[],
 	/** the play failed (HP hit 0): the score was not saved and awards no XP */
 	failed?: boolean,
 	/** the map this score is of. Given, the screen names it itself instead of

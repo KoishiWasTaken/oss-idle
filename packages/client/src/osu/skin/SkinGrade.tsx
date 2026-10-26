@@ -1,4 +1,5 @@
-import type { Grade } from '@oss-idle/shared/judgement';
+import type { Grade } from '@oss-idle/shared/grade';
+
 import type Skin from './Skin';
 import { gradeKey } from './Skin';
 import { useSkinImage } from './useSkinImage';

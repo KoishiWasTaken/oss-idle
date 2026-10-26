@@ -2,15 +2,16 @@ import {
 	NOTE_BODY,
 	type NoteBodyStyle,
 } from '@oss-idle/shared/osuSkin/mania';
+
 import type {
 	ColumnAssets,
 	ManiaAssets,
 	Sprite,
 } from '../../osu/skin/maniaAssets';
 import {
+	type Context2D,
 	noteY,
 	posY,
-	type Context2D,
 } from './frame';
 import {
 	drawSprite,

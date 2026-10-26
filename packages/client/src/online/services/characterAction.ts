@@ -1,5 +1,6 @@
 import type { CharacterDTO } from '@oss-idle/shared/character';
 import Log from '@oss-idle/shared/helpers/log';
+
 import Account from '../account';
 import {
 	flushCharacter,

@@ -35,6 +35,7 @@ import { Route as NewsAdminRouteImport } from './routes/news/admin'
 import { Route as NewsSlugRouteImport } from './routes/news/$slug'
 import { Route as MatchesIdRouteImport } from './routes/matches/$id'
 import { Route as MapsRequestsRouteImport } from './routes/maps/requests'
+import { Route as MapsLevelsRouteImport } from './routes/maps/levels'
 import { Route as MapsClaimRouteImport } from './routes/maps/claim'
 import { Route as MapsIdRouteImport } from './routes/maps/$id'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
@@ -203,6 +204,11 @@ const MatchesIdRoute = MatchesIdRouteImport.update({
 const MapsRequestsRoute = MapsRequestsRouteImport.update({
   id: '/maps/requests',
   path: '/maps/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapsLevelsRoute = MapsLevelsRouteImport.update({
+  id: '/maps/levels',
+  path: '/maps/levels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsClaimRoute = MapsClaimRouteImport.update({
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/legal/terms': typeof LegalTermsRoute
   '/maps/$id': typeof MapsIdRoute
   '/maps/claim': typeof MapsClaimRoute
+  '/maps/levels': typeof MapsLevelsRoute
   '/maps/requests': typeof MapsRequestsRoute
   '/matches/$id': typeof MatchesIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -513,6 +520,7 @@ export interface FileRoutesByTo {
   '/legal/terms': typeof LegalTermsRoute
   '/maps/$id': typeof MapsIdRoute
   '/maps/claim': typeof MapsClaimRoute
+  '/maps/levels': typeof MapsLevelsRoute
   '/maps/requests': typeof MapsRequestsRoute
   '/matches/$id': typeof MatchesIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -581,6 +589,7 @@ export interface FileRoutesById {
   '/legal/terms': typeof LegalTermsRoute
   '/maps/$id': typeof MapsIdRoute
   '/maps/claim': typeof MapsClaimRoute
+  '/maps/levels': typeof MapsLevelsRoute
   '/maps/requests': typeof MapsRequestsRoute
   '/matches/$id': typeof MatchesIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/maps/$id'
     | '/maps/claim'
+    | '/maps/levels'
     | '/maps/requests'
     | '/matches/$id'
     | '/news/$slug'
@@ -716,6 +726,7 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/maps/$id'
     | '/maps/claim'
+    | '/maps/levels'
     | '/maps/requests'
     | '/matches/$id'
     | '/news/$slug'
@@ -783,6 +794,7 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/maps/$id'
     | '/maps/claim'
+    | '/maps/levels'
     | '/maps/requests'
     | '/matches/$id'
     | '/news/$slug'
@@ -838,6 +850,7 @@ export interface RootRouteChildren {
   LegalTermsRoute: typeof LegalTermsRoute
   MapsIdRoute: typeof MapsIdRoute
   MapsClaimRoute: typeof MapsClaimRoute
+  MapsLevelsRoute: typeof MapsLevelsRoute
   MapsRequestsRoute: typeof MapsRequestsRoute
   MatchesIdRoute: typeof MatchesIdRoute
   NewsSlugRoute: typeof NewsSlugRoute
@@ -1043,6 +1056,13 @@ declare module '@tanstack/react-router' {
       path: '/maps/requests'
       fullPath: '/maps/requests'
       preLoaderRoute: typeof MapsRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maps/levels': {
+      id: '/maps/levels'
+      path: '/maps/levels'
+      fullPath: '/maps/levels'
+      preLoaderRoute: typeof MapsLevelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps/claim': {
@@ -1390,6 +1410,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalTermsRoute: LegalTermsRoute,
   MapsIdRoute: MapsIdRoute,
   MapsClaimRoute: MapsClaimRoute,
+  MapsLevelsRoute: MapsLevelsRoute,
   MapsRequestsRoute: MapsRequestsRoute,
   MatchesIdRoute: MatchesIdRoute,
   NewsSlugRoute: NewsSlugRoute,

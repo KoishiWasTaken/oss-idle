@@ -1,12 +1,15 @@
+import './ladder.css';
+
 import { Trans } from '@lingui/react/macro';
+
 import {
 	UPGRADE_LEVELS,
 	UPGRADE_XP_BONUS,
 } from '@oss-idle/shared/upgrades';
+
 import type Character from '../../db/schema/character';
-import UpgradesSummary from './UpgradesSummary';
 import UpgradeRow from './UpgradeRow';
-import './ladder.css';
+import UpgradesSummary from './UpgradesSummary';
 
 export default function UpgradesView({ character }: { character: Character }) {
 	const bonus = Math.round(UPGRADE_XP_BONUS * 100);
@@ -21,7 +24,7 @@ export default function UpgradesView({ character }: { character: Character }) {
 						key={`${character.id}:${skill.name}`}
 						skill={skill}
 						locked={locked}
-						lifetimeXp={character[`${skill.name}LifetimeXp`]}
+						lifetimeXp={character.lifetimeXp(skill.name)}
 					/>
 				))}
 			</div>

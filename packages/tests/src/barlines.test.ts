@@ -1,13 +1,14 @@
-import {
-	describe,
-	it,
-	expect,
-} from 'vitest';
 import { BeatmapDecoder } from 'osu-parsers';
 import {
-	ScrollModel,
+	describe,
+	expect,
+	it,
+} from 'vitest';
+
+import {
 	buildBarlines,
-} from '@oss-idle/shared/sim/scroll';
+	ScrollModel,
+} from '@oss-idle/shared/rulesets/mania/scroll';
 
 // Red lines at 6e-96ms, as in ISOxo - Chamber [Dimensional Drift] (4965027).
 const CHART = `osu file format v14

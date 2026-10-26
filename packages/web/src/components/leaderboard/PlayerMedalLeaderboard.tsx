@@ -1,14 +1,17 @@
 import './PlayerLeaderboard.css';
+
+import { Trans } from '@lingui/react/macro';
+
+import num from '@oss-idle/shared/display/num';
+import rank from '@oss-idle/shared/display/rank';
 import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+
+import type { getMedalRanking } from '../../api/rankings';
 import { useCurrentCharacter } from '../../hooks/useCurrentCharacter';
+import { rulesetDef } from '../../rulesets';
+import Flag from '../Flag';
 import Link from '../Link';
 import Pager from './Pager';
-import type { getMedalRanking } from '../../api/rankings';
-import Flag from '../Flag';
-import rank from '@oss-idle/shared/display/rank';
-import num from '@oss-idle/shared/display/num';
-import { MEDALS } from '@oss-idle/shared/achievements/catalogue';
-import { Trans } from '@lingui/react/macro';
 
 type Players = Awaited<ReturnType<typeof getMedalRanking>>;
 
@@ -39,8 +42,8 @@ export default function PlayerMedalLeaderboard({ page, players }: {
 							<Flag country={player.user.country} />
 							<Link to='/c/$id' params={{ id: String(player.character.id) }}>{player.character.name}</Link>
 						</div></td>
-						<td className='dimmed'>{num(player.character_totals.playCount)}</td>
-						<td className='dimmed'>{player.medals.held} / {MEDALS.length}</td>
+						<td className='dimmed'>{num(player.totals.playCount)}</td>
+						<td className='dimmed'>{player.medals.held} / {rulesetDef().medals.medals.length}</td>
 						<td className='current'>{num(player.medals.score, 2)}</td>
 					</tr>)}
 				</tbody>

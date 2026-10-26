@@ -1,12 +1,14 @@
-import { starsOf } from '../../gameplay/rateStars';
 import {
 	ph,
 	plural,
 	t,
 } from '@lingui/core/macro';
+
+import { Grades } from '@oss-idle/shared/grade';
+
 import { CarouselItem } from '../../components/BeatmapCarousel';
-import { Grades } from '@oss-idle/shared/judgement';
 import type { PlaylistMembership } from '../../db/schema/playlist';
+import { starsOf } from '../../gameplay/rateStars';
 
 /** Per-character play history, keyed by beatmap (difficulty) id. Mirrors what
  *  SongSelect derives from the local score table; the two history-based group
@@ -35,6 +37,8 @@ export interface Group {
 	order: number;
 	/** By Playlist: the rate the difficulty is locked at in this playlist */
 	rate?: number;
+	/** By Playlist: the mods locked with that rate */
+	mods?: PlaylistMembership['mods'];
 	/** By Playlist: which copy of the difficulty this is */
 	entry?: PlaylistMembership['entry'];
 }
@@ -123,11 +127,29 @@ function statusGroup(item: CarouselItem): Group {
 	};
 }
 
+/** Bundled, SV, LN: every one that applies, or Uncategorized. */
+function tagGroups(item: CarouselItem): Group[] {
+	const groups: Group[] = [];
+	if (item.bundled) groups.push({
+		key: 'bundled', label: t`Bundled`, order: 0,
+	});
+	if (item.tags?.includes('sv')) groups.push({
+		key: 'sv', label: t`SV`, order: 1,
+	});
+	if (item.tags?.includes('ln')) groups.push({
+		key: 'ln', label: t`LN`, order: 2,
+	});
+	return groups.length ? groups : [{
+		key: 'uncategorized', label: t`Uncategorized`, order: LAST,
+	}];
+}
+
 /**
  * Every group a carousel item falls into for the given group mode. Most modes
  * bucket an item exactly once, but "By Playlist" mirrors osu! collections: a
  * difficulty appears under *each* playlist holding it, once per locked rate,
  * and one in no playlist is hidden from the view entirely (empty result).
+ * "By Tag" likewise lists a difficulty under each of its tags.
  */
 export function groupsOf(
 	item: CarouselItem, mode: string, history: PlayHistory, now: number,
@@ -137,9 +159,10 @@ export function groupsOf(
 		// all order 0: playlists render alphabetically via the label tiebreak
 		return (playlists.get(item.beatmap.metadata.id) ?? [])
 			.map((p) => ({
-				key: `p${p.id}`, label: p.name, order: 0, rate: p.rate, entry: p.entry,
+				key: `p${p.id}`, label: p.name, order: 0, rate: p.rate, mods: p.mods, entry: p.entry,
 			}));
 	}
+	if (mode === 'By Tag') return tagGroups(item);
 	const g = groupOf(item, mode, history, now, downloaded);
 	return g ? [g] : [];
 }

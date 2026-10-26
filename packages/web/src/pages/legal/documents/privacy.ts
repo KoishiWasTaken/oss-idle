@@ -1,9 +1,9 @@
-import type { Bilingual } from './types';
 import {
 	ADDRESS,
 	EMAIL,
 	PUBLISHER,
 } from '../identity';
+import type { Bilingual } from './types';
 
 export const privacy: Bilingual = {
 	en: {

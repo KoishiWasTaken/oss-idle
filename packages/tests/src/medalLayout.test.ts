@@ -3,6 +3,7 @@ import {
 	expect,
 	it,
 } from 'vitest';
+
 import { medalSlots } from '@oss-idle/client/components/medals/medalLayout';
 
 const W = 1216;

@@ -4,7 +4,9 @@ import {
 	useLingui,
 } from '@lingui/react/macro';
 import { useRef } from 'react';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import useKeyboardOwner from '../../input/keyboardOwner';
 import Dropdown from '../dropdown/Dropdown';
 import Checkbox from '../options/controls/Checkbox';

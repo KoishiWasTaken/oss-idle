@@ -1,11 +1,13 @@
 import { useLingui } from '@lingui/react/macro';
-import type { Mod } from '@oss-idle/shared/mods';
+
 import {
 	MOD_LOOK,
 	modName,
 } from '@oss-idle/shared/display/mods';
-import Glyph from '../multiplayer/Glyph';
+import type { Mod } from '@oss-idle/shared/mods';
+
 import { rateShort } from '../mods/rateShort';
+import Glyph from '../multiplayer/Glyph';
 
 /** The mods a score was played with, in a row under its grade as on osu!'s ranking screen. */
 export default function ResultMods({ rate, mods }: { rate: number, mods: Mod[] }) {

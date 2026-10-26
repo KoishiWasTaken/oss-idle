@@ -1,13 +1,16 @@
+import './Dropdown.css';
+
 import {
 	ReactNode,
 	useEffect,
 	useRef,
 	useState,
 } from 'react';
+
 import Synced from '@oss-idle/shared/helpers/synced';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import { isChanged } from '../../db/settings';
-import './Dropdown.css';
 
 export interface DropdownOption<T> {
 	value: T;

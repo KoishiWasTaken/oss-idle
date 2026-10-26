@@ -1,14 +1,19 @@
 import './CommunityControls.css';
+
+import { useLingui } from '@lingui/react/macro';
 import {
 	useEffect,
 	useRef,
 } from 'react';
-import { useLingui } from '@lingui/react/macro';
+
 import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	isCommunityOpen,
 	menuIdle,
 } from '../../globals';
+import Controls from '../../input/Controls';
+import { chatUnread } from './chat/unread';
 import CommunityToggle from './CommunityToggle';
 import {
 	autoHide,
@@ -16,8 +21,6 @@ import {
 	showTicker,
 	showUsers,
 } from './state';
-import Controls from '../../input/Controls';
-import { chatUnread } from './chat/unread';
 
 /**
  * The bottom-right control strip, present open or closed. Mirrors osu!stable's

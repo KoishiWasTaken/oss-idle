@@ -1,21 +1,24 @@
 import {
+	desc,
+	eq,
+} from 'drizzle-orm';
+import {
 	int,
 	mysqlTable,
 	primaryKey,
 	timestamp,
 	varchar,
 } from 'drizzle-orm/mysql-core';
-import {
-	desc,
-	eq,
-} from 'drizzle-orm';
-import { characters } from './character';
-import { db } from '../client';
+
 import type { MedalBatch } from '@oss-idle/shared/play';
+
+import type { ServerRuleset } from '../../rulesets/ruleset';
+import { db } from '../client';
+import { characters } from './character';
 
 /** The medals a character holds. Never removed: a medal stays earned even if
  *  what earned it is lost (a #1 taken back, a map unranked). */
-export const characterMedals = mysqlTable('character_medal', {
+export const medalsTable = (name: string) => mysqlTable(name as 'character_medal', {
 	characterId: int().notNull()
 		.references(() => characters.id, { onDelete: 'cascade' }),
 	medalId: varchar({ length: 32 }).notNull(),
@@ -24,8 +27,13 @@ export const characterMedals = mysqlTable('character_medal', {
 	primaryKey({ columns: [table.characterId, table.medalId] }),
 ]);
 
+export type MedalsTable = ReturnType<typeof medalsTable>;
+
 /** Newest first. */
-export const getMedals = async (characterId: number) => db
+export const getMedals = async (
+	{ medals: characterMedals }: ServerRuleset,
+	characterId: number,
+) => db
 	.select()
 	.from(characterMedals)
 	.where(eq(characterMedals.characterId, characterId))
@@ -33,8 +41,13 @@ export const getMedals = async (characterId: number) => db
 
 /** Store the medals among `ids` the character did not hold yet; returns those,
  *  and how many it holds now. */
-export const addMedals = async (characterId: number, ids: string[]): Promise<MedalBatch> => {
-	const held = new Set((await getMedals(characterId)).map(m => m.medalId));
+export const addMedals = async (
+	t: ServerRuleset,
+	characterId: number,
+	ids: string[],
+): Promise<MedalBatch> => {
+	const { medals: characterMedals } = t;
+	const held = new Set((await getMedals(t, characterId)).map(m => m.medalId));
 	const fresh = ids.filter(id => !held.has(id));
 	if (!fresh.length) return {
 		ids: [], held: held.size,

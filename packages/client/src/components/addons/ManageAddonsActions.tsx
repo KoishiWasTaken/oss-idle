@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/react/macro';
-import PageBarActions from '../page/PageBarActions';
+
 import { library } from '../../library';
+import PageBarActions from '../page/PageBarActions';
 
 type Props = {
 	/** signed in: make a new add-on */

@@ -1,9 +1,10 @@
+import type { AddonStatus } from '@oss-idle/shared/addon';
+
 import {
 	apiUrl,
 	rpc,
 	unwrap,
 } from './client';
-import type { AddonStatus } from '@oss-idle/shared/addon';
 
 /** Admin: every published add-on, to take one down. */
 export const listAddonsAdmin = () => unwrap(rpc.v1.addons.admin.$get());

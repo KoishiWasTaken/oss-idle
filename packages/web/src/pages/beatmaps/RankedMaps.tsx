@@ -1,31 +1,40 @@
 import './RankedMaps.css';
 import '../search/Search.css';
-import {
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import {
-	Trans,
-	useLingui,
-} from '@lingui/react/macro';
-import { PAGE_SIZE } from '@oss-idle/shared/rankings';
-import Link from '../../components/Link';
-import MapsetCard from '../../components/MapsetCard';
-import Pager from '../../components/leaderboard/Pager';
-import MapsNav from './MapsNav';
-import {
-	type MapFilter,
-	type getAllMaps,
-	type getPopularMaps,
-} from '../../api/maps';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import {
 	faCaretDown,
 	faCaretUp,
 	faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+	Trans,
+	useLingui,
+} from '@lingui/react/macro';
+import { useNavigate } from '@tanstack/react-router';
+import {
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
+
+import { PAGE_SIZE } from '@oss-idle/shared/rankings';
+import { rulesetLabel } from '@oss-idle/shared/rulesets/display';
+import type { RulesetId } from '@oss-idle/shared/rulesets/ids';
+
+import {
+	type getAllMaps,
+	type getPopularMaps,
+	type MapFilter,
+} from '../../api/maps';
+import Pager from '../../components/leaderboard/Pager';
+import Link from '../../components/Link';
+import MapsetCard from '../../components/MapsetCard';
+import {
+	ENABLED_RULESETS,
+	RULESET_TABS,
+} from '../../rulesets';
+import MapsNav from './MapsNav';
 
 export type MapSort = 'date' | 'plays';
 export type MapDir = 'asc' | 'desc';
@@ -36,6 +45,8 @@ type Mapsets =
 	| Awaited<ReturnType<typeof getPopularMaps>>;
 
 type Props = {
+	/** the ruleset the listing is in; the server's first when not asked */
+	ruleset?: RulesetId,
 	sort: MapSort,
 	dir: MapDir,
 	status: MapStatus,
@@ -45,7 +56,7 @@ type Props = {
 };
 
 /** The beatmap listing: a name to look for, which maps, and their order. */
-export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Props) {
+export default function RankedMaps({ ruleset, sort, dir, status, q, page, mapsets }: Props) {
 	const { t } = useLingui();
 	const navigate = useNavigate();
 	const [text, setText] = useState(q);
@@ -77,7 +88,7 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 							routeTimer.current = window.setTimeout(() => {
 								void navigate({
 									to: '/maps', search: {
-										sort, dir, status, q: e.target.value, page: 1, 
+										ruleset, sort, dir, status, q: e.target.value, page: 1,
 									}, replace: true,
 								});
 							}, 250);
@@ -85,6 +96,23 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 					/>
 				</label>
 			</div>
+			{ENABLED_RULESETS.length > 1 && (
+				<div className='list__beatmap_sort'>
+					<span><Trans>Mode</Trans></span>
+					{RULESET_TABS.map(id => (
+						<Link
+							key={id}
+							className={id === (ruleset ?? ENABLED_RULESETS[0]) ? 'current' : ''}
+							to='/maps'
+							search={{
+								ruleset: id, sort, dir, status, q,
+							}}
+						>
+							{rulesetLabel(id)}
+						</Link>
+					))}
+				</div>
+			)}
 			<div className='list__beatmap_sort'>
 				<span><Trans>Categories</Trans></span>
 				{(['any', 'ranked', 'loved', 'unranked'] as const).map(type => (
@@ -93,7 +121,7 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 						className={type === status ? 'current' : ''}
 						to='/maps'
 						search={{
-							sort, dir, status: type, q, 
+							ruleset, sort, dir, status: type, q,
 						}}
 					>
 						{statusLabel[type]}
@@ -110,7 +138,7 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 						className={`${current ? 'current' : ''} ${dir === 'asc' ? 'asc' : 'desc'}`}
 						to='/maps'
 						search={{
-							sort: type, dir: nextDir, status, q,
+							ruleset, sort: type, dir: nextDir, status, q,
 						}}
 					>
 						{sortLabel[type]}
@@ -120,7 +148,7 @@ export default function RankedMaps({ sort, dir, status, q, page, mapsets }: Prop
 			</div>
 			<div className="page-contents">
 				<div className='list__beatmap-container'>
-					{mapsets.map(mapset => <MapsetCard key={mapset.id} mapset={mapset} />)}
+					{mapsets.map(mapset => <MapsetCard key={mapset.id} mapset={mapset} ruleset={ruleset} />)}
 				</div>
 				<Pager page={page} hasNext={mapsets.length === PAGE_SIZE} />
 			</div>

@@ -1,5 +1,5 @@
-import Socket from './socket';
 import Account from './account';
+import Socket from './socket';
 
 // The server owns the character and pushes it whenever the row moves - a play's
 // xp, a purchase parked during one, a rebirth from another device. Taking it

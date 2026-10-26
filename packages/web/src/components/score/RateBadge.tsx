@@ -1,4 +1,5 @@
 import './RateBadge.css';
+
 import { rateLabel } from '@oss-idle/shared/rate';
 
 /** A score's rate mod: Double (faster) or Half (slower), with its rate. Nothing at x1. */

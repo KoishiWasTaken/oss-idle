@@ -1,37 +1,39 @@
-import {
-	useRatedVersion,
-	useStarsOf,
-} from '../gameplay/rateStars';
+import { Trans } from '@lingui/react/macro';
 import {
 	memo,
 	useRef,
 } from 'react';
-import { Trans } from '@lingui/react/macro';
+
 import {
 	difficultyColor,
 	isDarkDifficulty,
 	starsText,
 } from '@oss-idle/shared/display/difficulty';
-import { DownloadState } from './BeatmapCarousel';
-import LightBeatmap from '../osu/beatmap/LightBeatmap';
-import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
-import useThumbnail from '../osu/beatmap/useThumbnail';
+import useAsync from '@oss-idle/shared/hooks/useAsync';
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
 	Score,
 	scoresVersion,
 } from '../db/schema/score';
-import Entities from '../entity/entities';
-import { currentSkin } from '../osu/skin/Skin';
-import { useSelection } from './songselect/selection';
-import useAsync from '@oss-idle/shared/hooks/useAsync';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 import { SETTINGS } from '../db/settings';
-import BeatmapCardXP from './BeatmapCardXP';
-import type { BeatmapXPInsight } from '../xpInsights';
+import Entities from '../entity/entities';
 import {
 	canPlayAt,
 	liveSpeedUpgrades,
 } from '../gameplay/playRate';
+import {
+	useRatedVersion,
+	useStarsOf,
+} from '../gameplay/rateStars';
+import LightBeatmap from '../osu/beatmap/LightBeatmap';
+import LightBeatmapSet from '../osu/beatmap/LightBeatmapSet';
+import useThumbnail from '../osu/beatmap/useThumbnail';
+import { currentSkin } from '../osu/skin/Skin';
+import type { BeatmapXPInsight } from '../xpInsights';
+import BeatmapCardXP from './BeatmapCardXP';
+import { DownloadState } from './BeatmapCarousel';
+import { useSelection } from './songselect/selection';
 
 /** max gap between two clicks on the same card to count as a double-click */
 const DOUBLE_CLICK_MS = 300;
@@ -83,7 +85,7 @@ function BeatmapCard({
 		(await Score.best(character.id, beatmap.metadata.id))?.grade
 	, [beatmap, character.id, scoresV]);
 
-	const version = useRatedVersion(beatmap.metadata.version, beatmap.lockedRate);
+	const version = useRatedVersion(beatmap);
 	useSynced(liveSpeedUpgrades);
 	const reachable = canPlayAt(beatmap.lockedRate);
 	const artist = set.metadata.artist;
@@ -124,7 +126,7 @@ function BeatmapCard({
 		<div
 			className={cardClassName(active, sibling, downloaded, reachable)}
 			data-id={beatmap.metadata.id}
-			data-rate={beatmap.lockedRate}
+			data-lock={beatmap.lock}
 			onClick={handleClick}
 			style={bg ? { backgroundImage: `url("${bg}")` } : undefined}
 		>

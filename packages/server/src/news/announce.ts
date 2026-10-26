@@ -2,18 +2,19 @@ import {
 	NEWS_TAGS,
 	type NewsTag,
 } from '@oss-idle/shared/news';
+
+import type { NewsRow } from '../db/schema/news';
+import {
+	chunkText,
+	htmlToMarkdown,
+} from '../discord/markdown';
+import { publish } from '../discord/publish';
 import {
 	apiBaseUrl,
 	clientUrl,
 	env,
 	isProd,
 } from '../env';
-import { publish } from '../discord/publish';
-import {
-	chunkText,
-	htmlToMarkdown,
-} from '../discord/markdown';
-import type { NewsRow } from '../db/schema/news';
 
 /** Discord's own limits: 4096 chars per embed description, 10 embeds and 6000
  *  chars per message. One embed per message keeps both trivially satisfied. */
