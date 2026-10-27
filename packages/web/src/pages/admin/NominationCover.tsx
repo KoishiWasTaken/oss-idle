@@ -21,7 +21,7 @@ import {
 /** The set's cover; clicking it plays the audio preview. */
 export default function NominationCover({ row }: { row: Nomination }) {
 	const [playing] = useSynced(preview);
-	const mine = playing?.setId === row.id;
+	const mine = playing?.setId === row.id ? playing : undefined;
 	useEffect(() => () => stopPreview(row.id), [row.id]);
 
 	return (
@@ -33,7 +33,7 @@ export default function NominationCover({ row }: { row: Nomination }) {
 			aria-label='Preview'
 			onClick={() => togglePreview(row.id, nominationPreviewUrl(row.id, row.audio!))}
 		>
-			{row.audio && <FontAwesomeIcon icon={mine ? faPause : faPlay} />}
+			{row.audio && <FontAwesomeIcon icon={mine && mine.state !== 'paused' ? faPause : faPlay} />}
 		</button>
 	);
 }

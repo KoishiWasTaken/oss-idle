@@ -136,10 +136,36 @@
 	cursor: pointer;
 	user-select: none;
 }
+/* the options panel's checkbox: pink ring, filled when on */
 .listing-toggle input {
-	accent-color: var(--osu-pink);
-	width: 15px;
-	height: 15px;
+	appearance: none;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	border-radius: 100px;
+	border: 2px solid var(--osu-pink-dark);
+	cursor: pointer;
+	transition:
+		border-color 120ms ease,
+		background 120ms ease;
+}
+.listing-toggle input:checked {
+	background: var(--osu-pink-dark);
+}
+.listing-toggle:hover input:not(:disabled) {
+	border-color: var(--osu-pink);
+}
+.listing-toggle input:focus-visible {
+	outline: 2px solid var(--osu-pink-light);
+	outline-offset: 2px;
+}
+.listing-toggle:has(input:disabled) {
+	opacity: 0.4;
+	cursor: default;
+}
+.listing-toggle input:disabled {
+	cursor: default;
 }
 
 /* ---- flat buttons ---- */

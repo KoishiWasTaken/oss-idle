@@ -23,15 +23,17 @@ export type PlayfieldGeometry = {
 	right: number,
 	/** where the grade badge goes: left of the score, as tall as it (filled in as it draws) */
 	grade: { right: number, top: number, height: number },
+	/** where the mods go: under the accuracy, right-aligned with it (filled in as it draws) */
+	mods: { right: number, top: number, scale: number },
+	/** the warm-up bar, for its hover area (filled in as it draws; no width when none shows) */
+	warmup: { left: number, top: number, width: number },
 };
 
 export type StrainHud = {
 	/** what the gauges read: the live strain, by skill */
 	source: { strainsAt(now: number): Readonly<Record<string, number>> },
-	/** the gauges, top to bottom */
+	/** the sparklines, top to bottom */
 	gauges: readonly { skill: string, label: string }[],
-	/** where the gauges start, past anything drawn at the left edge */
-	left?: number,
 	/** where on the warm-up bar, 0 cold to 1 exhausted */
 	warmupBar?: number,
 	warmupLabel?: string,
@@ -45,7 +47,7 @@ export type DrawOptions = {
 	debug?: boolean,
 	/** stacks the top-right accuracy/score lower (narrow screens) */
 	mobile?: boolean,
-	/** draws the per-skill strain gauges when set */
+	/** draws the strain panel when set */
 	strain?: StrainHud,
 	/** the ruleset's debug readouts over the playfield */
 	debugStats?: (game: ManiaGame, now: number) => string[],
@@ -95,6 +97,12 @@ export const playfieldGeometry = (
 		right: x0 + fieldWidth,
 		grade: {
 			right: 160, top: 16, height: 40,
+		},
+		mods: {
+			right: 16, top: 100, scale: 0.6,
+		},
+		warmup: {
+			left: 0, top: 0, width: 0,
 		},
 	};
 };

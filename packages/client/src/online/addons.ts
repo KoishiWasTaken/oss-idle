@@ -46,6 +46,10 @@ export const recordAddonDownload = (id: number) =>
 export const getAddon = (id: number) =>
 	unwrap<Addon>(rpc.v1.addons[':id'].$get({ param: { id: String(id) } }));
 
+/** Public: the published version of each add-on, by id (an unpublished one is left out). */
+export const addonVersions = (ids: number[]) =>
+	unwrap<Record<number, string>>(rpc.v1.addons.versions.$get({ query: { ids: ids.join(',') } }));
+
 /** Auth: the caller's own add-ons (any status). */
 export const myAddons = () =>
 	unwrap<OwnAddon[]>(rpc.v1.addons.me.$get());

@@ -64,6 +64,12 @@ export default class EditorPreview {
 			right: L.x0 + L.width, grade: {
 				right: 0, top: 0, height: 0,
 			},
+			mods: {
+				right: 0, top: 0, scale: 0,
+			},
+			warmup: {
+				left: 0, top: 0, width: 0,
+			},
 		};
 		return this.frame = {
 			ctx, game, skin: undefined, now: 0, nowPos: 0, vp: {

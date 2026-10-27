@@ -3,39 +3,20 @@ import {
 	Trans,
 	useLingui,
 } from '@lingui/react/macro';
-import {
-	useEffect,
-	useState,
-} from 'react';
+import type { RefObject } from 'react';
 
 import HoverCard from '@oss-idle/shared/display/HoverCard';
-import useSynced from '@oss-idle/shared/hooks/useSynced';
 
-import { warmupGaugeBox } from '../../gameplay/render/hud';
 import { warmupStage } from '../../gameplay/warmupStage';
 import { selectedDef } from '../../rulesets/registry';
-import { scoreboardEdge } from '../multiplayer/scoreboardEdge';
 
-const windowSize = () => ({
-	w: innerWidth,
-	h: innerHeight,
-});
-
-/** What to do now, on hover over the warm-up bar the canvas draws. */
-export default function WarmupHint({ bar, gauges }: {
+/** What to do now, on hover over the warm-up bar the canvas draws (its box placed over the bar
+ *  each frame, makeWarmupPlacer). */
+export default function WarmupHint({ bar, boxRef }: {
 	bar: number,
-	/** the strain gauges above the warm-up bar */
-	gauges: number,
+	boxRef: RefObject<HTMLDivElement>,
 }) {
 	const { t } = useLingui();
-	const [edge] = useSynced(scoreboardEdge);
-	const [vp, setVp] = useState(windowSize);
-
-	useEffect(() => {
-		const resize = () => setVp(windowSize());
-		addEventListener('resize', resize);
-		return () => removeEventListener('resize', resize);
-	}, []);
 
 	const def = selectedDef();
 	const skills = def.physicalSkills.map(s => def.skillName(s)).join(', ');
@@ -48,7 +29,7 @@ export default function WarmupHint({ bar, gauges }: {
 	}[warmupStage(bar)];
 
 	return (
-		<div className="play__warmup-hint" style={warmupGaugeBox(vp, gauges, edge ? edge + 16 : undefined)}>
+		<div className="play__warmup-hint" ref={boxRef}>
 			<HoverCard card={
 				<span className="play__warmup-tip">
 					<span className="play__warmup-tip-now">{now}</span>

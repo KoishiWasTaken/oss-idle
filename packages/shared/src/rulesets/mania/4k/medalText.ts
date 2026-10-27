@@ -14,7 +14,7 @@ const MEDAL_SKILL: Record<SkillName, () => string> = {
 	jackspeed: () => __('Jack Speed', 'skill in a medal name'),
 	coordination: () => __('Coordination', 'skill in a medal name'),
 	release: () => __('Release', 'skill in a medal name'),
-	reading: () => __('Reading', 'skill in a medal name'),
+	reading: () => __('Technical', 'skill in a medal name'),
 	consistency: () => __('Consistency', 'skill in a medal name'),
 	concentration: () => __('Concentration', 'skill in a medal name'),
 	speedjam: () => __('SV', 'skill in a medal name'),

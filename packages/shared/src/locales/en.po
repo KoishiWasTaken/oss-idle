@@ -1337,15 +1337,6 @@ msgstr "Reach level {level} in {skill}"
 msgid "Reach overall level {level}"
 msgstr "Reach overall level {level}"
 
-#: src/rulesets/mania/4k/display.ts
-msgid "Reading"
-msgstr "Reading"
-
-#: src/rulesets/mania/4k/medalText.ts
-msgctxt "skill in a medal name"
-msgid "Reading"
-msgstr "Reading"
-
 #: src/rulesets/mania/medalText.ts
 msgid "Rebirth your character"
 msgstr "Rebirth your character"
@@ -1576,10 +1567,12 @@ msgstr "Tapping songs on the desk"
 msgid "Tastemaker"
 msgstr "Tastemaker"
 
+#: src/rulesets/mania/4k/display.ts
 #: src/rulesets/mania/7k/display.ts
 msgid "Technical"
 msgstr "Technical"
 
+#: src/rulesets/mania/4k/medalText.ts
 #: src/rulesets/mania/7k/medalText.ts
 msgctxt "skill in a medal name"
 msgid "Technical"

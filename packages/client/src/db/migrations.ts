@@ -417,6 +417,12 @@ const playlistEntryMods: Migration = db => {
 	addColumn(db, 'playlist_entry', 'mods', 'TEXT NOT NULL DEFAULT \'\'');
 };
 
+/** An installed add-on can take its updates as soon as they are published. */
+const addAddonAutoUpdate: Migration = db => {
+	const table = 'SELECT 1 FROM sqlite_master WHERE type = \'table\' AND name = \'addon\';';
+	if (db.exec(table).length) addColumn(db, 'addon', 'autoUpdate', 'INTEGER NOT NULL DEFAULT 0');
+};
+
 const migrations: Migration[] = [
 	recomputeBests,
 	addOnlineId,
@@ -441,6 +447,7 @@ const migrations: Migration[] = [
 	osuSkins,
 	scoreXpGains,
 	playlistEntryMods,
+	addAddonAutoUpdate,
 ];
 
 /**

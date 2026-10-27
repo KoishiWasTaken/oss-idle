@@ -4,6 +4,7 @@ import {
 	ADDON_STATUS,
 } from '@oss-idle/shared/addon';
 
+import type { Addon as InstalledAddon } from '../db/schema/addon';
 import type { OwnAddon } from '../online/addons';
 
 /** A published repo add-on whose newest build failed. */
@@ -32,3 +33,12 @@ export const sampleRepoAddon = (): OwnAddon => ({
 	buildLog: '$ npm run build\n> oss-idle-sim@0.9.0 build\nError: Cannot find module \'./vendor/sim\'\nexited with 1',
 	hookUrl: 'https://api.oss.idle.rhythmgamers.net/v1/addons/1/hook/0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a6978',
 });
+
+/** Installed add-ons in each enabled / auto-update state, as plain rows (nothing is saved). */
+export const sampleInstalledAddons = (): InstalledAddon[] => [
+	[1, 'oss!idle sim', true, true],
+	[2, 'Hit error meter', true, false],
+	[3, 'Session stats', false, false],
+].map(([id, name, enabled, autoUpdate]) => ({
+	id, name, enabled, autoUpdate, version: '1.0.0', authorName: 'Adri', icon: null,
+}) as unknown as InstalledAddon);

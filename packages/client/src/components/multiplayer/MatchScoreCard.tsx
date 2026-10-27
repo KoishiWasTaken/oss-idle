@@ -11,9 +11,9 @@ const SCORE_GLIDE = {
 	duration: 1000, easing: linear,
 };
 
-/** One player in osu!'s multiplayer scoreboard: in game, and the ranking tabs after. */
+/** One player in osu!'s scoreboard: in game (match or solo), and the match ranking tabs after. */
 export default function MatchScoreCard({ player, score, combo, position, failed, self, onClick }: {
-	player?: PresenceEntry,
+	player?: Pick<PresenceEntry, 'name' | 'avatarUrl'>,
 	score: number,
 	combo: number,
 	position: number,

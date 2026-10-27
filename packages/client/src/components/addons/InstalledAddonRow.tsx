@@ -10,6 +10,7 @@ type Props = {
 	busy: boolean,
 	hasUpdate: boolean,
 	onToggle: (enabled: boolean) => void,
+	onAutoUpdate: (on: boolean) => void,
 	onDetails: () => void,
 	onUpdate: () => void,
 	onUninstall: () => void,
@@ -21,6 +22,7 @@ export default function InstalledAddonRow({
 	busy, 
 	hasUpdate,
 	onToggle, 
+	onAutoUpdate,
 	onDetails, 
 	onUpdate, 
 	onUninstall, 
@@ -44,6 +46,17 @@ export default function InstalledAddonRow({
 					/>
 					<span>
 						<Trans>Enabled</Trans>
+					</span>
+				</label>
+				<label className='listing-toggle'>
+					<input
+						type='checkbox'
+						checked={addon.autoUpdate}
+						disabled={busy}
+						onChange={e => onAutoUpdate(e.target.checked)}
+					/>
+					<span>
+						<Trans>Auto-update</Trans>
 					</span>
 				</label>
 				<button 

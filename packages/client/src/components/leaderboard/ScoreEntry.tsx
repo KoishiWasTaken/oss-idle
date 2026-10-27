@@ -8,13 +8,10 @@ import {
 import accuracy from '@oss-idle/shared/display/accuracy';
 import { recentTimeAgo } from '@oss-idle/shared/display/ago';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 import { ScoreDTO } from '@oss-idle/shared/score';
 
-import Character from '../../db/schema/character';
 import { Score } from '../../db/schema/score';
 import Entities from '../../entity/entities';
-import { getCharacter } from '../../online/services/characters';
 import type { BoardPlayer } from '../../online/services/scores';
 import { currentSkin } from '../../osu/skin/Skin';
 import SceneManager, { SCENE } from '../../scenes/SceneManager';
@@ -30,26 +27,12 @@ interface Props {
 	rank?: number,
 }
 
-type EntryCharacter = Character | Awaited<ReturnType<typeof getCharacter>> | BoardPlayer;
-
-/** Server characters carry a resolved avatar (custom upload or osu! fallback);
- *  the local Guest has none, so fall back to the user avatar then the default.
- */
-function entryAvatar(
-	character: EntryCharacter | undefined, 
-	userAvatarUrl: string | null | undefined,
-) {
-	if (character && 'avatarUrl' in character && character.avatarUrl)
-		return character.avatarUrl;
-	return userAvatarUrl || GUEST_AVATAR_URL;
-}
-
 function ScoreEntry({
 	score, previous, rank, player,
 }: Props) {
 	const [skin] = useSynced(currentSkin);
 
-	const { character, user, loaded } = useScorePlayer(score, player);
+	const { character, avatarUrl, loaded } = useScorePlayer(score, player);
 
 	const ago = recentTimeAgo(Date.now() - score.playedAt);
 
@@ -74,7 +57,7 @@ function ScoreEntry({
 		>
 			<span 
 				className="score_entry__avatar" 
-				style={{ backgroundImage: `url(${entryAvatar(character, user?.avatarUrl)})` }}
+				style={{ backgroundImage: `url(${avatarUrl})` }}
 			>
 				{rank !== undefined && <span className="score_entry__rank">#{rank}</span>}
 			</span>

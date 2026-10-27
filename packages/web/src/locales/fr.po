@@ -8,7 +8,7 @@ msgstr ""
 "Language: fr\n"
 "Project-Id-Version: osu-idle\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-10-26 18:40\n"
+"PO-Revision-Date: 2026-10-27 00:17\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -1189,6 +1189,10 @@ msgstr "Maps les plus jouées"
 msgid "most wanted"
 msgstr "les plus demandées"
 
+#: src/components/AudioPlayer.tsx
+msgid "mute"
+msgstr ""
+
 #: src/UserMenu.tsx
 msgid "My Profile"
 msgstr "Mon Profil"
@@ -1446,6 +1450,10 @@ msgstr "Permanent"
 msgid "Pick your own main menu background: set <0>menu.background</0> to an image link in your skin."
 msgstr "Choisis ton propre fond d'écran : modifie <0>menu.background</0> dans ton skin vers un lien d'image."
 
+#: src/components/AudioPlayer.tsx
+msgid "play"
+msgstr ""
+
 #: src/components/leaderboard/medalLine.ts
 msgid "Play count"
 msgstr "Parties"
@@ -1550,6 +1558,10 @@ msgstr "produits"
 #: src/pages/store/SupporterPerks.tsx
 msgid "Profile heart"
 msgstr "Coeur sur le profil"
+
+#: src/components/AudioPlayer.tsx
+msgid "progress"
+msgstr ""
 
 #: src/components/leaderboard/MedalBoardTabs.tsx
 msgid "Progress"
@@ -2301,6 +2313,10 @@ msgstr "version adoption"
 #: src/pages/PublicLanding.tsx
 msgid "View all"
 msgstr "Tout voir"
+
+#: src/components/AudioPlayer.tsx
+msgid "volume"
+msgstr ""
 
 #: src/pages/Login.tsx
 msgid "We only use your osu! username, avatar and country."

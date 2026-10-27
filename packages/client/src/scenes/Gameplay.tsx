@@ -8,6 +8,7 @@ import { Beatmap } from 'osu-classes';
 import { BeatmapDecoder } from 'osu-parsers';
 import {
 	type ReactNode,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -52,12 +53,14 @@ import {
 } from '../audio/MusicPlayer';
 import { SampleSchedule } from '../audio/SampleSchedule';
 import ContextMenu from '../components/ContextMenu';
+import PlayLeaderboard, { type LivePlay } from '../components/gameplay/PlayLeaderboard';
 import SkipToEndButton from '../components/gameplay/SkipToEndButton';
+import useBoardRows from '../components/gameplay/useBoardRows';
 import WarmupHint from '../components/gameplay/WarmupHint';
 import MatchScoreboard from '../components/multiplayer/MatchScoreboard';
 import RoundWaiting from '../components/multiplayer/RoundWaiting';
-import { scoreboardEdge } from '../components/multiplayer/scoreboardEdge';
 import RatedVersion from '../components/RatedVersion';
+import ResultMods from '../components/result/ResultMods';
 import Character from '../db/schema/character';
 import { Score } from '../db/schema/score';
 import { ScoreXP } from '../db/schema/score_xp';
@@ -67,7 +70,11 @@ import GameplayRenderer, {
 	type PlayfieldGeometry,
 	type StrainHud,
 } from '../gameplay/gameplayRenderer';
-import { makeGradePlacer } from '../gameplay/gradeBadge';
+import {
+	makeGradePlacer,
+	makeModsPlacer,
+	makeWarmupPlacer,
+} from '../gameplay/gradeBadge';
 import { publishPlayfieldEdge } from '../gameplay/playfieldEdge';
 import { modsOfPlay } from '../gameplay/playMods';
 import { rateOfPlay } from '../gameplay/playRate';
@@ -218,6 +225,8 @@ function GameplayInner({
 	const { i18n, t } = useLingui();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const gradeRef = useRef<HTMLDivElement>(null);
+	const modsRef = useRef<HTMLDivElement>(null);
+	const warmupRef = useRef<HTMLDivElement>(null);
 	// background, storyboard video and the dim overlay are stacked DOM layers
 	// behind the (transparent) playfield canvas: bg → video → dim → canvas. This
 	// lets a native <video> play between the background and the playfield without
@@ -245,6 +254,15 @@ function GameplayInner({
 	// is simulated locally, or a display-only side analysis for ranked replays
 	const strainBotRef = useRef<PlayBot | null>(null);
 	const gauges = useMemo(() => player.strainGauges(), [i18n, player]);
+	// osu!'s in-game leaderboard, unless a match's live standings take its place
+	const board = useBoardRows(
+		beatmapInfo.metadata.id, !Multiplayer.playingRound(beatmapInfo.metadata.id),
+	);
+	const live = useCallback((): LivePlay => ({
+		score: gameRef.current?.score.score ?? 0,
+		combo: gameRef.current?.score.combo ?? 0,
+		failed: gameRef.current?.score.failed ?? false,
+	}), []);
 	const warmupLabel = useMemo(() => t`Warm-up`, [t]);
 	const warmupState = useMemo(() => {
 		const labels: Record<WarmupStage, string> = {
@@ -845,6 +863,8 @@ function GameplayInner({
 		};
 
 		const placeGrade = makeGradePlacer();
+		const placeMods = makeModsPlacer();
+		const placeWarmup = makeWarmupPlacer();
 		// the playfield as last drawn, for the SKIP prompt's tap target
 		let field: PlayfieldGeometry | undefined;
 
@@ -1035,7 +1055,6 @@ function GameplayInner({
 						warmupBar: play.warmupBar, warmupLabel, warmupState,
 						warmupTrend: play.mode === 'ranked' ? play.warmupTrend : undefined,
 					} : {},
-					left: scoreboardEdge.get() ? scoreboardEdge.get() + 16 : undefined,
 				}
 				: undefined;
 
@@ -1064,6 +1083,8 @@ function GameplayInner({
 			});
 			field = g;
 			placeGrade(gradeRef.current, g);
+			placeMods(modsRef.current, g);
+			placeWarmup(warmupRef.current, g);
 			drawChrome(g, now);
 			publishPlayfieldEdge(g);
 
@@ -1149,9 +1170,10 @@ function GameplayInner({
 			<div ref={dimRef} className="play__dim" />
 			<canvas ref={canvasRef} className="play__canvas" />
 			{owned && play.warmupBar !== undefined && (
-				<WarmupHint bar={play.warmupBar} gauges={gauges.length} />
+				<WarmupHint bar={play.warmupBar} boxRef={warmupRef} />
 			)}
 			{!done && <div ref={gradeRef} className='play__grade'>{skin.grade(grade)}</div>}
+			<div ref={modsRef} className="play__mods"><ResultMods rate={rate} mods={mods} /></div>
 			{done && play.mode === 'ranked' && (
 				<div className="play__loading">
 					<div className="play__loading-spinner" />
@@ -1183,6 +1205,7 @@ function GameplayInner({
 
 			<SkipToEndButton shown={debug && !done} onSkip={skipToEnd} />
 			<MatchScoreboard beatmapId={beatmapInfo.metadata.id} />
+			{!playOn && <PlayLeaderboard rows={board} live={live} />}
 			{waitingRound && <RoundWaiting />}
 
 			{confirmAbort && (

@@ -1184,6 +1184,10 @@ msgstr "Most Played Beatmaps"
 msgid "most wanted"
 msgstr "most wanted"
 
+#: src/components/AudioPlayer.tsx
+msgid "mute"
+msgstr "mute"
+
 #: src/UserMenu.tsx
 msgid "My Profile"
 msgstr "My Profile"
@@ -1441,6 +1445,10 @@ msgstr "Permanent"
 msgid "Pick your own main menu background: set <0>menu.background</0> to an image link in your skin."
 msgstr "Pick your own main menu background: set <0>menu.background</0> to an image link in your skin."
 
+#: src/components/AudioPlayer.tsx
+msgid "play"
+msgstr "play"
+
 #: src/components/leaderboard/medalLine.ts
 msgid "Play count"
 msgstr "Play count"
@@ -1545,6 +1553,10 @@ msgstr "products"
 #: src/pages/store/SupporterPerks.tsx
 msgid "Profile heart"
 msgstr "Profile heart"
+
+#: src/components/AudioPlayer.tsx
+msgid "progress"
+msgstr "progress"
 
 #: src/components/leaderboard/MedalBoardTabs.tsx
 msgid "Progress"
@@ -2296,6 +2308,10 @@ msgstr "version adoption"
 #: src/pages/PublicLanding.tsx
 msgid "View all"
 msgstr "View all"
+
+#: src/components/AudioPlayer.tsx
+msgid "volume"
+msgstr "volume"
 
 #: src/pages/Login.tsx
 msgid "We only use your osu! username, avatar and country."

@@ -89,6 +89,8 @@
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 102, 171, 0.5) transparent;
 	padding: 0px 7px;
 	display: flex;
 	flex-direction: column;

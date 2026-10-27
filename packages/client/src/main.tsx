@@ -10,6 +10,7 @@ import { createRoot } from 'react-dom/client';
 
 import { desktop } from '@oss-idle/shared/desktop';
 
+import { startAutoUpdates } from './addons/autoUpdate';
 import { bootAddons } from './addons/runtime';
 import App from './App.tsx';
 import { SETTINGS } from './db/settings';
@@ -30,7 +31,7 @@ import { initWakeLock } from './responsive/wakeLock';
 initWakeLock(); // keep mobile screens awake while playing
 initFullscreen(); // keep the fullscreen setting in sync with Esc/F11
 initFrameLimiter(); // cap every rAF loop to the frame limiter setting
-void bootAddons(); // mount enabled installed add-ons
+void bootAddons().then(startAutoUpdates); // mount enabled installed add-ons
 void watchMapFolders();
 void watchSkinFolders();
 SETTINGS.uiScale.forceSync(scale => desktop()?.setZoomFactor?.(scale));

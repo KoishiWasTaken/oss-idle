@@ -1,15 +1,10 @@
-import {
-	type CSSProperties,
-	useCallback,
-	useRef,
-} from 'react';
+import type { CSSProperties } from 'react';
 
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 
 import Entities from '../../entity/entities';
 import Multiplayer from '../../online/multiplayer';
 import MatchScoreCard from './MatchScoreCard';
-import { scoreboardEdge } from './scoreboardEdge';
 import useLiveScores from './useLiveScores';
 import usePlayers from './usePlayers';
 
@@ -19,28 +14,12 @@ export default function MatchScoreboard({ beatmapId }: { beatmapId: number }) {
 	const players = usePlayers();
 	const inRound = !!match && Multiplayer.inRound(match, beatmapId);
 	const scores = useLiveScores(inRound);
-	const observer = useRef<ResizeObserver>();
-
-	// the strain meters move past it (its width follows the window); they go
-	// back to the edge once it's gone
-	const measure = useCallback((el: HTMLDivElement | null) => {
-		observer.current?.disconnect();
-		if (!el) {
-			void scoreboardEdge.set(0);
-			return;
-		}
-		observer.current = new ResizeObserver(() => {
-			void scoreboardEdge.set(el.getBoundingClientRect().right);
-		});
-		observer.current.observe(el);
-	}, []);
 
 	if (!inRound) return null;
 	const me = Entities.character.get()?.id;
 	return (
 		<div
 			className="mp-scoreboard"
-			ref={measure}
 			style={{ '--rows': scores.length } as CSSProperties}
 		>
 			{scores.map((s, i) => (

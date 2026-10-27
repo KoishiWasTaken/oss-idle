@@ -15,12 +15,11 @@ import {
 import { useAction } from '@oss-idle/shared/hooks/useAction';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
 
-import { writeAddonFile } from '../../addons/addonFiles';
 import {
+	applyAddonUpdate,
 	disableAddon,
 	enableAddon,
 	installAddon,
-	remountAddon,
 	uninstallAddon,
 } from '../../addons/runtime';
 import {
@@ -101,20 +100,7 @@ export default function ManageAddonsView() {
 	});
 
 	const applyUpdate = () => updating && run(async () => {
-		const { remote, local } = updating;
-		await local.update({ 
-			source: remote.source, 
-			version: remote.version,
-			gameVersion: remote.gameVersion,
-			name: remote.name,
-			description: remote.description,
-			tags: remote.tags.join(','),
-			types: remote.types.join(','),
-			icon: remote.icon, 
-			status: remote.status, 
-		});
-		await writeAddonFile(local);
-		await remountAddon(local);
+		await applyAddonUpdate(updating.local, updating.remote);
 		setUpdating(undefined);
 	});
 
@@ -210,6 +196,7 @@ export default function ManageAddonsView() {
 						busy={busy}
 						hasUpdate={hasUpdate(a)}
 						onToggle={enabled => run(() => enabled ? enableAddon(a) : disableAddon(a))}
+						onAutoUpdate={on => run(() => a.setAutoUpdate(on))}
 						onDetails={() => setDetails(detailOfInstalled(a))}
 						onUpdate={() => openUpdate(a)}
 						onUninstall={() => setConfirming({

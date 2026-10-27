@@ -36,6 +36,12 @@ class Hello extends Addon {
 
 export const { mount, unmount } = defineAddon(() => new Hello());`;
 
+export const CAN_UPDATE = `// hold auto-updates while busy
+export const canUpdate = () => !recording;
+
+// with the SDK: override canUpdate() in your Addon class, and export it too
+export const { mount, unmount, canUpdate } = defineAddon(() => new Recorder());`;
+
 export const SHARED_REACT = `// addon.config.json
 {
 	"name": "My add-on",

@@ -2,10 +2,12 @@ import {
 	and,
 	desc,
 	eq,
+	inArray,
 	like,
 } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
 
 import {
 	ADDON_KIND,
@@ -60,6 +62,10 @@ import {
 // add-ons publish without review: publishes and icon uploads are capped per account, like skins'
 const ADDONS_PER_DAY = 5;
 const ICONS_PER_DAY = 20;
+
+/** Up to 100 comma-separated ids. */
+const idList = z.string().regex(/^\d+(,\d+){0,99}$/).transform(ids => ids.split(',').map(Number));
+const versionsQuery = z.object({ ids: idList });
 
 /** Load an add-on the caller owns, or throw 404/403. */
 const ownedBy = async (id: number, userId: number) => {
@@ -129,6 +135,15 @@ export const addonsRoutes = new Hono()
 			.where(and(...where))
 			.orderBy(orderBy);
 		return c.json(rows.map(r => toLiveAddonDTO(r.addons, r.user.username)));
+	})
+
+	// Public: published versions by id, what auto-updating clients poll (no source).
+	.get('/versions', valid('query', versionsQuery), async c => {
+		const rows = await db.select({
+			id: addons.id, version: addons.version,
+		}).from(addons)
+			.where(and(inArray(addons.id, c.req.valid('query').ids), isPublished));
+		return c.json(Object.fromEntries(rows.map(r => [r.id, r.version])) as Record<number, string>);
 	})
 
 	// Auth: the caller's own add-ons (any status), newest first.

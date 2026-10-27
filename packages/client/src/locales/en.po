@@ -479,6 +479,10 @@ msgstr "Auto"
 msgid "Auto-hide"
 msgstr "Auto-hide"
 
+#: src/components/addons/InstalledAddonRow.tsx
+msgid "Auto-update"
+msgstr "Auto-update"
+
 #: src/components/community/chat/ChannelPicker.tsx
 msgid "Automated announcements of stuff going on in oss!idle."
 msgstr "Automated announcements of stuff going on in oss!idle."

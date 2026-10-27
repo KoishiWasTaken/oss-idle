@@ -1,4 +1,5 @@
 import {
+	CAN_UPDATE,
 	CONTRACT,
 	SCAFFOLD,
 	SDK_ADDON,
@@ -82,6 +83,15 @@ export default function AddonDocsGuide() {
 			{' '}<code>this.interval</code> or <code>this.editor</code> is undone for you.
 		</p>
 		<DocsCode code={SDK_ADDON} caption='With the SDK:' />
+
+		<h2 id='auto-updates'>Auto-updates</h2>
+		<p>
+			A player can set an installed add-on to auto-update: the game checks for a new version every
+			minute and, as soon as one is out, unmounts the running add-on and mounts the new one. To hold
+			that while it is busy (a recording, an unsaved form), export <code>canUpdate</code> and return
+			{' '}<code>false</code>; the game asks again every few seconds.
+		</p>
+		<DocsCode code={CAN_UPDATE} />
 
 		<h1 id='types-and-tags'>Types and tags</h1>
 		<p>

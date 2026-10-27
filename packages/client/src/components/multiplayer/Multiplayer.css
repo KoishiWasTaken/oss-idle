@@ -466,8 +466,9 @@
 
 /* the multiplayer scoreboard: in game, and the ranking on the result screen */
 .mp-scoreboard {
-	/* osu!'s spot, at the left edge; the strain meters start past it
-	   (scoreboardEdge), level with its top (hud.ts: from 24% down) */
+	/* osu!'s spot, at the left edge; as big as osu! has it while the room left of the
+	   playfield allows, smaller only past that */
+	--mp-u: max(5.5px, min(1vh, (100vw - var(--playfield-right, 100vw) - 16px) / 21.5));
 	position: absolute;
 	left: 0;
 	top: max(136px, calc(24% - 14px));
@@ -485,6 +486,15 @@
 	top: 0;
 	transform: translateY(calc(var(--row) * var(--mp-score-step)));
 	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	/* cards slide in from the edge, top first */
+	animation: mp-scoreboard-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+	animation-delay: calc(var(--row) * 70ms);
+}
+@keyframes mp-scoreboard-in {
+	from {
+		translate: -110% 0;
+		opacity: 0;
+	}
 }
 .mp-score {
 	position: relative;

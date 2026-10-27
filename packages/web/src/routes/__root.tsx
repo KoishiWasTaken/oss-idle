@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
+import AudioPlayer from '../components/AudioPlayer';
 import Blackout from '../components/Blackout';
 import BugReplyBanner from '../components/BugReplyBanner';
 import RestrictedBanner from '../components/RestrictedBanner';
@@ -70,5 +71,6 @@ function RootLayout() {
 			<Outlet />
 		</div>
 		<Footer />
+		<AudioPlayer />
 	</>);
 }

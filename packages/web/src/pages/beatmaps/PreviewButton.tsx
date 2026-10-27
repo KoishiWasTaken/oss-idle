@@ -4,38 +4,31 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLingui } from '@lingui/react/macro';
+import { useEffect } from 'react';
+
+import useSynced from '@oss-idle/shared/hooks/useSynced';
+
 import {
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
+	preview,
+	stopPreview,
+	togglePreview,
+} from '../../preview';
 
 /** Plays the map's audio preview, with a bar for how far along it is. */
-export default function PreviewButton({ src }: { src: string }) {
+export default function PreviewButton({ setId, src }: { setId: number, src: string }) {
 	const { t } = useLingui();
-	const audio = useRef<HTMLAudioElement>(null);
-	const [playing, setPlaying] = useState(false);
-	const [progress, setProgress] = useState(0);
+	const [playing] = useSynced(preview);
+	const mine = playing?.setId === setId ? playing : undefined;
 
-	useEffect(() => () => audio.current?.pause(), []);
+	useEffect(() => () => stopPreview(setId), [setId]);
 
-	const toggle = () => {
-		const a = audio.current;
-		if (!a) return;
-		if (a.paused) void a.play();
-		else a.pause();
-	};
-
-	return <button type='button' className='mapset__preview' onClick={toggle} aria-label={t`preview`}>
-		<FontAwesomeIcon icon={playing ? faPause : faPlay} />
-		<span className='mapset__preview-bar' style={{ width: `${progress * 100}%` }} />
-		<audio
-			ref={audio}
-			src={src}
-			preload='none'
-			onPlay={() => setPlaying(true)}
-			onPause={() => setPlaying(false)}
-			onTimeUpdate={e => setProgress(e.currentTarget.currentTime / (e.currentTarget.duration || 1))}
-		/>
+	return <button
+		type='button'
+		className='mapset__preview'
+		onClick={() => togglePreview(setId, src)}
+		aria-label={t`preview`}
+	>
+		<FontAwesomeIcon icon={mine && mine.state !== 'paused' ? faPause : faPlay} />
+		<span className='mapset__preview-bar' style={{ width: `${(mine?.progress ?? 0) * 100}%` }} />
 	</button>;
 }

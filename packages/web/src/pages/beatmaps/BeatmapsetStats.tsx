@@ -41,7 +41,7 @@ export default function BeatmapsetStats({ setId, diff }: { setId: number; diff: 
 		},
 	];
 	return <div className='mapset__stats'>
-		{diff.audio && <PreviewButton src={previewUrl(setId, diff.audio)} />}
+		{diff.audio && <PreviewButton setId={setId} src={previewUrl(setId, diff.audio)} />}
 		<div className='mapset__basics'>
 			{basics.map((b, i) => <div key={i} className='mapset__basic'>
 				<FontAwesomeIcon icon={b.icon} />

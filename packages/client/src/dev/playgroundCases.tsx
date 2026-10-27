@@ -32,6 +32,7 @@ import AddonView, {
 	detailOfDTO,
 	newAddonDetail,
 } from '../components/addons/AddonView';
+import InstalledAddonRow from '../components/addons/InstalledAddonRow';
 import PrestigeView from '../components/character/PrestigeView';
 import ChannelPicker from '../components/community/chat/ChannelPicker';
 import Chat from '../components/community/chat/Chat';
@@ -85,7 +86,10 @@ import Result from '../scenes/Result';
 import SceneManager, { SCENE } from '../scenes/SceneManager';
 import Skins from '../scenes/Skins';
 import SongSelect from '../scenes/SongSelect';
-import { sampleRepoAddon } from './addonSamples';
+import {
+	sampleInstalledAddons,
+	sampleRepoAddon,
+} from './addonSamples';
 import MedalCatalogue from './MedalCatalogue';
 import {
 	MEDALS_BACKFILL,
@@ -93,6 +97,7 @@ import {
 	MEDALS_ONE,
 	MEDALS_THREE,
 } from './medalSamples';
+import PlayHudPreview from './PlayHudPreview';
 import SkinPlayground from './SkinPlayground';
 import { sampleCharacter } from './upgradeSample';
 import UpgradesPreview from './UpgradesPreview';
@@ -389,6 +394,23 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 		render: () => <Skins view='manage' />,
 	},
 	{
+		id: 'addons-installed',
+		label: 'Add-ons - installed rows, each toggle state',
+		render: () => <div className='page__list'>
+			{sampleInstalledAddons().map((a, i) => <InstalledAddonRow
+				key={a.id}
+				addon={a}
+				busy={false}
+				hasUpdate={i === 1}
+				onToggle={() => {}}
+				onAutoUpdate={() => {}}
+				onDetails={() => {}}
+				onUpdate={() => {}}
+				onUninstall={() => {}}
+			/>)}
+		</div>,
+	},
+	{
 		id: 'skins-browse',
 		label: 'Skins - the catalog',
 		render: () => <Skins view='browse' />,
@@ -564,6 +586,11 @@ export const PLAYGROUND_CASES: PlaygroundCase[] = [
 			<SongSelect mode="queue" />
 			<PlayDock />
 		</>),
+	},
+	{
+		id: 'play-hud',
+		label: 'Gameplay HUD - strain sparklines, warm-up bar, solo leaderboard (?at=<ms>: mid-play)',
+		render: () => <PlayHudPreview />,
 	},
 	{
 		id: 'warmup-gauge',

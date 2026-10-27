@@ -27,12 +27,18 @@ class CacheStore<V> extends Map<string | number, V> {
 		if (existing) return existing;
 		const lock = this.processLock.get(key);
 		if (lock) return lock;
-		const { promise, resolve } = deferred<V>();
+		const { promise, resolve, reject } = deferred<V>();
 		this.processLock.set(key, promise);
-		const result = await processor();
-		this.save(key, result, ttl);
-		this.processLock.delete(key);
-		resolve(result);
+		// a failed read lets the next caller try again, and its waiters see the error
+		try {
+			const result = await processor();
+			this.save(key, result, ttl);
+			resolve(result);
+		} catch (e) {
+			reject(e);
+		} finally {
+			this.processLock.delete(key);
+		}
 		return promise;
 	}
 

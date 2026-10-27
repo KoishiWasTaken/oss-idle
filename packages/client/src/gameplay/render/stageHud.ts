@@ -168,6 +168,10 @@ const makeScore = () => {
 		fill(accText);
 		const ay = top + glyphHeight(font) * sk + 9 * L.u;
 		drawScratch(ctx, font, true, L.w - 17 * L.u - measure(font, true) * ak, ay, ak);
+		const mods = f.g.mods;
+		mods.right = 17 * L.u;
+		mods.top = ay + glyphHeight(font) * ak + 10 * L.u;
+		mods.scale = 0.5 * L.u;
 	};
 };
 

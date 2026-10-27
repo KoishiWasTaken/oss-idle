@@ -220,7 +220,7 @@ export const levelVoteRoutes = new Hono()
 		if (!live) throw new HTTPException(404, { message: 'No such difficulty' });
 		await db.insert(r.levelMaps)
 			.values({
-				beatmapId, addedBy: c.get('userId'),
+				beatmapId, addedBy: c.get('userId'), disabled: r.def.skills.join(','),
 			})
 			.onDuplicateKeyUpdate({ set: { beatmapId } });
 		return c.json({ ok: true });

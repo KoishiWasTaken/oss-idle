@@ -5,7 +5,10 @@ import {
 	vi,
 } from 'vitest';
 
-import { remountAddon } from '@oss-idle/client/addons/runtime';
+import {
+	allowsUpdate,
+	remountAddon,
+} from '@oss-idle/client/addons/runtime';
 import type { Addon } from '@oss-idle/client/db/schema/addon';
 
 vi.mock('@oss-idle/client/globals', () => ({ message: { set: () => {} } }));
@@ -42,5 +45,24 @@ describe('remountAddon', () => {
 		expect(log).toEqual([
 			'old mounted', 'old unmounted', 'new mounted', 'new unmounted', 'newer mounted',
 		]);
+	});
+});
+
+describe('allowsUpdate', () => {
+	it('asks the running add-on; one without canUpdate, or a broken one, may restart', async () => {
+		const busy = {
+			...addon('export const canUpdate = async () => !globalThis.addonBusy;'), id: 2, 
+		} as Addon;
+		await remountAddon(busy);
+		(globalThis as { addonBusy?: boolean }).addonBusy = true;
+		expect(await allowsUpdate(2)).toBe(false);
+		(globalThis as { addonBusy?: boolean }).addonBusy = false;
+		expect(await allowsUpdate(2)).toBe(true);
+
+		await remountAddon({
+			...addon('export const canUpdate = () => { throw new Error(); };'), id: 3, 
+		} as Addon);
+		expect(await allowsUpdate(3)).toBe(true);
+		expect(await allowsUpdate(99)).toBe(true);
 	});
 });

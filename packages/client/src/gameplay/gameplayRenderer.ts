@@ -105,6 +105,12 @@ export default class GameplayRenderer {
 				grade: {
 					right: 0, top: 0, height: 0,
 				},
+				mods: {
+					right: 0, top: 0, scale: 0,
+				},
+				warmup: {
+					left: 0, top: 0, width: 0,
+				},
 			};
 		}
 		const f = this.frame ??= {

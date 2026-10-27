@@ -167,7 +167,7 @@ function MapsetCard({ mapset, ruleset = ENABLED_RULESETS[0] }: {
 							aria-label={t`preview`}
 							onClick={() => togglePreview(mapset.id, previewUrl(mapset.id, mapset.audio!))}
 						>
-							<FontAwesomeIcon icon={mine ? faPause : faPlay} />
+							<FontAwesomeIcon icon={mine && mine.state !== 'paused' ? faPause : faPlay} />
 						</button>
 					)}
 					<svg className='list__beatmap_play-progress' viewBox='0 0 50 50' aria-hidden>

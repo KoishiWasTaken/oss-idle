@@ -1,6 +1,7 @@
 import { InferResponseType } from 'hono/client';
 
 import { unwrap } from '@oss-idle/shared/apiBase';
+import type { ScoreDTO } from '@oss-idle/shared/score';
 import MemCache from '@oss-idle/shared/storage/memcache';
 
 import Character from '../../db/schema/character';
@@ -63,6 +64,17 @@ export const getBeatmapScores = async (
 			return rows;
 		}, 1000 * 60);
 };
+
+export type BoardRow = { score: Score | ScoreDTO, player?: BoardPlayer };
+
+/** A map's scores for a song select tab: the local plays, or the server's global or country board. */
+export const boardScores = async (
+	beatmap: number,
+	local: boolean,
+	country?: string,
+): Promise<BoardRow[]> => local
+	? (await Score.forBeatmap(beatmap)).map(score => ({ score }))
+	: await getBeatmapScores(beatmap, country);
 
 /** A character's latest score on a beatmap, if any. */
 export const getLatestScore = async (characterId: number, beatmapId: number) => {

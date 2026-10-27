@@ -101,6 +101,14 @@
 	width: auto;
 }
 
+/* the result screen's mods row, under the canvas-drawn accuracy, placed each frame (gradeBadge.ts) */
+.play__mods {
+	position: absolute;
+	z-index: var(--z-play-hud);
+	pointer-events: none;
+	transform-origin: top right;
+}
+
 /* result-loading overlay: shown while a finished ranked play waits for its
    server result, over the still-scrolling playfield */
 .play__loading {
@@ -184,6 +192,7 @@
 /* hover area over the warm-up gauge the canvas draws */
 .play__warmup-hint {
 	position: absolute;
+	height: 32px;
 	z-index: var(--z-play-warmup-hint);
 }
 

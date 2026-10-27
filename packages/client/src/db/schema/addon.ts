@@ -23,6 +23,7 @@ const addon = table('addon', {
 	types:       text(), // comma-separated: gameplay, editor
 	status:      text<AddonStatus>(),
 	enabled:     boolean(),
+	autoUpdate:  boolean().default(false),
 	installedAt: integer(),
 });
 
@@ -34,6 +35,11 @@ export class Addon extends DAO(addon) {
 
 	async setEnabled(enabled: boolean): Promise<void> {
 		await this.update({ enabled });
+		touch();
+	}
+
+	async setAutoUpdate(autoUpdate: boolean): Promise<void> {
+		await this.update({ autoUpdate });
 		touch();
 	}
 

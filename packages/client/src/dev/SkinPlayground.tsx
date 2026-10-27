@@ -15,9 +15,13 @@ import GameplayRenderer from '../gameplay/gameplayRenderer';
 const SKILLED = 150;
 import '../scenes/Gameplay.css';
 
+import ResultMods from '../components/result/ResultMods';
 import { installedSkins } from '../db/schema/skin';
 import { SETTINGS } from '../db/settings';
-import { makeGradePlacer } from '../gameplay/gradeBadge';
+import {
+	makeGradePlacer,
+	makeModsPlacer,
+} from '../gameplay/gradeBadge';
 import { skinTestChart } from '../gameplay/skinTestChart';
 import {
 	importSkin,
@@ -34,6 +38,7 @@ import { sizeCanvas } from '../sizeCanvas';
 export default function SkinPlayground() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const gradeRef = useRef<HTMLDivElement>(null);
+	const modsRef = useRef<HTMLDivElement>(null);
 	const [installed] = useSynced(installedSkins);
 	const [current] = useSynced(currentSkinDAO);
 	const [keys, setKeys] = useState(4);
@@ -51,6 +56,7 @@ export default function SkinPlayground() {
 		let start = performance.now();
 		let raf = 0;
 		const placeGrade = makeGradePlacer();
+		const placeMods = makeModsPlacer();
 		const draw = () => {
 			let now = performance.now() - start - 1500;
 			if (now > game.songEndMs + 1000) {
@@ -69,7 +75,9 @@ export default function SkinPlayground() {
 				w, h, scrollMs: scrollSpeedToMs(SETTINGS.scrollspeed.get()),
 			};
 			renderer.clear(vp);
-			placeGrade(gradeRef.current, renderer.draw(now, vp, { onGrade: setGrade }));
+			const g = renderer.draw(now, vp, { onGrade: setGrade });
+			placeGrade(gradeRef.current, g);
+			placeMods(modsRef.current, g);
 			raf = requestAnimationFrame(draw);
 		};
 		raf = requestAnimationFrame(draw);
@@ -91,6 +99,7 @@ export default function SkinPlayground() {
 				position: 'absolute', inset: 0, width: '100%', height: '100%',
 			}} />
 			<div ref={gradeRef} className='play__grade'>{skin.grade(grade)}</div>
+			<div ref={modsRef} className='play__mods'><ResultMods rate={1.5} mods={['HR', 'SD']} /></div>
 			<div style={{
 				position: 'absolute', right: 8, bottom: 8, display: 'flex', gap: 8,
 			}}>

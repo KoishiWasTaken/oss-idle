@@ -22,7 +22,7 @@ const SKILL_NAMES = defineMessages({
 	coordination: 'Coordination',
 	consistency: 'Consistency',
 	jackspeed: 'Jack Speed',
-	reading: 'Reading',
+	reading: 'Technical',
 	memory: 'Memory',
 	concentration: 'Concentration',
 	release: 'Release',

@@ -1,18 +1,29 @@
 import useAsync from '@oss-idle/shared/hooks/useAsync';
-import { ScoreDTO } from '@oss-idle/shared/score';
+import { GUEST_AVATAR_URL } from '@oss-idle/shared/osu/profile';
 
 import Character from '../../db/schema/character';
-import { Score } from '../../db/schema/score';
 import { getCharacter } from '../../online/services/characters';
 import type { BoardPlayer } from '../../online/services/scores';
 import { getUser } from '../../online/services/users';
+
+type EntryCharacter = Character | Awaited<ReturnType<typeof getCharacter>> | BoardPlayer;
+
+/** Server characters carry a resolved avatar (custom upload or osu! fallback);
+ *  the local Guest has none, so fall back to the user avatar then the default.
+ */
+const entryAvatar = (
+	character: EntryCharacter | undefined,
+	userAvatarUrl: string | null | undefined,
+) => character && 'avatarUrl' in character && character.avatarUrl
+	? character.avatarUrl
+	: userAvatarUrl || GUEST_AVATAR_URL;
 
 /**
  * Who set a score: the leaderboard's player when it says, else the character
  * (local or online) and its user (none for a guest), fetched. `loaded` once the
  * character is known.
  */
-export default function useScorePlayer(score: Score | ScoreDTO, player?: BoardPlayer) {
+export default function useScorePlayer(score: { characterId: number }, player?: BoardPlayer) {
 	const fetched = useAsync(async () => {
 		if (player) return undefined;
 		return Character.isLocalId(score.characterId)
@@ -27,6 +38,6 @@ export default function useScorePlayer(score: Score | ScoreDTO, player?: BoardPl
 	[character]);
 
 	return {
-		character, user, loaded: !!character,
+		character, user, avatarUrl: entryAvatar(character, user?.avatarUrl), loaded: !!character,
 	};
 }

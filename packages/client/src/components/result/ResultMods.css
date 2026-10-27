@@ -1,0 +1,41 @@
+.result__mods {
+	display: flex;
+	padding-left: 20px;
+}
+
+.result__mod {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	margin-left: -20px;
+	padding-top: 10px;
+	border-radius: 6px;
+	color: #fff;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+	transform: rotate(-6deg);
+}
+
+.result__mod[data-side="double"] {
+	background: #8c4fd0;
+}
+
+.result__mod[data-side="half"] {
+	background: #5b5b66;
+}
+
+.result__mod-short {
+	position: absolute;
+	left: 6px;
+	bottom: 5px;
+	font-size: 0.85rem;
+	font-weight: 800;
+	line-height: 1;
+	opacity: 0.85;
+}
+
+.result__mod-glyph {
+	width: 40px;
+	height: 40px;
+}

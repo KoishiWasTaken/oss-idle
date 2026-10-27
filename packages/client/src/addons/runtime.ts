@@ -26,7 +26,8 @@ import {
  * their source into an ES module (via a Blob URL) and importing it in the page
  * realm, so they have full window/DOM access. The contract is the two exports
  * `mount` / `unmount`; `mount` gets the add-on's own metadata and the game's host
- * (its React, the editor: see host.ts).
+ * (its React, the editor: see host.ts). An optional `canUpdate` export answers
+ * false while the add-on would rather not be restarted by an auto-update.
  *
  * A live add-on's `unmount` is held here so enabling/disabling, updating, or
  * uninstalling can tear it down cleanly without a page reload.
@@ -37,10 +38,16 @@ type AddonMeta = Pick<Addon, 'id' | 'name' | 'version' | 'gameVersion' | 'author
 type AddonModule = {
 	mount?: (addon: AddonMeta, host: AddonHost) => void,
 	unmount?: () => void | Promise<void>,
+	canUpdate?: () => boolean | Promise<boolean>,
 };
 
-/** Loaded add-ons, by add-on id → its `unmount` (if any). */
-const live = new Map<number, () => void | Promise<void>>();
+type Live = {
+	stop: () => Promise<void>,
+	canUpdate: AddonModule['canUpdate'],
+};
+
+/** Loaded add-ons, by add-on id. */
+const live = new Map<number, Live>();
 
 /**
  * Import an add-on's source as an ES module (full page access, real exports)
@@ -67,12 +74,15 @@ const start = async ({
 		mod.mount?.({
 			id, name, version, gameVersion, authorId, authorName,
 		}, host);
-		live.set(id, async () => {
-			try {
-				await mod.unmount?.();
-			} finally {
-				release();
-			}
+		live.set(id, {
+			stop: async () => {
+				try {
+					await mod.unmount?.();
+				} finally {
+					release();
+				}
+			},
+			canUpdate: mod.canUpdate,
 		});
 	} catch (e) {
 		// what it hooked into the editor before failing goes with it
@@ -99,11 +109,11 @@ const mount = (addon: Addon): Promise<void> => {
 /** Tear down a live add-on (its `unmount`), if running, and wait for it to finish. */
 const unmount = async (id: number, name: string): Promise<void> => {
 	await loading.get(id);
-	const stop = live.get(id);
-	if (!stop) return;
+	const running = live.get(id);
+	if (!running) return;
 	live.delete(id);
 	try {
-		await stop();
+		await running.stop();
 	} catch (e) {
 		console.error(`Add-on "${name}" failed to unmount`, e);
 	}
@@ -156,6 +166,34 @@ export const uninstallAddon = async (addon: Addon): Promise<void> => {
 export const remountAddon = async (addon: Addon): Promise<void> => {
 	await unmount(addon.id, addon.name);
 	if (addon.enabled) await mount(addon);
+};
+
+/** Whether a running add-on lets an auto-update restart it now (one that throws is not trusted to hold it). */
+export const allowsUpdate = async (id: number): Promise<boolean> => {
+	try {
+		return await live.get(id)?.canUpdate?.() ?? true;
+	} catch (e) {
+		console.error(`Add-on ${id}: canUpdate failed`, e);
+		return true;
+	}
+};
+
+/** Take a published version in: save it, rewrite its file, and restart it if it runs. */
+export const applyAddonUpdate = async (local: Addon, remote: AddonDTO): Promise<void> => {
+	await local.update({
+		source: remote.source,
+		version: remote.version,
+		gameVersion: remote.gameVersion,
+		name: remote.name,
+		description: remote.description,
+		tags: remote.tags.join(','),
+		types: remote.types.join(','),
+		icon: remote.icon,
+		status: remote.status,
+	});
+	addonsVersion.set(addonsVersion.get() + 1);
+	await writeAddonFile(local);
+	await remountAddon(local);
 };
 
 /** On desktop the code lives in each add-on's folder: what changed there is taken in (and

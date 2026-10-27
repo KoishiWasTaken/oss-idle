@@ -1,3 +1,5 @@
+import './ResultMods.css';
+
 import { useLingui } from '@lingui/react/macro';
 
 import {

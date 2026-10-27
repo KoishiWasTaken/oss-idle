@@ -11,13 +11,9 @@ import {
 import { countryName } from '@oss-idle/shared/display/country';
 import useAsync from '@oss-idle/shared/hooks/useAsync';
 import useSynced from '@oss-idle/shared/hooks/useSynced';
-import { ScoreDTO } from '@oss-idle/shared/score';
 
 import { music } from '../../audio/MusicPlayer';
-import {
-	Score,
-	scoresVersion,
-} from '../../db/schema/score';
+import { scoresVersion } from '../../db/schema/score';
 import {
 	SCORE_TAB,
 	ScoreTab,
@@ -26,8 +22,8 @@ import {
 import { i18n } from '../../i18n';
 import Account from '../../online/account';
 import {
-	type BoardPlayer,
-	getBeatmapScores,
+	type BoardRow,
+	boardScores,
 } from '../../online/services/scores';
 import BeatmapAPI from '../../osu/beatmap/beatmap_api';
 import { beatmapsVersion } from '../../osu/beatmap/beatmap_store';
@@ -36,11 +32,9 @@ import PersonalBest from './PersonalBest';
 import ScoreEntry from './ScoreEntry';
 import UpdateButton from './UpdateButton';
 
-type Row = { score: Score | ScoreDTO, player?: BoardPlayer };
-
 /** ms between two scores of a new board arriving, one after the other */
 const STAGGER = 45;
-const NO_ROWS: Row[] = [];
+const NO_ROWS: BoardRow[] = [];
 
 /** Where each of a list's rows is, by element (the same element is the same score). */
 const tops = (list: HTMLElement | null) =>
@@ -73,7 +67,7 @@ export default function Leaderboard() {
 	const [library] = useSynced(beatmapsVersion);
 	// The board on screen and which map + tab it is. A re-fetch of the same board keeps
 	// its rows: only the scores that changed come and go, the rest slide to their place.
-	const [board, setBoard] = useState<{ key?: string, scores: Row[] }>({ scores: [] });
+	const [board, setBoard] = useState<{ key?: string, scores: BoardRow[] }>({ scores: [] });
 	const listRef = useRef<HTMLOListElement>(null);
 	const before = useRef<Map<Element, number>>(undefined);
 
@@ -85,7 +79,7 @@ export default function Leaderboard() {
 	const key = `${beatmap?.metadata.id}:${effective}:${country}`;
 	const loading = board.key !== key;
 	const scores = loading ? NO_ROWS : board.scores;
-	const show = (rows: Row[]) => {
+	const show = (rows: BoardRow[]) => {
 		// the same board updated: where its rows are now, for them to glide from
 		if (board.key === key) before.current = tops(listRef.current);
 		setBoard({
@@ -109,11 +103,8 @@ export default function Leaderboard() {
 		}
 		let cancelled = false;
 
-		const fetch = effective === SCORE_TAB.LOCAL
-			? Score.forBeatmap(id).then(local => local.map(score => ({ score })))
-			: getBeatmapScores(id, effective === SCORE_TAB.COUNTRY ? country : undefined);
-
-		fetch
+		const local = effective === SCORE_TAB.LOCAL;
+		boardScores(id, local, effective === SCORE_TAB.COUNTRY ? country : undefined)
 			.then((s) => !cancelled && show(s))
 			.catch(() => !cancelled && show([]));
 		return () => {

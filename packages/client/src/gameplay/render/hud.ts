@@ -15,24 +15,25 @@ import { makeStageHud } from './stageHud';
 const HP_EASE_MS = 200;
 
 const TRACK = 'rgba(255,255,255,0.12)';
-const GAUGE_W = 150;
-const BAR_H = 6;
+const BAR_H = 4;
 
 // the warm-up bar's zones, left to right: cold, the sweet spot, past the peak, fatigued
 const ZONE_COLORS = ['#4da3ff', '#ffd34d', '#ff9a4d', '#b48cff'];
 
 // spans the bar from the origin: cold blue, gold through the sweet spot, orange, fatigue purple
-let barFill: CanvasGradient | undefined;
-const warmupFill = (ctx: CanvasRenderingContext2D) => {
-	if (barFill) return barFill;
+const warmupFills = new Map<number, CanvasGradient>();
+const warmupFill = (ctx: CanvasRenderingContext2D, w: number) => {
+	let fill = warmupFills.get(w);
+	if (fill) return fill;
 	const [peak, pushing, fatigued] = BAR_ZONES;
-	barFill = ctx.createLinearGradient(0, 0, GAUGE_W, 0);
-	barFill.addColorStop(0, ZONE_COLORS[0]);
-	barFill.addColorStop(peak, ZONE_COLORS[1]);
-	barFill.addColorStop(pushing, ZONE_COLORS[1]);
-	barFill.addColorStop(fatigued, ZONE_COLORS[2]);
-	barFill.addColorStop(1, ZONE_COLORS[3]);
-	return barFill;
+	fill = ctx.createLinearGradient(0, 0, w, 0);
+	fill.addColorStop(0, ZONE_COLORS[0]);
+	fill.addColorStop(peak, ZONE_COLORS[1]);
+	fill.addColorStop(pushing, ZONE_COLORS[1]);
+	fill.addColorStop(fatigued, ZONE_COLORS[2]);
+	fill.addColorStop(1, ZONE_COLORS[3]);
+	warmupFills.set(w, fill);
+	return fill;
 };
 
 const zoneOf = (v: number) => {
@@ -41,35 +42,22 @@ const zoneOf = (v: number) => {
 	return i;
 };
 
-// one gauge row: label, % and a bar - just the label and a tinted % when compact
-const drawGauge = (
-	f: Frame,
-	label: string,
-	v: number,
-	color: string,
-	bx: number,
-	by: number,
-) => {
-	const { ctx, vp } = f;
-	ctx.textAlign = 'left';
-	ctx.fillStyle = 'rgba(255,255,255,0.75)';
-	ctx.fillText(label, bx, by);
-	if (vp.w < 700) {
-		ctx.fillStyle = color;
-		ctx.fillText(`${Math.round(v * 100)}%`, bx, by + 13);
-		return;
-	}
-	ctx.textAlign = 'right';
-	ctx.fillText(`${Math.round(v * 100)}%`, bx + GAUGE_W, by);
-	ctx.fillStyle = TRACK;
-	roundRect(ctx, bx, by + 5, GAUGE_W, 8, 4);
-	ctx.fill();
-	if (v > 0.005) {
-		ctx.fillStyle = color;
-		roundRect(ctx, bx, by + 5, Math.max(8, GAUGE_W * v), 8, 4);
-		ctx.fill();
-	}
-};
+// strain load, calm lavender → oss! pink → hot red, made once: the HUD allocates nothing per frame
+const LOAD_STEPS = 32;
+const mix = (p: number[], q: number[], k: number) =>
+	p.map((c, i) => Math.round(c + (q[i] - c) * k));
+const LOAD = Array.from({ length: LOAD_STEPS + 1 }, (_, i) => {
+	const k = i / LOAD_STEPS;
+	const [r, g, b] = k < 0.6
+		? mix([150, 160, 255], [255, 102, 171], k / 0.6)
+		: mix([255, 102, 171], [255, 64, 64], (k - 0.6) / 0.4);
+	return `rgb(${r},${g},${b})`;
+});
+const load = (v: number) => LOAD[Math.round(Math.max(0, Math.min(1, v)) * LOAD_STEPS)];
+// a skill's name brightens with its load
+const NAME = Array.from({ length: 17 }, (_, i) =>
+	`rgba(255,255,255,${(0.45 + 0.45 * i / 16).toFixed(3)})`);
+const SHADOW = 'rgba(0,0,0,0.8)';
 
 // a hit error bar for warm-up: the zones, a centre line, and a needle where the character sits
 export const drawWarmupGauge = (
@@ -81,37 +69,48 @@ export const drawWarmupGauge = (
 	by: number,
 	/** which way the map moves the needle, -3 cooling to 3 warming */
 	trend = 0,
+	w = 230,
 ) => {
-	const { ctx, vp } = f;
+	const { ctx } = f;
 	const zone = zoneOf(v);
 	const arrows = (trend > 0 ? '›' : '‹').repeat(Math.abs(trend));
 	const arrowColor = ZONE_COLORS[trend > 0 ? 2 : 0];
 	const font = ctx.font;
-	ctx.textAlign = 'left';
-	ctx.fillStyle = 'rgba(255,255,255,0.75)';
-	ctx.fillText(label, bx, by);
-	ctx.fillStyle = ZONE_COLORS[zone];
-	if (vp.w < 700) {
+	ctx.shadowColor = SHADOW;
+	ctx.shadowBlur = 3;
+	if (w < 120) {
 		// no needle: the way the map moves it follows the state
-		ctx.fillText(state, bx, by + 13);
-		const sx = bx + ctx.measureText(state).width + 4;
+		ctx.textAlign = 'right';
+		ctx.fillStyle = 'rgba(255,255,255,0.7)';
+		ctx.fillText(label, bx + w, by);
+		ctx.fillStyle = ZONE_COLORS[zone];
+		ctx.fillText(state, bx + w, by + 13);
+		const sx = bx + w - ctx.measureText(state).width - 4;
 		ctx.font = '800 14px "Exo 2", sans-serif';
 		ctx.fillStyle = arrowColor;
 		ctx.fillText(arrows, sx, by + 13);
 		ctx.font = font;
+		ctx.shadowBlur = 0;
 		return;
 	}
+	ctx.textAlign = 'left';
+	ctx.fillStyle = 'rgba(255,255,255,0.7)';
+	ctx.fillText(label, bx, by);
 	ctx.textAlign = 'right';
-	ctx.fillText(state, bx + GAUGE_W, by);
-	const y = by + 6;
+	ctx.fillStyle = ZONE_COLORS[zone];
+	ctx.fillText(state, bx + w, by);
+	ctx.shadowBlur = 0;
+	const y = by + 7;
 	ctx.save();
 	ctx.translate(bx, y);
-	ctx.fillStyle = warmupFill(ctx);
-	ctx.fillRect(0, 0, GAUGE_W, BAR_H);
+	ctx.fillStyle = warmupFill(ctx, w);
+	ctx.globalAlpha = 0.9;
+	roundRect(ctx, 0, 0, w, BAR_H, BAR_H / 2);
+	ctx.fill();
 	ctx.restore();
-	ctx.fillStyle = 'rgba(255,255,255,0.6)';
-	ctx.fillRect(bx + GAUGE_W / 2 - 0.5, y - 2, 1, BAR_H + 4);
-	const x = bx + v * GAUGE_W;
+	ctx.fillStyle = 'rgba(255,255,255,0.55)';
+	ctx.fillRect(bx + w / 2 - 0.5, y - 2, 1, BAR_H + 4);
+	const x = bx + v * w;
 	ctx.save();
 	ctx.shadowColor = ZONE_COLORS[zone];
 	ctx.shadowBlur = zone === 1 ? 8 + 4 * Math.sin(performance.now() / 250) : 6;
@@ -128,8 +127,8 @@ export const drawWarmupGauge = (
 	// the way the map moves the needle, beside its tip on the side it heads to -
 	// the other side when the bar ends first
 	ctx.font = '800 14px "Exo 2", sans-serif';
-	const w = ctx.measureText(arrows).width;
-	const right = trend > 0 ? x + 7 + w <= bx + GAUGE_W : x - 7 - w < bx;
+	const aw = ctx.measureText(arrows).width;
+	const right = trend > 0 ? x + 7 + aw <= bx + w : x - 7 - aw < bx;
 	ctx.fillStyle = arrowColor;
 	ctx.textAlign = right ? 'left' : 'right';
 	ctx.fillText(arrows, right ? x + 7 : x - 7, y + BAR_H + 12);
@@ -137,47 +136,192 @@ export const drawWarmupGauge = (
 };
 
 type Size = Pick<Viewport, 'w' | 'h'>;
-const strainStep = (vp: Size) => vp.w < 700 ? 30 : 26;
-const strainTop = (vp: Size) => Math.max(150, vp.h * 0.24);
 
-/** the warm-up bar with its label and state below `gauges` strain gauges, for a hover
- *  area over the canvas */
-export const warmupGaugeBox = (vp: Size, gauges: number, left = 16) => ({
-	left,
-	top: strainTop(vp) + gauges * strainStep(vp),
-	width: GAUGE_W,
-	height: 32,
-});
+// the strain panel, right of the playfield: a sparkline per skill, its name right of it, the
+// warm-up bar under them. Where that doesn't fit, each name stacks over its sparkline, as wide
+// as the room left allows.
+const SPARK_W = 140;
+const NAME_W = 90;
+const SPARK_H = 15;
+const STACKED_MIN = 64;
+const STACKED_H = 12;
+// clear of the playfield's HP bar
+const FIELD_GAP = 16;
+const strainLayout = (vp: Size, fieldRight: number, gauges: number) => {
+	const stacked = vp.w - 28 - (SPARK_W + NAME_W) < fieldRight + FIELD_GAP;
+	const width = stacked
+		? Math.max(STACKED_MIN, Math.min(SPARK_W, vp.w - 12 - fieldRight - FIELD_GAP))
+		: SPARK_W + NAME_W;
+	const top = Math.max(190, vp.h * 0.3);
+	const row = stacked ? 35 : SPARK_H + 7;
+	return {
+		stacked,
+		x: vp.w - (stacked ? 12 : 28) - width,
+		top,
+		row,
+		width,
+		spark: stacked ? width : SPARK_W,
+		height: stacked ? STACKED_H : SPARK_H,
+		/** the warm-up label's baseline */
+		warmup: top + gauges * row + 16,
+	};
+};
 
-// strain meters (left side): one stress gauge per skill, 0-100%. Narrow screens
-// drop the bars and show just the %, tinted the gauge's colour. `display` carries
-// the eased value between frames so per-note jumps read as motion.
-const drawStrainMeters = (
+// the sparklines' points across the whole song, each the hardest moment of its slice
+const POINTS = 120;
+const PER_POINT = 8;
+
+/**
+ * Every gauge's load over the whole song, read from the strain analysis (done for the whole
+ * map before the play): arriving mid-play shows everything played so far at once. Worked out
+ * once per play.
+ */
+const makeStrainProfile = () => {
+	let profile = new Float32Array(0);
+	let source: StrainHud['source'] | undefined;
+	let end = -1;
+	return (strain: StrainHud, songEnd: number) => {
+		const n = strain.gauges.length;
+		if (strain.source === source && songEnd === end && profile.length === n * POINTS) return profile;
+		source = strain.source;
+		end = songEnd;
+		profile = new Float32Array(n * POINTS);
+		for (let k = 0; k < POINTS * PER_POINT; k++) {
+			const at = strain.source.strainsAt(k / (POINTS * PER_POINT) * songEnd);
+			const point = Math.floor(k / PER_POINT);
+			for (let i = 0; i < n; i++) {
+				const slot = i * POINTS + point;
+				profile[slot] = Math.max(profile[slot], at[strain.gauges[i].skill] ?? 0);
+			}
+		}
+		return profile;
+	};
+};
+
+// load fills the area under the line, from calm at the base to hot at full height
+let areaFill: CanvasGradient | undefined;
+let areaFillH = 0;
+const sparkFill = (ctx: CanvasRenderingContext2D, h: number) => {
+	if (areaFill && areaFillH === h) return areaFill;
+	areaFillH = h;
+	areaFill = ctx.createLinearGradient(0, -h, 0, 0);
+	areaFill.addColorStop(0, 'rgba(255,64,64,0.7)');
+	areaFill.addColorStop(0.5, 'rgba(255,110,170,0.45)');
+	areaFill.addColorStop(1, 'rgba(150,160,255,0.1)');
+	return areaFill;
+};
+
+// one sparkline, with its base at the origin: the song so far, from its start to `progress`
+// of the way along, ending on the live value
+const drawSparkline = (
+	ctx: CanvasRenderingContext2D,
+	profile: Float32Array,
+	gauge: number,
+	progress: number,
+	v: number,
+	w: number,
+	h: number,
+) => {
+	const step = w / (POINTS - 1);
+	const head = progress * w;
+	const played = Math.floor(progress * (POINTS - 1));
+	ctx.fillStyle = TRACK;
+	ctx.fillRect(0, 0, w, 1);
+	ctx.beginPath();
+	ctx.moveTo(0, 0);
+	for (let k = 0; k <= played; k++) ctx.lineTo(k * step, -profile[gauge * POINTS + k] * h);
+	ctx.lineTo(head, -v * h);
+	ctx.lineTo(head, 0);
+	ctx.closePath();
+	ctx.fillStyle = sparkFill(ctx, h);
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(0, -profile[gauge * POINTS] * h);
+	for (let k = 1; k <= played; k++) ctx.lineTo(k * step, -profile[gauge * POINTS + k] * h);
+	ctx.lineTo(head, -v * h);
+	ctx.strokeStyle = load(v);
+	ctx.lineWidth = 1.2;
+	ctx.stroke();
+	ctx.fillStyle = '#fff';
+	ctx.beginPath();
+	ctx.arc(head, -v * h, 2, 0, Math.PI * 2);
+	ctx.fill();
+};
+
+// eases each gauge toward its live strain; the most loaded one past a quarter, or -1
+const easeGauges = (
+	strain: StrainHud,
+	strains: Readonly<Record<string, number>>,
+	display: Record<string, number>,
+) => {
+	let hot = -1;
+	let hotV = 0.25;
+	for (let i = 0; i < strain.gauges.length; i++) {
+		const { skill } = strain.gauges[i];
+		const was = display[skill] ?? 0;
+		const v = display[skill] = was + ((strains[skill] ?? 0) - was) * 0.2;
+		if (v > hotV) {
+			hot = i;
+			hotV = v;
+		}
+	}
+	return hot;
+};
+
+// a skill's name, right-aligned: lit with its load, glowing when it's the most loaded
+const drawSkillName = (
+	ctx: CanvasRenderingContext2D, label: string, v: number, hot: boolean, x: number, y: number,
+) => {
+	ctx.font = hot ? '700 11px "Exo 2", sans-serif' : '600 11px "Exo 2", sans-serif';
+	ctx.textAlign = 'right';
+	ctx.shadowColor = hot ? load(v) : SHADOW;
+	ctx.shadowBlur = hot ? 8 : 3;
+	ctx.fillStyle = hot ? '#fff' : NAME[Math.round(Math.min(1, v) * 16)];
+	ctx.fillText(label, x, y);
+	ctx.shadowBlur = 0;
+};
+
+// the strain panel: per skill its load over the song so far as a sparkline, the name lit
+// with its load and the most loaded one glowing. `display` carries the eased live value
+// between frames so per-note jumps read as motion.
+const drawStrainPanel = (
 	f: Frame,
 	strain: StrainHud,
 	display: Record<string, number>,
+	profile: Float32Array,
 ) => {
-	const { ctx, now, vp } = f;
+	const { ctx, game, now, vp, g } = f;
+	const l = strainLayout(vp, g.right, strain.gauges.length);
 	const strains = strain.source.strainsAt(now);
-	const bx = strain.left ?? 16;
-	const step = strainStep(vp);
-	const by0 = strainTop(vp);
-	ctx.font = '600 11px "Exo 2", sans-serif';
-	strain.gauges.forEach(({ skill, label }, i) => {
-		const was = display[skill] ?? 0;
-		const v = display[skill] = was + ((strains[skill] ?? 0) - was) * 0.2;
-		// calm green → stressed red
-		drawGauge(f, label, v, `hsl(${120 - v * 120}, 85%, 55%)`, bx, by0 + i * step);
-	});
+	const progress = Math.max(0, Math.min(1, now / game.songEndMs));
+	const hot = easeGauges(strain, strains, display);
+	const right = l.x + l.width;
+	for (let i = 0; i < strain.gauges.length; i++) {
+		const { skill, label } = strain.gauges[i];
+		const v = display[skill];
+		const y = l.top + i * l.row;
+		const base = l.stacked ? y + 6 + l.height : y + l.height;
+		ctx.save();
+		ctx.translate(l.x, base);
+		drawSparkline(ctx, profile, i, progress, v, l.spark, l.height);
+		ctx.restore();
+		drawSkillName(ctx, label, v, i === hot, right, l.stacked ? y : base - 2);
+	}
+	g.warmup.width = 0;
 	if (strain.warmupBar === undefined) return;
+	g.warmup.left = l.x;
+	g.warmup.top = l.warmup - 12;
+	g.warmup.width = l.width;
+	ctx.font = '600 11px "Exo 2", sans-serif';
 	drawWarmupGauge(
 		f,
 		strain.warmupLabel ?? '',
 		strain.warmupState ?? '',
 		strain.warmupBar,
-		bx,
-		by0 + strain.gauges.length * step + 12,
+		l.x,
+		l.warmup,
 		strain.warmupTrend,
+		l.width,
 	);
 };
 
@@ -202,12 +346,13 @@ const drawDebugStats = (f: Frame, cxField: number) => {
 
 /**
  * The HUD layer: the skin's hit burst, combo, score, accuracy and HP bar (render/stageHud),
- * then ours - strain gauges, progress bar, hit-error bar. A factory because the HP and
+ * then ours - strain panel, progress bar, hit-error bar. A factory because the HP and
  * strain gauges carry eased state between frames; the grade badge is a DOM element in the
  * caller, fed via `opts.onGrade` only when the grade changes.
  */
 export const makeHud = () => {
 	const strainDisplay: Record<string, number> = {};
+	const strainProfile = makeStrainProfile();
 	const stageHud = makeStageHud();
 	// filled in every frame rather than made anew
 	let errorBar: Parameters<typeof drawHitErrorBar>[2] | undefined;
@@ -226,7 +371,9 @@ export const makeHud = () => {
 		if (stage) stageHud(stage, hpEased, opts.mobile ? 60 : 0);
 
 		if (opts.debug) drawDebugStats(f, cxField);
-		if (opts.strain) drawStrainMeters(f, opts.strain, strainDisplay);
+		if (opts.strain) {
+			drawStrainPanel(f, opts.strain, strainDisplay, strainProfile(opts.strain, game.songEndMs));
+		}
 
 		// current grade badge (a DOM <img> in the caller, fed on change only)
 		if (game.score.grade !== lastGrade) {
