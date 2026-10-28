@@ -1,4 +1,5 @@
 import { mapCoverUrl } from '@oss-idle/shared/beatmap';
+import { restedFatigue } from '@oss-idle/shared/fatigue';
 import { GoodGrades } from '@oss-idle/shared/grade';
 import {
 	OSU_MODE,
@@ -28,6 +29,7 @@ import {
 	clientUrl,
 } from '../env';
 import type { LivePlay } from '../play';
+import type { Tiredness } from '../rulesets/play';
 import { levelPercent } from './levelPercent';
 
 /** osu!'s API objects, in its snake_case, with the fields we have. */
@@ -85,6 +87,24 @@ export const userStatistics = (
 	statistics: statistics(def, totals as unknown as Record<string, number>),
 });
 
+/** The session state both fatigue curves read off, as of this response: the
+ *  strained-minute accumulator rested to now, how tired that leaves the character, and the
+ *  warm-up it drives. A client drawing the warm-up bar for somebody who isn't mid-play has
+ *  nowhere else to get it. */
+const tiredness = (profile: ProfileRow, tired: Tiredness) => {
+	const fatigue = profile.fatigue ?? undefined;
+	return {
+		fatigue: {
+			minutes: Math.round(restedFatigue(fatigue, Date.now()) * 1000) / 1000,
+			level: tired.fatigue,
+			at: fatigue && iso(new Date(fatigue.at)),
+		},
+		warmup: {
+			level: tired.warmup, bar: tired.warmupBar,
+		},
+	};
+};
+
 export const apiUser = (
 	def: RulesetDef,
 	user: UserRow,
@@ -92,6 +112,7 @@ export const apiUser = (
 	profile: ProfileRow,
 	totals: CharacterTotalsRow,
 	ranks: { global?: number; country?: number },
+	tired: Tiredness,
 ) => {
 	const { mode, variant }: { mode: string, variant?: string } = RULESETS[def.id];
 	const supporter = supporterActive(user);
@@ -110,6 +131,7 @@ export const apiUser = (
 		support_level: supportLevel(supporter, user.supporterMonths),
 		join_date: iso(user.createdAt),
 		statistics: userStatistics(def, profile, totals, ranks),
+		...tiredness(profile, tired),
 		skills: Object.fromEntries(def.skills.map(s => {
 			const skill = skillOf(profile, s);
 			return [s, {

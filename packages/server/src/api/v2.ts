@@ -124,7 +124,7 @@ const fullUser = async (
 	]);
 	return apiUser(r.def, user, character, profile, totals, {
 		global, country,
-	});
+	}, r.play.tiredness(profile));
 };
 
 const listQuery = valid('query', z.object({

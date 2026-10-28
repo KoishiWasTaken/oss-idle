@@ -78,6 +78,12 @@ const USER = {
 	support_level: 0,
 	join_date: '2026-06-06T15:36:55.000Z',
 	statistics: STATISTICS,
+	fatigue: {
+		minutes: 54.171, level: 0, at: '2026-07-07T17:56:34.000Z',
+	},
+	warmup: {
+		level: 1, bar: 0.448,
+	},
 	skills: {
 		stamina: {
 			level: 100, progress: 42, total_xp: 5294299, prestige: 0, upgrades: 4,
@@ -677,6 +683,12 @@ export const OBJECTS: ObjectDoc[] = [
 			['support_level', 'integer', '0 to 3: the hearts on the profile.'],
 			['join_date', 'Timestamp', ''],
 			['statistics', 'UserStatistics', ''],
+			['fatigue', 'object', 'The session the character is in: minutes, the strained minutes it has'
+				+ ' accumulated as of this response; level, 0 rested to 1 exhausted; and at, when the'
+				+ ' last play that moved it ended.'],
+			['warmup', 'object', 'level, 0 cold to 1 warm, and bar, where the warm-up bar\'s needle'
+				+ ' sits, 0 to 1. Both are a function of the fatigue minutes and the character\'s'
+				+ ' stamina upgrades.'],
 			['skills', 'object', 'Each skill with its level, progress, total_xp, prestige and upgrades.'
 				+ ' The level shown in game is level + progress / 100 + prestige; total_xp counts'
 				+ ' from the last prestige.'],
