@@ -27,6 +27,7 @@ import {
 	apiBaseUrl,
 	clientUrl,
 } from '../env';
+import type { LivePlay } from '../play';
 import { levelPercent } from './levelPercent';
 
 /** osu!'s API objects, in its snake_case, with the fields we have. */
@@ -139,6 +140,22 @@ export const apiScore = (def: RulesetDef, score: ScoreDTO) => ({
 	mods: score.mods,
 	statistics: statistics(def, score.judgements),
 	ended_at: new Date(score.playedAt).toISOString(),
+});
+
+/** A play in flight, as `GET /characters/{character}/playing` serves it. */
+export const apiLivePlay = (play: LivePlay, now: number) => ({
+	beatmap_id: play.beatmapId,
+	ruleset: play.ruleset,
+	rate: play.rate,
+	mods: play.mods,
+	ranked: play.ranked,
+	started_at: iso(new Date(play.startedAt)),
+	ends_at: iso(new Date(play.endsAt)),
+	server_now: iso(new Date(now)),
+	fatigue: play.fatigue,
+	warmup: play.warmup,
+	warmup_bar: play.warmupBar,
+	warmup_trend: play.warmupTrend,
 });
 
 type BeatmapInput = Omit<BeatmapRow, 'chart'>;
